@@ -433,7 +433,7 @@ while running:
                 move_coordinates = board_index_to_coordinates_map[chosen_play[0]]
                 P1_sense_buffer = chosen_play[1]
 
-                print(P1_information_set, chosen_play[0], chosen_play[1])
+                # print(P1_information_set, chosen_play[0], chosen_play[1])
                 
                 if (move_coordinates[0], move_coordinates[1], turn) and (move_coordinates[0], move_coordinates[1], not turn) not in moves:
                     game_over = make_move((move_coordinates[0], move_coordinates[1], turn))
