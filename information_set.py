@@ -21,7 +21,7 @@ class InformationSet(TicTacToeBoard):
 
         :return: list of states
         """
-        num_unknown_opponent_moves = self.get_number_of_unknown_moves()
+        num_unknown_opponent_moves = self.get_number_of_unknown_opponent_moves()
 
         if num_unknown_opponent_moves == 0:
             return [self.board]
@@ -77,8 +77,30 @@ class InformationSet(TicTacToeBoard):
                     break
         return valid_sense
 
-    def get_number_of_unknown_moves(self):
-        pass
+    def get_number_of_unknown_opponent_moves(self):
+        """
+        :return: int
+        """
+        count_x = 0
+        count_o = 0
+        board_array = self.__arr__()
+        for i in range(len(board_array)):
+            if board_array[i] == 'x':
+                count_x += 1
+            if board_array[i] == 'o':
+                count_o += 1
+        if self.player == 'x':
+            return count_x - count_o
+        else:
+            return count_o - count_x
 
     def get_uncertain_squares(self):
-        pass
+        """
+        :return: list of uncertain squares
+        """
+        board_array = self.__arr__()
+        uncertain_squares = []
+        for i in range(len(board_array)):
+            if board_array[i] == '-':
+                uncertain_squares.append(i)
+        return uncertain_squares
