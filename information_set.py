@@ -1,4 +1,5 @@
 from TicTacToe import TicTacToeBoard
+from sympy.utilities.iterables import multiset_permutations
 
 
 class InformationSet(TicTacToeBoard):
@@ -8,16 +9,37 @@ class InformationSet(TicTacToeBoard):
 
     def __init__(self, player, board):
         """
-
-        :param player:
-        :param board:
+        :param player: x, o
+        :param board: bytes object indicating the information set of player
         """
         TicTacToeBoard.__init__(self, board)
         self.sense_square_dict = {9: [0, 1, 3, 4], 10: [1, 2, 4, 5], 11: [3, 4, 6, 7], 12: [4, 5, 7, 8]}
         self.player = player
 
     def get_states(self):
-        pass
+        """ Get the states part of the information set
+
+        :return: list of states
+        """
+        num_unknown_opponent_moves = self.get_number_of_unknown_moves()
+
+        if num_unknown_opponent_moves == 0:
+            return [self.board]
+        else:
+            output_states = []
+            uncertain_ind = self.get_uncertain_squares()
+            base_perm = [self.player] * num_unknown_opponent_moves + ['-'] * (
+                    len(uncertain_ind) - num_unknown_opponent_moves)
+
+            perm_itr = multiset_permutations(base_perm)
+            for perm in perm_itr:
+                new_state = TicTacToeBoard(board=self.board)
+                for j in perm:
+                    new_state[uncertain_ind[j]] = base_perm[j]
+
+                output_states.append(new_state)
+
+            return output_states
 
     def get_actions(self, move_flag=True):
         """
@@ -54,3 +76,9 @@ class InformationSet(TicTacToeBoard):
                     valid_sense.append(key)
                     break
         return valid_sense
+
+    def get_number_of_unknown_moves(self):
+        pass
+
+    def get_uncertain_squares(self):
+        pass
