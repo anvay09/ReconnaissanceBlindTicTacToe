@@ -95,7 +95,15 @@ class InformationSet(TicTacToeBoard):
             return count_o - count_x
 
     def get_uncertain_squares(self):
-        pass
+        """
+        :return: list of uncertain squares
+        """
+        board_array = self.__arr__()
+        uncertain_squares = []
+        for i in range(len(board_array)):
+            if board_array[i] == '-':
+                uncertain_squares.append(i)
+        return uncertain_squares
 
 
 num_histories = 0
