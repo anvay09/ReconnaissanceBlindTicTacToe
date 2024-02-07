@@ -7,7 +7,7 @@ class InformationSet(TicTacToeBoard):
     Inherit data and functions from TicTacToeBoard
     """
 
-    def __init__(self, player, board):
+    def __init__(self, player, board=None):
         """
         :param player: x, o
         :param board: bytes object indicating the information set of player
@@ -16,15 +16,18 @@ class InformationSet(TicTacToeBoard):
         self.sense_square_dict = {9: [0, 1, 3, 4], 10: [1, 2, 4, 5], 11: [3, 4, 6, 7], 12: [4, 5, 7, 8]}
         self.player = player
 
+    def copy(self):
+        return InformationSet(self.player, self.board)
+
     def get_states(self):
         """ Get the states part of the information set
 
-        :return: list of states
+        :return: list of TicTacToeBoard objects
         """
         num_unknown_opponent_moves = self.get_number_of_unknown_opponent_moves()
 
         if num_unknown_opponent_moves == 0:
-            return [self.board]
+            return [TicTacToeBoard(self.board)]
         else:
             output_states = []
             uncertain_ind = self.get_uncertain_squares()
@@ -34,7 +37,7 @@ class InformationSet(TicTacToeBoard):
             perm_itr = multiset_permutations(base_perm)
             for perm in perm_itr:
                 new_state = TicTacToeBoard(board=self.board)
-                for j in perm:
+                for j in range(len(perm)):
                     new_state[uncertain_ind[j]] = base_perm[j]
 
                 output_states.append(new_state)
@@ -57,10 +60,9 @@ class InformationSet(TicTacToeBoard):
         """
         :return: list of valid actions
         """
-        board_array = self.__arr__()
         valid_moves = []
-        for i in range(len(board_array)):
-            if board_array[i] == '0' or board_array[i] == '-':
+        for i in range(len(self.board)):
+            if self.board[i] == ord('0') or self.board[i] == ord('-'):
                 valid_moves.append(i)
         return valid_moves
 
@@ -68,11 +70,10 @@ class InformationSet(TicTacToeBoard):
         """
         :return: list of valid senses
         """
-        board_array = self.__arr__()
         valid_sense = []
         for key, value in self.sense_square_dict.items():
             for i in range(len(value)):
-                if board_array[i] == '-':
+                if self.board[i] == ord('-'):
                     valid_sense.append(key)
                     break
         return valid_sense
@@ -83,33 +84,51 @@ class InformationSet(TicTacToeBoard):
         """
         count_x = 0
         count_o = 0
-        board_array = self.__arr__()
-        for i in range(len(board_array)):
-            if board_array[i] == 'x':
+        for i in range(len(self.board)):
+            if self.board[i] == ord('x'):
                 count_x += 1
-            if board_array[i] == 'o':
+            if self.board[i] == ord('o'):
                 count_o += 1
         if self.player == 'x':
             return count_x - count_o
         else:
-            return count_o - count_x
+            return count_o - count_x + 1
 
     def get_uncertain_squares(self):
         """
         :return: list of uncertain squares
         """
-        board_array = self.__arr__()
         uncertain_squares = []
-        for i in range(len(board_array)):
-            if board_array[i] == '-':
+        for i in range(len(self.board)):
+            if self.board[i] == ord('-'):
                 uncertain_squares.append(i)
         return uncertain_squares
+
+    def simulate_sense(self, action, true_board):
+        self.reset_zeros()
+        for square in self.sense_square_dict[action]:
+            self.board[square] = true_board.board[square]
+
+    def reset_zeros(self):
+        for i in range(len(self.board)):
+            if self.board[i] == ord('0'):
+                self.board[i] = ord('-')
+                # error : TypeError: 'bytes' object does not support item assignment
 
 
 num_histories = 0
 
 
 def play(I_1, I_2, true_board, player, move_flag=True):
+    """
+
+    :param I_1:
+    :param I_2:
+    :param true_board:
+    :param player:
+    :param move_flag:
+    :return:
+    """
     global num_histories
     if player == 'x':
         I = I_1
@@ -117,32 +136,65 @@ def play(I_1, I_2, true_board, player, move_flag=True):
         I = I_2
 
     actions = I.get_actions(move_flag)
-    states = I.get_states()
+
 
     if move_flag:
+        states = I.get_states()
         for action in actions:
             output_states = []
             for state in states:
-                new_state = state.copy().update_move(action, player)
+                new_state = state.copy()
+                new_state.update_move(action, player)
                 if new_state.is_over():
                     num_histories += 1
+                    print("{}\n".format(num_histories))
                 else:
                     output_states.append(new_state)
 
-            # I = get_intersection(output_states)
-            # true_board = true_board.copy().update_move(action, player)
+            new_I = get_information_set_from_states(output_states, player)
+            new_I.reset_zeros()
+            new_true_board = true_board.copy()
+            new_true_board.update_move(action, player)
 
             if player == 'x':
-                play(I, I_2, true_board, 'o', False)
+                play(new_I, I_2, new_true_board, 'o', False)
             else:
-                play(I_1, I, true_board, 'x', False)
+                play(I_1, new_I, new_true_board, 'x', False)
 
     else:
         for action in actions:
-            # I = simulate_sense(I, action, true_board)
-            # true_board = true_board.copy()
+            new_I = I.copy()
+            new_I.simulate_sense(action, true_board)
+            new_true_board = true_board.copy()
 
             if player == 'x':
-                play(I, I_2, true_board, 'o', True)
+                play(new_I, I_2, new_true_board, 'x', True)
             else:
-                play(I_1, I, true_board, 'x', True)
+                play(I_1, new_I, new_true_board, 'o', True)
+
+
+def get_information_set_from_states(states, player):
+    """
+    :param states: list of TicTacTie boards
+    :param player: 'x' or 'o'
+    :return: Information set object
+    """
+    I = InformationSet(player)
+    for i in range(9):
+        flag = 0
+        temp = states[0][i]
+        for state in states:
+            if not state[i] == temp:
+                flag = 1
+                break
+        if flag:
+            I[i] = '-'
+        else:
+            I[i] = temp
+    return I
+
+
+if __name__ == "__main__":
+    play(InformationSet(player='x'), InformationSet(player='o', board=bytearray('---------', encoding='utf-8')),
+         TicTacToeBoard(), player='x', move_flag=True)
+    pass
