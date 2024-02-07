@@ -66,10 +66,10 @@ class TicTacToeBoard:
         else:
             return self.board[square] == ord('0')
 
-    def update_move(self, square, turn):
+    def update_move(self, square, player):
         if self.is_valid_move(square):
             arr_board = self.__arr__()
-            arr_board[square] = turn
+            arr_board[square] = player
             self.board = self.array_to_bytearray(arr_board)
             return True
         return False

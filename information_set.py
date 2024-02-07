@@ -95,12 +95,46 @@ class InformationSet(TicTacToeBoard):
             return count_o - count_x
 
     def get_uncertain_squares(self):
-        """
-        :return: list of uncertain squares
-        """
-        board_array = self.__arr__()
-        uncertain_squares = []
-        for i in range(len(board_array)):
-            if board_array[i] == '-':
-                uncertain_squares.append(i)
-        return uncertain_squares
+        pass
+
+
+num_histories = 0
+
+def play(I_1, I_2, true_board, player, move_flag=True): 
+    global num_histories
+    if player == 'x':
+        I = I_1
+    else:
+        I = I_2
+    
+    actions = I.get_actions(move_flag)
+    states = I.get_states()
+
+    if move_flag:
+        for action in actions:
+            output_states = []
+            for state in states:
+                new_state = state.copy().update_move(action, player)
+                if new_state.is_over():
+                    num_histories += 1
+                else:
+                    output_states.append(new_state)
+
+            # I = get_intersection(output_states)
+            # true_board = true_board.copy().update_move(action, player)
+                    
+            if player == 'x':
+                play(I, I_2, true_board, 'o', False)
+            else:
+                play(I_1, I, true_board, 'x', False)
+            
+    else:
+        for action in actions:
+            # I = simulate_sense(I, action, true_board)
+            # true_board = true_board.copy()
+
+            if player == 'x':
+                play(I, I_2, true_board, 'o', True)
+            else:
+                play(I_1, I, true_board, 'x', True)
+        
