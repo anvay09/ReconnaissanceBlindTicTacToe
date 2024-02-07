@@ -18,4 +18,3 @@ if __name__ == '__main__':
     board.update_move(6, 'x')
     board.print_board()
     print(board.is_win())
-    
