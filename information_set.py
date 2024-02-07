@@ -108,13 +108,14 @@ class InformationSet(TicTacToeBoard):
 
 num_histories = 0
 
-def play(I_1, I_2, true_board, player, move_flag=True): 
+
+def play(I_1, I_2, true_board, player, move_flag=True):
     global num_histories
     if player == 'x':
         I = I_1
     else:
         I = I_2
-    
+
     actions = I.get_actions(move_flag)
     states = I.get_states()
 
@@ -130,12 +131,12 @@ def play(I_1, I_2, true_board, player, move_flag=True):
 
             # I = get_intersection(output_states)
             # true_board = true_board.copy().update_move(action, player)
-                    
+
             if player == 'x':
                 play(I, I_2, true_board, 'o', False)
             else:
                 play(I_1, I, true_board, 'x', False)
-            
+
     else:
         for action in actions:
             # I = simulate_sense(I, action, true_board)
@@ -145,4 +146,3 @@ def play(I_1, I_2, true_board, player, move_flag=True):
                 play(I, I_2, true_board, 'o', True)
             else:
                 play(I_1, I, true_board, 'x', True)
-        
