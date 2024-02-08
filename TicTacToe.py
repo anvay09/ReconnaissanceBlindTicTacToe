@@ -17,9 +17,9 @@ class TicTacToeBoard:
 
     # assign to [] operator
     def __setitem__(self, key, value):
-        arr_board = self.__arr__()
-        arr_board[key] = value
-        self.board = self.array_to_bytearray(arr_board)
+        board_arr = self.__arr__()
+        board_arr[key] = value
+        self.board = self.array_to_bytearray(board_arr)
 
     def __eq__(self, other):
         return self.board == other.board
@@ -27,26 +27,26 @@ class TicTacToeBoard:
     def copy(self):
         return TicTacToeBoard(self.board)
 
-    def string_to_bytearray(self, str_board):
-        return str_board.encode(encoding='utf-8')
+    def string_to_bytearray(self, board_str):
+        return board_str.encode(encoding='utf-8')
 
-    def array_to_bytearray(self, arr_board):
-        return ''.join(arr_board).encode(encoding='utf-8')
+    def array_to_bytearray(self, board_arr):
+        return ''.join(board_arr).encode(encoding='utf-8')
 
     def is_win(self):  # returns a boolean (True or False) and the winner ('x or 'o' or None)
-        arr_board = self.__arr__()
+        board_arr = self.__arr__()
         for i in range(3):
-            if (arr_board[3 * i] == arr_board[3 * i + 1] == arr_board[3 * i + 2] != '0'):
-                return True, arr_board[3 * i]
+            if (board_arr[3 * i] == board_arr[3 * i + 1] == board_arr[3 * i + 2] != '0'):
+                return True, board_arr[3 * i]
 
-            if (arr_board[i] == arr_board[i + 3] == arr_board[i + 6] != '0'):
-                return True, arr_board[i]
+            if (board_arr[i] == board_arr[i + 3] == board_arr[i + 6] != '0'):
+                return True, board_arr[i]
 
-        if (arr_board[0] == arr_board[4] == arr_board[8] != '0'):
-            return True, arr_board[0]
+        if (board_arr[0] == board_arr[4] == board_arr[8] != '0'):
+            return True, board_arr[0]
 
-        if (arr_board[2] == arr_board[4] == arr_board[6] != '0'):
-            return True, arr_board[2]
+        if (board_arr[2] == board_arr[4] == board_arr[6] != '0'):
+            return True, board_arr[2]
 
         return False, None
 
@@ -68,9 +68,9 @@ class TicTacToeBoard:
 
     def update_move(self, square, player):
         if self.is_valid_move(square):
-            arr_board = self.__arr__()
-            arr_board[square] = player
-            self.board = self.array_to_bytearray(arr_board)
+            board_arr = self.__arr__()
+            board_arr[square] = player
+            self.board = self.array_to_bytearray(board_arr)
             return True
         return False
 

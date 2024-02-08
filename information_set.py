@@ -107,14 +107,16 @@ class InformationSet(TicTacToeBoard):
     def simulate_sense(self, action, true_board):
         self.reset_zeros()
         for square in self.sense_square_dict[action]:
-            self.board[square] = true_board.board[square]
+            board_arr = self.__arr__()
+            board_arr[square] = true_board[square]
+            self.board = self.array_to_bytearray(board_arr)
 
     def reset_zeros(self):
         for i in range(len(self.board)):
             if self.board[i] == ord('0'):
-                self.board[i] = ord('-')
-                # error : TypeError: 'bytes' object does not support item assignment
-
+                board_arr = self.__arr__()
+                board_arr[i] = '-'
+                self.board = self.array_to_bytearray(board_arr)
 
 num_histories = 0
 
@@ -154,12 +156,14 @@ def play(I_1, I_2, true_board, player, move_flag=True):
             new_I = get_information_set_from_states(output_states, player)
             new_I.reset_zeros()
             new_true_board = true_board.copy()
-            new_true_board.update_move(action, player)
-
-            if player == 'x':
-                play(new_I, I_2, new_true_board, 'o', False)
+            success = new_true_board.update_move(action, player)
+            if success:
+                if player == 'x':
+                    play(new_I, I_2, new_true_board, 'o', False)
+                else:
+                    play(I_1, new_I, new_true_board, 'x', False)
             else:
-                play(I_1, new_I, new_true_board, 'x', False)
+                continue
 
     else:
         for action in actions:
