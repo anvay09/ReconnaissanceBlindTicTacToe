@@ -182,6 +182,7 @@ def play(I_1, I_2, true_board, player, move_flag=True):
         I = I_2
 
     actions = I.get_actions(move_flag)
+    print("Actions: ", actions)
     # print("True Board:", true_board, "I_1:", I_1.board, "I_2:", I_2.board)
 
     if move_flag:
@@ -196,8 +197,9 @@ def play(I_1, I_2, true_board, player, move_flag=True):
                 valid = new_state.update_move(action, player)
 
                 if new_state.is_over() or new_state.is_win()[0] or not valid:
-                    num_histories += 1
-                    print("Line 200: {}\n".format(num_histories))
+                    # num_histories += 1
+                    # print("Line 200: {}\n".format(num_histories))
+                    pass
                 else:
                     output_states.append(new_state)
 
@@ -234,10 +236,10 @@ def play(I_1, I_2, true_board, player, move_flag=True):
 
 
 if __name__ == "__main__":
-    true_board = TicTacToeBoard(board=bytearray('0000x0000', encoding='utf-8'))
-    I_1 = InformationSet(player='x', board=bytearray('----x----', encoding='utf-8'))
-    I_2 = InformationSet(player='o', board=bytearray('00-0x----', encoding='utf-8'))
-    player = 'o'
-    move_flag = True
+    true_board = TicTacToeBoard(board=bytearray('ooxxxoox0', encoding='utf-8'))
+    I_1 = InformationSet(player='x', board=bytearray('--xxxoox-', encoding='utf-8'))
+    I_2 = InformationSet(player='o', board=bytearray('oox-xoo--', encoding='utf-8'))
+    player = 'x'
+    move_flag = False
 
     play(I_1, I_2, true_board, player, move_flag)
