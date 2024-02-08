@@ -16,6 +16,12 @@ class InformationSet(TicTacToeBoard):
         self.sense_square_dict = {9: [0, 1, 3, 4], 10: [1, 2, 4, 5], 11: [3, 4, 6, 7], 12: [4, 5, 7, 8]}
         self.player = player
 
+    def other_player(self):
+        if self.player == 'x':
+            return 'o'
+        else:
+            return 'x'
+        
     def copy(self):
         return InformationSet(self.player, self.board)
 
@@ -36,7 +42,7 @@ class InformationSet(TicTacToeBoard):
         else:
             output_states = []
             uncertain_ind = self.get_uncertain_squares()
-            base_perm = [self.player] * num_unknown_opponent_moves + ['0'] * (
+            base_perm = [self.other_player()] * num_unknown_opponent_moves + ['0'] * (
                     len(uncertain_ind) - num_unknown_opponent_moves)
             
             perm_itr = multiset_permutations(base_perm)
@@ -182,7 +188,7 @@ def play(I_1, I_2, true_board, player, move_flag=True):
                 else:
                     output_states.append(new_state)
 
-            print("Output States:", output_states)
+            print("Output States:", output_states, "True Board:", true_board, "Player:", player, "Action:", action)
             new_I = get_information_set_from_states(output_states, player)
             new_I.reset_zeros()
             new_true_board = true_board.copy()
