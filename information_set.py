@@ -38,7 +38,7 @@ class InformationSet(TicTacToeBoard):
             uncertain_ind = self.get_uncertain_squares()
             base_perm = [self.player] * num_unknown_opponent_moves + ['0'] * (
                     len(uncertain_ind) - num_unknown_opponent_moves)
-            # bug here -- need to fix: new_state[uncertain_ind[j]] = perm[j], IndexError: list index out of range, num_unknown_opponent_moves is negative
+            
             perm_itr = multiset_permutations(base_perm)
             for perm in perm_itr:
                 new_state = TicTacToeBoard(board=board_byte)
@@ -126,62 +126,6 @@ class InformationSet(TicTacToeBoard):
 num_histories = 0
 
 
-def play(I_1, I_2, true_board, player, move_flag=True):
-    """
-
-    :param I_1:
-    :param I_2:
-    :param true_board:
-    :param player:
-    :param move_flag:
-    :return:
-    """
-    global num_histories
-    if player == 'x':
-        I = I_1
-    else:
-        I = I_2
-
-    actions = I.get_actions(move_flag)
-
-
-    if move_flag:
-        states = I.get_states()
-        for action in actions:
-            output_states = []
-            for state in states:
-                new_state = state.copy()
-                new_state.update_move(action, player)
-                if new_state.is_over():
-                    num_histories += 1
-                    print("{}\n".format(num_histories))
-                else:
-                    output_states.append(new_state)
-
-            new_I = get_information_set_from_states(output_states, player)
-            new_I.reset_zeros()
-            new_true_board = true_board.copy()
-            success = new_true_board.update_move(action, player)
-            if success:
-                if player == 'x':
-                    play(new_I, I_2, new_true_board, 'o', False)
-                else:
-                    play(I_1, new_I, new_true_board, 'x', False)
-            else:
-                continue
-
-    else:
-        for action in actions:
-            new_I = I.copy()
-            new_I.simulate_sense(action, true_board)
-            new_true_board = true_board.copy()
-
-            if player == 'x':
-                play(new_I, I_2, new_true_board, 'x', True)
-            else:
-                play(I_1, new_I, new_true_board, 'o', True)
-
-
 def get_information_set_from_states(states, player):
     """
     :param states: list of TicTacTie boards
@@ -201,6 +145,69 @@ def get_information_set_from_states(states, player):
         else:
             I[i] = temp
     return I
+
+
+def play(I_1, I_2, true_board, player, move_flag=True):
+    """
+    :param I_1:
+    :param I_2:
+    :param true_board:
+    :param player:
+    :param move_flag:
+    :return:
+    """
+    global num_histories
+    if player == 'x':
+        I = I_1
+    else:
+        I = I_2
+
+    actions = I.get_actions(move_flag)
+    print("True Board:", true_board)
+
+    if move_flag:
+        states = I.get_states()
+        for i in range(len(states)):
+            print("State {}: {}".format(i, states[i]))
+
+        for action in actions:
+            output_states = []
+            for state in states:
+                new_state = state.copy()
+                new_state.update_move(action, player)
+                
+                if new_state.is_over() or new_state.is_win()[0]:
+                    num_histories += 1
+                    print("Line 181: {}\n".format(num_histories))
+                else:
+                    output_states.append(new_state)
+
+            print("Output States:", output_states)
+            new_I = get_information_set_from_states(output_states, player)
+            new_I.reset_zeros()
+            new_true_board = true_board.copy()
+            success = new_true_board.update_move(action, player)
+            
+            if success and not new_true_board.is_win()[0] and not new_true_board.is_over():    
+                if player == 'x':
+                    play(new_I, I_2, new_true_board, 'o', False)
+                else:
+                    play(I_1, new_I, new_true_board, 'x', False)
+            else:
+                num_histories += 1
+                print("Line 197: {}\n".format(num_histories))
+
+    else:
+        for action in actions:
+            new_I = I.copy()
+            new_I.simulate_sense(action, true_board)
+            new_true_board = true_board.copy()
+
+            if player == 'x':
+                play(new_I, I_2, new_true_board, 'x', True)
+            else:
+                play(I_1, new_I, new_true_board, 'o', True)
+
 
 
 if __name__ == "__main__":

@@ -54,6 +54,7 @@ class TicTacToeBoard:
         for i in range(9):
             if self.board[i] == ord('0'):
                 return False
+        return True
 
     def is_draw(self):
         if not self.is_win() and self.is_over():
