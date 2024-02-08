@@ -30,6 +30,9 @@ class InformationSet(TicTacToeBoard):
 
         :return: list of TicTacToeBoard objects
         """
+        # print("\nPlayer: ", self.player)
+        # print("I:", self.board)
+
         num_unknown_opponent_moves = self.get_number_of_unknown_opponent_moves()
         board_arr = self.__arr__()
         for i in range(len(board_arr)):
@@ -38,6 +41,7 @@ class InformationSet(TicTacToeBoard):
         board_byte = self.array_to_bytearray(board_arr)
 
         if num_unknown_opponent_moves == 0:
+            # print("Board Byte: ", board_byte)
             return [TicTacToeBoard(board_byte)]
         else:
             output_states = []
@@ -53,6 +57,9 @@ class InformationSet(TicTacToeBoard):
 
                 output_states.append(new_state)
 
+
+            # for s in output_states:
+            #     print(s.board)
             return output_states
 
     def get_actions(self, move_flag=True):
@@ -138,6 +145,9 @@ def get_information_set_from_states(states, player):
     :param player: 'x' or 'o'
     :return: Information set object
     """
+    # for state in states:
+    #     print("State: ", state.board)
+
     I = InformationSet(player)
     for i in range(9):
         flag = 0
@@ -150,6 +160,9 @@ def get_information_set_from_states(states, player):
             I[i] = '-'
         else:
             I[i] = temp
+
+    # print("Player: ", I.player)
+    # print("I: ", I.board, "\n")
     return I
 
 
@@ -169,39 +182,43 @@ def play(I_1, I_2, true_board, player, move_flag=True):
         I = I_2
 
     actions = I.get_actions(move_flag)
-    print("True Board:", true_board)
+    # print("True Board:", true_board, "I_1:", I_1.board, "I_2:", I_2.board)
 
     if move_flag:
         states = I.get_states()
-        for i in range(len(states)):
-            print("State {}: {}".format(i, states[i]))
+        # for i in range(len(states)):
+            # print("State {}: {}".format(i, states[i]))
 
         for action in actions:
             output_states = []
             for state in states:
                 new_state = state.copy()
-                new_state.update_move(action, player)
-                
-                if new_state.is_over() or new_state.is_win()[0]:
+                valid = new_state.update_move(action, player)
+
+                if new_state.is_over() or new_state.is_win()[0] or not valid:
                     num_histories += 1
-                    print("Line 181: {}\n".format(num_histories))
+                    print("Line 200: {}\n".format(num_histories))
                 else:
                     output_states.append(new_state)
 
-            print("Output States:", output_states, "True Board:", true_board, "Player:", player, "Action:", action)
-            new_I = get_information_set_from_states(output_states, player)
-            new_I.reset_zeros()
+            # print("Output States:", output_states, "True Board:", true_board, "Player:", player, "Action:", action, "Actions:", actions)
+            # if output_states == []:
+            #     continue
+
             new_true_board = true_board.copy()
             success = new_true_board.update_move(action, player)
             
             if success and not new_true_board.is_win()[0] and not new_true_board.is_over():    
+                new_I = get_information_set_from_states(output_states, player)
+                new_I.reset_zeros()
+
                 if player == 'x':
                     play(new_I, I_2, new_true_board, 'o', False)
                 else:
                     play(I_1, new_I, new_true_board, 'x', False)
             else:
                 num_histories += 1
-                print("Line 197: {}\n".format(num_histories))
+                print("Line 221: {}\n".format(num_histories))
 
     else:
         for action in actions:
