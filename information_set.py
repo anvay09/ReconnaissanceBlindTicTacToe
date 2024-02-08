@@ -33,12 +33,12 @@ class InformationSet(TicTacToeBoard):
             uncertain_ind = self.get_uncertain_squares()
             base_perm = [self.player] * num_unknown_opponent_moves + ['-'] * (
                     len(uncertain_ind) - num_unknown_opponent_moves)
-
+            # bug here -- need to fix: new_state[uncertain_ind[j]] = perm[j], IndexError: list index out of range, num_unknown_opponent_moves is negative
             perm_itr = multiset_permutations(base_perm)
             for perm in perm_itr:
                 new_state = TicTacToeBoard(board=self.board)
                 for j in range(len(perm)):
-                    new_state[uncertain_ind[j]] = base_perm[j]
+                    new_state[uncertain_ind[j]] = perm[j]
 
                 output_states.append(new_state)
 
