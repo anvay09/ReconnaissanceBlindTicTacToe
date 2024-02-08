@@ -25,18 +25,23 @@ class InformationSet(TicTacToeBoard):
         :return: list of TicTacToeBoard objects
         """
         num_unknown_opponent_moves = self.get_number_of_unknown_opponent_moves()
+        board_arr = self.__arr__()
+        for i in range(len(board_arr)):
+            if board_arr[i] == '-':
+                board_arr[i] = '0'
+        board_byte = self.array_to_bytearray(board_arr)
 
         if num_unknown_opponent_moves == 0:
-            return [TicTacToeBoard(self.board)]
+            return [TicTacToeBoard(board_byte)]
         else:
             output_states = []
             uncertain_ind = self.get_uncertain_squares()
-            base_perm = [self.player] * num_unknown_opponent_moves + ['-'] * (
+            base_perm = [self.player] * num_unknown_opponent_moves + ['0'] * (
                     len(uncertain_ind) - num_unknown_opponent_moves)
             # bug here -- need to fix: new_state[uncertain_ind[j]] = perm[j], IndexError: list index out of range, num_unknown_opponent_moves is negative
             perm_itr = multiset_permutations(base_perm)
             for perm in perm_itr:
-                new_state = TicTacToeBoard(board=self.board)
+                new_state = TicTacToeBoard(board=board_byte)
                 for j in range(len(perm)):
                     new_state[uncertain_ind[j]] = perm[j]
 
