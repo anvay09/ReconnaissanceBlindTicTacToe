@@ -91,7 +91,7 @@ class InformationSet(TicTacToeBoard):
         valid_sense = []
         for key, value in self.sense_square_dict.items():
             for i in range(len(value)):
-                if self.board[i] == ord('-'):
+                if self.board[value[i]] == ord('-'):
                     valid_sense.append(key)
                     break
         return valid_sense
@@ -182,7 +182,7 @@ def play(I_1, I_2, true_board, player, move_flag=True):
         I = I_2
 
     actions = I.get_actions(move_flag)
-    print("Actions: ", actions)
+    # print("Actions: ", actions)
     # print("True Board:", true_board, "I_1:", I_1.board, "I_2:", I_2.board)
 
     if move_flag:
@@ -220,7 +220,7 @@ def play(I_1, I_2, true_board, player, move_flag=True):
                     play(I_1, new_I, new_true_board, 'x', False)
             else:
                 num_histories += 1
-                print("Line 221: {}\n".format(num_histories))
+                print("Histories: {}\n".format(num_histories))
 
     else:
         for action in actions:
@@ -236,10 +236,10 @@ def play(I_1, I_2, true_board, player, move_flag=True):
 
 
 if __name__ == "__main__":
-    true_board = TicTacToeBoard(board=bytearray('ooxxxoox0', encoding='utf-8'))
-    I_1 = InformationSet(player='x', board=bytearray('--xxxoox-', encoding='utf-8'))
-    I_2 = InformationSet(player='o', board=bytearray('oox-xoo--', encoding='utf-8'))
-    player = 'x'
-    move_flag = False
+    true_board = TicTacToeBoard(board=bytearray('0000x0000', encoding='utf-8'))
+    I_1 = InformationSet(player='x', board=bytearray('----x----', encoding='utf-8'))
+    I_2 = InformationSet(player='o', board=bytearray('00-0x----', encoding='utf-8'))
+    player = 'o'
+    move_flag = True
 
     play(I_1, I_2, true_board, player, move_flag)
