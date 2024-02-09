@@ -125,8 +125,6 @@ class InformationSet(TicTacToeBoard):
             if self.board[i] == '0':
                 self.board[i] = '-'
 
-num_histories = 0
-
 
 def get_information_set_from_states(states, player):
     """
@@ -162,7 +160,8 @@ def play(I_1, I_2, true_board, player, move_flag=True):
     :param move_flag:
     :return:
     """
-    global num_histories
+    num_histories = 0
+
     if player == 'x':
         I = I_1
     else:
@@ -192,12 +191,12 @@ def play(I_1, I_2, true_board, player, move_flag=True):
                 new_I.reset_zeros()
 
                 if player == 'x':
-                    play(new_I, I_2, new_true_board, 'o', False)
+                    num_histories += play(new_I, I_2, new_true_board, 'o', False)
                 else:
-                    play(I_1, new_I, new_true_board, 'x', False)
+                    num_histories += play(I_1, new_I, new_true_board, 'x', False)
             else:
                 num_histories += 1
-                print("Histories: {}\n".format(num_histories))
+                # print("Histories: {}\n".format(num_histories))
 
     else:
         for action in actions:
@@ -206,9 +205,11 @@ def play(I_1, I_2, true_board, player, move_flag=True):
             new_true_board = true_board.copy()
 
             if player == 'x':
-                play(new_I, I_2, new_true_board, 'x', True)
+                num_histories += play(new_I, I_2, new_true_board, 'x', True)
             else:
-                play(I_1, new_I, new_true_board, 'o', True)
+                num_histories += play(I_1, new_I, new_true_board, 'o', True)
+
+    return num_histories
 
 
 
@@ -217,9 +218,10 @@ if __name__ == "__main__":
     I_1 = InformationSet(player='x', board=['o','-','-','-','x','-','x','-','-'])
     I_2 = InformationSet(player='o', board=['o','-','-','-','x','-','-','-','-'])
     player = 'o'
-    move_flag = False
+    move_flag = True
 
-    # play(I_1, I_2, true_board, player, move_flag)
+    # num_H = play(I_1, I_2, true_board, player, move_flag)
+    # print("Histories: ", num_H)
 
     I_1_vars = [I_1.copy(), I_1.copy(), I_1.copy(), I_1.copy()]
     I_2_vars = [I_2.copy(), I_2.copy(), I_2.copy(), I_2.copy()]
@@ -230,7 +232,9 @@ if __name__ == "__main__":
         I_2_vars[i].simulate_sense(keys[i], true_board)  
 
     with Pool(4) as pool:
-        pool.starmap(play, [(I_1_vars, I_2_vars[0], true_board_vars, player, move_flag),
-                            (I_1_vars, I_2_vars[1], true_board_vars, player, move_flag),
-                            (I_1_vars, I_2_vars[2], true_board_vars, player, move_flag),
-                            (I_1_vars, I_2_vars[3], true_board_vars, player, move_flag)])
+        obj_list = pool.starmap(play, [(I_1_vars[0], I_2_vars[0], true_board_vars[0], player, move_flag),
+                                        (I_1_vars[1], I_2_vars[1], true_board_vars[0], player, move_flag),
+                                        (I_1_vars[2], I_2_vars[2], true_board_vars[0], player, move_flag),
+                                        (I_1_vars[3], I_2_vars[3], true_board_vars[0], player, move_flag)])
+
+    print('Histories: ', sum(obj_list))
