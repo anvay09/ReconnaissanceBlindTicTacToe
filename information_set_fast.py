@@ -1,6 +1,6 @@
 from TicTacToe_fast import TicTacToeBoard
 from sympy.utilities.iterables import multiset_permutations
-
+from multiprocessing import Pool
 
 class InformationSet(TicTacToeBoard):
     """
@@ -213,10 +213,20 @@ def play(I_1, I_2, true_board, player, move_flag=True):
 
 
 if __name__ == "__main__":
-    true_board = TicTacToeBoard(board=['o','0','0','0','x','0','0','0','0'])
-    I_1 = InformationSet(player='x', board=['o','0','-','0','x','-','-','-','-'])
+    true_board = TicTacToeBoard(board=['o','0','0','0','x','0','x','0','0'])
+    I_1 = InformationSet(player='x', board=['o','-','-','-','x','-','x','-','-'])
     I_2 = InformationSet(player='o', board=['o','-','-','-','x','-','-','-','-'])
-    player = 'x'
-    move_flag = True
+    player = 'o'
+    move_flag = False
 
-    play(I_1, I_2, true_board, player, move_flag)
+    # play(I_1, I_2, true_board, player, move_flag)
+    I_2 = [I_2.copy().simulate_sense(9, true_board), 
+         I_2.copy().simulate_sense(10, true_board),
+         I_2.copy().simulate_sense(11, true_board), 
+         I_2.copy().simulate_sense(12, true_board)]
+    
+    with Pool(4) as pool:
+        pool.starmap(play, [(I_1.copy(), I_2[0], true_board.copy(), player, move_flag),
+                            (I_1.copy(), I_2[1], true_board.copy(), player, move_flag),
+                            (I_1.copy(), I_2[2], true_board.copy(), player, move_flag),
+                            (I_1.copy(), I_2[3], true_board.copy(), player, move_flag)])
