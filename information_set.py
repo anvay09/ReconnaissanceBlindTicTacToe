@@ -231,10 +231,10 @@ def play(I_1, I_2, true_board, player, move_flag=True):
 
 
 if __name__ == "__main__":
-    true_board = TicTacToeBoard(board=bytearray('o000x0000', encoding='utf-8'))
-    I_1 = InformationSet(player='x', board=bytearray('o0-0x----', encoding='utf-8'))
+    true_board = TicTacToeBoard(board=bytearray('ox00x0000', encoding='utf-8'))
+    I_1 = InformationSet(player='x', board=bytearray('ox--x----', encoding='utf-8'))
     I_2 = InformationSet(player='o', board=bytearray('o---x----', encoding='utf-8'))
-    player = 'x'
-    move_flag = True
+    player = 'o'
+    move_flag = False
 
     play(I_1, I_2, true_board, player, move_flag)

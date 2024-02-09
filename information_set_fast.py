@@ -248,12 +248,10 @@ if __name__ == "__main__":
             I_1_vars.append(new_I)
             I_2_vars.append(I_2.copy())
             true_board_vars.append(new_true_board)
-    
+            
     with Pool(len(I_1_vars)) as pool:
-        obj_list = pool.starmap(play, [(I_1_vars[i], I_2_vars[i], true_board_vars[i], 'o', 'False') for i in range(len(I_1_vars))])
+        obj_list = pool.starmap(play, [(I_1_vars[i], I_2_vars[i], true_board_vars[i], 'o', False) for i in range(len(I_1_vars))])
 
-    # num_H = play(I_1, I_2, true_board, player, move_flag)
-    # print("Histories: ", num_H)
 
     # I_1_vars = [I_1.copy(), I_1.copy(), I_1.copy(), I_1.copy()]
     # I_2_vars = [I_2.copy(), I_2.copy(), I_2.copy(), I_2.copy()]
