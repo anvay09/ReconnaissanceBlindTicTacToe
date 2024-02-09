@@ -214,18 +214,18 @@ def play(I_1, I_2, true_board, player, move_flag=True):
 
 
 if __name__ == "__main__":
-    true_board = TicTacToeBoard(board=['o','0','0','0','x','0','0','0','0'])
-    I_1 = InformationSet(player='x', board=['o','0','-','0','x','-','-','-','-'])
-    I_2 = InformationSet(player='o', board=['o','-','-','-','x','-','-','-','-'])
-    player = 'x'
+    true_board = TicTacToeBoard(board=['0','0','0','0','x','0','0','0','0'])
+    I_1 = InformationSet(player='x', board=['-','-','-','-','x','-','-','-','-'])
+    I_2 = InformationSet(player='o', board=['0','0','-','0','x','-','-','-','-'])
+    player = 'o'
     move_flag = True
 
     I_1_vars = []
     I_2_vars = []
     true_board_vars = []
 
-    states = I_1.get_states()
-    actions = I_1.get_actions(move_flag)
+    states = I_2.get_states()
+    actions = I_2.get_actions(move_flag)
     
     for action in actions:
         output_states = []
@@ -245,12 +245,12 @@ if __name__ == "__main__":
             new_I = get_information_set_from_states(output_states, player)
             new_I.reset_zeros()
 
-            I_1_vars.append(new_I)
-            I_2_vars.append(I_2.copy())
+            I_2_vars.append(new_I)
+            I_1_vars.append(I_1.copy())
             true_board_vars.append(new_true_board)
             
-    with Pool(len(I_1_vars)) as pool:
-        obj_list = pool.starmap(play, [(I_1_vars[i], I_2_vars[i], true_board_vars[i], 'o', False) for i in range(len(I_1_vars))])
+    with Pool(len(I_2_vars)) as pool:
+        obj_list = pool.starmap(play, [(I_1_vars[i], I_2_vars[i], true_board_vars[i], 'x', False) for i in range(len(I_2_vars))])
 
 
     # I_1_vars = [I_1.copy(), I_1.copy(), I_1.copy(), I_1.copy()]
