@@ -220,13 +220,17 @@ if __name__ == "__main__":
     move_flag = False
 
     # play(I_1, I_2, true_board, player, move_flag)
-    I_2 = [I_2.copy().simulate_sense(9, true_board), 
-         I_2.copy().simulate_sense(10, true_board),
-         I_2.copy().simulate_sense(11, true_board), 
-         I_2.copy().simulate_sense(12, true_board)]
-    
+
+    I_1_vars = [I_1.copy(), I_1.copy(), I_1.copy(), I_1.copy()]
+    I_2_vars = [I_2.copy(), I_2.copy(), I_2.copy(), I_2.copy()]
+    true_board_vars = [true_board.copy(), true_board.copy(), true_board.copy(), true_board.copy()]
+
+    keys = list(I_2.sense_square_dict.keys())
+    for i in range(4):
+        I_2_vars[i].simulate_sense(keys[i], true_board)  
+
     with Pool(4) as pool:
-        pool.starmap(play, [(I_1.copy(), I_2[0], true_board.copy(), player, move_flag),
-                            (I_1.copy(), I_2[1], true_board.copy(), player, move_flag),
-                            (I_1.copy(), I_2[2], true_board.copy(), player, move_flag),
-                            (I_1.copy(), I_2[3], true_board.copy(), player, move_flag)])
+        pool.starmap(play, [(I_1_vars, I_2_vars[0], true_board_vars, player, move_flag),
+                            (I_1_vars, I_2_vars[1], true_board_vars, player, move_flag),
+                            (I_1_vars, I_2_vars[2], true_board_vars, player, move_flag),
+                            (I_1_vars, I_2_vars[3], true_board_vars, player, move_flag)])
