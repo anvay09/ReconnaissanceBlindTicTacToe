@@ -1,4 +1,4 @@
-from TicTacToe import TicTacToeBoard
+from TicTacToe_fast import TicTacToeBoard
 from sympy.utilities.iterables import multiset_permutations
 
 
@@ -9,11 +9,10 @@ class InformationSet(TicTacToeBoard):
 
     def __init__(self, player, board=None):
         """
-        :param player: str 'x' or 'o'
-        :param board: bytes object representing the information set of player
+        :param player: x, o
+        :param board: bytes object indicating the information set of player
         """
         TicTacToeBoard.__init__(self, board)
-        # map squares to sense moves
         self.sense_square_dict = {9: [0, 1, 3, 4], 10: [1, 2, 4, 5], 11: [3, 4, 6, 7], 12: [4, 5, 7, 8]}
         self.player = player
 
@@ -22,7 +21,7 @@ class InformationSet(TicTacToeBoard):
             return 'o'
         else:
             return 'x'
-
+        
     def copy(self):
         return InformationSet(self.player, self.board)
 
@@ -32,27 +31,23 @@ class InformationSet(TicTacToeBoard):
         :return: list of TicTacToeBoard objects
         """
         num_unknown_opponent_moves = self.get_number_of_unknown_opponent_moves()
-        # states do not contain '-', so create a new board array and replace '-' with '0' which indicates empty.
-        board_arr = self.__arr__()
-        for i in range(len(board_arr)):
-            if board_arr[i] == '-':
-                board_arr[i] = '0'
-        board_byte = self.array_to_bytearray(board_arr)
 
+        board_copy = self.board.copy()
+        for i in range(len(board_copy)):
+            if board_copy[i] == '-':
+                board_copy[i] = '0'
+        
         if num_unknown_opponent_moves == 0:
-            return [TicTacToeBoard(board_byte)]
+            return [TicTacToeBoard(board=board_copy)]
         else:
-            # generate states, where for each state consider a permutation of 'num_unknown_opponent_moves' of opponent
-            # marks and "num_uncertain_squares" - 'num_unknown_opponent_moves' empty squares. Use this permuatation to
-            # set the values of uncertain sqaures
             output_states = []
             uncertain_ind = self.get_uncertain_squares()
             base_perm = [self.other_player()] * num_unknown_opponent_moves + ['0'] * (
                     len(uncertain_ind) - num_unknown_opponent_moves)
-
+            
             perm_itr = multiset_permutations(base_perm)
             for perm in perm_itr:
-                new_state = TicTacToeBoard(board=board_byte)
+                new_state = TicTacToeBoard(board=board_copy)
                 for j in range(len(perm)):
                     new_state[uncertain_ind[j]] = perm[j]
 
@@ -78,7 +73,7 @@ class InformationSet(TicTacToeBoard):
         """
         valid_moves = []
         for i in range(len(self.board)):
-            if self.board[i] == ord('0') or self.board[i] == ord('-'):
+            if self.board[i] == '0' or self.board[i] == '-':
                 valid_moves.append(i)
         return valid_moves
 
@@ -89,21 +84,21 @@ class InformationSet(TicTacToeBoard):
         valid_sense = []
         for key, value in self.sense_square_dict.items():
             for i in range(len(value)):
-                if self.board[value[i]] == ord('-'):
+                if self.board[value[i]] == '-':
                     valid_sense.append(key)
                     break
         return valid_sense
 
     def get_number_of_unknown_opponent_moves(self):
-        """ Given the current information set for a player, determine the number of unknown opponents moves.
+        """
         :return: int
         """
         count_x = 0
         count_o = 0
         for i in range(len(self.board)):
-            if self.board[i] == ord('x'):
+            if self.board[i] == 'x':
                 count_x += 1
-            if self.board[i] == ord('o'):
+            if self.board[i] == 'o':
                 count_o += 1
         if self.player == 'x':
             return count_x - count_o
@@ -112,49 +107,35 @@ class InformationSet(TicTacToeBoard):
 
     def get_uncertain_squares(self):
         """
-        :return: list of uncertain squares (squares containing '-')
+        :return: list of uncertain squares
         """
         uncertain_squares = []
         for i in range(len(self.board)):
-            if self.board[i] == ord('-'):
+            if self.board[i] == '-':
                 uncertain_squares.append(i)
         return uncertain_squares
 
     def simulate_sense(self, action, true_board):
-        """ Simulate the sense move to uncover the board and update the information set.
-
-        :param action: sense action int-9, 10, 11 or 12
-        :param true_board: current true board
-        :return: None (update information set inplace)
-        """
         self.reset_zeros()
         for square in self.sense_square_dict[action]:
-            board_arr = self.__arr__()
-            board_arr[square] = true_board[square]
-            self.board = self.array_to_bytearray(board_arr)
+            self.board[square] = true_board[square]
 
     def reset_zeros(self):
-        """ Reset the '0', known empty squares to '-' uncertain squares. This is used after a player's sense move to
-        reset it's information set.
-
-        :return: None (update information set inplace)
-        """
         for i in range(len(self.board)):
-            if self.board[i] == ord('0'):
-                board_arr = self.__arr__()
-                board_arr[i] = '-'
-                self.board = self.array_to_bytearray(board_arr)
-
+            if self.board[i] == '0':
+                self.board[i] = '-'
 
 num_histories = 0
 
 
 def get_information_set_from_states(states, player):
-    """ Given a list of states, get the corresponding information set
+    """
     :param states: list of TicTacTie boards
     :param player: 'x' or 'o'
     :return: Information set object
     """
+    # for state in states:
+    #     print("State: ", state.board)
 
     I = InformationSet(player)
     for i in range(9):
@@ -188,10 +169,10 @@ def play(I_1, I_2, true_board, player, move_flag=True):
         I = I_2
 
     actions = I.get_actions(move_flag)
-
+    
     if move_flag:
         states = I.get_states()
-
+    
         for action in actions:
             output_states = []
             for state in states:
@@ -199,14 +180,14 @@ def play(I_1, I_2, true_board, player, move_flag=True):
                 valid = new_state.update_move(action, player)
 
                 if new_state.is_over() or new_state.is_win()[0] or not valid:
-                    pass  # TO-DO re-think if the following is needed num_histories += 1
+                    pass
                 else:
                     output_states.append(new_state)
 
             new_true_board = true_board.copy()
             success = new_true_board.update_move(action, player)
-
-            if success and not new_true_board.is_win()[0] and not new_true_board.is_over():
+            
+            if success and not new_true_board.is_win()[0] and not new_true_board.is_over():    
                 new_I = get_information_set_from_states(output_states, player)
                 new_I.reset_zeros()
 
@@ -230,10 +211,11 @@ def play(I_1, I_2, true_board, player, move_flag=True):
                 play(I_1, new_I, new_true_board, 'o', True)
 
 
+
 if __name__ == "__main__":
-    true_board = TicTacToeBoard(board=bytearray('o000x0000', encoding='utf-8'))
-    I_1 = InformationSet(player='x', board=bytearray('o0-0x----', encoding='utf-8'))
-    I_2 = InformationSet(player='o', board=bytearray('o---x----', encoding='utf-8'))
+    true_board = TicTacToeBoard(board=['o','0','0','0','x','0','0','0','0'])
+    I_1 = InformationSet(player='x', board=['o','0','-','0','x','-','-','-','-'])
+    I_2 = InformationSet(player='o', board=['o','-','-','-','x','-','-','-','-'])
     player = 'x'
     move_flag = True
 
