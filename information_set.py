@@ -76,6 +76,10 @@ class InformationSet(TicTacToeBoard):
         """
         :return: list of valid actions
         """
+        w = self.win_exists()
+        if w != -1:
+            return [w]
+        
         valid_moves = []
         for i in range(len(self.board)):
             if self.board[i] == ord('0') or self.board[i] == ord('-'):
@@ -145,6 +149,56 @@ class InformationSet(TicTacToeBoard):
                 board_arr[i] = '-'
                 self.board = self.array_to_bytearray(board_arr)
 
+    def is_valid_move(self, square):
+        if square < 0 or square > 8:
+            return False
+        else:
+            return self.board[square] == ord('0') or self.board[square] == ord('-')
+    
+    def update_move(self, square, player):
+        if self.is_valid_move(square):
+            board_arr = self.__arr__()
+            board_arr[square] = player
+            self.board = self.array_to_bytearray(board_arr)
+            return True
+        return False
+    
+    def is_win_for_player(self):  # returns a boolean (True or False)
+        board_arr = self.__arr__()
+        for i in range(3):
+            if (board_arr[3 * i] == board_arr[3 * i + 1] == board_arr[3 * i + 2] == self.player):
+                return True
+
+            if (board_arr[i] == board_arr[i + 3] == board_arr[i + 6] == self.player):
+                return True
+
+        if (board_arr[0] == board_arr[4] == board_arr[8] == self.player):
+            return True
+
+        if (board_arr[2] == board_arr[4] == board_arr[6] == self.player):
+            return True
+
+        return False
+
+    def win_exists(self):
+        """
+        :return: int, action that leads to a win
+        """
+        zeroes = []
+        for i in range(len(self.board)):
+            if self.board[i] == ord('0'):
+                zeroes.append(i)
+        
+        for zero in zeroes:
+            new_I_board_arr = self.copy().__arr__()
+            new_I_board_arr[zero] = self.player
+            new_I_board = self.array_to_bytearray(new_I_board_arr)
+            if InformationSet(self.player, new_I_board).is_win_for_player():
+                return zero
+            
+        return -1
+        
+
 
 num_histories = 0
 
@@ -190,24 +244,26 @@ def play(I_1, I_2, true_board, player, move_flag=True):
     actions = I.get_actions(move_flag)
 
     if move_flag:
-        states = I.get_states()
+        # states = I.get_states()
 
         for action in actions:
-            output_states = []
-            for state in states:
-                new_state = state.copy()
-                valid = new_state.update_move(action, player)
+            # output_states = []
+            # for state in states:
+            #     new_state = state.copy()
+            #     valid = new_state.update_move(action, player)
 
-                if new_state.is_over() or new_state.is_win()[0] or not valid:
-                    pass  # TO-DO re-think if the following is needed num_histories += 1
-                else:
-                    output_states.append(new_state)
+            #     if new_state.is_over() or new_state.is_win()[0] or not valid:
+            #         pass  
+            #     else:
+            #         output_states.append(new_state)
 
             new_true_board = true_board.copy()
             success = new_true_board.update_move(action, player)
 
             if success and not new_true_board.is_win()[0] and not new_true_board.is_over():
-                new_I = get_information_set_from_states(output_states, player)
+                # new_I = get_information_set_from_states(output_states, player)
+                new_I = I.copy()
+                new_I.update_move(action, player)
                 new_I.reset_zeros()
 
                 if player == 'x':
@@ -217,6 +273,10 @@ def play(I_1, I_2, true_board, player, move_flag=True):
             else:
                 num_histories += 1
                 print("Histories: {}\n".format(num_histories))
+                # if player == 'x':
+                #     print(I, new_true_board.board, I_2)
+                # else:
+                #     print(I_1, new_true_board.board, I)
 
     else:
         for action in actions:
@@ -231,10 +291,10 @@ def play(I_1, I_2, true_board, player, move_flag=True):
 
 
 if __name__ == "__main__":
-    true_board = TicTacToeBoard(board=bytearray('ox00x0000', encoding='utf-8'))
-    I_1 = InformationSet(player='x', board=bytearray('ox--x----', encoding='utf-8'))
-    I_2 = InformationSet(player='o', board=bytearray('o---x----', encoding='utf-8'))
+    true_board = TicTacToeBoard(board=bytearray('ox0xxoo0x', encoding='utf-8'))
+    I_1 = InformationSet(player='x', board=bytearray('-x-xxoo-x', encoding='utf-8'))
+    I_2 = InformationSet(player='o', board=bytearray('o--xxoo0x', encoding='utf-8'))
     player = 'o'
-    move_flag = False
+    move_flag = True
 
     play(I_1, I_2, true_board, player, move_flag)
