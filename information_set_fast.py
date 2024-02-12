@@ -2,6 +2,7 @@ from TicTacToe_fast import TicTacToeBoard
 from sympy.utilities.iterables import multiset_permutations
 from multiprocessing import Pool
 
+
 class InformationSet(TicTacToeBoard):
     """
     Inherit data and functions from TicTacToeBoard
@@ -210,6 +211,9 @@ def play(I_1, I_2, true_board, player, move_flag=True):
     :return:
     """
     num_histories = 0
+    I_1_set = set((''.join(I_1.board),))
+    I_2_set = set((''.join(I_2.board),))
+
 
     if player == 'x':
         I = I_1
@@ -242,9 +246,15 @@ def play(I_1, I_2, true_board, player, move_flag=True):
                 new_I.reset_zeros()
 
                 if player == 'x':
-                    num_histories += play(new_I, I_2, new_true_board, 'o', False)
+                    num_histories_future, future_I_1_set , future_I_2_set = play(new_I, I_2, new_true_board, 'o', False)
+                    num_histories += num_histories_future
+                    I_1_set = I_1_set.union(future_I_1_set)
+                    I_2_set = I_2_set.union(future_I_2_set)
                 else:
-                    num_histories += play(I_1, new_I, new_true_board, 'x', False)
+                    num_histories_future, future_I_1_set , future_I_2_set = play(I_1, new_I, new_true_board, 'x', False)
+                    num_histories += num_histories_future
+                    I_1_set = I_1_set.union(future_I_1_set)
+                    I_2_set = I_2_set.union(future_I_2_set)
             else:
                 num_histories += 1
                 # print("Histories: {}\n".format(num_histories))
@@ -256,19 +266,25 @@ def play(I_1, I_2, true_board, player, move_flag=True):
             new_true_board = true_board.copy()
 
             if player == 'x':
-                num_histories += play(new_I, I_2, new_true_board, 'x', True)
+                num_histories_future, future_I_1_set , future_I_2_set = play(new_I, I_2, new_true_board, 'x', True)
+                num_histories += num_histories_future
+                I_1_set = I_1_set.union(future_I_1_set)
+                I_2_set = I_2_set.union(future_I_2_set)
             else:
-                num_histories += play(I_1, new_I, new_true_board, 'o', True)
+                num_histories_future, future_I_1_set , future_I_2_set = play(I_1, new_I, new_true_board, 'o', True)
+                num_histories += num_histories_future
+                I_1_set = I_1_set.union(future_I_1_set)
+                I_2_set = I_2_set.union(future_I_2_set)
 
-    return num_histories
+    return num_histories, I_1_set, I_2_set
 
 
 
 if __name__ == "__main__":
-    true_board = TicTacToeBoard(board=['0','0','0','0','x','0','0','0','0'])
-    I_1 = InformationSet(player='x', board=['-','-','-','-','x','-','-','-','-'])
-    I_2 = InformationSet(player='o', board=['0','0','-','0','x','-','-','-','-'])
-    player = 'o'
+    true_board = TicTacToeBoard(board=['o','0','0','x','x','o','o','0','x'])
+    I_1 = InformationSet(player='x', board=['-','0','0','x','x','o','o','-','x'])
+    I_2 = InformationSet(player='o', board=['o','-','-','x','x','o','o','-','-'])
+    player = 'x'
     move_flag = True
 
     # H = play(I_1, I_2, true_board, player, move_flag)
@@ -278,23 +294,23 @@ if __name__ == "__main__":
     I_2_vars = []
     true_board_vars = []
     
-    actions = I_2.get_actions(move_flag)
+    actions = I_1.get_actions(move_flag)
     
     for action in actions:
         new_true_board = true_board.copy()
         success = new_true_board.update_move(action, player)
         
         if success and not new_true_board.is_win()[0] and not new_true_board.is_over():    
-            new_I = I_2.copy()
+            new_I = I_1.copy()
             new_I.update_move(action, player)
             new_I.reset_zeros()
 
-            I_2_vars.append(new_I)
-            I_1_vars.append(I_1.copy())
+            I_1_vars.append(new_I)
+            I_2_vars.append(I_2.copy())
             true_board_vars.append(new_true_board)
             
-    with Pool(len(I_2_vars)) as pool:
-        obj_list = pool.starmap(play, [(I_1_vars[i], I_2_vars[i], true_board_vars[i], 'x', False) for i in range(len(I_2_vars))])
+    with Pool(len(I_1_vars)) as pool:
+        obj_list = pool.starmap(play, [(I_1_vars[i], I_2_vars[i], true_board_vars[i], 'o', False) for i in range(len(I_1_vars))])
 
     # -----------------------------------------------------------
 
@@ -312,4 +328,6 @@ if __name__ == "__main__":
     #                                     (I_1_vars[2], I_2_vars[2], true_board_vars[0], player, move_flag),
     #                                     (I_1_vars[3], I_2_vars[3], true_board_vars[0], player, move_flag)])
 
-    print('Histories: ', sum(obj_list))
+    # print(obj_list[0][1], obj_list[0][2])
+    for item in obj_list:
+        print(item)
