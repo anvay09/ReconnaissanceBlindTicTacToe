@@ -265,46 +265,36 @@ def play(I_1, I_2, true_board, player, move_flag=True):
 
 
 if __name__ == "__main__":
-    true_board = TicTacToeBoard(board=['o','0','0','x','x','0','o','0','x'])
-    I_1 = InformationSet(player='x', board=['-','-','-','x','x','-','o','-','x'])
-    I_2 = InformationSet(player='o', board=['o','0','-','x','x','-','o','-','-'])
+    true_board = TicTacToeBoard(board=['0','0','0','0','x','0','0','0','0'])
+    I_1 = InformationSet(player='x', board=['-','-','-','-','x','-','-','-','-'])
+    I_2 = InformationSet(player='o', board=['0','0','-','0','x','-','-','-','-'])
     player = 'o'
     move_flag = True
 
-    H = play(I_1, I_2, true_board, player, move_flag)
-    print('Histories: ', H)
+    # H = play(I_1, I_2, true_board, player, move_flag)
+    # print('Histories: ', H)
 
-    # I_1_vars = []
-    # I_2_vars = []
-    # true_board_vars = []
-
-    # states = I_2.get_states()
-    # actions = I_2.get_actions(move_flag)
+    I_1_vars = []
+    I_2_vars = []
+    true_board_vars = []
     
-    # for action in actions:
-    #     output_states = []
-    #     for state in states:
-    #         new_state = state.copy()
-    #         valid = new_state.update_move(action, player)
-
-    #         if new_state.is_over() or new_state.is_win()[0] or not valid:
-    #             pass
-    #         else:
-    #             output_states.append(new_state)
-
-    #     new_true_board = true_board.copy()
-    #     success = new_true_board.update_move(action, player)
+    actions = I_2.get_actions(move_flag)
+    
+    for action in actions:
+        new_true_board = true_board.copy()
+        success = new_true_board.update_move(action, player)
         
-    #     if success and not new_true_board.is_win()[0] and not new_true_board.is_over():    
-    #         new_I = get_information_set_from_states(output_states, player)
-    #         new_I.reset_zeros()
+        if success and not new_true_board.is_win()[0] and not new_true_board.is_over():    
+            new_I = I_2.copy()
+            new_I.update_move(action, player)
+            new_I.reset_zeros()
 
-    #         I_2_vars.append(new_I)
-    #         I_1_vars.append(I_1.copy())
-    #         true_board_vars.append(new_true_board)
+            I_2_vars.append(new_I)
+            I_1_vars.append(I_1.copy())
+            true_board_vars.append(new_true_board)
             
-    # with Pool(len(I_2_vars)) as pool:
-    #     obj_list = pool.starmap(play, [(I_1_vars[i], I_2_vars[i], true_board_vars[i], 'x', False) for i in range(len(I_2_vars))])
+    with Pool(len(I_2_vars)) as pool:
+        obj_list = pool.starmap(play, [(I_1_vars[i], I_2_vars[i], true_board_vars[i], 'x', False) for i in range(len(I_2_vars))])
 
     # -----------------------------------------------------------
 
@@ -322,4 +312,4 @@ if __name__ == "__main__":
     #                                     (I_1_vars[2], I_2_vars[2], true_board_vars[0], player, move_flag),
     #                                     (I_1_vars[3], I_2_vars[3], true_board_vars[0], player, move_flag)])
 
-    # print('Histories: ', sum(obj_list))
+    print('Histories: ', sum(obj_list))
