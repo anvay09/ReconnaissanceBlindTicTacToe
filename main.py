@@ -1,4 +1,4 @@
-from TicTacToe import TicTacToeBoard
+from rbt_classes import TicTacToeBoard
 
 if __name__ == '__main__':
     board = TicTacToeBoard()
