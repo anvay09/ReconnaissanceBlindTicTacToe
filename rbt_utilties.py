@@ -1,5 +1,8 @@
 from rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, TicTacToeBoard
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
+from multiprocessing import Pool
+
+num_workers = 4
 
 
 def toggle_player(player):
@@ -95,10 +98,14 @@ def get_histories_given_I(I):
                             idx_2 += 1
                             player = toggle_player(player)
 
-                    if is_valid_history(history, I):
-                        histories.append(history)
+                    histories.append(history)
 
-    return histories
+    args = [(h, I) for h in histories]
+    with Pool(num_workers) as p:
+        valid_histories = p.starmap(is_valid_history, args)
+
+    valid_histories = [h for h, valid in zip(histories, valid_histories) if valid]
+    return valid_histories
 
 
 def play(I_1, I_2, true_board, player, policy_x, policy_o, probability, current_history, initial_player,

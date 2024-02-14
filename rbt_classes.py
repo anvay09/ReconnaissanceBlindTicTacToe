@@ -368,6 +368,32 @@ class History:
                 curr_player = self.other_player(curr_player)
         return true_board, False, None
 
+    def get_information_sets(self):
+        """ Get information set of both players for the current history
+
+        :return: Two information set objects
+        """
+        I_1 = InformationSet(player='x')
+        I_2 = InformationSet(player='o')
+        true_board = TicTacToeBoard()
+        curr_player = 'x'
+        for action in self.history:
+            if action < 9:
+                if curr_player == 'x':
+                    I_1.update_move(action, curr_player)
+                    I_1.reset_zeros()
+                else:
+                    I_2.update_move(action, curr_player)
+                    I_2.reset_zeros()
+                true_board.update_move(action, curr_player)
+                curr_player = self.other_player(curr_player)
+            else:
+                if curr_player == 'x':
+                    I_1.simulate_sense(action, true_board)
+                else:
+                    I_2.simulate_sense(action, true_board)
+        return I_1, I_2
+
 
 class TerminalHistory(History):
     """
@@ -418,32 +444,6 @@ class NonTerminalHistory(History):
 
     def copy(self):
         return NonTerminalHistory(self.history)
-
-    def get_information_sets(self):
-        """ Get information set of both players for the current history
-
-        :return: Two information set objects
-        """
-        I_1 = InformationSet(player='x')
-        I_2 = InformationSet(player='o')
-        true_board = TicTacToeBoard()
-        curr_player = 'x'
-        for action in self.history:
-            if action < 9:
-                if curr_player == 'x':
-                    I_1.update_move(action, curr_player)
-                    I_1.reset_zeros()
-                else:
-                    I_2.update_move(action, curr_player)
-                    I_2.reset_zeros()
-                true_board.update_move(action, curr_player)
-                curr_player = self.other_player(curr_player)
-            else:
-                if curr_player == 'x':
-                    I_1.simulate_sense(action, true_board)
-                else:
-                    I_2.simulate_sense(action, true_board)
-        return I_1, I_2
 
 
 class Policy:
