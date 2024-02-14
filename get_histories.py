@@ -1,7 +1,9 @@
 from information_set_fast import InformationSet
 from rbt_classes import TicTacToeBoard
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
+from multiprocessing import Pool
 
+num_workers = 4
 
 def toggle_player(player):
     return 'x' if player == 'o' else 'o'
@@ -96,10 +98,14 @@ def get_histories(I, move_flag):
                             idx_2 += 1
                             player = toggle_player(player)
 
-                    if is_valid_history(history, I):
-                        histories.append(history)
+                    histories.append(history)
 
-    return histories
+    args = [(h, I) for h in histories]
+    with Pool(num_workers) as p:
+        valid_histories = p.starmap(is_valid_history, args)
+    
+    valid_histories = [h for h, valid in zip(histories, valid_histories) if valid]
+    return valid_histories
 
 
 if __name__ == '__main__':
