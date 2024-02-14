@@ -89,6 +89,9 @@ class InformationSet(TicTacToeBoard):
         self.sense_square_dict = {9: [0, 1, 3, 4], 10: [1, 2, 4, 5], 11: [3, 4, 6, 7], 12: [4, 5, 7, 8]}
         self.player = player
 
+    def __eq__(self, other):
+        return self.board == other.board and self.player == other.player
+
     def other_player(self):
         if self.player == 'x':
             return 'o'
@@ -97,6 +100,9 @@ class InformationSet(TicTacToeBoard):
 
     def copy(self):
         return InformationSet(self.player, self.board)
+
+    def get_hash(self):
+        return ''.join(self.board)
 
     def get_states(self):
         """ Get the states part of the information set
@@ -139,6 +145,30 @@ class InformationSet(TicTacToeBoard):
             return self.get_valid_moves()
         else:
             return self.get_useful_senses()
+
+    def get_actions_given_policy(self, policy):
+        """
+        Get the valid actions that can be taken from the current information set given a policy. These include the
+        squares which the player knows is empty ('0') and the uncertain squares ('-'), useful senses and the actions
+        which have a positive probability in the policy.
+
+        :param policy: Policy Object
+        :return: list of valid actions that can be taken from the current information set
+        """
+        action_list = []
+        if self.is_curr_action_move():
+            moves = self.get_valid_moves()
+            for move in moves:
+                # TODO update this after policy is updated
+                if policy.prob_distribution[move] > 0:
+                    action_list.append(move)
+        else:
+            senses = self.get_useful_senses()
+            for sense in senses:
+                # TODO update this after policy is updated
+                if policy.prob_distribution[sense] > 0:
+                    action_list.append(sense)
+        return action_list
 
     def get_valid_moves(self):
         """
@@ -247,6 +277,15 @@ class InformationSet(TicTacToeBoard):
 
         return -1
 
+    def is_curr_action_move(self):
+        """
+        :return: return bool
+        """
+        for i in range(len(self.board)):
+            if self.board[i] == '0':
+                return True
+        return False
+
 
 class History:
     """
@@ -261,6 +300,7 @@ class History:
             self.history = []
         else:
             self.history = history
+        self.track_traversal_index = 0
 
     @staticmethod
     def other_player(player):
@@ -292,12 +332,18 @@ class TerminalHistory(History):
     Child class for terminal histories
     """
 
-    def __init__(self, history=None):
+    def __init__(self, history=None, reward = None):
         """
         :param history: list of actions
         """
         History.__init__(history)
-        self.reward = {'x': 0, 'o': 0}
+        if reward is None:
+            self.reward = {'x': 0, 'o': 0}
+        else:
+            self.reward = reward
+
+    def copy(self):
+        return TerminalHistory(self.history, self.reward)
 
     def set_reward(self):
         """
@@ -327,6 +373,9 @@ class NonTerminalHistory(History):
         """
         History.__init__(history)
 
+    def copy(self):
+        return NonTerminalHistory(self.history)
+
     def get_information_sets(self):
         """ Get information set of both players for the current history
 
@@ -352,3 +401,33 @@ class NonTerminalHistory(History):
                 else:
                     I_2.simulate_sense(action, true_board)
         return I_1, I_2
+
+
+# TODO update this class to read a default policy
+class Policy:
+    """
+    Class for a policy
+    """
+
+    def __init__(self, player, information_sets=None, prob_distribution=None):
+        """
+        :param player: (str) 'x' or 'o'
+        :param information_sets: InformationSet Object
+        :param prob_distribution: (dict) probability distribution over valid actions
+        """
+        if information_sets is None:
+            if player == 'x':
+                with open('P1_information_sets.txt', 'r') as f:
+                    hash_values = f.readlines()
+            else:
+                with open('P2_information_sets.txt', 'r') as f:
+                    hash_values = f.readlines()
+
+        else:
+            self.information_set = information_set
+        if prob_distribution is None:
+            self.prob_distribution = {}
+            for action in self.information_set.get_actions(move_flag=self.information_set.is_curr_action_move()):
+                self.prob_distribution[action] = 0
+        else:
+            self.prob_distribution = prob_distribution
