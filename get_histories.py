@@ -1,9 +1,11 @@
 from information_set_fast import InformationSet
-from TicTacToe_fast import TicTacToeBoard
+from rbt_classes import TicTacToeBoard
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
+
 
 def toggle_player(player):
     return 'x' if player == 'o' else 'o'
+
 
 def is_valid_history(H, end_I):
     I_1 = InformationSet(player='x', board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
@@ -43,14 +45,13 @@ def is_valid_history(H, end_I):
                 else:
                     I_2 = I.copy()
 
-
         move_flag = not move_flag
-        
+
     if end_I.player == 'x':
         return I_1 == end_I
     else:
         return I_2 == end_I
-        
+
 
 def get_histories(I, move_flag):
     states = I.get_states()
@@ -60,7 +61,7 @@ def get_histories(I, move_flag):
     for state in states:
         p1_moves = [idx for idx, value in enumerate(state.board) if value == 'x']
         p2_moves = [idx for idx, value in enumerate(state.board) if value == 'o']
-        
+
         p1_permutations = list(multiset_permutations(p1_moves))
         p2_permutations = list(multiset_permutations(p2_moves))
 
@@ -94,11 +95,12 @@ def get_histories(I, move_flag):
                             history.append(s[idx])
                             idx_2 += 1
                             player = toggle_player(player)
-                        
+
                     if is_valid_history(history, I):
                         histories.append(history)
 
     return histories
+
 
 if __name__ == '__main__':
     I = InformationSet(player='x', board=['-', '0', '0', 'x', 'x', 'o', 'o', '-', 'x'])

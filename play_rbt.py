@@ -331,7 +331,7 @@ def move_action(event, last_click_time, square, surface):
     move_coordinates = board_index_to_coordinates_map[square]
 
     if (move_coordinates[0], move_coordinates[1], turn) and (
-    move_coordinates[0], move_coordinates[1], not turn) not in moves:
+            move_coordinates[0], move_coordinates[1], not turn) not in moves:
         if event.type == pygame.MOUSEBUTTONDOWN:
             current_time = pygame.time.get_ticks()
             if current_time - last_click_time > click_delay:
@@ -452,7 +452,7 @@ while running:
                 # print(P1_information_set, chosen_play[0], chosen_play[1])
 
                 if (move_coordinates[0], move_coordinates[1], turn) and (
-                move_coordinates[0], move_coordinates[1], not turn) not in moves:
+                        move_coordinates[0], move_coordinates[1], not turn) not in moves:
                     game_over = make_move((move_coordinates[0], move_coordinates[1], turn))
                     turn = not turn
                     sensing = True
