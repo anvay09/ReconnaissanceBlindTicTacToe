@@ -191,24 +191,24 @@ class InformationSet(TicTacToeBoard):
         else:
             return self.get_useful_senses()
 
-    def get_actions_given_policy(self, policy):
+    def get_actions_given_policy(self, policy_obj):
         """
         Get the valid actions that can be taken from the current information set. These include the actions
         which have a positive probability in the policy.
 
-        :param policy: Policy Object
+        :param policy_obj: Policy Object
         :return: list of valid actions that can be taken from the current information set given policy
         """
         action_list = []
         if self.is_curr_action_move():
             for move in range(9):
                 # TODO update this after policy is updated
-                if policy.policy_dict[self.get_hash()][move] > 0:
+                if policy_obj.policy_dict[self.get_hash()][move] > 0:
                     action_list.append(move)
         else:
             for sense in self.sense_square_dict.keys():
                 # TODO update this after policy is updated
-                if policy.policy_dict[self.get_hash()][sense] > 0:
+                if policy_obj.policy_dict[self.get_hash()][sense] > 0:
                     action_list.append(sense)
         return action_list
 
@@ -352,7 +352,7 @@ class History:
             return 'x'
 
     def get_board(self):
-        """ Get board for the current history after playing out the mvoes.
+        """ Get board for the current history after playing out the moves.
 
         :return: TicTacToe object, bool (True, False), str (player 'x', 'o')
         If all moves are played on empty squares return TicTacToe object, False, None
@@ -454,7 +454,7 @@ class Policy:
     def __init__(self, player, policy_file=None):
         """
         :param player: (str) 'x' or 'o'
-        :param policy_file:
+        :param policy_file: yaml file containing the policy is reuired format
         """
         self.player = player
         if policy_file is None:

@@ -108,7 +108,7 @@ def get_histories_given_I(I):
     return valid_histories
 
 
-def play(I_1, I_2, true_board, player, policy_x, policy_o, probability, current_history, initial_player,
+def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, current_history, initial_player,
          move_flag=True):
     """
 
@@ -116,8 +116,8 @@ def play(I_1, I_2, true_board, player, policy_x, policy_o, probability, current_
     :param I_2:
     :param true_board:
     :param player:
-    :param policy_x:
-    :param policy_o:
+    :param policy_obj_x:
+    :param policy_obj_o:
     :param probability:
     :param current_history:
     :param initial_player:
@@ -128,19 +128,19 @@ def play(I_1, I_2, true_board, player, policy_x, policy_o, probability, current_
 
     if player == 'x':
         I = I_1
-        policy = policy_x
+        policy_obj = policy_obj_x
     else:
         I = I_2
-        policy = policy_o
+        policy_obj = policy_obj_o
 
-    actions = I.get_actions_given_policy(policy)
+    actions = I.get_actions_given_policy(policy_obj)
 
     if move_flag:
         for action in actions:
             new_true_board = true_board.copy()
             success = new_true_board.update_move(action, player)
             # TODO update this line after policy class is updated
-            probability *= policy.prob_distribution[action]
+            probability *= policy_obj.policy_dict[I.get_hash()][action]
             new_history = current_history.copy().history.append(action)
             if success and not new_true_board.is_win()[0] and not new_true_board.is_over():
                 new_I = I.copy()
@@ -148,10 +148,10 @@ def play(I_1, I_2, true_board, player, policy_x, policy_o, probability, current_
                 new_I.reset_zeros()
 
                 if player == 'x':
-                    expected_utility_h += play(new_I, I_2, new_true_board, 'o', policy_x, policy_o, probability,
+                    expected_utility_h += play(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o, probability,
                                                new_history, initial_player, False)
                 else:
-                    expected_utility_h += play(I_1, new_I, new_true_board, 'x', policy_x, policy_o, probability,
+                    expected_utility_h += play(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o, probability,
                                                new_history, initial_player, False)
             else:
                 terminal_history = TerminalHistory(current_history.history.copy())
@@ -164,20 +164,21 @@ def play(I_1, I_2, true_board, player, policy_x, policy_o, probability, current_
             new_I.simulate_sense(action, true_board)
             new_true_board = true_board.copy()
             # TODO update this line after policy class is updated
-            probability *= policy.prob_distribution[action]
+            probability *= policy_obj.policy_dict[I.get_hash()][action]
             new_history = current_history.copy().history.append(action)
 
             if player == 'x':
-                expected_utility_h += play(new_I, I_2, new_true_board, 'x', policy_x, policy_o, probability,
+                expected_utility_h += play(new_I, I_2, new_true_board, 'x', policy_obj_x, policy_obj_o, probability,
                                            new_history, initial_player, True)
             else:
-                expected_utility_h += play(I_1, new_I, new_true_board, 'o', policy_x, policy_o, probability,
+                expected_utility_h += play(I_1, new_I, new_true_board, 'o', policy_obj_x, policy_obj_o, probability,
                                            new_history, initial_player, True)
 
     return expected_utility_h
 
 
-def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_x, policy_o, probability, history_obj,
+def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_obj_x, policy_obj_o, probability,
+                            history_obj,
                             move_flag=True):
     """
 
@@ -186,25 +187,25 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_x,
     :param true_board:
     :param player:
     :param next_action:
-    :param policy_x:
-    :param policy_o:
+    :param policy_obj_x:
+    :param policy_obj_o:
     :param probability:
-    :param current_history:
+    :param history_obj:
     :param move_flag:
     :return:
     """
     if player == 'x':
         I = I_1
-        policy = policy_x
+        policy_obj = policy_obj_x
     else:
         I = I_2
-        policy = policy_o
+        policy_obj = policy_obj_o
 
     if move_flag:
         new_true_board = true_board.copy()
         success = new_true_board.update_move(next_action, player)
         # TODO update this line after policy class is updated
-        probability *= policy.prob_distribution[next_action]
+        probability *= policy_obj.policy_dict[I.get_hash()][next_action]
         history_obj.track_traversal_index += 1
         new_next_action = history_obj.history[history_obj.track_traversal_index]
         if success and not new_true_board.is_win()[0] and not new_true_board.is_over():
@@ -213,10 +214,12 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_x,
             new_I.reset_zeros()
 
             if player == 'x':
-                probability = play(new_I, I_2, new_true_board, 'o', new_next_action, policy_x, policy_o, probability,
+                probability = play(new_I, I_2, new_true_board, 'o', new_next_action, policy_obj_x, policy_obj_o,
+                                   probability,
                                    history_obj, False)
             else:
-                probability = play(I_1, new_I, new_true_board, 'x', new_next_action, policy_x, policy_o, probability,
+                probability = play(I_1, new_I, new_true_board, 'x', new_next_action, policy_obj_x, policy_obj_o,
+                                   probability,
                                    history_obj, False)
 
     else:
@@ -224,34 +227,34 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_x,
         new_I.simulate_sense(next_action, true_board)
         new_true_board = true_board.copy()
         # TODO update this line after policy class is updated
-        probability *= policy.prob_distribution[next_action]
+        probability *= policy_obj.policy_dict[I.get_hash()][next_action]
         history_obj.track_traversal_index += 1
         new_next_action = history_obj.history[history_obj.track_traversal_index]
 
         if player == 'x':
-            probability = play(new_I, I_2, new_true_board, 'x', new_next_action, policy_x, policy_o, probability,
-                               history_obj, True)
+            probability = play(new_I, I_2, new_true_board, 'x', new_next_action, policy_obj_x, policy_obj_o,
+                               probability, history_obj, True)
         else:
-            probability = play(I_1, new_I, new_true_board, 'o', new_next_action, policy_x, policy_o, probability,
-                               history_obj, True)
+            probability = play(I_1, new_I, new_true_board, 'o', new_next_action, policy_obj_x, policy_obj_o,
+                               probability, history_obj, True)
 
     return probability
 
 
-def get_counter_factual_utility(information_set, policy_x, policy_o):
+def get_counter_factual_utility(information_set, policy_obj_x, policy_obj_o):
     starting_histories = get_histories_given_I(information_set)
     utility = 0
     for h in starting_histories:
         h_object = NonTerminalHistory(h)
         curr_I_1, curr_I_2 = h_object.get_information_sets()
         true_board, overlapping_move_flag, overlapping_move_player = h_object.get_board()
-        expected_utiltiy_h = play(curr_I_1, curr_I_2, true_board, information_set.player, policy_x, policy_o, 1,
+        expected_utiltiy_h = play(curr_I_1, curr_I_2, true_board, information_set.player, policy_obj_x, policy_obj_o, 1,
                                   h_object.copy(), information_set.player, information_set.is_curr_action_move())
 
         probabiltiy_reaching_h = get_prob_h_given_policy(
             InformationSet(player='x', board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
             InformationSet(player='o', board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
-            TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']), 'x', h[0], policy_x, policy_o, 1,
-            h_object, True)
+            TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']), 'x', h[0], policy_obj_x, policy_obj_o,
+            1, h_object, True)
         utility += expected_utiltiy_h * probabiltiy_reaching_h
     return utility
