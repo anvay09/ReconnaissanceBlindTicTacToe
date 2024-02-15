@@ -375,7 +375,7 @@ class History:
         :return: Two information set objects
         """
         I_1 = InformationSet(player='x')
-        I_2 = InformationSet(player='o')
+        I_2 = InformationSet(player='o', board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
         true_board = TicTacToeBoard()
         curr_player = 'x'
         for action in self.history:
