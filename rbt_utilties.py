@@ -141,7 +141,8 @@ def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, 
             success = new_true_board.update_move(action, player)
             # TODO update this line after policy class is updated
             probability *= policy_obj.policy_dict[I.get_hash()][action]
-            new_history = current_history.copy().history.append(action)
+            new_history = current_history.copy()
+            new_history.history.append(action)
             if success and not new_true_board.is_win()[0] and not new_true_board.is_over():
                 new_I = I.copy()
                 new_I.update_move(action, player)
@@ -154,7 +155,7 @@ def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, 
                     expected_utility_h += play(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o, probability,
                                                new_history, initial_player, False)
             else:
-                terminal_history = TerminalHistory(current_history.history.copy())
+                terminal_history = TerminalHistory(new_history.history.copy())
                 terminal_history.set_reward()
                 expected_utility_h += probability * terminal_history.reward[initial_player]
 
@@ -165,7 +166,8 @@ def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, 
             new_true_board = true_board.copy()
             # TODO update this line after policy class is updated
             probability *= policy_obj.policy_dict[I.get_hash()][action]
-            new_history = current_history.copy().history.append(action)
+            new_history = current_history.copy()
+            new_history.history.append(action)
 
             if player == 'x':
                 expected_utility_h += play(new_I, I_2, new_true_board, 'x', policy_obj_x, policy_obj_o, probability,

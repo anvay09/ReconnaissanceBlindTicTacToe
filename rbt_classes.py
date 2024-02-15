@@ -2,6 +2,7 @@
 File for RBT classes TicTacToeBoard, InformationSet, History, TerminalHistory, NonTerminalHistory, and Policy
 """
 from sympy.utilities.iterables import multiset_permutations
+import yaml
 
 
 class TicTacToeBoard:
@@ -125,7 +126,7 @@ class InformationSet(TicTacToeBoard):
         :param player: str 'x', 'o'
         :param board: list representing the information set of player
         """
-        TicTacToeBoard.__init__(self, board)
+        super().__init__(board)
         self.sense_square_dict = {9: [0, 1, 3, 4], 10: [1, 2, 4, 5], 11: [3, 4, 6, 7], 12: [4, 5, 7, 8]}
         self.player = player
 
@@ -338,7 +339,7 @@ class History:
         """
         :param history: list of actions
         """
-        if self.history is None:
+        if history is None:
             self.history = []
         else:
             self.history = history.copy()
@@ -405,7 +406,7 @@ class TerminalHistory(History):
         :param history: list of actions
         :param reward: dictionary for rewards of both players
         """
-        History.__init__(history)
+        super().__init__(history)
         if reward is None:
             self.reward = {'x': 0, 'o': 0}
         else:
@@ -440,7 +441,7 @@ class NonTerminalHistory(History):
         """
         :param history: list of actions
         """
-        History.__init__(history)
+        super().__init__(history)
 
     def copy(self):
         return NonTerminalHistory(self.history)
@@ -458,10 +459,23 @@ class Policy:
         """
         self.player = player
         if policy_file is None:
-            self.policy_dict = {}
+            self.policy_dict = None
+            if player == 'x':
+                policy_file = './data_files/P1_information_sets.yml'
+            else:
+                policy_file = './data_files/P2_information_sets.yml'
+            with open(policy_file, 'r') as file:
+                self.policy_dict = yaml.safe_load(file)
+            for key, val in self.policy_dict.items():
+                information_set_obj = InformationSet(player=self.player, board=[*key])
+                if not information_set_obj.is_curr_action_move():
+                    self.policy_dict[key] = {9: 1, 10: 0, 11: 0, 12: 0}
+                else:
+                    self.policy_dict[key] = {0: 1, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0}
         else:
             # TODO read the policy from a yaml file directly as a dictionary
-            pass
+            with open(policy_file, 'r') as file:
+                self.policy_dict = yaml.safe_load(file)
 
     def update_policy_for_given_information_set(self, information_set, prob_distribution):
         """
