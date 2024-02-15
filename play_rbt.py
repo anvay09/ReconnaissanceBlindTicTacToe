@@ -38,8 +38,8 @@ p1_boardview = ['-', '-', '-', '-', '-', '-', '-', '-', '-']
 p2_boardview = ['-', '-', '-', '-', '-', '-', '-', '-', '-']
 
 moves = set()
-coordinates_to_board_index_map = {(100, 100): 0, (200, 100): 1, (300, 100): 2, 
-                                  (100, 200): 3, (200, 200): 4, (300, 200): 5, 
+coordinates_to_board_index_map = {(100, 100): 0, (200, 100): 1, (300, 100): 2,
+                                  (100, 200): 3, (200, 200): 4, (300, 200): 5,
                                   (100, 300): 6, (200, 300): 7, (300, 300): 8}
 
 board_index_to_coordinates_map = {0: (100, 100), 1: (200, 100), 2: (300, 100),
@@ -48,13 +48,15 @@ board_index_to_coordinates_map = {0: (100, 100), 1: (200, 100), 2: (300, 100),
 
 sense_index_to_sense_coordinates_map = {0: (100, 100), 1: (200, 100), 2: (100, 200), 3: (200, 200)}
 
+
 def adjust_sense_coordinates(sense_coordinates):
     if sense_coordinates[0] >= 300:
         sense_coordinates = (sense_coordinates[0] - 100, sense_coordinates[1])
     if sense_coordinates[1] >= 300:
         sense_coordinates = (sense_coordinates[0], sense_coordinates[1] - 100)
-    
+
     return sense_coordinates
+
 
 def draw_cross(x_pos, y_pos, s):
     global screen
@@ -62,21 +64,25 @@ def draw_cross(x_pos, y_pos, s):
     pygame.draw.line(s, P1_COLOR, (x_pos + 25, y_pos + 75), (x_pos + 75, y_pos + 25), 10)
     screen.blit(s, (0, 0))
 
+
 def draw_circle(x_pos, y_pos, s):
     global screen
     pygame.draw.circle(s, P2_COLOR, (x_pos + 50, y_pos + 50), 25, 10)
     screen.blit(s, (0, 0))
+
 
 def draw_square(x_pos, y_pos, s):
     global screen
     pygame.draw.rect(s, SENSE_COLOR, (x_pos, y_pos, 200, 200))
     screen.blit(s, (0, 0))
 
+
 def draw_shape(x_pos, y_pos, s, turn):
     if turn:
         draw_circle(x_pos, y_pos, s)
     else:
         draw_cross(x_pos, y_pos, s)
+
 
 def draw_board(s):
     global moves, winning_line, turn, sensing, board, p1_boardview, p2_boardview, game_over, arial_font, winner, board_index_to_coordinates_map, blank_screen
@@ -142,7 +148,8 @@ def draw_board(s):
                 img = arial_font.render('Player 1 Move', True, P1_COLOR)
 
         s.blit(img, (130, 20))
-    
+
+
 def check_win():
     global winning_line, board
     if board[0] == board[1] == board[2] and board[0] != '0':
@@ -196,6 +203,7 @@ def check_win():
     else:
         return False
 
+
 def check_draw():
     global board
     for i in range(9):
@@ -203,10 +211,11 @@ def check_draw():
             return False
     return True
 
+
 def make_move(move):
     global moves, board, p1_boardview, p2_boardview, turn, game_over, winner, blank_screen
     moves.add(move)
-    
+
     ind = move[0] // 100 + 3 * (move[1] // 100 - 1) - 1
     if move[2]:
         board[ind] = 'o'
@@ -230,6 +239,7 @@ def make_move(move):
         return 'draw'
 
     return False
+
 
 def update_boardview(sense_coordinates):
     global board, p1_boardview, p2_boardview, turn
@@ -262,13 +272,16 @@ def update_boardview(sense_coordinates):
                 if p1_boardview[i] == '0':
                     p1_boardview[i] = '-'
 
+
 def in_square(x, y, square):
     top_left_corner = board_index_to_coordinates_map[square]
-    if x > top_left_corner[0] and x < top_left_corner[0] + 100 and y > top_left_corner[1] and y < top_left_corner[1] + 100:
+    if x > top_left_corner[0] and x < top_left_corner[0] + 100 and y > top_left_corner[1] and y < top_left_corner[
+        1] + 100:
         return True
     else:
         return False
-    
+
+
 def return_square(x, y):
     if in_square(x, y, 0):
         return 0
@@ -291,18 +304,19 @@ def return_square(x, y):
     else:
         return None
 
+
 def sense_action(event, last_click_time, square, surface):
     global click_delay, screen, sensing
     sense_coordinates = adjust_sense_coordinates(board_index_to_coordinates_map[square])
-    
+
     if event.type == pygame.MOUSEBUTTONDOWN:
         current_time = pygame.time.get_ticks()
-        
+
         if current_time - last_click_time > click_delay:
             update_boardview(sense_coordinates)
             sensing = False
             draw_board(screen)
-    
+
         # Update last click time
         last_click_time = current_time
     else:
@@ -311,11 +325,13 @@ def sense_action(event, last_click_time, square, surface):
 
     return last_click_time
 
+
 def move_action(event, last_click_time, square, surface):
     global click_delay, moves, turn, screen, winner, game_over, sensing, blank_screen
     move_coordinates = board_index_to_coordinates_map[square]
-    
-    if (move_coordinates[0], move_coordinates[1], turn) and (move_coordinates[0], move_coordinates[1], not turn) not in moves:
+
+    if (move_coordinates[0], move_coordinates[1], turn) and (
+            move_coordinates[0], move_coordinates[1], not turn) not in moves:
         if event.type == pygame.MOUSEBUTTONDOWN:
             current_time = pygame.time.get_ticks()
             if current_time - last_click_time > click_delay:
@@ -355,6 +371,7 @@ def move_action(event, last_click_time, square, surface):
 
     return last_click_time
 
+
 with open(file_name, 'r') as f:
     lines = f.readlines()
     for line in lines:
@@ -363,12 +380,11 @@ with open(file_name, 'r') as f:
             continue
         line = line.strip()
         line = line.split(' ')
-        
+
         options = (len(line) - 1) // 2
         P1_policy[line[0]] = []
         for i in range(options):
-            P1_policy[line[0]].append((int(line[1 + 2*i]), int(line[2 + 2*i])))
-        
+            P1_policy[line[0]].append((int(line[1 + 2 * i]), int(line[2 + 2 * i])))
 
 # game loop
 while running:
@@ -377,7 +393,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
                 # toggle blank_screen when enter pressed
@@ -398,24 +414,24 @@ while running:
             elif event.key == pygame.K_n:
                 # quit game when n pressed
                 running = False
-           
+
     x = pygame.mouse.get_pos()[0]
     y = pygame.mouse.get_pos()[1]
     # create a surface to draw on of the same size as the screen
     surface = pygame.Surface((500, 500))
     surface.set_alpha(100)
-    
+
     if blank_screen:
         draw_board(screen)
         for i in range(8):
-            pygame.draw.arc(screen, BOARD_COLOR, (220, 220, 60, 60), 0.33*i * 3.14, 0.33*(i+1) * 3.14, 8)
+            pygame.draw.arc(screen, BOARD_COLOR, (220, 220, 60, 60), 0.33 * i * 3.14, 0.33 * (i + 1) * 3.14, 8)
             pygame.display.flip()
             pygame.time.wait(10)
-            pygame.draw.arc(screen, BG_COLOR, (220, 220, 60, 60), 0.33*i * 3.14, 0.33*(i+1) * 3.14, 8)
-        
+            pygame.draw.arc(screen, BG_COLOR, (220, 220, 60, 60), 0.33 * i * 3.14, 0.33 * (i + 1) * 3.14, 8)
+
         blank_screen = False
-        
-    elif not game_over:        
+
+    elif not game_over:
         if use_policy and not turn:
             if sensing:
                 sense_coordinates = sense_index_to_sense_coordinates_map[P1_sense_buffer]
@@ -434,8 +450,9 @@ while running:
                 P1_sense_buffer = chosen_play[1]
 
                 # print(P1_information_set, chosen_play[0], chosen_play[1])
-                
-                if (move_coordinates[0], move_coordinates[1], turn) and (move_coordinates[0], move_coordinates[1], not turn) not in moves:
+
+                if (move_coordinates[0], move_coordinates[1], turn) and (
+                        move_coordinates[0], move_coordinates[1], not turn) not in moves:
                     game_over = make_move((move_coordinates[0], move_coordinates[1], turn))
                     turn = not turn
                     sensing = True
@@ -455,13 +472,12 @@ while running:
                 if sensing:
                     last_click_time = sense_action(event, last_click_time, square, surface)
                 else:
-                    last_click_time = move_action(event, last_click_time, square, surface) 
+                    last_click_time = move_action(event, last_click_time, square, surface)
     else:
         draw_board(screen)
         # show message "Play again? y/n"
         img = arial_font.render('Play again? y/n', True, BOARD_COLOR)
         screen.blit(img, (130, 430))
-
 
     # flip() the display to put your work on screen
     pygame.display.flip()
