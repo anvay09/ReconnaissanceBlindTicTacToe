@@ -1,19 +1,41 @@
+"""
+File for RBT classes TicTacToeBoard, InformationSet, History, TerminalHistory, NonTerminalHistory, and Policy
+"""
 from sympy.utilities.iterables import multiset_permutations
+import yaml
 
 
 class TicTacToeBoard:
+    """
+    Class to maintain tictactoe board and perform board operations
+    """
+
     def __init__(self, board=None):
+        """
+        :param board: list having nine values, each corresponding to a tictactoe square
+        """
         if board is None:
             self.board = ['0', '0', '0', '0', '0', '0', '0', '0', '0']
         else:
             self.board = board.copy()
 
-    # overload [] operator
     def __getitem__(self, key):
+        """
+        Overload [] operator
+
+        :param key: square int
+        :return: square value
+        """
         return self.board[key]
 
-    # assign to [] operator
     def __setitem__(self, key, value):
+        """
+        Assign to [] operator
+
+        :param key: square int
+        :param value: square value to assign
+        :return: None
+        """
         self.board[key] = value
 
     def __eq__(self, other):
@@ -22,7 +44,10 @@ class TicTacToeBoard:
     def copy(self):
         return TicTacToeBoard(self.board)
 
-    def is_win(self):  # returns a boolean (True or False) and the winner ('x or 'o' or None)
+    def is_win(self):
+        """ Check win
+        :return: a boolean (True or False) and the winner ('x or 'o' or None)
+        """
         for i in range(3):
             if (self.board[3 * i] == self.board[3 * i + 1] == self.board[3 * i + 2] != '0'):
                 return True, self.board[3 * i]
@@ -39,23 +64,39 @@ class TicTacToeBoard:
         return False, None
 
     def is_over(self):
+        """ Check if board is full.
+
+        :return: Bool True or False
+        """
         for i in range(9):
             if self.board[i] == '0':
                 return False
         return True
 
     def is_draw(self):
+        """
+        :return: Bool True or False
+        """
         if not self.is_win() and self.is_over():
             return True
         return False
 
     def is_valid_move(self, square):
+        """
+        :param square: int
+        :return: Bool True or False
+        """
         if square < 0 or square > 8:
             return False
         else:
             return self.board[square] == '0'
 
     def update_move(self, square, player):
+        """
+        :param square: int (0-9)
+        :param player: str 'x' or 'o'
+        :return: update board if valid and return Bool True else return Bool False
+        """
         if self.is_valid_move(square):
             self.board[square] = player
             return True
@@ -82,12 +123,15 @@ class InformationSet(TicTacToeBoard):
 
     def __init__(self, player, board=None):
         """
-        :param player: x, o
-        :param board: bytes object indicating the information set of player
+        :param player: str 'x', 'o'
+        :param board: list representing the information set of player
         """
-        TicTacToeBoard.__init__(self, board)
+        super().__init__(board)
         self.sense_square_dict = {9: [0, 1, 3, 4], 10: [1, 2, 4, 5], 11: [3, 4, 6, 7], 12: [4, 5, 7, 8]}
         self.player = player
+
+    def __eq__(self, other):
+        return self.board == other.board and self.player == other.player
 
     def other_player(self):
         if self.player == 'x':
@@ -97,6 +141,9 @@ class InformationSet(TicTacToeBoard):
 
     def copy(self):
         return InformationSet(self.player, self.board)
+
+    def get_hash(self):
+        return ''.join(self.board)
 
     def get_states(self):
         """ Get the states part of the information set
@@ -130,8 +177,13 @@ class InformationSet(TicTacToeBoard):
 
     def get_actions(self, move_flag=True):
         """
-        Get the valid actions that can be taken from the current information set. These include the squares which the
-        player knows is empty ('0') and the uncertain squares ('-')
+        Get the valid actions that can be taken from the current information set.
+
+        For move action, these include the squares which the player knows is empty '0' and the uncertain squares '-'.
+        But note, if a win exists the player will play only that action.
+
+        For sense moves, any sense which reveals some information is a valid sense move.
+
         :param move_flag: indicates whether the current action is move or sense
         :return: list of valid actions that can be taken from the current information set
         """
@@ -139,6 +191,27 @@ class InformationSet(TicTacToeBoard):
             return self.get_valid_moves()
         else:
             return self.get_useful_senses()
+
+    def get_actions_given_policy(self, policy_obj):
+        """
+        Get the valid actions that can be taken from the current information set. These include the actions
+        which have a positive probability in the policy.
+
+        :param policy_obj: Policy Object
+        :return: list of valid actions that can be taken from the current information set given policy
+        """
+        action_list = []
+        if self.is_curr_action_move():
+            for move in range(9):
+                # TODO update this after policy is updated
+                if policy_obj.policy_dict[self.get_hash()][move] > 0:
+                    action_list.append(move)
+        else:
+            for sense in self.sense_square_dict.keys():
+                # TODO update this after policy is updated
+                if policy_obj.policy_dict[self.get_hash()][sense] > 0:
+                    action_list.append(sense)
+        return action_list
 
     def get_valid_moves(self):
         """
@@ -247,6 +320,15 @@ class InformationSet(TicTacToeBoard):
 
         return -1
 
+    def is_curr_action_move(self):
+        """
+        :return: return bool
+        """
+        for i in range(len(self.board)):
+            if self.board[i] == '0':
+                return True
+        return False
+
 
 class History:
     """
@@ -257,10 +339,11 @@ class History:
         """
         :param history: list of actions
         """
-        if self.history is None:
+        if history is None:
             self.history = []
         else:
-            self.history = history
+            self.history = history.copy()
+        self.track_traversal_index = 0
 
     @staticmethod
     def other_player(player):
@@ -270,11 +353,11 @@ class History:
             return 'x'
 
     def get_board(self):
-        """ Get board for the current history.
+        """ Get board for the current history after playing out the moves.
 
         :return: TicTacToe object, bool (True, False), str (player 'x', 'o')
-        If all update moves are played on empty squares return TicTacToe object, False, None
-        Else return TicTacToe object, True, player who played on the non-empty square
+        If all moves are played on empty squares return TicTacToe object, False, None
+        Else return TicTacToe object, True, player who played on the non-empty square and lost the game
         """
         true_board = TicTacToeBoard()
         curr_player = 'x'
@@ -286,18 +369,51 @@ class History:
                 curr_player = self.other_player(curr_player)
         return true_board, False, None
 
+    def get_information_sets(self):
+        """ Get information set of both players for the current history
+
+        :return: Two information set objects
+        """
+        I_1 = InformationSet(player='x')
+        I_2 = InformationSet(player='o', board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
+        true_board = TicTacToeBoard()
+        curr_player = 'x'
+        for action in self.history:
+            if action < 9:
+                if curr_player == 'x':
+                    I_1.update_move(action, curr_player)
+                    I_1.reset_zeros()
+                else:
+                    I_2.update_move(action, curr_player)
+                    I_2.reset_zeros()
+                true_board.update_move(action, curr_player)
+                curr_player = self.other_player(curr_player)
+            else:
+                if curr_player == 'x':
+                    I_1.simulate_sense(action, true_board)
+                else:
+                    I_2.simulate_sense(action, true_board)
+        return I_1, I_2
+
 
 class TerminalHistory(History):
     """
     Child class for terminal histories
     """
 
-    def __init__(self, history=None):
+    def __init__(self, history=None, reward=None):
         """
         :param history: list of actions
+        :param reward: dictionary for rewards of both players
         """
-        History.__init__(history)
-        self.reward = {'x': 0, 'o': 0}
+        super().__init__(history)
+        if reward is None:
+            self.reward = {'x': 0, 'o': 0}
+        else:
+            self.reward = reward.copy()
+
+    def copy(self):
+        return TerminalHistory(self.history, self.reward)
 
     def set_reward(self):
         """
@@ -325,30 +441,47 @@ class NonTerminalHistory(History):
         """
         :param history: list of actions
         """
-        History.__init__(history)
+        super().__init__(history)
 
-    def get_information_sets(self):
-        """ Get information set of both players for the current history
+    def copy(self):
+        return NonTerminalHistory(self.history)
 
-        :return: Two information set objects
+
+class Policy:
+    """
+    Class for a policy
+    """
+
+    def __init__(self, player, policy_file=None):
         """
-        I_1 = InformationSet(player='x')
-        I_2 = InformationSet(player='o')
-        true_board = TicTacToeBoard()
-        curr_player = 'x'
-        for action in self.history:
-            if action < 9:
-                if curr_player == 'x':
-                    I_1.update_move(action, curr_player)
-                    I_1.reset_zeros()
-                else:
-                    I_2.update_move(action, curr_player)
-                    I_2.reset_zeros()
-                true_board.update_move(action, curr_player)
-                curr_player = self.other_player(curr_player)
+        :param player: (str) 'x' or 'o'
+        :param policy_file: yaml file containing the policy is reuired format
+        """
+        self.player = player
+        if policy_file is None:
+            self.policy_dict = None
+            if player == 'x':
+                policy_file = './data_files/P1_information_sets.yml'
             else:
-                if curr_player == 'x':
-                    I_1.simulate_sense(action, true_board)
+                policy_file = './data_files/P2_information_sets.yml'
+            with open(policy_file, 'r') as file:
+                self.policy_dict = yaml.safe_load(file)
+            for key, val in self.policy_dict.items():
+                information_set_obj = InformationSet(player=self.player, board=[*key])
+                if not information_set_obj.is_curr_action_move():
+                    self.policy_dict[key] = {9: 1, 10: 0, 11: 0, 12: 0}
                 else:
-                    I_2.simulate_sense(action, true_board)
-        return I_1, I_2
+                    self.policy_dict[key] = {0: 1, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0}
+        else:
+            # TODO read the policy from a yaml file directly as a dictionary
+            with open(policy_file, 'r') as file:
+                self.policy_dict = yaml.safe_load(file)
+
+    def update_policy_for_given_information_set(self, information_set, prob_distribution):
+        """
+        :param information_set: Information set object
+        :param prob_distribution: list of probabilities over move or sense actions
+        :return: None, update policy dict inplace
+        """
+        for i in range(len(prob_distribution)):
+            self.policy_dict[information_set.get_hash()][i] = prob_distribution[i]

@@ -1,9 +1,9 @@
-from information_set_fast import InformationSet
-from rbt_classes import TicTacToeBoard
+from rbt_classes import InformationSet, TicTacToeBoard
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
 from multiprocessing import Pool
 
 num_workers = 4
+
 
 def toggle_player(player):
     return 'x' if player == 'o' else 'o'
@@ -55,7 +55,7 @@ def is_valid_history(H, end_I):
         return I_2 == end_I
 
 
-def get_histories(I, move_flag):
+def get_histories(I):
     states = I.get_states()
     histories = []
     sense_actions = list(I.sense_square_dict.keys())
@@ -67,7 +67,7 @@ def get_histories(I, move_flag):
         p1_permutations = list(multiset_permutations(p1_moves))
         p2_permutations = list(multiset_permutations(p2_moves))
 
-        if move_flag:
+        if I.is_curr_action_move():
             num_sense_actions = len(p1_moves) + len(p2_moves)
         else:
             num_sense_actions = len(p1_moves) + len(p2_moves) - 1
@@ -103,13 +103,6 @@ def get_histories(I, move_flag):
     args = [(h, I) for h in histories]
     with Pool(num_workers) as p:
         valid_histories = p.starmap(is_valid_history, args)
-    
+
     valid_histories = [h for h, valid in zip(histories, valid_histories) if valid]
     return valid_histories
-
-
-if __name__ == '__main__':
-    I = InformationSet(player='x', board=['-', '0', '0', 'x', 'x', 'o', 'o', '-', 'x'])
-    move_flag = True
-    H = get_histories(I, move_flag)
-    print(len(H))
