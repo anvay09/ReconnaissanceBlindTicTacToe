@@ -35,8 +35,8 @@ def play(I_1, I_2, true_board, player):
     :return:
     """
     num_histories = 0
-    I_1_set = set((''.join(I_1.board),))
-    I_2_set = set((''.join(I_2.board),))
+    I_1_set = set((I_1.get_hash(),))
+    I_2_set = set((I_2.get_hash(),))
 
     if player == 'x':
         I = I_1
@@ -93,6 +93,8 @@ def parallel_play(I_1, I_2, true_board, player):
     I_1_vars = []
     I_2_vars = []
     true_board_vars = []
+    P1_information_sets = set((I_1.get_hash(),))
+    P2_information_sets = set((I_2.get_hash(),))
 
     if player == 'x':
         I = I_1
@@ -130,18 +132,13 @@ def parallel_play(I_1, I_2, true_board, player):
         obj_list = pool.starmap(play, [(I_1_vars[i], I_2_vars[i], true_board_vars[i], player) for i in
                                        range(len(I_1_vars))])
 
-    P1_information_sets = set()
-    P2_information_sets = set()
-
     for item in obj_list:
         Total_histories += item[0]
         P1_information_sets = P1_information_sets.union(item[1])
         P2_information_sets = P2_information_sets.union(item[2])
 
     print('Total Histories: ', Total_histories)
-    # print('Player 1 Information Sets: ', P1_information_sets)
-    # print('Player 2 Information Sets: ', P2_information_sets)
-    # write to file
+    
     with open('P1_information_sets.txt', 'w') as f:
         for item in P1_information_sets:
             f.write("%s\n" % item)
@@ -154,10 +151,15 @@ def parallel_play(I_1, I_2, true_board, player):
 
 
 if __name__ == "__main__":
-    true_board = TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
-    I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
-    I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
-    player = 'x'
-    move_flag = True
+    # true_board = TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
+    # I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
+    # I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
+    # player = 'x'
+    # move_flag = True
+    true_board = TicTacToeBoard(board=['0', '0', '0', '0', 'x', '0', '0', '0', '0'])
+    I_1 = InformationSet(player='x', move_flag=False, board=['-', '-', '-', '-', 'x', '-', '-', '-', '-'])
+    I_2 = InformationSet(player='o', move_flag=True, board=['-', '-', '-', '0', 'x', '-', '0', '0', '-'])
+    player = 'o'
+    move_flag = False
 
     parallel_play(I_1, I_2, true_board, player)
