@@ -151,15 +151,15 @@ def parallel_play(I_1, I_2, true_board, player):
 
 
 if __name__ == "__main__":
-    # true_board = TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
-    # I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
-    # I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
-    # player = 'x'
-    # move_flag = True
-    true_board = TicTacToeBoard(board=['0', '0', '0', '0', 'x', '0', '0', '0', '0'])
-    I_1 = InformationSet(player='x', move_flag=False, board=['-', '-', '-', '-', 'x', '-', '-', '-', '-'])
-    I_2 = InformationSet(player='o', move_flag=True, board=['-', '-', '-', '0', 'x', '-', '0', '0', '-'])
-    player = 'o'
-    move_flag = False
+    true_board = TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
+    I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
+    I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
+    player = 'x'
+    move_flag = True
+    # true_board = TicTacToeBoard(board=['0', '0', '0', '0', 'x', '0', '0', '0', '0'])
+    # I_1 = InformationSet(player='x', move_flag=False, board=['-', '-', '-', '-', 'x', '-', '-', '-', '-'])
+    # I_2 = InformationSet(player='o', move_flag=True, board=['-', '-', '-', '0', 'x', '-', '0', '0', '-'])
+    # player = 'o'
+    # move_flag = False
 
     parallel_play(I_1, I_2, true_board, player)
