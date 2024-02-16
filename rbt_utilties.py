@@ -66,13 +66,14 @@ def get_histories_given_I(I):
 
         p1_permutations = list(multiset_permutations(p1_moves))
         p2_permutations = list(multiset_permutations(p2_moves))
-
+        
         if I.is_curr_action_move():
             num_sense_actions = len(p1_moves) + len(p2_moves)
         else:
             num_sense_actions = len(p1_moves) + len(p2_moves) - 1
 
         sense_combinations = list(combinations_with_replacement(sense_actions, num_sense_actions))
+
         sense_combinations_permuted = []
         for comb in sense_combinations:
             perms = list(multiset_permutations(comb))
@@ -85,18 +86,23 @@ def get_histories_given_I(I):
                     player = 'x'
                     idx_1 = 0
                     idx_2 = 0
-
-                    for idx in range(len(s)):
-                        if player == 'x':
-                            history.append(p1[idx_1])
-                            history.append(s[idx])
-                            idx_1 += 1
-                            player = toggle_player(player)
-                        else:
-                            history.append(p2[idx_2])
-                            history.append(s[idx])
-                            idx_2 += 1
-                            player = toggle_player(player)
+                    # print(p1, p2, s)
+                    if p1 == []:
+                        history.append([])
+                    elif s == []:
+                        history.append(p1[idx_1])
+                    else:
+                        for idx in range(len(s)):
+                            if player == 'x':
+                                history.append(p1[idx_1])
+                                history.append(s[idx])
+                                idx_1 += 1
+                                player = toggle_player(player)
+                            else:
+                                history.append(p2[idx_2])
+                                history.append(s[idx])
+                                idx_2 += 1
+                                player = toggle_player(player)
 
                     histories.append(history)
 
