@@ -1,8 +1,12 @@
 from rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, TicTacToeBoard
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
 from multiprocessing import Pool
+import logging
 
 num_workers = 4
+
+logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
+                    level=logging.INFO)
 
 
 def toggle_player(player):
@@ -59,6 +63,7 @@ def get_histories_given_I(I):
     states = I.get_states()
     histories = []
     sense_actions = list(I.sense_square_dict.keys())
+    logging.info('Calculating h for {}...'.format(I.get_hash()))
 
     for state in states:
         p1_moves = [idx for idx, value in enumerate(state.board) if value == 'x']
@@ -66,7 +71,7 @@ def get_histories_given_I(I):
 
         p1_permutations = list(multiset_permutations(p1_moves))
         p2_permutations = list(multiset_permutations(p2_moves))
-        
+
         if I.is_curr_action_move():
             num_sense_actions = len(p1_moves) + len(p2_moves)
         else:
@@ -249,22 +254,76 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
     return probability
 
 
-def get_counter_factual_utility(information_set, policy_obj_x, policy_obj_o):
-    starting_histories = get_histories_given_I(information_set)
+def get_counter_factual_utility(I, policy_obj_x, policy_obj_o):
+    starting_histories = get_histories_given_I(I)
     utility = 0
+
     for h in starting_histories:
         h_object = NonTerminalHistory(h)
         curr_I_1, curr_I_2 = h_object.get_information_sets()
         true_board, overlapping_move_flag, overlapping_move_player = h_object.get_board()
-        expected_utiltiy_h = play(curr_I_1, curr_I_2, true_board, information_set.player, policy_obj_x, policy_obj_o, 1,
-                                  h_object.copy(), information_set.player, information_set.is_curr_action_move())
+        expected_utiltiy_h = play(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1,
+                                  h_object.copy(), I.player, I.is_curr_action_move())
         if not curr_I_1.get_hash() == '000000000':
             probabiltiy_reaching_h = get_prob_h_given_policy(
                 InformationSet(player='x', board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
                 InformationSet(player='o', board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
-                TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']), 'x', h[0], policy_obj_x, policy_obj_o,
+                TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']), 'x', h[0], policy_obj_x,
+                policy_obj_o,
                 1, h_object, True)
         else:
             probabiltiy_reaching_h = 1
         utility += expected_utiltiy_h * probabiltiy_reaching_h
     return utility
+
+
+def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, prev_regret):
+    new_policy_obj_x = policy_obj_x.copy()
+    new_policy_obj_o = policy_obj_o.copy()
+    logging.info('Calculating cf-utility for {}...'.format(I.get_hash()))
+    util = get_counter_factual_utility(I, policy_obj_x, policy_obj_o)
+    if I.is_curr_action_move():
+        prob_dist = [1 if i == action else 0 for i in range(9)]
+        if I.player == 'x':
+            new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
+        else:
+            new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
+    else:
+        prob_dist = [1 if i == action else 0 for i in range(9, 13)]
+        if I.player == 'x':
+            new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
+        else:
+            new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
+
+    logging.info('Calculating cf-utility-a for {}, {}...'.format(I.get_hash(), action))
+    util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o)
+    if T == 0:
+        regret_T = util_a - util
+    else:
+        regret_T = (1 / T) * ((T - 1) * prev_regret + util_a - util)
+
+    return max(0, regret_T)
+
+
+def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
+    new_policy_obj_x = policy_obj_x.copy()
+    new_policy_obj_o = policy_obj_o.copy()
+    actions = I.get_actions()
+    regret_list = [0 for i in range(13)]
+    for action in actions:
+        logging.info('Calculating regret for {}, {}...'.format(I.get_hash(), action))
+        regret_I = calc_regret_given_I_and_action(I, action, new_policy_obj_x, new_policy_obj_o, T,
+                                                  prev_regret_list[action])
+        regret_list[action] = regret_I
+    total_regret_I = sum(regret_list)
+    if I.player == 'x':
+        policy = new_policy_obj_x
+    else:
+        policy = new_policy_obj_o
+    if total_regret_I > 0:
+        for action in actions:
+            policy.policy_dict[I.get_hash()][action] = regret_list[action] / total_regret_I
+    else:
+        for action in actions:
+            policy.policy_dict[I.get_hash()][action] = 1 / len(actions)
+    return new_policy_obj_x, new_policy_obj_o
