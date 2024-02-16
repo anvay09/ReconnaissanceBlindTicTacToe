@@ -25,7 +25,7 @@ def get_information_set_from_states(states, player):
     return I
 
 
-def play(I_1, I_2, true_board, player, move_flag=True):
+def play(I_1, I_2, true_board, player):
     """
     :param I_1:
     :param I_2:
@@ -43,9 +43,9 @@ def play(I_1, I_2, true_board, player, move_flag=True):
     else:
         I = I_2
 
-    actions = I.get_actions(move_flag)
+    actions = I.get_actions()
 
-    if move_flag:
+    if I.move_flag:
         for action in actions:
             new_true_board = true_board.copy()
             success = new_true_board.update_move(action, player)
@@ -56,12 +56,12 @@ def play(I_1, I_2, true_board, player, move_flag=True):
                 new_I.reset_zeros()
 
                 if player == 'x':
-                    num_histories_future, future_I_1_set, future_I_2_set = play(new_I, I_2, new_true_board, 'o', False)
+                    num_histories_future, future_I_1_set, future_I_2_set = play(new_I, I_2, new_true_board, 'o')
                     num_histories += num_histories_future
                     I_1_set = I_1_set.union(future_I_1_set)
                     I_2_set = I_2_set.union(future_I_2_set)
                 else:
-                    num_histories_future, future_I_1_set, future_I_2_set = play(I_1, new_I, new_true_board, 'x', False)
+                    num_histories_future, future_I_1_set, future_I_2_set = play(I_1, new_I, new_true_board, 'x')
                     num_histories += num_histories_future
                     I_1_set = I_1_set.union(future_I_1_set)
                     I_2_set = I_2_set.union(future_I_2_set)
@@ -75,12 +75,12 @@ def play(I_1, I_2, true_board, player, move_flag=True):
             new_true_board = true_board.copy()
 
             if player == 'x':
-                num_histories_future, future_I_1_set, future_I_2_set = play(new_I, I_2, new_true_board, 'x', True)
+                num_histories_future, future_I_1_set, future_I_2_set = play(new_I, I_2, new_true_board, 'x')
                 num_histories += num_histories_future
                 I_1_set = I_1_set.union(future_I_1_set)
                 I_2_set = I_2_set.union(future_I_2_set)
             else:
-                num_histories_future, future_I_1_set, future_I_2_set = play(I_1, new_I, new_true_board, 'o', True)
+                num_histories_future, future_I_1_set, future_I_2_set = play(I_1, new_I, new_true_board, 'o')
                 num_histories += num_histories_future
                 I_1_set = I_1_set.union(future_I_1_set)
                 I_2_set = I_2_set.union(future_I_2_set)
@@ -88,7 +88,7 @@ def play(I_1, I_2, true_board, player, move_flag=True):
     return num_histories, I_1_set, I_2_set
 
 
-def parallel_play(I_1, I_2, true_board, player, move_flag=True):
+def parallel_play(I_1, I_2, true_board, player):
     Total_histories = 0
     I_1_vars = []
     I_2_vars = []
@@ -99,7 +99,7 @@ def parallel_play(I_1, I_2, true_board, player, move_flag=True):
     else:
         I = I_2
 
-    actions = I.get_actions(move_flag)
+    actions = I.get_actions()
 
     for action in actions:
         new_true_board = true_board.copy()
@@ -126,10 +126,8 @@ def parallel_play(I_1, I_2, true_board, player, move_flag=True):
     else:
         player = 'x'
 
-    move_flag = not move_flag
-
     with Pool(len(I_1_vars)) as pool:
-        obj_list = pool.starmap(play, [(I_1_vars[i], I_2_vars[i], true_board_vars[i], player, move_flag) for i in
+        obj_list = pool.starmap(play, [(I_1_vars[i], I_2_vars[i], true_board_vars[i], player) for i in
                                        range(len(I_1_vars))])
 
     P1_information_sets = set()
@@ -157,9 +155,9 @@ def parallel_play(I_1, I_2, true_board, player, move_flag=True):
 
 if __name__ == "__main__":
     true_board = TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
-    I_1 = InformationSet(player='x', board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
-    I_2 = InformationSet(player='o', board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
+    I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
+    I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
     player = 'x'
     move_flag = True
 
-    parallel_play(I_1, I_2, true_board, player, move_flag)
+    parallel_play(I_1, I_2, true_board, player)

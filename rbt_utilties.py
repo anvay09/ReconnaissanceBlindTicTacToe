@@ -59,7 +59,7 @@ def is_valid_history(H, end_I):
         return I_2 == end_I
 
 
-def get_histories_given_I(I):
+def get_histories_given_I(I, move_flag):
     states = I.get_states()
     histories = []
     sense_actions = list(I.sense_square_dict.keys())
@@ -72,7 +72,7 @@ def get_histories_given_I(I):
         p1_permutations = list(multiset_permutations(p1_moves))
         p2_permutations = list(multiset_permutations(p2_moves))
 
-        if I.is_curr_action_move():
+        if move_flag:
             num_sense_actions = len(p1_moves) + len(p2_moves)
         else:
             num_sense_actions = len(p1_moves) + len(p2_moves) - 1
@@ -124,7 +124,7 @@ def get_histories_given_I(I):
 
 
 def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, current_history, initial_player,
-         move_flag=True):
+         move_flag):
     """
 
     :param I_1:
@@ -196,7 +196,7 @@ def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, 
 
 def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_obj_x, policy_obj_o, probability,
                             history_obj,
-                            move_flag=True):
+                            move_flag):
     """
 
     :param I_1:
@@ -222,6 +222,12 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
         new_true_board = true_board.copy()
         success = new_true_board.update_move(next_action, player)
         # TODO update this line after policy class is updated
+
+        logging.info('Next action: {}'.format(next_action))
+        logging.info('Policy for {}:'.format(I.get_hash()))
+        logging.info('History: {}'.format(history_obj.history))
+        print(policy_obj.policy_dict[I.get_hash()])
+
         probability *= policy_obj.policy_dict[I.get_hash()][next_action]
         history_obj.track_traversal_index += 1
         if history_obj.track_traversal_index < len(history_obj.history):
@@ -242,6 +248,12 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
         new_I = I.copy()
         new_I.simulate_sense(next_action, true_board)
         new_true_board = true_board.copy()
+
+        logging.info('Next action: {}'.format(next_action))
+        logging.info('Policy for {}:'.format(I.get_hash()))
+        logging.info('History: {}'.format(history_obj.history))
+        print(policy_obj.policy_dict[I.get_hash()])
+
         # TODO update this line after policy class is updated
         probability *= policy_obj.policy_dict[I.get_hash()][next_action]
         history_obj.track_traversal_index += 1
@@ -258,7 +270,7 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
     return probability
 
 
-def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories):
+def get_counter_factual_utility(I, move_flag, policy_obj_x, policy_obj_o, starting_histories):
     utility = 0
 
     for h in starting_histories:
@@ -266,7 +278,7 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
         curr_I_1, curr_I_2 = h_object.get_information_sets()
         true_board, overlapping_move_flag, overlapping_move_player = h_object.get_board()
         expected_utiltiy_h = play(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1,
-                                  h_object.copy(), I.player, I.is_curr_action_move())
+                                  h_object.copy(), I.player, move_flag)
         if not curr_I_1.get_hash() == '000000000':
             probabiltiy_reaching_h = get_prob_h_given_policy(
                 InformationSet(player='x', board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
@@ -280,12 +292,12 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
     return utility
 
 
-def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, prev_regret, starting_histories):
+def calc_regret_given_I_and_action(I, move_flag, action, policy_obj_x, policy_obj_o, T, prev_regret, starting_histories):
     new_policy_obj_x = policy_obj_x.copy()
     new_policy_obj_o = policy_obj_o.copy()
     logging.info('Calculating cf-utility for {}...'.format(I.get_hash()))
-    util = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories)
-    if I.is_curr_action_move():
+    util = get_counter_factual_utility(I, move_flag, policy_obj_x, policy_obj_o, starting_histories)
+    if move_flag:
         prob_dist = [1 if i == action else 0 for i in range(9)]
         if I.player == 'x':
             new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
@@ -299,7 +311,7 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
             new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
 
     logging.info('Calculating cf-utility-a for {}, {}...'.format(I.get_hash(), action))
-    util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories)
+    util_a = get_counter_factual_utility(I, move_flag, new_policy_obj_x, new_policy_obj_o, starting_histories)
     if T == 0:
         regret_T = util_a - util
     else:
@@ -308,17 +320,17 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
     return max(0, regret_T)
 
 
-def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
+def calc_cfr_policy_given_I(I, move_flag, policy_obj_x, policy_obj_o, T, prev_regret_list):
     new_policy_obj_x = policy_obj_x.copy()
     new_policy_obj_o = policy_obj_o.copy()
-    actions = I.get_actions()
-    regret_list = [0 for i in range(13)]
+    actions = I.get_actions(move_flag)
+    regret_list = [0 for _ in range(13)]
 
-    starting_histories = get_histories_given_I(I)
+    starting_histories = get_histories_given_I(I, move_flag)
 
     for action in actions:
         logging.info('Calculating regret for {}, {}...'.format(I.get_hash(), action))
-        regret_I = calc_regret_given_I_and_action(I, action, new_policy_obj_x, new_policy_obj_o, T,
+        regret_I = calc_regret_given_I_and_action(I, move_flag, action, new_policy_obj_x, new_policy_obj_o, T,
                                                   prev_regret_list[action], starting_histories)
         regret_list[action] = regret_I
     total_regret_I = sum(regret_list)

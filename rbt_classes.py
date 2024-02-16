@@ -122,7 +122,7 @@ class InformationSet(TicTacToeBoard):
     Inherit data and functions from TicTacToeBoard
     """
 
-    def __init__(self, player, board=None):
+    def __init__(self, player, move_flag, board=None):
         """
         :param player: str 'x', 'o'
         :param board: list representing the information set of player
@@ -130,9 +130,10 @@ class InformationSet(TicTacToeBoard):
         super().__init__(board)
         self.sense_square_dict = {9: [0, 1, 3, 4], 10: [1, 2, 4, 5], 11: [3, 4, 6, 7], 12: [4, 5, 7, 8]}
         self.player = player
+        self.move_flag = move_flag
 
     def __eq__(self, other):
-        return self.board == other.board and self.player == other.player
+        return self.board == other.board and self.player == other.player and self.move_flag == other.move_flag
 
     def other_player(self):
         if self.player == 'x':
@@ -141,11 +142,14 @@ class InformationSet(TicTacToeBoard):
             return 'x'
 
     def copy(self):
-        return InformationSet(self.player, self.board)
+        return InformationSet(self.player, self.move_flag, self.board)
 
     def get_hash(self):
-        return ''.join(self.board)
-
+        if self.move_flag:
+            return ''.join(self.board) + 'm'
+        else:
+            return ''.join(self.board) + 's'
+        
     def get_states(self):
         """ Get the states part of the information set
 
@@ -176,7 +180,7 @@ class InformationSet(TicTacToeBoard):
 
             return output_states
 
-    def get_actions(self, move_flag=True):
+    def get_actions(self):
         """
         Get the valid actions that can be taken from the current information set.
 
@@ -188,7 +192,7 @@ class InformationSet(TicTacToeBoard):
         :param move_flag: indicates whether the current action is move or sense
         :return: list of valid actions that can be taken from the current information set
         """
-        if move_flag:
+        if self.move_flag:
             return self.get_valid_moves()
         else:
             return self.get_useful_senses()
@@ -202,7 +206,7 @@ class InformationSet(TicTacToeBoard):
         :return: list of valid actions that can be taken from the current information set given policy
         """
         action_list = []
-        if self.is_curr_action_move():
+        if self.move_flag:
             for move in range(9):
                 # TODO update this after policy is updated
                 if policy_obj.policy_dict[self.get_hash()][move] > 0:
@@ -271,6 +275,8 @@ class InformationSet(TicTacToeBoard):
         for square in self.sense_square_dict[action]:
             self.board[square] = true_board[square]
 
+        self.move_flag = True
+
     def reset_zeros(self):
         for i in range(len(self.board)):
             if self.board[i] == '0':
@@ -285,6 +291,7 @@ class InformationSet(TicTacToeBoard):
     def update_move(self, square, player):
         if self.is_valid_move(square):
             self.board[square] = player
+            self.move_flag = False
             return True
         return False
 
@@ -316,19 +323,10 @@ class InformationSet(TicTacToeBoard):
         for zero in zeroes:
             new_I_board = self.board.copy()
             new_I_board[zero] = self.player
-            if InformationSet(self.player, new_I_board).is_win_for_player():
+            if InformationSet(self.player, self.move_flag, new_I_board).is_win_for_player():
                 return zero
 
         return -1
-
-    def is_curr_action_move(self):
-        """
-        :return: return bool
-        """
-        for i in range(len(self.board)):
-            if self.board[i] == '0':
-                return True
-        return False
 
 
 class History:
