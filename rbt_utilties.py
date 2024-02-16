@@ -109,8 +109,12 @@ def get_histories_given_I(I):
                                 idx_2 += 1
                                 player = toggle_player(player)
 
+                        if len(p1) > len(p2):
+                            history.append(p1[idx_1])
+
                     histories.append(history)
 
+    logging.info('Filtering valid histories {}...'.format(I.get_hash()))
     args = [(h, I) for h in histories]
     with Pool(num_workers) as p:
         valid_histories = p.starmap(is_valid_history, args)
@@ -254,8 +258,7 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
     return probability
 
 
-def get_counter_factual_utility(I, policy_obj_x, policy_obj_o):
-    starting_histories = get_histories_given_I(I)
+def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories):
     utility = 0
 
     for h in starting_histories:
@@ -277,11 +280,11 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o):
     return utility
 
 
-def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, prev_regret):
+def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, prev_regret, starting_histories):
     new_policy_obj_x = policy_obj_x.copy()
     new_policy_obj_o = policy_obj_o.copy()
     logging.info('Calculating cf-utility for {}...'.format(I.get_hash()))
-    util = get_counter_factual_utility(I, policy_obj_x, policy_obj_o)
+    util = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories)
     if I.is_curr_action_move():
         prob_dist = [1 if i == action else 0 for i in range(9)]
         if I.player == 'x':
@@ -296,7 +299,7 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
             new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
 
     logging.info('Calculating cf-utility-a for {}, {}...'.format(I.get_hash(), action))
-    util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o)
+    util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories)
     if T == 0:
         regret_T = util_a - util
     else:
@@ -310,10 +313,13 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
     new_policy_obj_o = policy_obj_o.copy()
     actions = I.get_actions()
     regret_list = [0 for i in range(13)]
+
+    starting_histories = get_histories_given_I(I)
+
     for action in actions:
         logging.info('Calculating regret for {}, {}...'.format(I.get_hash(), action))
         regret_I = calc_regret_given_I_and_action(I, action, new_policy_obj_x, new_policy_obj_o, T,
-                                                  prev_regret_list[action])
+                                                  prev_regret_list[action], starting_histories)
         regret_list[action] = regret_I
     total_regret_I = sum(regret_list)
     if I.player == 'x':
