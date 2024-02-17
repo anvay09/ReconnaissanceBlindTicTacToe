@@ -499,7 +499,7 @@ class Policy:
             self.policy_dict = policy_dict.copy()
 
     def copy(self):
-        return Policy(self.player, policy_dict=self.policy_dict)
+        return Policy(self.player, policy_dict=self.policy_dict.deepcopy())
 
     def update_policy_for_given_information_set(self, information_set, prob_distribution):
         """
