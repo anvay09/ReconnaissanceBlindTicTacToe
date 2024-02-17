@@ -29,6 +29,7 @@ def is_valid_history(H, end_I):
             I = I_2.copy()
 
         actions = I.get_actions()
+        
         if I.move_flag:
             success = true_board.update_move(action, player)
             if not success or action not in actions:
@@ -54,6 +55,7 @@ def is_valid_history(H, end_I):
 
         # move_flag = not move_flag
 
+    
     if end_I.player == 'x':
         return I_1 == end_I
     else:
@@ -92,7 +94,7 @@ def get_histories_given_I(I):
                     player = 'x'
                     idx_1 = 0
                     idx_2 = 0
-                    
+                    # print(p1, p2, s) 
                     if p1 == []:
                         history.append([])
                     elif s == []:
@@ -110,8 +112,10 @@ def get_histories_given_I(I):
                                 idx_2 += 1
                                 player = toggle_player(player)
 
-                        if len(p1) > len(p2):
+                        if idx_1 < len(p1):
                             history.append(p1[idx_1])
+                        elif idx_2 < len(p2):
+                            history.append(p2[idx_2])
 
                     histories.append(history)
 
