@@ -507,7 +507,7 @@ class Policy:
         :param prob_distribution: list of probabilities over move or sense actions
         :return: None, update policy dict inplace
         """
-        keys = list(self.policy_dict[information_set.get_hash()].keys())
+        keys = sorted(list(self.policy_dict[information_set.get_hash()].keys()))
         for i in range(len(keys)):
             self.policy_dict[information_set.get_hash()][keys[i]] = prob_distribution[i]
 
