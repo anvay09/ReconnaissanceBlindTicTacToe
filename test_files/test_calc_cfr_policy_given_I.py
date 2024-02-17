@@ -31,3 +31,5 @@ if __name__ == '__main__':
     policy_obj_x, policy_obj_o, prev_regret_list = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list)
     T = 1
     policy_obj_x, policy_obj_o, prev_regret_list = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list)
+    T = 2
+    policy_obj_x, policy_obj_o, prev_regret_list = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list)
