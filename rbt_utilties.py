@@ -221,10 +221,10 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
         success = new_true_board.update_move(next_action, player)
         # TODO update this line after policy class is updated
 
-        logging.info('Next action: {}'.format(next_action))
-        logging.info('Policy for {}:'.format(I.get_hash()))
-        logging.info('History: {}'.format(history_obj.history))
-        print(policy_obj.policy_dict[I.get_hash()])
+        # logging.info('Next action: {}'.format(next_action))
+        # logging.info('Policy for {}:'.format(I.get_hash()))
+        # logging.info('History: {}'.format(history_obj.history))
+        # print(policy_obj.policy_dict[I.get_hash()])
 
         probability *= policy_obj.policy_dict[I.get_hash()][next_action]
         history_obj.track_traversal_index += 1
@@ -247,10 +247,10 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
         new_I.simulate_sense(next_action, true_board)
         new_true_board = true_board.copy()
 
-        logging.info('Next action: {}'.format(next_action))
-        logging.info('Policy for {}:'.format(I.get_hash()))
-        logging.info('History: {}'.format(history_obj.history))
-        print(policy_obj.policy_dict[I.get_hash()])
+        # logging.info('Next action: {}'.format(next_action))
+        # logging.info('Policy for {}:'.format(I.get_hash()))
+        # logging.info('History: {}'.format(history_obj.history))
+        # print(policy_obj.policy_dict[I.get_hash()])
 
         # TODO update this line after policy class is updated
         probability *= policy_obj.policy_dict[I.get_hash()][next_action]
@@ -278,10 +278,12 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
         expected_utiltiy_h = play(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1,
                                   h_object.copy(), I.player)
         if not curr_I_1.get_hash() == '000000000':
+            logging.info('Calculating probability for {}...'.format(h))
             probabiltiy_reaching_h = get_prob_h_given_policy(
                 InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
                 InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
                 TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']), 'x', h[0], policy_obj_x, policy_obj_o, 1, h_object)
+            logging.info('Calculated probability = {}...'.format(probabiltiy_reaching_h))
         else:
             probabiltiy_reaching_h = 1
         utility += expected_utiltiy_h * probabiltiy_reaching_h
