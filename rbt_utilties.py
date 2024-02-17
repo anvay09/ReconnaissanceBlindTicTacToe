@@ -294,35 +294,22 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
     return utility
 
 
-def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, prev_regret, starting_histories):
+def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, prev_regret, starting_histories, util):
     new_policy_obj_x = policy_obj_x.copy()
     new_policy_obj_o = policy_obj_o.copy()
-    logging.info('Calculating cf-utility for {}...'.format(I.get_hash()))
-
-    if I.player == 'x':
-        logging.info('Old policy for {} is {}, when action is {}...'.format(I.get_hash(), policy_obj_x.policy_dict[I.get_hash()], action))
-    else:
-        logging.info('Old policy for {} is {}, when action is {}...'.format(I.get_hash(), policy_obj_o.policy_dict[I.get_hash()], action))
-
-    util = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories)
-    logging.info('Calculated cf-utility = {}...'.format(util))
-
+    
     if I.move_flag:
         prob_dist = [1 if i == action else 0 for i in range(9)]
         if I.player == 'x':
             new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
-            logging.info('Updated policy for {} is {}, when action is {}...'.format(I.get_hash(), new_policy_obj_x.policy_dict[I.get_hash()], action))
         else:
             new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
-            logging.info('Updated policy for {} is {}, when action is {}...'.format(I.get_hash(), new_policy_obj_o.policy_dict[I.get_hash()], action))
     else:
         prob_dist = [1 if i == action else 0 for i in range(9, 13)]
         if I.player == 'x':
             new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
-            logging.info('Updated policy for {} is {}, when action is {}...'.format(I.get_hash(), new_policy_obj_x.policy_dict[I.get_hash()], action))
         else:
             new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
-            logging.info('Updated policy for {} is {}, when action is {}...'.format(I.get_hash(), new_policy_obj_o.policy_dict[I.get_hash()], action))
 
     logging.info('Calculating cf-utility-a for {}, {}...'.format(I.get_hash(), action))
     util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories)
@@ -348,10 +335,14 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
 
     starting_histories = get_histories_given_I(I)
 
+    logging.info('Calculating cf-utility for {}...'.format(I.get_hash()))
+    util = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories)
+    logging.info('Calculated cf-utility = {}...'.format(util))
+
     for action in actions:
         logging.info('Calculating regret for {}, {}...'.format(I.get_hash(), action))
         regret_I = calc_regret_given_I_and_action(I, action, new_policy_obj_x, new_policy_obj_o, T,
-                                                  prev_regret_list[action], starting_histories)
+                                                  prev_regret_list[action], starting_histories, util)
         regret_list[action] = regret_I
 
     logging.info('Regret list for {}: {}'.format(I.get_hash(), regret_list))

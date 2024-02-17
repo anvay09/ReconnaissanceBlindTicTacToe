@@ -22,7 +22,6 @@ if __name__ == '__main__':
 
     calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list)
 
-    logging.info('Updated policy for player {}, information set {}:'.format(player, I.get_hash()))
     if player == 'x':
         print(policy_obj_x.policy_dict[I.get_hash()])
     else:
