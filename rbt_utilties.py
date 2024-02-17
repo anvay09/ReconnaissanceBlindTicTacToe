@@ -297,6 +297,7 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
     logging.info('Calculating cf-utility for {}...'.format(I.get_hash()))
     util = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories)
     logging.info('Calculated cf-utility = {}...'.format(util))
+
     if I.move_flag:
         prob_dist = [1 if i == action else 0 for i in range(9)]
         if I.player == 'x':
@@ -309,8 +310,6 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
             new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
         else:
             new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
-
-    
 
     logging.info('Calculating cf-utility-a for {}, {}...'.format(I.get_hash(), action))
     util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories)
@@ -355,4 +354,6 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
     else:
         for action in actions:
             policy.policy_dict[I.get_hash()][action] = 1 / len(actions)
+    
+    logging.info('Updated policy for {} is {}'.format(I.get_hash(), policy.policy_dict[I.get_hash()]))
     return new_policy_obj_x, new_policy_obj_o
