@@ -4,7 +4,7 @@ File for RBT classes TicTacToeBoard, InformationSet, History, TerminalHistory, N
 from sympy.utilities.iterables import multiset_permutations
 import yaml
 from random import random
-
+import copy
 
 class TicTacToeBoard:
     """
@@ -496,10 +496,10 @@ class Policy:
                 with open(policy_file, 'r') as file:
                     self.policy_dict = yaml.safe_load(file)
         else:
-            self.policy_dict = policy_dict.copy()
+            self.policy_dict = copy.deepcopy(policy_dict)
 
     def copy(self):
-        return Policy(self.player, policy_dict=self.policy_dict.deepcopy())
+        return Policy(self.player, policy_dict = copy.deepcopy(self.policy_dict))
 
     def update_policy_for_given_information_set(self, information_set, prob_distribution):
         """
