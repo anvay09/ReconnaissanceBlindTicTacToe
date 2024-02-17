@@ -3,7 +3,8 @@ from rbt_utilties import calc_cfr_policy_given_I
 import logging
 
 if __name__ == '__main__':
-    I = InformationSet(player='x', move_flag = False, board=['o', '-', '-', '-', 'x', '-', '-', '-', 'x'])
+    # I = InformationSet(player='x', move_flag = False, board=['o', '-', '-', '-', 'x', '-', '-', '-', 'x'])
+    I = InformationSet(player='x', move_flag=True, board=['-', '0', '0', 'x', 'x', 'o', 'o', '-', 'x'])
     player = 'x'
     T = 0
     prev_regret_list = [0 for _ in range(13)]
