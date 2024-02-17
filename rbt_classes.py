@@ -467,8 +467,10 @@ class Policy:
                 with open(policy_file, 'r') as file:
                     self.policy_dict = yaml.safe_load(file)
                 for key, val in self.policy_dict.items():
-                    information_set_obj = InformationSet(player=self.player, board=[*key])
-                    move_flag = information_set_obj.is_curr_action_move()
+                    board = [*key]
+                    move_flag = board[-1] == 'm'
+                    board = board[:-1]
+                    information_set_obj = InformationSet(player=self.player, move_flag=move_flag, board=board)
                     valid_actions = information_set_obj.get_actions(move_flag)
                     uniform_prob = 1 / len(valid_actions)
 
