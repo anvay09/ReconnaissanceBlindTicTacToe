@@ -507,8 +507,9 @@ class Policy:
         :param prob_distribution: list of probabilities over move or sense actions
         :return: None, update policy dict inplace
         """
-        # for i in range(len(prob_distribution)):
-        self.policy_dict[information_set.get_hash()] = prob_distribution
+        keys = list(self.policy_dict.keys())
+        for i in range(len(keys)):
+            self.policy_dict[information_set.get_hash()][keys[i]] = prob_distribution[i]
 
     def save_policy_to_file(self, file_name):
         """
