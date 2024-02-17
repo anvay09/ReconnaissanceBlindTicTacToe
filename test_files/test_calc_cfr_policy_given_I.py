@@ -3,10 +3,10 @@ from rbt_utilties import calc_cfr_policy_given_I
 import logging
 
 if __name__ == '__main__':
-    I = InformationSet(player='o', move_flag = False, board=['o', '-', '-', '-', 'x', 'o', 'o', '-', 'x'])
-    player = 'o'
+    I = InformationSet(player='x', move_flag = False, board=['o', '-', '-', '-', 'x', '-', '-', '-', 'x'])
+    player = 'x'
     T = 0
-    prev_regret_list = [0 for i in range(13)]
+    prev_regret_list = [0 for _ in range(13)]
 
     logging.info('Initializing policy objects...')
 
