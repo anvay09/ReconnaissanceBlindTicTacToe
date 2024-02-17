@@ -464,14 +464,17 @@ class Policy:
                     policy_file = './data_files/P1_information_sets.yml'
                 else:
                     policy_file = './data_files/P2_information_sets.yml'
+
                 with open(policy_file, 'r') as file:
                     self.policy_dict = yaml.safe_load(file)
-                for key, val in self.policy_dict.items():
+
+                for key, _ in self.policy_dict.items():
                     board = [*key]
                     move_flag = board[-1] == 'm'
                     board = board[:-1]
+                    
                     information_set_obj = InformationSet(player=self.player, move_flag=move_flag, board=board)
-                    valid_actions = information_set_obj.get_actions(move_flag)
+                    valid_actions = information_set_obj.get_actions()
                     uniform_prob = 1 / len(valid_actions)
 
                     if not move_flag:
@@ -490,7 +493,6 @@ class Policy:
                             else:
                                 self.policy_dict[key][i] = 0
             else:
-                # TODO read the policy from a yaml file directly as a dictionary
                 with open(policy_file, 'r') as file:
                     self.policy_dict = yaml.safe_load(file)
         else:
@@ -507,3 +509,11 @@ class Policy:
         """
         for i in range(len(prob_distribution)):
             self.policy_dict[information_set.get_hash()][i] = prob_distribution[i]
+
+    def save_policy_to_file(self, file_name):
+        """
+        :param file_name: str
+        :return: None, save policy to file
+        """
+        with open(file_name, 'w') as file:
+            yaml.safe_dump(self.policy_dict, file, sort_keys=True, default_style='')
