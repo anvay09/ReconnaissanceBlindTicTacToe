@@ -7,8 +7,8 @@ if __name__ == '__main__':
     # I = InformationSet(player='x', move_flag=True, board=['-', '0', '0', 'x', 'x', 'o', 'o', '-', 'x'])
     # I = InformationSet(player='o', move_flag = False, board=['o', '-', '-', '-', 'x', 'o', 'o', '-', 'x'])
 
-    # TODO: Fix Bug for root node
-    I = InformationSet(player='o', move_flag=True, board=['0', '0', '-', '0', 'x', '-', '-', '-', '-'])
+    # TODO: Fix Bug for root node, and for player 'o' first move
+    I = InformationSet(player='x', move_flag=True, board=['o', '0', '-', '0', 'x', '-', '-', '-', '-'])
 
     T = 0
     prev_regret_list = [0 for _ in range(13)]
