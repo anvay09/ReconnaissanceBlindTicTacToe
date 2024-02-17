@@ -11,7 +11,7 @@ if __name__ == '__main__':
     # I = InformationSet(player='o', move_flag = False, board=['o', '-', '-', '-', 'x', 'o', 'o', '-', 'x'])
     # player = 'o'
 
-    I = InformationSet(player='x', move_flag=True, board=['0', '0', '-', 'o', 'x', '-', 'o', '-', 'x'])
+    I = InformationSet(player='x', move_flag=True, board=['0', '0', '-', 'o', '0', '-', 'x', 'o', 'x'])
   
     T = 0
     prev_regret_list = [0 for _ in range(13)]
