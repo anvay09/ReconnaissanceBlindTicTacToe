@@ -339,6 +339,8 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
 
 
 def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
+    new_policy_obj_x = policy_obj_x.copy()
+    new_policy_obj_o = policy_obj_o.copy()
     actions = I.get_actions()
     regret_list = [0 for _ in range(13)]
     logging.info('Actions for {}: {}'.format(I.get_hash(), actions))
@@ -347,9 +349,6 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
     starting_histories = get_histories_given_I(I)
 
     for action in actions:
-        new_policy_obj_x = policy_obj_x.copy()
-        new_policy_obj_o = policy_obj_o.copy()
-
         logging.info('Calculating regret for {}, {}...'.format(I.get_hash(), action))
         regret_I = calc_regret_given_I_and_action(I, action, new_policy_obj_x, new_policy_obj_o, T,
                                                   prev_regret_list[action], starting_histories)
@@ -358,14 +357,11 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
     logging.info('Regret list for {}: {}'.format(I.get_hash(), regret_list))
     total_regret_I = sum(regret_list)
     logging.info('Total regret for {}: {}'.format(I.get_hash(), total_regret_I))
-
-    new_policy_obj_x = policy_obj_x.copy()
-    new_policy_obj_o = policy_obj_o.copy()
     
     if I.player == 'x':
-        policy = new_policy_obj_x
+        policy = policy_obj_x
     else:
-        policy = new_policy_obj_o
+        policy = policy_obj_o
     if total_regret_I > 0:
         for action in actions:
             policy.policy_dict[I.get_hash()][action] = regret_list[action] / total_regret_I
@@ -374,4 +370,4 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
             policy.policy_dict[I.get_hash()][action] = 1 / len(actions)
     
     logging.info('Updated policy for {} is {}'.format(I.get_hash(), policy.policy_dict[I.get_hash()]))
-    return new_policy_obj_x, new_policy_obj_o
+    return policy_obj_x, policy_obj_o
