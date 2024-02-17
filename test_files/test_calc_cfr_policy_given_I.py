@@ -10,8 +10,8 @@ if __name__ == '__main__':
 
     logging.info('Initializing policy objects...')
 
-    policy_obj_x = Policy(player='x', policy_file='./../data_files/{}.yml'.format('P1_information_sets_unifrom'))
-    policy_obj_o = Policy(player='o', policy_file='./../data_files/{}.yml'.format('P2_information_sets_unifrom'))
+    policy_obj_x = Policy(player='x', policy_file='./data_files/{}.yml'.format('P1_uniform_policy'))
+    policy_obj_o = Policy(player='o', policy_file='./data_files/{}.yml'.format('P2_uniform_policy'))
 
     logging.info('Loaded policy for player {}, information set {}:'.format(player, I.get_hash()))
     if player == 'x':

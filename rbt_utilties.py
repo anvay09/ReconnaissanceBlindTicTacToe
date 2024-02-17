@@ -120,6 +120,7 @@ def get_histories_given_I(I):
         valid_histories = p.starmap(is_valid_history, args)
 
     valid_histories = [h for h, valid in zip(histories, valid_histories) if valid]
+    logging.info('Filtered {} valid histories for {}...'.format(len(valid_histories), I.get_hash()))
     return valid_histories
 
 
@@ -278,8 +279,8 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
                                   h_object.copy(), I.player)
         if not curr_I_1.get_hash() == '000000000':
             probabiltiy_reaching_h = get_prob_h_given_policy(
-                InformationSet(player='x', board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
-                InformationSet(player='o', board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
+                InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
+                InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
                 TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']), 'x', h[0], policy_obj_x, policy_obj_o, 1, h_object)
         else:
             probabiltiy_reaching_h = 1
@@ -292,6 +293,7 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
     new_policy_obj_o = policy_obj_o.copy()
     logging.info('Calculating cf-utility for {}...'.format(I.get_hash()))
     util = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories)
+    logging.info('Calculated cf-utility = {}...'.format(util))
     if I.move_flag:
         prob_dist = [1 if i == action else 0 for i in range(9)]
         if I.player == 'x':
@@ -305,14 +307,20 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
         else:
             new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
 
+    
+
     logging.info('Calculating cf-utility-a for {}, {}...'.format(I.get_hash(), action))
     util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories)
+    logging.info('Calculated cf-utility-a = {}...'.format(util_a))
+
     if T == 0:
         regret_T = util_a - util
     else:
         regret_T = (1 / T) * ((T - 1) * prev_regret + util_a - util)
 
-    return max(0, regret_T)
+    final_regret_T = max(0, regret_T)
+    logging.info('Calculated regret for {}, {} = {}...'.format(I.get_hash(), action, final_regret_T))
+    return final_regret_T
 
 
 def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):

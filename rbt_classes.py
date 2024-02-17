@@ -373,8 +373,8 @@ class History:
 
         :return: Two information set objects
         """
-        I_1 = InformationSet(player='x')
-        I_2 = InformationSet(player='o', board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
+        I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
+        I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
         true_board = TicTacToeBoard()
         curr_player = 'x'
         for action in self.history:
