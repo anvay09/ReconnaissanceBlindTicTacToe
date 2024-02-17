@@ -298,6 +298,12 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
     new_policy_obj_x = policy_obj_x.copy()
     new_policy_obj_o = policy_obj_o.copy()
     logging.info('Calculating cf-utility for {}...'.format(I.get_hash()))
+    
+    if I.player == 'x':
+        logging.info('Old policy for {} is {}, when action is {}...'.format(I.get_hash(), policy_obj_x.policy_dict[I.get_hash()], action))
+    else:
+        logging.info('Old policy for {} is {}, when action is {}...'.format(I.get_hash(), policy_obj_o.policy_dict[I.get_hash()], action))
+
     util = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories)
     logging.info('Calculated cf-utility = {}...'.format(util))
 
@@ -305,17 +311,20 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
         prob_dist = [1 if i == action else 0 for i in range(9)]
         if I.player == 'x':
             new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
+            logging.info('Updated policy for {} is {}, when action is {}...'.format(I.get_hash(), new_policy_obj_x.policy_dict[I.get_hash()], action))
         else:
             new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
+            logging.info('Updated policy for {} is {}, when action is {}...'.format(I.get_hash(), new_policy_obj_o.policy_dict[I.get_hash()], action))
     else:
         prob_dist = [1 if i == action else 0 for i in range(9, 13)]
         if I.player == 'x':
             new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
+            logging.info('Updated policy for {} is {}, when action is {}...'.format(I.get_hash(), new_policy_obj_x.policy_dict[I.get_hash()], action))
         else:
             new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
+            logging.info('Updated policy for {} is {}, when action is {}...'.format(I.get_hash(), new_policy_obj_o.policy_dict[I.get_hash()], action))
 
     logging.info('Calculating cf-utility-a for {}, {}...'.format(I.get_hash(), action))
-    logging.info('Updated policy for {} is {}, when action is {}...'.format(I.get_hash(), new_policy_obj_x.policy_dict[I.get_hash()], action))
     util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories)
     logging.info('Calculated cf-utility-a = {}...'.format(util_a))
 
