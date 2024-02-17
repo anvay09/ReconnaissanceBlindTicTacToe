@@ -278,7 +278,7 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
         h_object = NonTerminalHistory(h)
         curr_I_1, curr_I_2 = h_object.get_information_sets()
         true_board, overlapping_move_flag, overlapping_move_player = h_object.get_board()
-        expected_utiltiy_h = play(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1,
+        expected_utility_h = play(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1,
                                   h_object.copy(), I.player)
         if not curr_I_1.get_hash() == '000000000':
             # logging.info('Calculating probability for {}...'.format(h))
@@ -289,7 +289,7 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
             # logging.info('Calculated probability = {}...'.format(probabiltiy_reaching_h))
         else:
             probabiltiy_reaching_h = 1
-        utility += expected_utiltiy_h * probabiltiy_reaching_h
+        utility += expected_utility_h * probabiltiy_reaching_h
     return utility
 
 
@@ -360,4 +360,4 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
             policy.policy_dict[I.get_hash()][action] = 1 / len(actions)
     
     logging.info('Updated policy for {} is {}'.format(I.get_hash(), policy.policy_dict[I.get_hash()]))
-    return policy_obj_x, policy_obj_o
+    return policy_obj_x, policy_obj_o, regret_list

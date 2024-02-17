@@ -28,9 +28,6 @@ if __name__ == '__main__':
     else:
         print(policy_obj_o.policy_dict[I.get_hash()])
 
-    calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list)
-
-    if I.player == 'x':
-        print(policy_obj_x.policy_dict[I.get_hash()])
-    else:
-        print(policy_obj_o.policy_dict[I.get_hash()])
+    policy_obj_x, policy_obj_o, prev_regret_list = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list)
+    T = 1
+    policy_obj_x, policy_obj_o, prev_regret_list = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list)
