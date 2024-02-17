@@ -2,6 +2,7 @@ from rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, Tic
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
 from multiprocessing import Pool
 import logging
+from tqdm import tqdm
 
 num_workers = 4
 
@@ -271,19 +272,19 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
 def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories):
     utility = 0
 
-    for h in starting_histories:
+    for h in tqdm(starting_histories):
         h_object = NonTerminalHistory(h)
         curr_I_1, curr_I_2 = h_object.get_information_sets()
         true_board, overlapping_move_flag, overlapping_move_player = h_object.get_board()
         expected_utiltiy_h = play(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1,
                                   h_object.copy(), I.player)
         if not curr_I_1.get_hash() == '000000000':
-            logging.info('Calculating probability for {}...'.format(h))
+            # logging.info('Calculating probability for {}...'.format(h))
             probabiltiy_reaching_h = get_prob_h_given_policy(
                 InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
                 InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
                 TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']), 'x', h[0], policy_obj_x, policy_obj_o, 1, h_object)
-            logging.info('Calculated probability = {}...'.format(probabiltiy_reaching_h))
+            # logging.info('Calculated probability = {}...'.format(probabiltiy_reaching_h))
         else:
             probabiltiy_reaching_h = 1
         utility += expected_utiltiy_h * probabiltiy_reaching_h
@@ -320,8 +321,8 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
     else:
         regret_T = (1 / T) * ((T - 1) * prev_regret + util_a - util)
 
+    logging.info('Calculated regret for {}, {} = {}...'.format(I.get_hash(), action, regret_T))
     final_regret_T = max(0, regret_T)
-    logging.info('Calculated regret for {}, {} = {}...'.format(I.get_hash(), action, final_regret_T))
     return final_regret_T
 
 
@@ -330,6 +331,8 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
     new_policy_obj_o = policy_obj_o.copy()
     actions = I.get_actions()
     regret_list = [0 for _ in range(13)]
+    logging.info('Actions for {}: {}'.format(I.get_hash(), actions))
+    logging.info('Regret list for {}: {}'.format(I.get_hash(), regret_list))
 
     starting_histories = get_histories_given_I(I)
 
@@ -338,7 +341,10 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
         regret_I = calc_regret_given_I_and_action(I, action, new_policy_obj_x, new_policy_obj_o, T,
                                                   prev_regret_list[action], starting_histories)
         regret_list[action] = regret_I
+
+    logging.info('Regret list for {}: {}'.format(I.get_hash(), regret_list))
     total_regret_I = sum(regret_list)
+    logging.info('Total regret for {}: {}'.format(I.get_hash(), total_regret_I))
     if I.player == 'x':
         policy = new_policy_obj_x
     else:
