@@ -55,7 +55,6 @@ def is_valid_history(H, end_I):
 
         # move_flag = not move_flag
 
-    
     if end_I.player == 'x':
         return I_1 == end_I
     else:
@@ -316,6 +315,7 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
             new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
 
     logging.info('Calculating cf-utility-a for {}, {}...'.format(I.get_hash(), action))
+    logging.info('Updated policy for {} is {}, when action is {}...'.format(I.get_hash(), new_policy_obj_x.policy_dict[I.get_hash()], action))
     util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories)
     logging.info('Calculated cf-utility-a = {}...'.format(util_a))
 
