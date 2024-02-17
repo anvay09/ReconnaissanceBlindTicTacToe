@@ -3,8 +3,7 @@ from rbt_utilties import calc_cfr_policy_given_I
 import logging
 
 if __name__ == '__main__':
-    I = InformationSet(player='o', board=['o', '-', '-', '-', 'x', 'o', 'o', '-', 'x'])
-    move_flag = False
+    I = InformationSet(player='o', move_flag = False, board=['o', '-', '-', '-', 'x', 'o', 'o', '-', 'x'])
     player = 'o'
     T = 0
     prev_regret_list = [0 for i in range(13)]
@@ -20,7 +19,7 @@ if __name__ == '__main__':
     else:
         print(policy_obj_o.policy_dict[I.get_hash()])
 
-    calc_cfr_policy_given_I(I, move_flag, policy_obj_x, policy_obj_o, T, prev_regret_list)
+    calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list)
 
     logging.info('Updated policy for player {}, information set {}:'.format(player, I.get_hash()))
     if player == 'x':
