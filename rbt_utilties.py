@@ -3,8 +3,7 @@ from sympy.utilities.iterables import multiset_permutations, combinations_with_r
 from multiprocessing import Pool
 import logging
 from tqdm import tqdm
-
-num_workers = 4
+from config import num_workers
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
