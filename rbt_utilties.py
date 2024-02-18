@@ -296,9 +296,9 @@ def get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting
     for h in starting_histories:
         h_object = NonTerminalHistory(h)
         curr_I_1, curr_I_2 = h_object.get_information_sets()
-        true_board = h_object.get_board()
+        true_board, _, _ = h_object.get_board()
 
-        play_args.append((curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1, h_object.copy(), I.player))
+        play_args.append((curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1, h_object, I.player))
 
         get_prob_h_given_policy_args.append((
             InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
