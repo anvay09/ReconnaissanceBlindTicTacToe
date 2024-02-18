@@ -224,11 +224,6 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
         success = new_true_board.update_move(next_action, player)
         # TODO update this line after policy class is updated
 
-        # logging.info('Next action: {}'.format(next_action))
-        # logging.info('Policy for {}:'.format(I.get_hash()))
-        # logging.info('History: {}'.format(history_obj.history))
-        # print(policy_obj.policy_dict[I.get_hash()])
-
         probability *= policy_obj.policy_dict[I.get_hash()][next_action]
         history_obj.track_traversal_index += 1
         if history_obj.track_traversal_index < len(history_obj.history):
@@ -250,11 +245,6 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
         new_I.simulate_sense(next_action, true_board)
         new_true_board = true_board.copy()
 
-        # logging.info('Next action: {}'.format(next_action))
-        # logging.info('Policy for {}:'.format(I.get_hash()))
-        # logging.info('History: {}'.format(history_obj.history))
-        # print(policy_obj.policy_dict[I.get_hash()])
-
         # TODO update this line after policy class is updated
         probability *= policy_obj.policy_dict[I.get_hash()][next_action]
         history_obj.track_traversal_index += 1
@@ -271,6 +261,13 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
     return probability
 
 
+def get_prob_h_given_policy_wrapper(I_1, I_2, true_board, player, next_action, policy_obj_x, policy_obj_o, probability, history_obj, curr_I_1):
+    if curr_I_1.get_hash() == '000000000m':
+        return 1
+    else:
+        return get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_obj_x, policy_obj_o, probability, history_obj)
+
+
 def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories):
     utility = 0
 
@@ -281,41 +278,43 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
         expected_utility_h = play(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1,
                                   h_object.copy(), I.player)
         if not curr_I_1.get_hash() == '000000000':
-            probabiltiy_reaching_h = get_prob_h_given_policy(
+            probability_reaching_h = get_prob_h_given_policy(
                 InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
                 InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
                 TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']), 'x', h[0], policy_obj_x, policy_obj_o, 1, h_object)
         else:
-            probabiltiy_reaching_h = 1
-        utility += expected_utility_h * probabiltiy_reaching_h
+            probability_reaching_h = 1
+        utility += expected_utility_h * probability_reaching_h
     return utility
 
 
 def get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting_histories):
     utility = 0
     play_args = []
+    get_prob_h_given_policy_args = []
 
     for h in starting_histories:
         h_object = NonTerminalHistory(h)
         curr_I_1, curr_I_2 = h_object.get_information_sets()
-        true_board, overlapping_move_flag, overlapping_move_player = h_object.get_board()
+        true_board = h_object.get_board()
 
         play_args.append((curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1, h_object.copy(), I.player))
 
+        get_prob_h_given_policy_args.append((
+            InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
+            InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
+            TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']), 
+            'x', h[0], policy_obj_x, policy_obj_o, 1, h_object, curr_I_1))
+
+
     with Pool(num_workers) as p:
         expected_utilities = p.starmap(play, play_args)
+    
+    with Pool(num_workers) as p:
+        probabilities = p.starmap(get_prob_h_given_policy_wrapper, get_prob_h_given_policy_args)
 
-    for h, expected_utility_h in zip(starting_histories, expected_utilities):
-        h_object = NonTerminalHistory(h)
-
-        if not curr_I_1.get_hash() == '000000000':
-            probabiltiy_reaching_h = get_prob_h_given_policy(
-                InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
-                InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
-                TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']), 'x', h[0], policy_obj_x, policy_obj_o, 1, h_object)
-        else:
-            probabiltiy_reaching_h = 1
-        utility += expected_utility_h * probabiltiy_reaching_h
+    for h, expected_utility_h, probability_reaching_h in zip(starting_histories, expected_utilities, probabilities):
+        utility += expected_utility_h * probability_reaching_h
     return utility
 
 
