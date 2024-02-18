@@ -310,11 +310,9 @@ def get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting
     with Pool(num_workers) as p:
         expected_utilities = p.starmap(play, play_args)
     
-    with Pool(num_workers) as p:
-        probabilities = p.starmap(get_prob_h_given_policy_wrapper, get_prob_h_given_policy_args)
-
-    for h, expected_utility_h, probability_reaching_h in zip(starting_histories, expected_utilities, probabilities):
-        utility += expected_utility_h * probability_reaching_h
+    for h, expected_utility_h, args in zip(starting_histories, expected_utilities, get_prob_h_given_policy_args):
+        prob_reaching_h = get_prob_h_given_policy_wrapper(*args)
+        utility += expected_utility_h * prob_reaching_h
     return utility
 
 
