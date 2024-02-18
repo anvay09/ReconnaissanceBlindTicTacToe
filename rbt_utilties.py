@@ -274,12 +274,19 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
 def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories):
     utility = 0
 
-    for h in tqdm(starting_histories):
+    play_args = []
+    for h in starting_histories:
         h_object = NonTerminalHistory(h)
         curr_I_1, curr_I_2 = h_object.get_information_sets()
         true_board, overlapping_move_flag, overlapping_move_player = h_object.get_board()
-        expected_utility_h = play(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1,
-                                  h_object.copy(), I.player)
+        play_args.append((curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1, h_object.copy(), I.player))
+
+    with Pool(4) as p:
+        expected_utilities = p.starmap(play, play_args)
+
+    for h, expected_utility_h in zip(starting_histories, expected_utilities):
+        h_object = NonTerminalHistory(h)
+        
         if not curr_I_1.get_hash() == '000000000':
             probabiltiy_reaching_h = get_prob_h_given_policy(
                 InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
@@ -317,7 +324,6 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
     else:
         regret_T = (1 / T) * ((T - 1) * prev_regret + util_a - util)
 
-    logging.info('Calculated regret for {}, {} = {}...'.format(I.get_hash(), action, regret_T))
     final_regret_T = max(0, regret_T)
     return final_regret_T
 
@@ -333,11 +339,6 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
     logging.info('Calculated cf-utility = {}...'.format(util))
 
     logging.info('Calculating regret for {}...'.format(I.get_hash()))
-
-    # for action in actions:
-    #     regret_I = calc_regret_given_I_and_action(I, action, new_policy_obj_x, new_policy_obj_o, T,
-    #                                               prev_regret_list[action], starting_histories, util)
-    #     regret_list[action] = regret_I
 
     args = [(I.copy(), action, policy_obj_x.copy(), policy_obj_o.copy(), T, prev_regret_list[action], starting_histories, util) for action in actions]
     
