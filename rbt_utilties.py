@@ -281,12 +281,10 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
         expected_utility_h = play(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1,
                                   h_object.copy(), I.player)
         if not curr_I_1.get_hash() == '000000000':
-            # logging.info('Calculating probability for {}...'.format(h))
             probabiltiy_reaching_h = get_prob_h_given_policy(
                 InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
                 InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
                 TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']), 'x', h[0], policy_obj_x, policy_obj_o, 1, h_object)
-            # logging.info('Calculated probability = {}...'.format(probabiltiy_reaching_h))
         else:
             probabiltiy_reaching_h = 1
         utility += expected_utility_h * probabiltiy_reaching_h
@@ -325,28 +323,32 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
 
 
 def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
-    new_policy_obj_x = policy_obj_x.copy()
-    new_policy_obj_o = policy_obj_o.copy()
     actions = I.get_actions()
     regret_list = [0 for _ in range(13)]
-    logging.info('Actions for {}: {}'.format(I.get_hash(), actions))
-    logging.info('Regret list for {}: {}'.format(I.get_hash(), regret_list))
-
+    
     starting_histories = get_histories_given_I(I)
 
     logging.info('Calculating cf-utility for {}...'.format(I.get_hash()))
     util = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories)
     logging.info('Calculated cf-utility = {}...'.format(util))
 
-    for action in actions:
-        logging.info('Calculating regret for {}, {}...'.format(I.get_hash(), action))
-        regret_I = calc_regret_given_I_and_action(I, action, new_policy_obj_x, new_policy_obj_o, T,
-                                                  prev_regret_list[action], starting_histories, util)
-        regret_list[action] = regret_I
+    logging.info('Calculating regret for {}...'.format(I.get_hash()))
 
-    logging.info('Regret list for {}: {}'.format(I.get_hash(), regret_list))
+    # for action in actions:
+    #     regret_I = calc_regret_given_I_and_action(I, action, new_policy_obj_x, new_policy_obj_o, T,
+    #                                               prev_regret_list[action], starting_histories, util)
+    #     regret_list[action] = regret_I
+
+    args = [(I.copy(), action, policy_obj_x.copy(), policy_obj_o.copy(), T, prev_regret_list[action], starting_histories, util) for action in actions]
+    
+    with Pool(len(actions)) as p:
+        regrets = p.starmap(calc_regret_given_I_and_action, args)
+
+    for action, regret in zip(actions, regrets):
+        regret_list[action] = regret
+        logging.info('Calculated regret for {}, {} = {}...'.format(I.get_hash(), action, regret))
+
     total_regret_I = sum(regret_list)
-    logging.info('Total regret for {}: {}'.format(I.get_hash(), total_regret_I))
     
     if I.player == 'x':
         policy = policy_obj_x
