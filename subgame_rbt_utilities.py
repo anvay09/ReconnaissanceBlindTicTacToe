@@ -12,15 +12,15 @@ def toggle_player(player):
     return 'x' if player == 'o' else 'o'
 
 def get_root_sets():
-    I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
-    I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
-    true_board = TicTacToeBoard(['0', '0', '0', '0', '0', '0', '0', '0', '0'])
+    true_board = TicTacToeBoard(board=['o', '0', '0', 'x', 'x', 'o', 'o', '0', 'x'])
+    I_1 = InformationSet(player='x', move_flag=False, board=['-', '-', '-', 'x', 'x', 'o', 'o', '-', 'x'])
+    I_2 = InformationSet(player='o', move_flag=False, board=['o', '-', '-', 'x', 'x', 'o', 'o', '-', 'x'])
     player = 'x'
 
     return I_1, I_2, true_board, player
 
 def get_root_hash():
-    return '000000000m'
+    return '---xxoo-xs'
 
 def is_valid_history(H, end_I):
     I_1, I_2, true_board, player = get_root_sets()

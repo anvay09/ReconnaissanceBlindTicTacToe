@@ -15,6 +15,7 @@ if __name__ == '__main__':
     policy_obj_o = Policy(player='o', policy_dict=policy_dict)
     new_policy_obj_x = None
     new_policy_obj_o = None
+
     for T in range(3):
         for I_hash in policy_obj_x.policy_dict.keys():
             I = InformationSet('x', I_hash[-1] == 'm', board=[*I_hash[:-1]])
