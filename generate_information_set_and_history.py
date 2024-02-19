@@ -138,7 +138,7 @@ def parallel_play(I_1, I_2, true_board, player):
         P2_information_sets = P2_information_sets.union(item[2])
 
     print('Total Histories: ', Total_histories)
-    
+
     with open('P1_information_sets.txt', 'w') as f:
         for item in P1_information_sets:
             f.write("%s\n" % item)

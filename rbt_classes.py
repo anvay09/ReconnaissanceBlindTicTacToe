@@ -3,8 +3,8 @@ File for RBT classes TicTacToeBoard, InformationSet, History, TerminalHistory, N
 """
 from sympy.utilities.iterables import multiset_permutations
 import yaml
-from random import random
 import copy
+
 
 class TicTacToeBoard:
     """
@@ -149,7 +149,7 @@ class InformationSet(TicTacToeBoard):
             return ''.join(self.board) + 'm'
         else:
             return ''.join(self.board) + 's'
-        
+
     def get_states(self):
         """ Get the states part of the information set
 
@@ -208,16 +208,13 @@ class InformationSet(TicTacToeBoard):
         action_list = []
         if self.move_flag:
             for move in range(9):
-                # TODO update this after policy is updated
                 if policy_obj.policy_dict[self.get_hash()][move] > 0:
                     action_list.append(move)
         else:
             for sense in self.sense_square_dict.keys():
-                # TODO update this after policy is updated
-                
                 if policy_obj.policy_dict[self.get_hash()][sense] > 0:
                     action_list.append(sense)
-                
+
         return action_list
 
     def get_valid_moves(self):
@@ -459,57 +456,18 @@ class Policy:
         :param policy_file: yaml file containing the policy is reuired format
         """
         self.player = player
-        if policy_dict is None:
-            if policy_file is None:
-                self.policy_dict = None
-                if player == 'x':
-                    policy_file = './data_files/P1_information_sets.yml'
-                else:
-                    policy_file = './data_files/P2_information_sets.yml'
-
-                with open(policy_file, 'r') as file:
-                    self.policy_dict = yaml.safe_load(file)
-
-                for key, _ in self.policy_dict.items():
-                    board = [*key]
-                    move_flag = board[-1] == 'm'
-                    board = board[:-1]
-                    
-                    information_set_obj = InformationSet(player=self.player, move_flag=move_flag, board=board)
-                    valid_actions = information_set_obj.get_actions()
-                    uniform_prob = 1 / len(valid_actions)
-
-                    if not move_flag:
-                        self.policy_dict[key] = {}
-                        for i in range(9, 13):
-                            if i in valid_actions:
-                                self.policy_dict[key][i] = uniform_prob
-                            else:
-                                self.policy_dict[key][i] = 0
-
-                    else:
-                        self.policy_dict[key] = {}
-                        for i in range(0, 9):
-                            if i in valid_actions:
-                                self.policy_dict[key][i] = uniform_prob
-                            else:
-                                self.policy_dict[key][i] = 0
-            else:
-                with open(policy_file, 'r') as file:
-                    self.policy_dict = yaml.safe_load(file)
-        else:
-            self.policy_dict = copy.deepcopy(policy_dict)
-            keys = list(self.policy_dict.keys())
-            for I_hash in keys:
-                prob_dist = self.policy_dict[I_hash]
-                actions = list(prob_dist.keys())
-                for action in actions:
-                    if type(action) == str:
-                        prob_dist[int(action)] = prob_dist[action]
-                        del prob_dist[action]
+        self.policy_dict = copy.deepcopy(policy_dict)
+        keys = list(self.policy_dict.keys())
+        for I_hash in keys:
+            prob_dist = self.policy_dict[I_hash]
+            actions = list(prob_dist.keys())
+            for action in actions:
+                if type(action) == str:
+                    prob_dist[int(action)] = prob_dist[action]
+                    del prob_dist[action]
 
     def copy(self):
-        return Policy(self.player, policy_dict = copy.deepcopy(self.policy_dict))
+        return Policy(self.player, policy_dict=copy.deepcopy(self.policy_dict))
 
     def update_policy_for_given_information_set(self, information_set, prob_distribution):
         """
