@@ -84,7 +84,7 @@ def get_histories_given_I(I):
         for p1 in p1_permutations:
             for p2 in p2_permutations:
                 for s in sense_combinations_permuted:
-                    history = [4, 9, 6, 11, 3, 9, 5, 12, 8, 12, 0]
+                    history = []
                     player = 'x'
                     idx_1 = 0
                     idx_2 = 0
