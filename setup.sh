@@ -1,1 +1,1 @@
-export PYTHONPATH='/Users/anvay/Desktop/ReconnaissanceBlindTicTacToe':$PYTHONPATH
+export PYTHONPATH=$PWD:$PYTHONPATH

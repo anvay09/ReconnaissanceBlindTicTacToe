@@ -1,9 +1,10 @@
 from rbt_classes import InformationSet, Policy
 from rbt_utilties import calc_cfr_policy_given_I
 import logging
+import json
 
 if __name__ == '__main__':
-    # I = InformationSet(player='x', move_flag = False, board=['o', '-', '-', '-', 'x', '-', '-', '-', 'x'])
+    # I = InformationSet(player='x', move_flag = True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
     # I = InformationSet(player='x', move_flag=True, board=['-', '0', '0', 'x', 'x', 'o', 'o', '-', 'x'])
     # I = InformationSet(player='o', move_flag = False, board=['o', '-', '-', '-', 'x', 'o', 'o', '-', 'x'])
 
@@ -15,8 +16,13 @@ if __name__ == '__main__':
 
     logging.info('Initializing policy objects...')
 
-    policy_obj_x = Policy(player='x', policy_file='./data_files/{}.yml'.format('P1_uniform_policy'))
-    policy_obj_o = Policy(player='o', policy_file='./data_files/{}.yml'.format('P2_uniform_policy'))
+    with open('./data_files/{}.json'.format('P1_uniform_policy'), 'r') as f:
+        policy_dict = json.load(f)
+    policy_obj_x = Policy(player='x', policy_dict=policy_dict)
+
+    with open('./data_files/{}.json'.format('P2_uniform_policy'), 'r') as f:
+        policy_dict = json.load(f)
+    policy_obj_o = Policy(player='o', policy_dict=policy_dict)
 
     logging.info('Loaded policy for player {}, information set {}:'.format(I.player, I.get_hash()))
 
@@ -25,8 +31,4 @@ if __name__ == '__main__':
     else:
         print(policy_obj_o.policy_dict[I.get_hash()])
 
-    policy_obj_x, policy_obj_o, prev_regret_list = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list)
-    # T = 1
-    # policy_obj_x, policy_obj_o, prev_regret_list = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list)
-    # T = 2
     # policy_obj_x, policy_obj_o, prev_regret_list = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list)
