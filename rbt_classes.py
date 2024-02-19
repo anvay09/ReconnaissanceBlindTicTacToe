@@ -214,8 +214,10 @@ class InformationSet(TicTacToeBoard):
         else:
             for sense in self.sense_square_dict.keys():
                 # TODO update this after policy is updated
+                
                 if policy_obj.policy_dict[self.get_hash()][sense] > 0:
                     action_list.append(sense)
+                
         return action_list
 
     def get_valid_moves(self):
@@ -502,11 +504,9 @@ class Policy:
                 prob_dist = self.policy_dict[I_hash]
                 actions = list(prob_dist.keys())
                 for action in actions:
-                    prob_dist[int(action)] = prob_dist[action]
-                    del prob_dist[action]
-
-                
-
+                    if type(action) == str:
+                        prob_dist[int(action)] = prob_dist[action]
+                        del prob_dist[action]
 
     def copy(self):
         return Policy(self.player, policy_dict = copy.deepcopy(self.policy_dict))

@@ -319,7 +319,7 @@ def get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting
 def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, prev_regret, starting_histories, util):
     new_policy_obj_x = policy_obj_x.copy()
     new_policy_obj_o = policy_obj_o.copy()
-    
+
     if I.move_flag:
         prob_dist = [1 if i == action else 0 for i in range(9)]
         if I.player == 'x':
