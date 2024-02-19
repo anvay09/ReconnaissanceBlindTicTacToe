@@ -1,9 +1,20 @@
 """
 File for RBT classes TicTacToeBoard, InformationSet, History, TerminalHistory, NonTerminalHistory, and Policy
 """
-from subgame_rbt_utilities import get_root_sets
 from sympy.utilities.iterables import multiset_permutations
 import copy
+
+
+def get_root_sets():
+    true_board = TicTacToeBoard(board=['o', '0', '0', 'x', 'x', 'o', 'o', '0', 'x'])
+    I_1 = InformationSet(player='x', move_flag=False, board=['-', '-', '-', 'x', 'x', 'o', 'o', '-', 'x'])
+    I_2 = InformationSet(player='o', move_flag=False, board=['o', '-', '-', 'x', 'x', 'o', 'o', '-', 'x'])
+    player = 'x'
+
+    return I_1, I_2, true_board, player
+
+def get_root_hash():
+    return '---xxoo-xs'
 
 
 class TicTacToeBoard:
@@ -356,8 +367,8 @@ class History:
         If all moves are played on empty squares return TicTacToe object, False, None
         Else return TicTacToe object, True, player who played on the non-empty square and lost the game
         """
-        true_board = TicTacToeBoard()
-        curr_player = 'x'
+        _, _, true_board, curr_player = get_root_sets()
+        
         for action in self.history:
             if action < 9:
                 if not true_board.update_move(action, curr_player):

@@ -1,4 +1,4 @@
-from subgame_rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, TicTacToeBoard
+from subgame_rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, TicTacToeBoard, get_root_hash, get_root_sets
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
 from multiprocessing import Pool
 import logging
@@ -10,17 +10,6 @@ logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt=
 
 def toggle_player(player):
     return 'x' if player == 'o' else 'o'
-
-def get_root_sets():
-    true_board = TicTacToeBoard(board=['o', '0', '0', 'x', 'x', 'o', 'o', '0', 'x'])
-    I_1 = InformationSet(player='x', move_flag=False, board=['-', '-', '-', 'x', 'x', 'o', 'o', '-', 'x'])
-    I_2 = InformationSet(player='o', move_flag=False, board=['o', '-', '-', 'x', 'x', 'o', 'o', '-', 'x'])
-    player = 'x'
-
-    return I_1, I_2, true_board, player
-
-def get_root_hash():
-    return '---xxoo-xs'
 
 def is_valid_history(H, end_I):
     I_1, I_2, true_board, player = get_root_sets()
