@@ -31,4 +31,4 @@ if __name__ == '__main__':
     else:
         print(policy_obj_o.policy_dict[I.get_hash()])
 
-    # policy_obj_x, policy_obj_o, prev_regret_list = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list)
+    policy_obj_x, policy_obj_o, prev_regret_list = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list)

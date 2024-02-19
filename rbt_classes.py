@@ -497,6 +497,16 @@ class Policy:
                     self.policy_dict = yaml.safe_load(file)
         else:
             self.policy_dict = copy.deepcopy(policy_dict)
+            keys = list(self.policy_dict.keys())
+            for I_hash in keys:
+                prob_dist = self.policy_dict[I_hash]
+                actions = list(prob_dist.keys())
+                for action in actions:
+                    prob_dist[int(action)] = prob_dist[action]
+                    del prob_dist[action]
+
+                
+
 
     def copy(self):
         return Policy(self.player, policy_dict = copy.deepcopy(self.policy_dict))
