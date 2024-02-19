@@ -271,9 +271,9 @@ def get_prob_h_given_policy_wrapper(I_1, I_2, true_board, player, next_action, p
                                        probability, history_obj)
 
 
-def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories):
+def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list):
     utility = 0
-
+    count = 0
     for h in starting_histories:
         h_object = NonTerminalHistory(h)
         curr_I_1, curr_I_2 = h_object.get_information_sets()
@@ -281,11 +281,13 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
         expected_utility_h = play(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1,
                                   h_object.copy(), I.player)
         if not curr_I_1.get_hash() == '000000000m':
-            probability_reaching_h = get_prob_h_given_policy(
-                InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
-                InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
-                TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']), 'x', h[0], policy_obj_x,
-                policy_obj_o, 1, h_object)
+            # probability_reaching_h = get_prob_h_given_policy(
+            #     InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
+            #     InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
+            #     TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']), 'x', h[0], policy_obj_x,
+            #     policy_obj_o, 1, h_object)
+            probability_reaching_h = prob_reaching_h_list[count]
+            count += 1
         else:
             probability_reaching_h = 1
         utility += expected_utility_h * probability_reaching_h
@@ -322,7 +324,7 @@ def get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting
     return utility, prob_reaching_h_list
 
 
-def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, prev_regret, starting_histories, util):
+def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, prev_regret, starting_histories, util, prob_reaching_h_list):
     new_policy_obj_x = policy_obj_x.copy()
     new_policy_obj_o = policy_obj_o.copy()
 
@@ -340,7 +342,7 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
             new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
 
     logging.info('Calculating cf-utility-a for {}, {}...'.format(I.get_hash(), action))
-    util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories)
+    util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories, prob_reaching_h_list)
     logging.info('Calculated cf-utility-a = {}...'.format(util_a))
 
     if T == 0:
@@ -366,7 +368,7 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
 
     args = [(
             I, action, policy_obj_x, policy_obj_o, T, prev_regret_list[action], starting_histories,
-            util) for action in actions]
+            util, prob_reaching_h_list) for action in actions]
 
     with Pool(len(actions)) as p:
         regrets = p.starmap(calc_regret_given_I_and_action, args)
