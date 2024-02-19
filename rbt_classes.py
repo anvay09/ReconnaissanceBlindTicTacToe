@@ -189,7 +189,6 @@ class InformationSet(TicTacToeBoard):
 
         For sense moves, any sense which reveals some information is a valid sense move.
 
-        :param move_flag: indicates whether the current action is move or sense
         :return: list of valid actions that can be taken from the current information set
         """
         if self.move_flag:
@@ -450,10 +449,9 @@ class Policy:
     Class for a policy
     """
 
-    def __init__(self, player, policy_dict=None, policy_file=None):
+    def __init__(self, player, policy_dict):
         """
         :param player: (str) 'x' or 'o'
-        :param policy_file: yaml file containing the policy is reuired format
         """
         self.player = player
         self.policy_dict = copy.deepcopy(policy_dict)
@@ -478,11 +476,3 @@ class Policy:
         keys = sorted(list(self.policy_dict[information_set.get_hash()].keys()))
         for i in range(len(keys)):
             self.policy_dict[information_set.get_hash()][keys[i]] = prob_distribution[i]
-
-    def save_policy_to_file(self, file_name):
-        """
-        :param file_name: str
-        :return: None, save policy to file
-        """
-        with open(file_name, 'w') as file:
-            yaml.safe_dump(self.policy_dict, file, sort_keys=True, default_style='')

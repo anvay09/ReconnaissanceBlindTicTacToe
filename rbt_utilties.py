@@ -2,7 +2,6 @@ from rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, Tic
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
 from multiprocessing import Pool
 import logging
-from tqdm import tqdm
 from config import num_workers
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
@@ -61,6 +60,8 @@ def is_valid_history(H, end_I):
 
 
 def get_histories_given_I(I):
+    if I.get_hash() == "000000000m":
+        return [[]]
     states = I.get_states()
     histories = []
     sense_actions = list(I.sense_square_dict.keys())
@@ -279,7 +280,7 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
         true_board, overlapping_move_flag, overlapping_move_player = h_object.get_board()
         expected_utility_h = play(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1,
                                   h_object.copy(), I.player)
-        if not curr_I_1.get_hash() == '000000000':
+        if not curr_I_1.get_hash() == '000000000m':
             probability_reaching_h = get_prob_h_given_policy(
                 InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
                 InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
@@ -361,7 +362,7 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
     logging.info('Calculating regret for {}...'.format(I.get_hash()))
 
     args = [(
-            I.copy(), action, policy_obj_x.copy(), policy_obj_o.copy(), T, prev_regret_list[action], starting_histories,
+            I, action, policy_obj_x, policy_obj_o, T, prev_regret_list[action], starting_histories,
             util) for action in actions]
 
     with Pool(len(actions)) as p:
