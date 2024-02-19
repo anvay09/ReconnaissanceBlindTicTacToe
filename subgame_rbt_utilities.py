@@ -1,4 +1,4 @@
-from rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, TicTacToeBoard
+from subgame_rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, TicTacToeBoard
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
 from multiprocessing import Pool
 import logging
