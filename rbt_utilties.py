@@ -303,20 +303,23 @@ def get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting
         true_board, _, _ = h_object.get_board()
 
         play_args.append((curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1, h_object, I.player))
-
-        get_prob_h_given_policy_args.append((
-            InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
-            InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
-            TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
-            'x', h[0], policy_obj_x, policy_obj_o, 1, h_object, curr_I_1))
+        if not I.get_hash() == "000000000m":
+            get_prob_h_given_policy_args.append((
+                InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
+                InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
+                TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
+                'x', h[0], policy_obj_x, policy_obj_o, 1, h_object, curr_I_1))
+        else:
+            get_prob_h_given_policy_args.append([])
 
     with Pool(num_workers) as p:
         expected_utilities = p.starmap(play, play_args)
-
+    prob_reaching_h_list = []
     for h, expected_utility_h, args in zip(starting_histories, expected_utilities, get_prob_h_given_policy_args):
         prob_reaching_h = get_prob_h_given_policy_wrapper(*args)
+        prob_reaching_h_list.append(prob_reaching_h)
         utility += expected_utility_h * prob_reaching_h
-    return utility
+    return utility, prob_reaching_h_list
 
 
 def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, prev_regret, starting_histories, util):
@@ -356,7 +359,7 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
     starting_histories = get_histories_given_I(I)
 
     logging.info('Calculating cf-utility for {}...'.format(I.get_hash()))
-    util = get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting_histories)
+    util, prob_reaching_h_list = get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting_histories)
     logging.info('Calculated cf-utility = {}...'.format(util))
 
     logging.info('Calculating regret for {}...'.format(I.get_hash()))
