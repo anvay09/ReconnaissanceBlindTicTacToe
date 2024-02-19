@@ -16,11 +16,13 @@ if __name__ == '__main__':
     new_policy_obj_x = None
     new_policy_obj_o = None
     for T in range(3):
-        for I in policy_obj_x.policy_dict.keys():
+        for I_hash in policy_obj_x.policy_dict.keys():
+            I = InformationSet('x', I_hash[-1] == 'm', board=[*I_hash])
             new_policy_obj_x, _, prev_regret_list_x = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T,
                                                                               prev_regret_list_x)
         logging.info("Time step {} regret x list {}".format(T, prev_regret_list_x))
-        for I in policy_obj_o.policy_dict.keys():
+        for I_hash in policy_obj_o.policy_dict.keys():
+            I = InformationSet('o', I_hash[-1] == 'm', board=[*I_hash])
             _, new_policy_obj_o, prev_regret_list_o = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T,
                                                                               prev_regret_list_o)
         logging.info("Time step {} regret o list {}".format(T, prev_regret_list_o))
