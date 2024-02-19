@@ -139,11 +139,11 @@ def parallel_play(I_1, I_2, true_board, player):
 
     print('Total Histories: ', Total_histories)
 
-    with open('P1_information_sets.txt', 'w') as f:
+    with open('subgame_P1_information_sets.txt', 'w') as f:
         for item in P1_information_sets:
             f.write("%s\n" % item)
 
-    with open('P2_information_sets.txt', 'w') as f:
+    with open('subgame_P2_information_sets.txt', 'w') as f:
         for item in P2_information_sets:
             f.write("%s\n" % item)
 
@@ -151,15 +151,13 @@ def parallel_play(I_1, I_2, true_board, player):
 
 
 if __name__ == "__main__":
-    true_board = TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
-    I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
-    I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
+    true_board = TicTacToeBoard(board=['o', '0', '0', 'x', 'x', 'o', 'o', '0', 'x'])
+    I_1 = InformationSet(player='x', move_flag=True, board=['-', '-', '-', 'x', 'x', 'o', 'o', '-', 'x'])
+    I_2 = InformationSet(player='o', move_flag=False, board=['o', '-', '-', 'x', 'x', 'o', 'o', '-', 'x'])
     player = 'x'
-    move_flag = True
+  
     # true_board = TicTacToeBoard(board=['0', '0', '0', '0', 'x', '0', '0', '0', '0'])
     # I_1 = InformationSet(player='x', move_flag=False, board=['-', '-', '-', '-', 'x', '-', '-', '-', '-'])
     # I_2 = InformationSet(player='o', move_flag=True, board=['-', '-', '-', '0', 'x', '-', '0', '0', '-'])
-    # player = 'o'
-    # move_flag = False
 
     parallel_play(I_1, I_2, true_board, player)
