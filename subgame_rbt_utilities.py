@@ -61,8 +61,9 @@ def get_histories_given_I(I):
     histories = []
     sense_actions = list(I.sense_square_dict.keys())
     logging.info('Calculating h for {}...'.format(I.get_hash()))
-
+    
     for state in states:
+        print(state.board)
         p1_moves = [idx for idx, value in enumerate(state.board) if value == 'x']
         p2_moves = [idx for idx, value in enumerate(state.board) if value == 'o']
 
@@ -80,6 +81,8 @@ def get_histories_given_I(I):
         for comb in sense_combinations:
             perms = list(multiset_permutations(comb))
             sense_combinations_permuted = sense_combinations_permuted + perms
+
+        print(len(p1_permutations), len(p2_permutations), len(sense_combinations_permuted))
 
         for p1 in p1_permutations:
             for p2 in p2_permutations:
@@ -111,7 +114,7 @@ def get_histories_given_I(I):
                         elif idx_2 < len(p2):
                             history.append(p2[idx_2])
 
-                    histories.append(history)
+                    histories.append(history[:12])
 
     logging.info('Filtering valid histories {}...'.format(I.get_hash()))
     args = [(h, I) for h in histories]
