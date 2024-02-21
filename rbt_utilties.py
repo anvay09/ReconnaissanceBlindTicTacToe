@@ -292,6 +292,10 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
                 probability_reaching_h = prob_reaching_h_list[count]
             else:
                 probability_reaching_h = 1
+            
+            # if policy_obj_o.policy_dict[I.get_hash()][7] == 1:
+            #     print(expected_utility_h, probability_reaching_h, expected_utility_h * probability_reaching_h)
+
             utility += expected_utility_h * probability_reaching_h
         count += 1
     return utility
