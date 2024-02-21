@@ -199,7 +199,7 @@ def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, 
 
 
 def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_obj_x, policy_obj_o, probability,
-                            history_obj):
+                            history_obj, initial_player):
     """
 
     :param I_1:
@@ -224,8 +224,8 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
         new_true_board = true_board.copy()
         success = new_true_board.update_move(next_action, player)
         # TODO update this line after policy class is updated
-
-        probability *= policy_obj.policy_dict[I.get_hash()][next_action]
+        if I.player == toggle_player(initial_player):
+            probability *= policy_obj.policy_dict[I.get_hash()][next_action]
         history_obj.track_traversal_index += 1
         if history_obj.track_traversal_index < len(history_obj.history):
             new_next_action = history_obj.history[history_obj.track_traversal_index]
@@ -236,10 +236,12 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
 
                 if player == 'x':
                     probability = get_prob_h_given_policy(new_I, I_2, new_true_board, 'o', new_next_action,
-                                                          policy_obj_x, policy_obj_o, probability, history_obj)
+                                                          policy_obj_x, policy_obj_o, probability, history_obj,
+                                                          initial_player)
                 else:
                     probability = get_prob_h_given_policy(I_1, new_I, new_true_board, 'x', new_next_action,
-                                                          policy_obj_x, policy_obj_o, probability, history_obj)
+                                                          policy_obj_x, policy_obj_o, probability, history_obj,
+                                                          initial_player)
 
     else:
         new_I = I.copy()
@@ -247,28 +249,29 @@ def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_ob
         new_true_board = true_board.copy()
 
         # TODO update this line after policy class is updated
-        probability *= policy_obj.policy_dict[I.get_hash()][next_action]
+        if I.player == toggle_player(initial_player):
+            probability *= policy_obj.policy_dict[I.get_hash()][next_action]
         history_obj.track_traversal_index += 1
         if history_obj.track_traversal_index < len(history_obj.history):
             new_next_action = history_obj.history[history_obj.track_traversal_index]
 
             if player == 'x':
                 probability = get_prob_h_given_policy(new_I, I_2, new_true_board, 'x', new_next_action, policy_obj_x,
-                                                      policy_obj_o, probability, history_obj)
+                                                      policy_obj_o, probability, history_obj, initial_player)
             else:
                 probability = get_prob_h_given_policy(I_1, new_I, new_true_board, 'o', new_next_action, policy_obj_x,
-                                                      policy_obj_o, probability, history_obj)
+                                                      policy_obj_o, probability, history_obj, initial_player)
 
     return probability
 
 
 def get_prob_h_given_policy_wrapper(I_1, I_2, true_board, player, next_action, policy_obj_x, policy_obj_o, probability,
-                                    history_obj, curr_I_1):
+                                    history_obj, curr_I_1, initial_player):
     if curr_I_1.get_hash() == '000000000m':
         return 1
     else:
         return get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_obj_x, policy_obj_o,
-                                       probability, history_obj)
+                                       probability, history_obj, initial_player)
 
 
 def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list):
@@ -294,7 +297,7 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
     return utility
 
 
-def get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting_histories):
+def get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting_histories, initial_player):
     utility = 0
     play_args = []
     get_prob_h_given_policy_args = []
@@ -310,7 +313,7 @@ def get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting
                 InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
                 InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
                 TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
-                'x', h[0], policy_obj_x, policy_obj_o, 1, h_object, curr_I_1))
+                'x', h[0], policy_obj_x, policy_obj_o, 1, h_object, curr_I_1, initial_player))
         else:
             get_prob_h_given_policy_args.append([])
 
@@ -324,7 +327,8 @@ def get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting
     return utility, prob_reaching_h_list
 
 
-def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, prev_regret, starting_histories, util, prob_reaching_h_list):
+def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, prev_regret, starting_histories, util,
+                                   prob_reaching_h_list):
     new_policy_obj_x = policy_obj_x.copy()
     new_policy_obj_o = policy_obj_o.copy()
 
@@ -342,7 +346,8 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
             new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
 
     logging.info('Calculating cf-utility-a for {}, {}...'.format(I.get_hash(), action))
-    util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories, prob_reaching_h_list)
+    util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories,
+                                         prob_reaching_h_list)
     logging.info('Calculated cf-utility-a = {}...'.format(util_a))
 
     if T == 0:
@@ -361,14 +366,15 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
     starting_histories = get_histories_given_I(I)
 
     logging.info('Calculating cf-utility for {}...'.format(I.get_hash()))
-    util, prob_reaching_h_list = get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting_histories)
+    util, prob_reaching_h_list = get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting_histories,
+                                                                      I.player)
     logging.info('Calculated cf-utility = {}...'.format(util))
 
     logging.info('Calculating regret for {}...'.format(I.get_hash()))
 
     args = [(
-            I, action, policy_obj_x, policy_obj_o, T, prev_regret_list[action], starting_histories,
-            util, prob_reaching_h_list) for action in actions]
+        I, action, policy_obj_x, policy_obj_o, T, prev_regret_list[action], starting_histories,
+        util, prob_reaching_h_list) for action in actions]
 
     with Pool(len(actions)) as p:
         regrets = p.starmap(calc_regret_given_I_and_action, args)
