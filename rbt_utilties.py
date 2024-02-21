@@ -118,7 +118,7 @@ def get_histories_given_I(I):
 
                     histories.append(history)
 
-    logging.info('Filtering valid histories {}...'.format(I.get_hash()))
+    logging.info('Filtering valid histories in {} out of {} histories...'.format(I.get_hash(), len(histories)))
     args = [(h, I) for h in histories]
     with Pool(num_workers) as p:
         valid_histories = p.starmap(is_valid_history, args)
@@ -289,11 +289,6 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
                                       h_object.copy(), I.player)
 
             if not curr_I_1.get_hash() == '000000000m':
-                # probability_reaching_h = get_prob_h_given_policy(
-                #     InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
-                #     InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
-                #     TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']), 'x', h[0], policy_obj_x,
-                #     policy_obj_o, 1, h_object)
                 probability_reaching_h = prob_reaching_h_list[count]
             else:
                 probability_reaching_h = 1

@@ -41,7 +41,9 @@ if __name__ == '__main__':
     processed_I_count = 0
             
     for T in range(1,5):
-        for I_hash in P2_reachable_information_sets:
+        # for I_hash in P2_reachable_information_sets:
+        # for I_hash in ['x-oox-x0-m']:
+        for I_hash in ['xo-oox---m']:
             I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
 
             policy_obj_x, policy_obj_o, prev_regret_list_o[I_hash] = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T,
