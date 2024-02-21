@@ -42,6 +42,8 @@ if __name__ == '__main__':
     print(policy_obj_o)
 
     I = InformationSet(player='x', move_flag=True, board=['-', '-', '-', 'o', '0', '-', 'x', 'o', 'x'])
-    policy_obj_x, policy_obj_o, prev_regret_list_x = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, 2,
-                                                                             prev_regret_list_x)
-    print(policy_obj_x)
+    for i in range(2, 7):
+
+        policy_obj_x, policy_obj_o, prev_regret_list_x = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, i,
+                                                                                 prev_regret_list_x)
+        print(policy_obj_x)
