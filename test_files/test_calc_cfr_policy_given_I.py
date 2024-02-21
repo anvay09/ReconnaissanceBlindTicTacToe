@@ -47,8 +47,8 @@ if __name__ == '__main__':
             policy_obj_x, policy_obj_o, prev_regret_list_o[I_hash] = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T,
                                                                              prev_regret_list_o[I_hash])
             
-            logging.info('Updated policy for player {}, information set {}:'.format(I.player, I.get_hash()))
-            logging.info('{}'.format(policy_obj_o.policy_dict[I_hash()]))
+            logging.info('Updated policy for player {}, information set {}:'.format(I.player, I_hash))
+            logging.info('{}'.format(policy_obj_o.policy_dict[I_hash]))
             processed_I_count += 1
             logging.info('Processed {} information sets in iteration {}...'.format(processed_I_count, T))
         
