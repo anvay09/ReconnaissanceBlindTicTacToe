@@ -22,7 +22,7 @@ if __name__ == '__main__':
         policy_dict = json.load(f)
     policy_obj_o = Policy(player='o', policy_dict=policy_dict)
 
-    logging.info('Loaded policy for player {}, information set {}:'.format(I.player, I.get_hash()))
+    logging.info('Loaded policy objects...')
 
     # if I.player == 'x':
     #     print(policy_obj_x.policy_dict[I.get_hash()])
