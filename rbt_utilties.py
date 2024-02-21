@@ -348,7 +348,7 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
     logging.info('Calculating cf-utility-a for {}, {}...'.format(I.get_hash(), action))
     util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories,
                                          prob_reaching_h_list)
-    logging.info('Calculated cf-utility-a = {}...'.format(util_a))
+    logging.info('Calculated cf-utility-a = {} for action {}...'.format(util_a, action))
 
     if T == 0:
         regret_T = util_a - util

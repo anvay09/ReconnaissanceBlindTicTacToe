@@ -12,7 +12,7 @@ if __name__ == '__main__':
     # I = InformationSet(player='x', move_flag=True, board=['o', '0', '-', '0', 'x', '-', '-', '-', '-'])
     I = InformationSet(player='x', move_flag=True, board=['-', '-', '-', 'o', '0', '-', 'x', 'o', 'x'])
 
-    T = 0
+    T = 1
     prev_regret_list_x = [0 for _ in range(13)]
     prev_regret_list_o = [0 for _ in range(13)]
 
@@ -33,15 +33,15 @@ if __name__ == '__main__':
     else:
         print(policy_obj_o.policy_dict[I.get_hash()])
 
-    policy_obj_x, policy_obj_o, prev_regret_list_x = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T,
+    policy_obj_x, policy_obj_o, prev_regret_list_x = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, 1,
                                                                              prev_regret_list_x)
     print(policy_obj_x)
     I = InformationSet(player='o', move_flag=True, board=['x', '0', '-', 'o', '0', '-', 'x', 'o', 'x'])
-    policy_obj_x, policy_obj_o, prev_regret_list_o = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, 0,
+    policy_obj_x, policy_obj_o, prev_regret_list_o = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, 1,
                                                                              prev_regret_list_o)
     print(policy_obj_o)
 
     I = InformationSet(player='x', move_flag=True, board=['-', '-', '-', 'o', '0', '-', 'x', 'o', 'x'])
-    policy_obj_x, policy_obj_o, prev_regret_list_x = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, 1,
+    policy_obj_x, policy_obj_o, prev_regret_list_x = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, 2,
                                                                              prev_regret_list_x)
     print(policy_obj_x)
