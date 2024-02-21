@@ -55,7 +55,7 @@ if __name__ == '__main__':
         processed_I_count = 0
         logging.info('Completed iteration {}...'.format(T))
 
-    logging.info('Saving policy objects...')
-    with open('./data_files/{}.json'.format('P2_updated_policy'), 'w') as f:
-        json.dump(policy_obj_o.policy_dict, f)
+        logging.info('Saving policy objects...')
+        with open('./data_files/{}.json'.format('P2_updated_policy'), 'w') as f:
+            json.dump(policy_obj_o.policy_dict, f)
     
