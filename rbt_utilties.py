@@ -158,7 +158,8 @@ def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, 
             new_true_board = true_board.copy()
             success = new_true_board.update_move(action, player)
             # TODO update this line after policy class is updated
-            probability *= policy_obj.policy_dict[I.get_hash()][action]
+            # probability *= policy_obj.policy_dict[I.get_hash()][action]
+            probability_new = probability*policy_obj.policy_dict[I.get_hash()][action]
             new_history = current_history.copy()
             new_history.history.append(action)
 
@@ -168,15 +169,16 @@ def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, 
                 new_I.reset_zeros()
 
                 if player == 'x':
-                    expected_utility_h += play(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o, probability,
+                    expected_utility_h += play(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o, probability_new,
                                                new_history, initial_player)
                 else:
-                    expected_utility_h += play(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o, probability,
+                    expected_utility_h += play(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o, probability_new,
                                                new_history, initial_player)
             else:
                 terminal_history = TerminalHistory(new_history.history.copy())
                 terminal_history.set_reward()
-                expected_utility_h += probability * terminal_history.reward[initial_player]
+                # expected_utility_h += probability * terminal_history.reward[initial_player]
+                expected_utility_h += probability_new * terminal_history.reward[initial_player]
 
     else:
         for action in actions:
@@ -184,15 +186,16 @@ def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, 
             new_I.simulate_sense(action, true_board)
             new_true_board = true_board.copy()
             # TODO update this line after policy class is updated
-            probability *= policy_obj.policy_dict[I.get_hash()][action]
+            # probability *= policy_obj.policy_dict[I.get_hash()][action]
+            probability_new = probability*policy_obj.policy_dict[I.get_hash()][action]
             new_history = current_history.copy()
             new_history.history.append(action)
 
             if player == 'x':
-                expected_utility_h += play(new_I, I_2, new_true_board, 'x', policy_obj_x, policy_obj_o, probability,
+                expected_utility_h += play(new_I, I_2, new_true_board, 'x', policy_obj_x, policy_obj_o, probability_new,
                                            new_history, initial_player)
             else:
-                expected_utility_h += play(I_1, new_I, new_true_board, 'o', policy_obj_x, policy_obj_o, probability,
+                expected_utility_h += play(I_1, new_I, new_true_board, 'o', policy_obj_x, policy_obj_o, probability_new,
                                            new_history, initial_player)
 
     return expected_utility_h
@@ -313,7 +316,7 @@ def get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting
                 InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
                 InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
                 TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
-                'x', h[0], policy_obj_x, policy_obj_o, 1, h_object, curr_I_1, initial_player))
+                'x', h[0], policy_obj_x, policy_obj_o, 1, h_object, I, initial_player))
         else:
             get_prob_h_given_policy_args.append([])
 
