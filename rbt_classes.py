@@ -207,12 +207,20 @@ class InformationSet(TicTacToeBoard):
         action_list = []
         if self.move_flag:
             for move in range(9):
-                if policy_obj.policy_dict[self.get_hash()][move] > 0:
-                    action_list.append(move)
+                try:
+                    if policy_obj.policy_dict[self.get_hash()][move] > 0:
+                        action_list.append(move)
+                except KeyError:
+                    print(self.get_hash(), move, self.player)
+                    raise KeyError
         else:
             for sense in self.sense_square_dict.keys():
-                if policy_obj.policy_dict[self.get_hash()][sense] > 0:
-                    action_list.append(sense)
+                try:
+                    if policy_obj.policy_dict[self.get_hash()][sense] > 0:
+                        action_list.append(sense)
+                except KeyError:
+                    print(self.get_hash(), sense, self.player)
+                    raise KeyError
 
         return action_list
 
@@ -326,6 +334,14 @@ class InformationSet(TicTacToeBoard):
 
         return -1
 
+    def is_over(self):
+        """
+        :return: Bool True or False
+        """
+        for i in range(9):
+            if self.board[i] == '0' or self.board[i] == '-':
+                return False
+        return True
 
 class History:
     """

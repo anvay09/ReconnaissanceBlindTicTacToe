@@ -10,9 +10,8 @@ if __name__ == '__main__':
 
     # TODO: Fix Bug for root node, and for player 'o' first move
     # I = InformationSet(player='x', move_flag=True, board=['o', '0', '-', '0', 'x', '-', '-', '-', '-'])
-    I = InformationSet(player='x', move_flag=True, board=['-', '-', '-', 'o', '0', '-', 'x', 'o', 'x'])
+    I = InformationSet(player='o', move_flag=False, board=['o', '-', '-', '-', 'x', 'o', 'o', '-', 'x'])
 
-    T = 1
     prev_regret_list_x = [0 for _ in range(13)]
     prev_regret_list_o = [0 for _ in range(13)]
 
@@ -33,17 +32,8 @@ if __name__ == '__main__':
     else:
         print(policy_obj_o.policy_dict[I.get_hash()])
 
-    policy_obj_x, policy_obj_o, prev_regret_list_x = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, 1,
+    for T in range(1,5):
+        policy_obj_x, policy_obj_o, prev_regret_list_x = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T,
                                                                              prev_regret_list_x)
-    print(policy_obj_x)
-    I = InformationSet(player='o', move_flag=True, board=['x', '0', '-', 'o', '0', '-', 'x', 'o', 'x'])
-    policy_obj_x, policy_obj_o, prev_regret_list_o = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, 1,
-                                                                             prev_regret_list_o)
-    print(policy_obj_o)
-
-    I = InformationSet(player='x', move_flag=True, board=['-', '-', '-', 'o', '0', '-', 'x', 'o', 'x'])
-    for i in range(2, 7):
-
-        policy_obj_x, policy_obj_o, prev_regret_list_x = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, i,
-                                                                                 prev_regret_list_x)
         print(policy_obj_x)
+    
