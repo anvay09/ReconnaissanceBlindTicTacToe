@@ -1,4 +1,4 @@
-from subgame_rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, TicTacToeBoard, get_root_hash, get_root_sets
+from subgame_files.subgame_rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, TicTacToeBoard, get_root_hash, get_root_sets
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
 from multiprocessing import Pool
 import logging
@@ -63,7 +63,7 @@ def get_histories_given_I(I):
     logging.info('Calculating h for {}...'.format(I.get_hash()))
     
     for state in states:
-        print(state.board)
+        # print(state.board)
         p1_moves = [idx for idx, value in enumerate(state.board) if value == 'x']
         p2_moves = [idx for idx, value in enumerate(state.board) if value == 'o']
 
@@ -82,7 +82,7 @@ def get_histories_given_I(I):
             perms = list(multiset_permutations(comb))
             sense_combinations_permuted = sense_combinations_permuted + perms
 
-        print(len(p1_permutations), len(p2_permutations), len(sense_combinations_permuted))
+        # print(len(p1_permutations), len(p2_permutations), len(sense_combinations_permuted))
 
         for p1 in p1_permutations:
             for p2 in p2_permutations:

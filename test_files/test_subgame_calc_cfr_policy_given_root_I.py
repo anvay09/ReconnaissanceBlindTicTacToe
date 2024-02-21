@@ -1,5 +1,5 @@
-from subgame_rbt_classes import InformationSet, Policy
-from subgame_rbt_utilities import calc_cfr_policy_given_I, get_root_sets
+from subgame_files.subgame_rbt_classes import InformationSet, Policy
+from subgame_files.subgame_rbt_utilities import calc_cfr_policy_given_I, get_root_sets
 import logging
 import json
 
