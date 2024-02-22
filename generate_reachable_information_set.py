@@ -24,7 +24,7 @@ def get_information_set_from_states(states, player):
     return I
 
 
-def play(I_1, I_2, true_board, player, p1_policy_obj):
+def play(I_1, I_2, true_board, player, p2_policy_obj):
     """
     :param I_1:
     :param I_2:
@@ -39,10 +39,10 @@ def play(I_1, I_2, true_board, player, p1_policy_obj):
 
     if player == 'x':
         I = I_1
-        actions = I.get_actions_given_policy(p1_policy_obj)
+        actions = I.get_actions()
     else:
         I = I_2
-        actions = I.get_actions()
+        actions = I.get_actions_given_policy(p2_policy_obj)
 
     
     # actions = I.get_actions()
@@ -58,12 +58,12 @@ def play(I_1, I_2, true_board, player, p1_policy_obj):
                 new_I.reset_zeros()
 
                 if player == 'x':
-                    num_histories_future, future_I_1_set, future_I_2_set = play(new_I, I_2, new_true_board, 'o', p1_policy_obj)
+                    num_histories_future, future_I_1_set, future_I_2_set = play(new_I, I_2, new_true_board, 'o', p2_policy_obj)
                     num_histories += num_histories_future
                     I_1_set = I_1_set.union(future_I_1_set)
                     I_2_set = I_2_set.union(future_I_2_set)
                 else:
-                    num_histories_future, future_I_1_set, future_I_2_set = play(I_1, new_I, new_true_board, 'x', p1_policy_obj)
+                    num_histories_future, future_I_1_set, future_I_2_set = play(I_1, new_I, new_true_board, 'x', p2_policy_obj)
                     num_histories += num_histories_future
                     I_1_set = I_1_set.union(future_I_1_set)
                     I_2_set = I_2_set.union(future_I_2_set)
@@ -77,12 +77,12 @@ def play(I_1, I_2, true_board, player, p1_policy_obj):
             new_true_board = true_board.copy()
 
             if player == 'x':
-                num_histories_future, future_I_1_set, future_I_2_set = play(new_I, I_2, new_true_board, 'x', p1_policy_obj)
+                num_histories_future, future_I_1_set, future_I_2_set = play(new_I, I_2, new_true_board, 'x', p2_policy_obj)
                 num_histories += num_histories_future
                 I_1_set = I_1_set.union(future_I_1_set)
                 I_2_set = I_2_set.union(future_I_2_set)
             else:
-                num_histories_future, future_I_1_set, future_I_2_set = play(I_1, new_I, new_true_board, 'o', p1_policy_obj)
+                num_histories_future, future_I_1_set, future_I_2_set = play(I_1, new_I, new_true_board, 'o', p2_policy_obj)
                 num_histories += num_histories_future
                 I_1_set = I_1_set.union(future_I_1_set)
                 I_2_set = I_2_set.union(future_I_2_set)
@@ -90,7 +90,7 @@ def play(I_1, I_2, true_board, player, p1_policy_obj):
     return num_histories, I_1_set, I_2_set
 
 
-def parallel_play(I_1, I_2, true_board, player, p1_policy_obj):
+def parallel_play(I_1, I_2, true_board, player, p2_policy_obj):
     Total_histories = 0
     I_1_vars = []
     I_2_vars = []
@@ -100,12 +100,10 @@ def parallel_play(I_1, I_2, true_board, player, p1_policy_obj):
 
     if player == 'x':
         I = I_1
-        actions = I.get_actions_given_policy(p1_policy_obj)
+        actions = I.get_actions()
     else:
         I = I_2
-        actions = I.get_actions()
-
-    # actions = I.get_actions()
+        actions = I.get_actions_given_policy(p2_policy_obj)
 
     for action in actions:
         new_true_board = true_board.copy()
@@ -133,7 +131,7 @@ def parallel_play(I_1, I_2, true_board, player, p1_policy_obj):
         player = 'x'
 
     with Pool(len(I_1_vars)) as pool:
-        obj_list = pool.starmap(play, [(I_1_vars[i], I_2_vars[i], true_board_vars[i], player, p1_policy_obj) for i in
+        obj_list = pool.starmap(play, [(I_1_vars[i], I_2_vars[i], true_board_vars[i], player, p2_policy_obj) for i in
                                        range(len(I_1_vars))])
 
     for item in obj_list:
@@ -143,28 +141,23 @@ def parallel_play(I_1, I_2, true_board, player, p1_policy_obj):
 
     print('Total Histories: ', Total_histories)
 
-    # with open('P1_information_sets.txt', 'w') as f:
-    #     for item in P1_information_sets:
-    #         f.write("%s\n" % item)
-
-    with open('reachable_P2_information_sets.txt', 'w') as f:
-        for item in P2_information_sets:
+    with open('reachable_P1_information_sets.txt', 'w') as f:
+        for item in P1_information_sets:
             f.write("%s\n" % item)
+
+    # with open('reachable_P2_information_sets.txt', 'w') as f:
+    #     for item in P2_information_sets:
+    #         f.write("%s\n" % item)
 
     return
 
 
 if __name__ == "__main__":
-    # true_board = TicTacToeBoard(board=['o', '0', '0', 'x', 'x', 'o', 'o', '0', 'x'])
-    # I_1 = InformationSet(player='x', move_flag=True, board=['-', '-', '-', 'x', 'x', 'o', 'o', '-', 'x'])
-    # I_2 = InformationSet(player='o', move_flag=False, board=['o', '-', '-', 'x', 'x', 'o', 'o', '-', 'x'])
-    # player = 'x'
-  
     true_board = TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
     I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
     I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
     player = 'x'
 
-    p1_policy_dict = json.load(open('data_files/P1_DG_policy.json', 'r'))
-    p1_policy_obj = Policy(policy_dict=p1_policy_dict, player='x')
-    parallel_play(I_1, I_2, true_board, player, p1_policy_obj)
+    p2_policy_dict = json.load(open('data_files/P2_iteration_2_cfr_policy.json', 'r'))
+    p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
+    parallel_play(I_1, I_2, true_board, player, p2_policy_obj)
