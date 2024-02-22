@@ -230,13 +230,13 @@ if __name__ == "__main__":
     p1_policy_dict = json.load(open('data_files/P1_DG_policy.json', 'r'))
     p1_policy_obj = Policy(policy_dict=p1_policy_dict, player='x')
 
-    p2_policy_dict = json.load(open('data_files/P2_Iteration_1_cfr_policy.json', 'r'))
+    p2_policy_dict = json.load(open('data_files/P2_iteration_2_cfr_policy.json', 'r'))
     p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
 
-    p2_random_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
-    p2_random_policy_obj = Policy(policy_dict=p2_random_policy_dict, player='o')
+    # p2_random_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
+    # p2_random_policy_obj = Policy(policy_dict=p2_random_policy_dict, player='o')
 
-    # parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_random_policy_obj)
+    parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj)
 
     expected_utility = get_expected_utility(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, 1, NonTerminalHistory(), player)
     print('Expected Utility: ', expected_utility)
