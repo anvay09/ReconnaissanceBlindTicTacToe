@@ -22,27 +22,28 @@ if __name__ == '__main__':
 
     logging.info('Loaded policy objects...')
 
-    P1_reachable_information_sets_file = 'data_files/reachable_P1_information_sets.txt'
-    P1_reachable_information_sets = set()
-    with open(P1_reachable_information_sets_file, 'r') as f:
+    P2_reachable_information_sets_file = 'data_files/reachable_P2_information_sets.txt'
+    P2_reachable_information_sets = set()
+    with open(P2_reachable_information_sets_file, 'r') as f:
         lines = f.readlines()
         for line in lines:
-            P1_reachable_information_sets.add(line.strip())
+            P2_reachable_information_sets.add(line.strip())
 
     # prev_regret_list_x = [0 for _ in range(13)]
-    prev_regret_list_x = {I_hash:[0 for _ in range(13)] for I_hash in P1_reachable_information_sets}
+    prev_regret_list_o = {I_hash:[0 for _ in range(13)] for I_hash in P2_reachable_information_sets}
     processed_I_count = 0
             
-    for T in range(1,4):
-        for I_hash in P1_reachable_information_sets:
+    for T in range(1,3):
+        for I_hash in P2_reachable_information_sets:
+        # for I_hash in ["xo0-00---m"]:
         # for I_hash in ['x-oox-x0-m', '---o00-00m', '----o--o-s']:
-            I = InformationSet(player='x', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
+            I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
 
-            policy_obj_x, policy_obj_o, prev_regret_list_x[I_hash] = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T,
-                                                                             prev_regret_list_x[I_hash])
+            policy_obj_x, policy_obj_o, prev_regret_list_o[I_hash] = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T,
+                                                                             prev_regret_list_o[I_hash])
             
             logging.info('Updated policy for player {}, information set {}:'.format(I.player, I_hash))
-            logging.info('{}'.format(policy_obj_x.policy_dict[I_hash]))
+            logging.info('{}'.format(policy_obj_o.policy_dict[I_hash]))
             processed_I_count += 1
             logging.info('Processed {} information sets in iteration {}...'.format(processed_I_count, T))
         
@@ -50,5 +51,5 @@ if __name__ == '__main__':
         logging.info('Completed iteration {}...'.format(T))
 
         logging.info('Saving policy objects...')
-        with open('./data_files/P1_DG_policy_iteration_{}.json'.format(T), 'w') as f:
+        with open('./data_files/P2_iteration_{}_cfr_policy.json'.format(T+2), 'w') as f:
             json.dump(policy_obj_x.policy_dict, f)
