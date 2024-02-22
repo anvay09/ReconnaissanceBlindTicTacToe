@@ -245,7 +245,7 @@ if __name__ == "__main__":
     expected_utility = get_expected_utility(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, 1, NonTerminalHistory(), player)
     print('Expected Utility: ', expected_utility)
 
-    terminal_histories.sort(key=lambda x: x[2], reverse=True)
+    terminal_histories.sort(key=lambda x: x[1], reverse=True)
 
     with open('data_files/games.txt', 'w') as f:
         for item in terminal_histories:
