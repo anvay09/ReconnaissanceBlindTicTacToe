@@ -142,6 +142,10 @@ def parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj):
 
     print('Total Histories: ', Total_histories)
     print('P1 Information Sets: ', len(P1_information_sets))
+    with open('data_files/reachable_P1_information_sets.txt', 'w') as f:
+        for item in P1_information_sets:
+            f.write(item + '\n')
+
     print('P2 Information Sets: ', len(P2_information_sets))
     
     return
@@ -238,11 +242,11 @@ if __name__ == "__main__":
 
     parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj)
 
-    expected_utility = get_expected_utility(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, 1, NonTerminalHistory(), player)
-    print('Expected Utility: ', expected_utility)
+    # expected_utility = get_expected_utility(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, 1, NonTerminalHistory(), player)
+    # print('Expected Utility: ', expected_utility)
 
-    terminal_histories.sort(key=lambda x: x[1], reverse=True)
+    # terminal_histories.sort(key=lambda x: x[1], reverse=True)
 
-    with open('data_files/games.txt', 'w') as f:
-        for item in terminal_histories:
-            f.write('History: {}, Probability: {}, Reward: {}\n'.format(item[0].history, item[1], item[2]))
+    # with open('data_files/games.txt', 'w') as f:
+    #     for item in terminal_histories:
+    #         f.write('History: {}, Probability: {}, Reward: {}\n'.format(item[0].history, item[1], item[2]))
