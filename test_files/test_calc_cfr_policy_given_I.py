@@ -41,8 +41,8 @@ if __name__ == '__main__':
     processed_I_count = 0
             
     for T in range(1,5):
-        # for I_hash in P2_reachable_information_sets:
-        for I_hash in ['x-oox-x0-m']:
+        for I_hash in P2_reachable_information_sets:
+        # for I_hash in ['x-oox-x0-m']:
         # for I_hash in ['xo-oox---m']:
             I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
 

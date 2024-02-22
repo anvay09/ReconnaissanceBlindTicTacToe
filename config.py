@@ -1,1 +1,1 @@
-num_workers = 4
+num_workers = 48
