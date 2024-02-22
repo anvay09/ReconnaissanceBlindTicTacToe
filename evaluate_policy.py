@@ -178,8 +178,7 @@ def get_expected_utility(I_1, I_2, true_board, player, policy_obj_x, policy_obj_
         for action in actions:
             new_true_board = true_board.copy()
             success = new_true_board.update_move(action, player)
-            # TODO update this line after policy class is updated
-            # probability *= policy_obj.policy_dict[I.get_hash()][action]
+            
             probability_new = probability*policy_obj.policy_dict[I.get_hash()][action]
             new_history = current_history.copy()
             new_history.history.append(action)
@@ -198,7 +197,7 @@ def get_expected_utility(I_1, I_2, true_board, player, policy_obj_x, policy_obj_
             else:
                 terminal_history = TerminalHistory(new_history.history.copy())
                 terminal_history.set_reward()
-                # logging.info('Terminal History: {}, Reward: {}, Probability: {}'.format(terminal_history.history, terminal_history.reward[initial_player], probability_new))
+                
                 terminal_histories.append((terminal_history, probability_new, terminal_history.reward[initial_player]))
                 expected_utility_h += probability_new * terminal_history.reward[initial_player]
 
@@ -207,8 +206,7 @@ def get_expected_utility(I_1, I_2, true_board, player, policy_obj_x, policy_obj_
             new_I = I.copy()
             new_I.simulate_sense(action, true_board)
             new_true_board = true_board.copy()
-            # TODO update this line after policy class is updated
-            # probability *= policy_obj.policy_dict[I.get_hash()][action]
+           
             probability_new = probability*policy_obj.policy_dict[I.get_hash()][action]
             new_history = current_history.copy()
             new_history.history.append(action)
@@ -243,8 +241,7 @@ if __name__ == "__main__":
     expected_utility = get_expected_utility(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, 1, NonTerminalHistory(), player)
     print('Expected Utility: ', expected_utility)
 
-    # sort terminal histories by reward 
-    terminal_histories.sort(key=lambda x: x[2], reverse=True)
+    terminal_histories.sort(key=lambda x: x[1], reverse=True)
 
     with open('data_files/games.txt', 'w') as f:
         for item in terminal_histories:

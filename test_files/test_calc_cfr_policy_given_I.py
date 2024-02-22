@@ -7,8 +7,6 @@ if __name__ == '__main__':
     # I = InformationSet(player='x', move_flag = True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
     # I = InformationSet(player='x', move_flag=True, board=['-', '0', '0', 'x', 'x', 'o', 'o', '-', 'x'])
     # I = InformationSet(player='o', move_flag = False, board=['o', '-', '-', '-', 'x', 'o', 'o', '-', 'x'])
-
-    # TODO: Fix Bug for root node, and for player 'o' first move
     # I = InformationSet(player='x', move_flag=True, board=['o', '0', '-', '0', 'x', '-', '-', '-', '-'])
     # I = InformationSet(player='o', move_flag=False, board=['o', '-', '-', '-', 'x', 'o', 'o', '-', 'x'])
 
@@ -24,11 +22,6 @@ if __name__ == '__main__':
 
     logging.info('Loaded policy objects...')
 
-    # if I.player == 'x':
-    #     print(policy_obj_x.policy_dict[I.get_hash()])
-    # else:
-    #     print(policy_obj_o.policy_dict[I.get_hash()])
-
     P2_reachable_information_sets_file = 'data_files/reachable_P2_information_sets.txt'
     P2_reachable_information_sets = set()
     with open(P2_reachable_information_sets_file, 'r') as f:
@@ -42,8 +35,7 @@ if __name__ == '__main__':
             
     for T in range(1,5):
         for I_hash in P2_reachable_information_sets:
-        # for I_hash in ['x-oox-x0-m']:
-        # for I_hash in ['xo-oox---m']:
+        # for I_hash in ['x-oox-x0-m', '---o00-00m', '----o--o-s']:
             I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
 
             policy_obj_x, policy_obj_o, prev_regret_list_o[I_hash] = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T,
@@ -58,6 +50,5 @@ if __name__ == '__main__':
         logging.info('Completed iteration {}...'.format(T))
 
         logging.info('Saving policy objects...')
-        with open('./data_files/{}.json'.format('P2_updated_policy'), 'w') as f:
+        with open('./data_files/P2_iteration_{}_cfr_policy.json'.format(T), 'w') as f:
             json.dump(policy_obj_o.policy_dict, f)
-    

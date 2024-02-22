@@ -157,8 +157,7 @@ def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, 
         for action in actions:
             new_true_board = true_board.copy()
             success = new_true_board.update_move(action, player)
-            # TODO update this line after policy class is updated
-            # probability *= policy_obj.policy_dict[I.get_hash()][action]
+            
             probability_new = probability*policy_obj.policy_dict[I.get_hash()][action]
             new_history = current_history.copy()
             new_history.history.append(action)
@@ -177,7 +176,6 @@ def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, 
             else:
                 terminal_history = TerminalHistory(new_history.history.copy())
                 terminal_history.set_reward()
-                # expected_utility_h += probability * terminal_history.reward[initial_player]
                 expected_utility_h += probability_new * terminal_history.reward[initial_player]
 
     else:
@@ -185,8 +183,6 @@ def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, 
             new_I = I.copy()
             new_I.simulate_sense(action, true_board)
             new_true_board = true_board.copy()
-            # TODO update this line after policy class is updated
-            # probability *= policy_obj.policy_dict[I.get_hash()][action]
             probability_new = probability*policy_obj.policy_dict[I.get_hash()][action]
             new_history = current_history.copy()
             new_history.history.append(action)
@@ -283,7 +279,7 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
     for h in starting_histories:
         h_object = NonTerminalHistory(h)
         curr_I_1, curr_I_2 = h_object.get_information_sets()
-        true_board, overlapping_move_flag, overlapping_move_player = h_object.get_board()
+        true_board, _, _ = h_object.get_board()
         if prob_reaching_h_list[count] > 0:
             expected_utility_h = play(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1,
                                       h_object.copy(), I.player)
@@ -292,21 +288,14 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
                 probability_reaching_h = prob_reaching_h_list[count]
             else:
                 probability_reaching_h = 1
-            
-            # if policy_obj_o.policy_dict[I.get_hash()][7] == 1:
-            #     print(expected_utility_h, probability_reaching_h, expected_utility_h * probability_reaching_h)
-
+  
             utility += expected_utility_h * probability_reaching_h
         count += 1
     return utility
 
 
-def get_counter_factual_utility_parallel_new(I, policy_obj_x, policy_obj_o, starting_histories, initial_player):
-    utility = 0
-    play_args = []
+def get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, initial_player):
     get_prob_h_given_policy_args = []
-    prob_reaching_h_list = []
-    positive_histories = []
     prob_reaching_h_list_all = []
     for h in starting_histories:
         h_object = NonTerminalHistory(h)
@@ -321,56 +310,14 @@ def get_counter_factual_utility_parallel_new(I, policy_obj_x, policy_obj_o, star
         else:
             temp_args = []
             get_prob_h_given_policy_args.append(temp_args)
+
         prob_reaching_h = get_prob_h_given_policy_wrapper(*temp_args)
         prob_reaching_h_list_all.append(prob_reaching_h)
 
-        if prob_reaching_h > 0:
-            positive_histories.append(h)
-            prob_reaching_h_list.append(prob_reaching_h)
-            curr_I_1, curr_I_2 = h_object.get_information_sets()
-            true_board, _, _ = h_object.get_board()
-            play_args.append((curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1, h_object, I.player))
-
-    with Pool(num_workers) as p:
-        expected_utilities = p.starmap(play, play_args)
-    for h, expected_utility_h, prob_reaching_h in zip(positive_histories, expected_utilities, prob_reaching_h_list):
-        utility += expected_utility_h * prob_reaching_h
-
-    return utility, prob_reaching_h_list_all
+    return prob_reaching_h_list_all
 
 
-def get_counter_factual_utility_parallel(I, policy_obj_x, policy_obj_o, starting_histories, initial_player):
-    utility = 0
-    play_args = []
-    get_prob_h_given_policy_args = []
-
-    for h in starting_histories:
-        h_object = NonTerminalHistory(h)
-        curr_I_1, curr_I_2 = h_object.get_information_sets()
-        true_board, _, _ = h_object.get_board()
-
-        play_args.append((curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1, h_object, I.player))
-        if not I.get_hash() == "000000000m":
-            get_prob_h_given_policy_args.append((
-                InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
-                InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
-                TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
-                'x', h[0], policy_obj_x, policy_obj_o, 1, h_object, I, initial_player))
-        else:
-            get_prob_h_given_policy_args.append([])
-
-    with Pool(num_workers) as p:
-        expected_utilities = p.starmap(play, play_args)
-    prob_reaching_h_list = []
-    for h, expected_utility_h, args in zip(starting_histories, expected_utilities, get_prob_h_given_policy_args):
-        prob_reaching_h = get_prob_h_given_policy_wrapper(*args)
-        prob_reaching_h_list.append(prob_reaching_h)
-        utility += expected_utility_h * prob_reaching_h
-    return utility, prob_reaching_h_list
-
-
-def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, prev_regret, starting_histories, util,
-                                   prob_reaching_h_list):
+def calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list):
     new_policy_obj_x = policy_obj_x.copy()
     new_policy_obj_o = policy_obj_o.copy()
 
@@ -387,43 +334,42 @@ def calc_regret_given_I_and_action(I, action, policy_obj_x, policy_obj_o, T, pre
         else:
             new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
 
-    logging.info('Calculating cf-utility-a for {}, {}...'.format(I.get_hash(), action))
-    util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories,
-                                         prob_reaching_h_list)
+    util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories, prob_reaching_h_list)
     logging.info('Calculated cf-utility-a = {} for action {}...'.format(util_a, action))
 
-    if T == 0:
-        regret_T = util_a - util
-    else:
-        regret_T = (1 / T) * ((T - 1) * prev_regret + util_a - util)
-
-    final_regret_T = max(0, regret_T)
-    return final_regret_T
+    return util_a
 
 
 def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
     actions = I.get_actions()
     regret_list = [0 for _ in range(13)]
-
+    
     starting_histories = get_histories_given_I(I)
-
-    logging.info('Calculating cf-utility for {}...'.format(I.get_hash()))
-    util, prob_reaching_h_list = get_counter_factual_utility_parallel_new(I, policy_obj_x, policy_obj_o, starting_histories,
-                                                                      I.player)
-    logging.info('Calculated cf-utility = {}...'.format(util))
-
-    logging.info('Calculating regret for {}...'.format(I.get_hash()))
-
-    args = [(
-        I, action, policy_obj_x, policy_obj_o, T, prev_regret_list[action], starting_histories,
-        util, prob_reaching_h_list) for action in actions]
+    prob_reaching_h_list = get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player)
+    
+    args = [(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list) for action in actions]
 
     with Pool(len(actions)) as p:
-        regrets = p.starmap(calc_regret_given_I_and_action, args)
+        util_a_list = p.starmap(calc_util_a_given_I_and_action, args)
 
-    for action, regret in zip(actions, regrets):
-        regret_list[action] = regret
-        logging.info('Calculated regret for {}, {} = {}...'.format(I.get_hash(), action, regret))
+    util = 0
+    for action, util_a in zip(actions, util_a_list):
+        if I.player == 'x':
+            util += util_a * policy_obj_x.policy_dict[I.get_hash()][action]
+        else:
+            util += util_a * policy_obj_o.policy_dict[I.get_hash()][action]
+
+    logging.info('Calculated cf-utility = {}...'.format(util))
+    
+    for action, util_a in zip(actions, util_a_list):
+        if T == 0:
+            regret_T = util_a - util
+        else:
+            regret_T = (1 / T) * ((T - 1) * prev_regret_list[action] + util_a - util)
+        
+        final_regret_T = max(0, regret_T)
+        regret_list[action] = final_regret_T
+        logging.info('Calculated regret for {}, {} = {}...'.format(I.get_hash(), action, final_regret_T))
 
     total_regret_I = sum(regret_list)
 
@@ -431,6 +377,7 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
         policy = policy_obj_x
     else:
         policy = policy_obj_o
+
     if total_regret_I > 0:
         for action in actions:
             policy.policy_dict[I.get_hash()][action] = regret_list[action] / total_regret_I
@@ -438,5 +385,4 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
         for action in actions:
             policy.policy_dict[I.get_hash()][action] = 1 / len(actions)
 
-    logging.info('Updated policy for {} is {}'.format(I.get_hash(), policy.policy_dict[I.get_hash()]))
     return policy_obj_x, policy_obj_o, regret_list
