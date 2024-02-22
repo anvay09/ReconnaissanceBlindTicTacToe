@@ -52,4 +52,4 @@ if __name__ == '__main__':
 
         logging.info('Saving policy objects...')
         with open('./data_files/P2_iteration_{}_cfr_policy.json'.format(T+2), 'w') as f:
-            json.dump(policy_obj_x.policy_dict, f)
+            json.dump(policy_obj_o.policy_dict, f)
