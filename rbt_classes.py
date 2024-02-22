@@ -343,6 +343,7 @@ class InformationSet(TicTacToeBoard):
                 return False
         return True
 
+
 class History:
     """
     Parent class for RBT histories
