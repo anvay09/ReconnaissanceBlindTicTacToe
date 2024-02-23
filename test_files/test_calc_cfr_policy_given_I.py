@@ -16,7 +16,7 @@ if __name__ == '__main__':
         policy_dict = json.load(f)
     policy_obj_x = Policy(player='x', policy_dict=policy_dict)
 
-    with open('./data_files/{}.json'.format('P2_iteration_2_cfr_policy'), 'r') as f:
+    with open('./data_files/{}.json'.format('P2_uniform_policy'), 'r') as f:
         policy_dict = json.load(f)
     policy_obj_o = Policy(player='o', policy_dict=policy_dict)
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     prev_regret_list_o = {I_hash:[0 for _ in range(13)] for I_hash in P2_reachable_information_sets}
     processed_I_count = 0
             
-    for T in range(1,3):
+    for T in range(1,5):
         for I_hash in P2_reachable_information_sets:
             I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
 
@@ -49,5 +49,5 @@ if __name__ == '__main__':
         logging.info('Completed iteration {}...'.format(T))
 
         logging.info('Saving policy objects...')
-        with open('./data_files/P2_iteration_{}_cfr_policy.json'.format(T+2), 'w') as f:
+        with open('./data_files/new_P2_iteration_{}_cfr_policy.json'.format(T), 'w') as f:
             json.dump(policy_obj_o.policy_dict, f)

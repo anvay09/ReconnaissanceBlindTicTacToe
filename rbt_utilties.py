@@ -12,12 +12,11 @@ def toggle_player(player):
     return 'x' if player == 'o' else 'o'
 
 
-def is_valid_history(H, end_I):
+def is_valid_history(H, end_I, policy_obj_x, policy_obj_o):
     I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
     I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
     true_board = TicTacToeBoard(['0', '0', '0', '0', '0', '0', '0', '0', '0'])
     player = 'x'
-    # move_flag = True
 
     for idx in range(len(H)):
         action = H[idx]
@@ -33,6 +32,14 @@ def is_valid_history(H, end_I):
             if not success or action not in actions:
                 return False
             else:
+                if not player == end_I.player:
+                    if player == 'x':
+                        if policy_obj_x.policy_dict[I_1.get_hash()][action] == 0:
+                            return False
+                    else:
+                        if policy_obj_o.policy_dict[I_2.get_hash()][action] == 0:
+                            return False
+
                 I.update_move(action, player)
                 I.reset_zeros()
                 if player == 'x':
@@ -45,13 +52,20 @@ def is_valid_history(H, end_I):
             if action not in actions:
                 return False
             else:
+                if not player == end_I.player:
+                    if player == 'x':
+                        if policy_obj_x.policy_dict[I_1.get_hash()][action] == 0:
+                            return False
+                    else:
+                        if policy_obj_o.policy_dict[I_2.get_hash()][action] == 0:
+                            return False
+
                 I.simulate_sense(action, true_board)
                 if player == 'x':
                     I_1 = I.copy()
                 else:
                     I_2 = I.copy()
 
-        # move_flag = not move_flag
 
     if end_I.player == 'x':
         return I_1 == end_I
@@ -59,7 +73,7 @@ def is_valid_history(H, end_I):
         return I_2 == end_I
 
 
-def get_histories_given_I(I):
+def get_histories_given_I(I, policy_obj_x, policy_obj_o):
     if I.get_hash() == "000000000m":
         return [[]]
     states = I.get_states()
@@ -119,7 +133,7 @@ def get_histories_given_I(I):
                     histories.append(history)
 
     logging.info('Filtering valid histories in {} out of {} histories...'.format(I.get_hash(), len(histories)))
-    args = [(h, I) for h in histories]
+    args = [(h, I, policy_obj_x, policy_obj_o) for h in histories]
     with Pool(num_workers) as p:
         valid_histories = p.starmap(is_valid_history, args)
 
@@ -344,7 +358,7 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
     actions = I.get_actions()
     regret_list = [0 for _ in range(13)]
     
-    starting_histories = get_histories_given_I(I)
+    starting_histories = get_histories_given_I(I, policy_obj_x, policy_obj_o)
     prob_reaching_h_list = get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player)
     
     args = [(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list) for action in actions]
