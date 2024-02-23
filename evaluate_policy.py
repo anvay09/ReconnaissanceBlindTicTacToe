@@ -147,6 +147,9 @@ def parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj):
             f.write(item + '\n')
 
     print('P2 Information Sets: ', len(P2_information_sets))
+    with open('data_files/reachable_P2_information_sets.txt', 'w') as f:
+        for item in P2_information_sets:
+            f.write(item + '\n')
     
     return
 
@@ -234,7 +237,7 @@ if __name__ == "__main__":
     p1_policy_dict = json.load(open('data_files/P1_DG_policy.json', 'r'))
     p1_policy_obj = Policy(policy_dict=p1_policy_dict, player='x')
 
-    p2_policy_dict = json.load(open('data_files/P2_iteration_2_cfr_policy.json', 'r'))
+    p2_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
     p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
 
     # p2_random_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
