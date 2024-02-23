@@ -237,6 +237,7 @@ if __name__ == "__main__":
     p1_policy_dict = json.load(open('data_files/P1_DG_policy.json', 'r'))
     p1_policy_obj = Policy(policy_dict=p1_policy_dict, player='x')
 
+    # p2_policy_dict = json.load(open('data_files/new_P2_iteration_1_cfr_policy.json', 'r'))
     p2_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
     p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
 
@@ -248,7 +249,7 @@ if __name__ == "__main__":
     expected_utility = get_expected_utility(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, 1, NonTerminalHistory(), player)
     print('Expected Utility: ', expected_utility)
 
-    terminal_histories.sort(key=lambda x: x[1], reverse=True)
+    terminal_histories.sort(key=lambda x: x[2], reverse=True)
 
     with open('data_files/games.txt', 'w') as f:
         for item in terminal_histories:

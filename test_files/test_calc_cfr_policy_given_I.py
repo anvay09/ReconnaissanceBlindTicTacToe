@@ -35,6 +35,7 @@ if __name__ == '__main__':
             
     for T in range(1,5):
         for I_hash in P2_reachable_information_sets:
+        # for I_hash in ['--x-xooo-s']:
             I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
 
             policy_obj_x, policy_obj_o, prev_regret_list_o[I_hash] = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T,
@@ -49,5 +50,5 @@ if __name__ == '__main__':
         logging.info('Completed iteration {}...'.format(T))
 
         logging.info('Saving policy objects...')
-        with open('./data_files/new_P2_iteration_{}_cfr_policy.json'.format(T), 'w') as f:
+        with open('./data_files/final_P2_iteration_{}_cfr_policy.json'.format(T), 'w') as f:
             json.dump(policy_obj_o.policy_dict, f)
