@@ -4,12 +4,6 @@ import logging
 import json
 
 if __name__ == '__main__':
-    # I = InformationSet(player='x', move_flag = True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
-    # I = InformationSet(player='x', move_flag=True, board=['-', '0', '0', 'x', 'x', 'o', 'o', '-', 'x'])
-    # I = InformationSet(player='o', move_flag = False, board=['o', '-', '-', '-', 'x', 'o', 'o', '-', 'x'])
-    # I = InformationSet(player='x', move_flag=True, board=['o', '0', '-', '0', 'x', '-', '-', '-', '-'])
-    # I = InformationSet(player='o', move_flag=False, board=['o', '-', '-', '-', 'x', 'o', 'o', '-', 'x'])
-
     logging.info('Initializing policy objects...')
 
     with open('./data_files/{}.json'.format('P1_DG_policy'), 'r') as f:
@@ -29,26 +23,30 @@ if __name__ == '__main__':
         for line in lines:
             P2_reachable_information_sets.add(line.strip())
 
-    # prev_regret_list_x = [0 for _ in range(13)]
     prev_regret_list_o = {I_hash:[0 for _ in range(13)] for I_hash in P2_reachable_information_sets}
     processed_I_count = 0
+    next_itr_policy_obj_x = policy_obj_x.copy()
+    next_itr_policy_obj_o = policy_obj_o.copy()
             
     for T in range(1,5):
         for I_hash in P2_reachable_information_sets:
-        # for I_hash in ['--x-xooo-s']:
             I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
 
-            policy_obj_x, policy_obj_o, prev_regret_list_o[I_hash] = calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T,
-                                                                             prev_regret_list_o[I_hash])
+            next_itr_policy_obj_x, next_itr_policy_obj_o, prev_regret_list_o[I_hash] = calc_cfr_policy_given_I(I, policy_obj_x, 
+                                                                                                               policy_obj_o, T, 
+                                                                                                               prev_regret_list_o[I_hash], 
+                                                                                                               next_itr_policy_obj_x, next_itr_policy_obj_o)
             
             logging.info('Updated policy for player {}, information set {}:'.format(I.player, I_hash))
-            logging.info('{}'.format(policy_obj_o.policy_dict[I_hash]))
+            logging.info('{}'.format(next_itr_policy_obj_o.policy_dict[I_hash]))
             processed_I_count += 1
             logging.info('Processed {} information sets in iteration {}...'.format(processed_I_count, T))
         
         processed_I_count = 0
         logging.info('Completed iteration {}...'.format(T))
+        policy_obj_x = next_itr_policy_obj_x.copy()
+        policy_obj_o = next_itr_policy_obj_o.copy()
 
         logging.info('Saving policy objects...')
-        with open('./data_files/final_P2_iteration_{}_cfr_policy.json'.format(T), 'w') as f:
+        with open('./data_files/P2_iteration_{}_cfr_policy.json'.format(T), 'w') as f:
             json.dump(policy_obj_o.policy_dict, f)

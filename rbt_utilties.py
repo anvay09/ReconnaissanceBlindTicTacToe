@@ -354,7 +354,7 @@ def calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starti
     return util_a
 
 
-def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
+def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, next_itr_policy_obj_x, next_itr_policy_obj_o):
     actions = I.get_actions()
     regret_list = [0 for _ in range(13)]
     
@@ -388,9 +388,9 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
     total_regret_I = sum(regret_list)
 
     if I.player == 'x':
-        policy = policy_obj_x
+        policy = next_itr_policy_obj_x
     else:
-        policy = policy_obj_o
+        policy = next_itr_policy_obj_o
 
     if total_regret_I > 0:
         for action in actions:
@@ -399,4 +399,4 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list):
         for action in actions:
             policy.policy_dict[I.get_hash()][action] = 1 / len(actions)
 
-    return policy_obj_x, policy_obj_o, regret_list
+    return next_itr_policy_obj_x, next_itr_policy_obj_o, regret_list
