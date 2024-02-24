@@ -343,6 +343,15 @@ class InformationSet(TicTacToeBoard):
                 return False
         return True
 
+    def num_self_moves(self):
+        """
+        :return: int
+        """
+        count = 0
+        for i in range(len(self.board)):
+            if self.board[i] == self.player:
+                count += 1
+        return count
 
 class History:
     """

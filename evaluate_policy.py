@@ -38,8 +38,13 @@ def play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj):
     :return:
     """
     num_histories = 0
+
     I_1_set = set((I_1.get_hash(),))
-    I_2_set = set((I_2.get_hash(),))
+
+    if I_2.num_self_moves() == 4:
+        I_2_set = set()
+    else:
+        I_2_set = set((I_2.get_hash(),))
 
     if player == 'x':
         I = I_1
@@ -76,7 +81,7 @@ def play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj):
             new_I = I.copy()
             new_I.simulate_sense(action, true_board)
             new_true_board = true_board.copy()
-
+            
             if player == 'x':
                 num_histories_future, future_I_1_set, future_I_2_set = play(new_I, I_2, new_true_board, 'x', p1_policy_obj, p2_policy_obj)
                 num_histories += num_histories_future
@@ -142,14 +147,14 @@ def parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj):
 
     print('Total Histories: ', Total_histories)
     print('P1 Information Sets: ', len(P1_information_sets))
-    # with open('data_files/reachable_P1_information_sets.txt', 'w') as f:
-    #    for item in P1_information_sets:
-    #        f.write(item + '\n')
+    with open('data_files/reachable_P1_information_sets.txt', 'w') as f:
+       for item in P1_information_sets:
+           f.write(item + '\n')
 
     print('P2 Information Sets: ', len(P2_information_sets))
-    # with open('data_files/reachable_P2_information_sets.txt', 'w') as f:
-    #    for item in P2_information_sets:
-    #        f.write(item + '\n')
+    with open('data_files/reachable_P2_information_sets.txt', 'w') as f:
+       for item in P2_information_sets:
+           f.write(item + '\n')
     
     return
 
@@ -238,7 +243,7 @@ if __name__ == "__main__":
     p1_policy_obj = Policy(policy_dict=p1_policy_dict, player='x')
 
     # p2_policy_dict = json.load(open('data_files/new_P2_iteration_1_cfr_policy.json', 'r'))
-    p2_policy_dict = json.load(open('data_files/new_P2_iteration_3_cfr_policy.json', 'r'))
+    p2_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
     p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
 
     # p2_random_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
