@@ -10,7 +10,7 @@ if __name__ == '__main__':
         policy_dict = json.load(f)
     policy_obj_x = Policy(player='x', policy_dict=policy_dict)
 
-    with open('./data_files/{}.json'.format('P2_uniform_policy'), 'r') as f:
+    with open('./data_files/{}.json'.format('P2_iteration_4_cfr_policy'), 'r') as f:
         policy_dict = json.load(f)
     policy_obj_o = Policy(player='o', policy_dict=policy_dict)
 
@@ -48,5 +48,5 @@ if __name__ == '__main__':
         policy_obj_o = next_itr_policy_obj_o.copy()
 
         logging.info('Saving policy objects...')
-        with open('./data_files/P2_iteration_{}_cfr_policy.json'.format(T), 'w') as f:
+        with open('./data_files/P2_iteration_{}_cfr_policy.json'.format(T+4), 'w') as f:
             json.dump(policy_obj_o.policy_dict, f)
