@@ -242,7 +242,7 @@ if __name__ == "__main__":
     p1_policy_dict = json.load(open('data_files/P1_DG_policy.json', 'r'))
     p1_policy_obj = Policy(policy_dict=p1_policy_dict, player='x')
 
-    p2_policy_dict = json.load(open('data_files/P2_iteration_4_cfr_policy.json', 'r'))
+    p2_policy_dict = json.load(open('data_files/P2_iteration_6_cfr_policy.json', 'r'))
     # p2_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
     p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
 
