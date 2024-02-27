@@ -358,11 +358,11 @@ def calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starti
     return util_a
 
 
-def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, next_itr_policy_obj_x, next_itr_policy_obj_o):
+def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, next_itr_policy_obj_x, next_itr_policy_obj_o, starting_histories):
     actions = I.get_actions()
     regret_list = [0 for _ in range(13)]
     
-    starting_histories = get_histories_given_I(I, policy_obj_x, policy_obj_o)
+    # starting_histories = get_histories_given_I(I, policy_obj_x, policy_obj_o)
     prob_reaching_h_list = get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player)
     
     args = [(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list) for action in actions]

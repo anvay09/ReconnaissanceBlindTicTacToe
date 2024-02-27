@@ -27,6 +27,9 @@ if __name__ == '__main__':
     processed_I_count = 0
     next_itr_policy_obj_x = policy_obj_x.copy()
     next_itr_policy_obj_o = policy_obj_o.copy()
+
+    with open('data_files/valid_histories_for_reachable_I.json', 'r') as f:
+        valid_histories_for_I = json.load(f)
             
     for T in range(1,25):
         for I_hash in P2_reachable_information_sets:
@@ -35,7 +38,9 @@ if __name__ == '__main__':
             next_itr_policy_obj_x, next_itr_policy_obj_o, prev_regret_list_o[I_hash] = calc_cfr_policy_given_I(I, policy_obj_x, 
                                                                                                                policy_obj_o, T, 
                                                                                                                prev_regret_list_o[I_hash], 
-                                                                                                               next_itr_policy_obj_x, next_itr_policy_obj_o)
+                                                                                                               next_itr_policy_obj_x, 
+                                                                                                               next_itr_policy_obj_o, 
+                                                                                                               valid_histories_for_I[I_hash])
             
             logging.info('Updated policy for player {}, information set {}:'.format(I.player, I_hash))
             logging.info('{}'.format(next_itr_policy_obj_o.policy_dict[I_hash]))
