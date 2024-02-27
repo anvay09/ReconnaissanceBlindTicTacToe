@@ -12,7 +12,7 @@ def toggle_player(player):
     return 'x' if player == 'o' else 'o'
 
 
-def is_valid_history(H, end_I, policy_obj_x, policy_obj_o):
+def is_valid_history(H, end_I, policy_obj_x=None, policy_obj_o=None):
     I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
     I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
     true_board = TicTacToeBoard(['0', '0', '0', '0', '0', '0', '0', '0', '0'])
@@ -34,11 +34,13 @@ def is_valid_history(H, end_I, policy_obj_x, policy_obj_o):
             else:
                 if not player == end_I.player:
                     if player == 'x':
-                        if policy_obj_x.policy_dict[I_1.get_hash()][action] == 0:
-                            return False
+                        if policy_obj_x is not None:
+                            if policy_obj_x.policy_dict[I_1.get_hash()][action] == 0:
+                                return False
                     else:
-                        if policy_obj_o.policy_dict[I_2.get_hash()][action] == 0:
-                            return False
+                        if policy_obj_o is not None:
+                            if policy_obj_o.policy_dict[I_2.get_hash()][action] == 0:
+                                return False
 
                 I.update_move(action, player)
                 I.reset_zeros()
@@ -54,11 +56,13 @@ def is_valid_history(H, end_I, policy_obj_x, policy_obj_o):
             else:
                 if not player == end_I.player:
                     if player == 'x':
-                        if policy_obj_x.policy_dict[I_1.get_hash()][action] == 0:
-                            return False
+                        if policy_obj_x is not None:
+                            if policy_obj_x.policy_dict[I_1.get_hash()][action] == 0:
+                                return False
                     else:
-                        if policy_obj_o.policy_dict[I_2.get_hash()][action] == 0:
-                            return False
+                        if policy_obj_o is not None:
+                            if policy_obj_o.policy_dict[I_2.get_hash()][action] == 0:
+                                return False
 
                 I.simulate_sense(action, true_board)
                 if player == 'x':
@@ -73,7 +77,7 @@ def is_valid_history(H, end_I, policy_obj_x, policy_obj_o):
         return I_2 == end_I
 
 
-def get_histories_given_I(I, policy_obj_x, policy_obj_o):
+def get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
     if I.get_hash() == "000000000m":
         return [[]]
     states = I.get_states()
