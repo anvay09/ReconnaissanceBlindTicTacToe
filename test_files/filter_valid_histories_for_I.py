@@ -22,10 +22,7 @@ if __name__ == '__main__':
 
     for I_hash in P1_reachable_information_sets:
         I = InformationSet(player='x', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
-        args.append((I, policy_obj_o, None))
-        
-    # args_chunk_1 = args[:len(args)//2]
-    # args_chunk_2 = args[len(args)//2:]
+        args.append((I, None, policy_obj_o))
 
     logging.info('Filtering valid histories for P1 information sets...')
     with Pool(num_workers) as p:
@@ -37,16 +34,6 @@ if __name__ == '__main__':
         I_hash = args[idx][0].get_hash()
         histories[I_hash] = H[idx]
 
-    # logging.info('Filtering valid histories for P2 information sets, chunk 2...')
-    # with Pool(num_workers) as p:
-    #     H = p.starmap(get_histories_given_I, args_chunk_2)
-    
-    # logging.info('Saving valid histories for P2 information sets, chunk 2...')
-
-    # for idx in range(len(args_chunk_2)):
-    #     I_hash = args_chunk_2[idx][0].get_hash()
-    #     histories[I_hash] = H[idx]
-        
     with open('data_files/p1_valid_histories_for_reachable_I.json', 'w') as f:
         json.dump(histories, f)
         
