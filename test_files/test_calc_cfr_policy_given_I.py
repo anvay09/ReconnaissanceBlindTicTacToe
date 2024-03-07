@@ -48,7 +48,7 @@ if __name__ == '__main__':
                         
             if total_regret > 0:
                 for action in actions:
-                    policy_obj_o.policy_dict[I_hash][action] = prev_regret_list_o[action] / total_regret
+                    policy_obj_o.policy_dict[I_hash][action] = prev_regret_list_o[I_hash][action] / total_regret
             else:
                 for action in actions:
                     policy_obj_o.policy_dict[I_hash][action] = 1 / len(actions)
