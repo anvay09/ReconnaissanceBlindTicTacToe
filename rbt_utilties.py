@@ -83,8 +83,7 @@ def get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
     states = I.get_states()
     histories = []
     sense_actions = list(I.sense_square_dict.keys())
-    logging.info('Calculating h for {}...'.format(I.get_hash()))
-
+    
     for state in states:
         p1_moves = [idx for idx, value in enumerate(state.board) if value == 'x']
         p2_moves = [idx for idx, value in enumerate(state.board) if value == 'o']
