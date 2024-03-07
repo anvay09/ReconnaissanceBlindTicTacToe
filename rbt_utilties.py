@@ -366,9 +366,9 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, 
     
     args = [(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list) for action in actions]
 
-    util_a_list = []
+    util_a_list = [0 for _ in actions]
     for idx in range(actions):
-        util_a_list.append(calc_util_a_given_I_and_action(args[idx]))
+        util_a_list[idx] = calc_util_a_given_I_and_action(*args[idx])
 
     util = 0
     for action, util_a in zip(actions, util_a_list):
@@ -377,8 +377,6 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, 
         else:
             util += util_a * policy_obj_o.policy_dict[I.get_hash()][action]
 
-    # logging.info('Calculated cf-utility = {}...'.format(util))
-    
     for action, util_a in zip(actions, util_a_list):
         if T == 0:
             regret_T = util_a - util
@@ -387,6 +385,5 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, 
         
         final_regret_T = max(0, regret_T)
         regret_list[action] = final_regret_T
-        # logging.info('Calculated regret for {}, {} = {}...'.format(I.get_hash(), action, final_regret_T))
-        
+ 
     return regret_list
