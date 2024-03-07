@@ -367,7 +367,7 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, 
     args = [(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list) for action in actions]
 
     util_a_list = [0 for _ in actions]
-    for idx in range(actions):
+    for idx in range(len(actions)):
         util_a_list[idx] = calc_util_a_given_I_and_action(*args[idx])
 
     util = 0
