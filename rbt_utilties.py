@@ -133,16 +133,13 @@ def get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
                         elif idx_2 < len(p2):
                             history.append(p2[idx_2])
 
-                    histories.append(history)
+                    if is_valid_history(history, I, policy_obj_x, policy_obj_o):
+                        histories.append(history)
 
-    valid_histories = []
-    for h in histories:
-        if is_valid_history(h, I, policy_obj_x, policy_obj_o):
-            valid_histories.append(h)
+    
+    logging.info('Calculated {} valid histories for {}...'.format(len(histories), I.get_hash()))
 
-    logging.info('Calculated {} valid histories for {}...'.format(len(valid_histories), I.get_hash()))
-
-    return valid_histories
+    return histories
 
 
 def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, current_history, initial_player):
