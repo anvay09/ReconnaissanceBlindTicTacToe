@@ -20,10 +20,11 @@ if __name__ == '__main__':
             P2_reachable_information_sets.add(line.strip())
 
     histories = {}
+    args = []
 
     for I_hash in tqdm(P2_reachable_information_sets):
         I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
-        args = (I, policy_obj_x, None)
+        args.append((I, policy_obj_x, None))
         
     logging.info('Filtering valid histories for P2 information sets...')
     with Pool(num_workers) as p:
