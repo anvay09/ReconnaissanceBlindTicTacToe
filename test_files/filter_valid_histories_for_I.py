@@ -4,7 +4,7 @@ import json
 from tqdm import tqdm
 
 if __name__ == '__main__':
-    with open('./data_files/{}.json'.format('p2_iteration_10_cfr_policy.json'), 'r') as f:
+    with open('./data_files/{}.json'.format('P2_iteration_10_cfr_policy'), 'r') as f:
         policy_dict = json.load(f)
     policy_obj_o = Policy(player='o', policy_dict=policy_dict)
 

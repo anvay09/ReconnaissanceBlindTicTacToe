@@ -111,7 +111,7 @@ def get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
                     player = 'x'
                     idx_1 = 0
                     idx_2 = 0
-                    # print(p1, p2, s) 
+                    
                     if p1 == []:
                         history.append([])
                     elif s == []:
@@ -353,22 +353,22 @@ def calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starti
             new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
 
     util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories, prob_reaching_h_list)
-    logging.info('Calculated cf-utility-a = {} for action {}...'.format(util_a, action))
+    # logging.info('Calculated cf-utility-a = {} for action {}...'.format(util_a, action))
 
     return util_a
 
 
-def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, next_itr_policy_obj_x, next_itr_policy_obj_o, starting_histories):
+def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, starting_histories):
     actions = I.get_actions()
     regret_list = [0 for _ in range(13)]
-    
-    # starting_histories = get_histories_given_I(I, policy_obj_x, policy_obj_o)
+
     prob_reaching_h_list = get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player)
     
     args = [(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list) for action in actions]
 
-    with Pool(len(actions)) as p:
-        util_a_list = p.starmap(calc_util_a_given_I_and_action, args)
+    util_a_list = []
+    for idx in range(actions):
+        util_a_list.append(calc_util_a_given_I_and_action(args[idx]))
 
     util = 0
     for action, util_a in zip(actions, util_a_list):
@@ -377,7 +377,7 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, 
         else:
             util += util_a * policy_obj_o.policy_dict[I.get_hash()][action]
 
-    logging.info('Calculated cf-utility = {}...'.format(util))
+    # logging.info('Calculated cf-utility = {}...'.format(util))
     
     for action, util_a in zip(actions, util_a_list):
         if T == 0:
@@ -387,20 +387,6 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, 
         
         final_regret_T = max(0, regret_T)
         regret_list[action] = final_regret_T
-        logging.info('Calculated regret for {}, {} = {}...'.format(I.get_hash(), action, final_regret_T))
-
-    total_regret_I = sum(regret_list)
-
-    if I.player == 'x':
-        policy = next_itr_policy_obj_x
-    else:
-        policy = next_itr_policy_obj_o
-
-    if total_regret_I > 0:
-        for action in actions:
-            policy.policy_dict[I.get_hash()][action] = regret_list[action] / total_regret_I
-    else:
-        for action in actions:
-            policy.policy_dict[I.get_hash()][action] = 1 / len(actions)
-
-    return next_itr_policy_obj_x, next_itr_policy_obj_o, regret_list
+        # logging.info('Calculated regret for {}, {} = {}...'.format(I.get_hash(), action, final_regret_T))
+        
+    return regret_list
