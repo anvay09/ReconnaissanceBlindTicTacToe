@@ -24,14 +24,27 @@ if __name__ == '__main__':
         I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
         args.append((I, policy_obj_x, None))
         
-    logging.info('Filtering valid histories for P2 information sets...')
+    args_chunk_1 = args[:len(args)//2]
+    args_chunk_2 = args[len(args)//2:]
+
+    logging.info('Filtering valid histories for P2 information sets, chunk 1...')
     with Pool(num_workers) as p:
-        H = p.starmap(get_histories_given_I, args)
+        H = p.starmap(get_histories_given_I, args_chunk_1)
     
-    logging.info('Saving valid histories for P2 information sets...')
+    logging.info('Saving valid histories for P2 information sets, chunk 1...')
     
-    for idx in range(len(args)):
-        I_hash = args[idx][0].get_hash()
+    for idx in range(len(args_chunk_1)):
+        I_hash = args_chunk_1[idx][0].get_hash()
+        histories[I_hash] = H[idx]
+
+    logging.info('Filtering valid histories for P2 information sets, chunk 2...')
+    with Pool(num_workers) as p:
+        H = p.starmap(get_histories_given_I, args_chunk_2)
+    
+    logging.info('Saving valid histories for P2 information sets, chunk 2...')
+
+    for idx in range(len(args_chunk_2)):
+        I_hash = args_chunk_2[idx][0].get_hash()
         histories[I_hash] = H[idx]
         
     with open('data_files/p2_valid_histories_for_reachable_I.json', 'w') as f:
