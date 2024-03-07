@@ -136,13 +136,11 @@ def get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
 
                     histories.append(history)
 
-    logging.info('Filtering valid histories in {} out of {} histories...'.format(I.get_hash(), len(histories)))
-    args = [(h, I, policy_obj_x, policy_obj_o) for h in histories]
-    with Pool(num_workers) as p:
-        valid_histories = p.starmap(is_valid_history, args)
+    valid_histories = []
+    for h in histories:
+        if is_valid_history(h, I, policy_obj_x, policy_obj_o):
+            valid_histories.append(h)
 
-    valid_histories = [h for h, valid in zip(histories, valid_histories) if valid]
-    logging.info('Filtered {} valid histories for {}...'.format(len(valid_histories), I.get_hash()))
     return valid_histories
 
 
