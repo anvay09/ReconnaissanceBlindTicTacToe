@@ -2,10 +2,8 @@ from rbt_classes import InformationSet, Policy
 from rbt_utilties import get_histories_given_I
 import json
 import logging
-from tqdm import tqdm
 from multiprocessing import Pool
 from config import num_workers
-
 
 if __name__ == '__main__':
     with open('./data_files/{}.json'.format('P1_DG_policy'), 'r') as f:
@@ -22,7 +20,7 @@ if __name__ == '__main__':
     histories = {}
     args = []
 
-    for I_hash in tqdm(P2_reachable_information_sets):
+    for I_hash in P2_reachable_information_sets:
         I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
         args.append((I, policy_obj_x, None))
         

@@ -141,6 +141,8 @@ def get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
         if is_valid_history(h, I, policy_obj_x, policy_obj_o):
             valid_histories.append(h)
 
+    logging.info('Calculated {} valid histories for {}...'.format(len(valid_histories), I.get_hash()))
+
     return valid_histories
 
 
