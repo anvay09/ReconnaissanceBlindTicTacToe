@@ -292,7 +292,7 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
     utility = 0
     count = 0
     for h in starting_histories:
-        h = h.decode(action_bit_encoding)
+        # h = h.decode(action_bit_encoding)
         h_object = NonTerminalHistory(h)
         curr_I_1, curr_I_2 = h_object.get_information_sets()
         true_board, _, _ = h_object.get_board()
@@ -313,7 +313,7 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
 def get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, initial_player):
     prob_reaching_h_list_all = []
     for h in starting_histories:
-        h = h.decode(action_bit_encoding)
+        # h = h.decode(action_bit_encoding)
         h_object = NonTerminalHistory(h)
 
         if not I.get_hash() == "000000000m":

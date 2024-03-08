@@ -31,26 +31,29 @@ if __name__ == '__main__':
     
     prev_regret_list_x = {I_hash:[0 for _ in range(13)] for I_hash in P1_reachable_information_sets}
     
+    logging.info('Loading valid histories...')
+    with open('data_files/p1_valid_histories_for_reachable_I.json', 'r') as f:
+        p1_valid_histories_for_I = json.load(f)     
+
     for T in range(1,10):
         args = []
-        logging.info('Loading valid histories...')
-        with open('data_files/p1_valid_histories_for_reachable_I.json', 'r') as f:
-            p1_valid_histories_for_I = json.load(f)
-
-        logging.info('Converting histories to bit arrays and generating arguments...')
+        
+        # logging.info('Converting histories to bit arrays and generating arguments...')
+        logging.info('Generating arguments...')
         for I_hash in tqdm(P1_reachable_information_sets):
             I = InformationSet(player='x', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
-            starting_histories = copy.deepcopy(p1_valid_histories_for_I[I_hash])
+            # starting_histories = copy.deepcopy(p1_valid_histories_for_I[I_hash])
+            starting_histories = p1_valid_histories_for_I[I_hash]
             
-            for i in range(len(starting_histories)):
-                b = bitarray()
-                b.encode(action_bit_encoding, starting_histories[i])
-                starting_histories[i] = b
+            # for i in range(len(starting_histories)):
+            #     b = bitarray()
+            #     b.encode(action_bit_encoding, starting_histories[i])
+            #     starting_histories[i] = b
 
             args.append((I, policy_obj_x, policy_obj_o, T, prev_regret_list_x[I_hash], starting_histories))
 
-        del p1_valid_histories_for_I
-        gc.collect()
+        # del p1_valid_histories_for_I
+        # gc.collect()
         logging.info('Starting iteration {}...'.format(T))
         with Pool(num_workers) as p:
             regrets = p.starmap(calc_cfr_policy_given_I, args)
