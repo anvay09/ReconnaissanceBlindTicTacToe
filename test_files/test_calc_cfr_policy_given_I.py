@@ -44,7 +44,8 @@ if __name__ == '__main__':
             
             for i in range(len(starting_histories)):
                 b = bitarray()
-                starting_histories[i] = b.encode(action_bit_encoding, starting_histories[i])
+                b.encode(action_bit_encoding, starting_histories[i])
+                starting_histories[i] = b
 
             args.append((I, policy_obj_x, policy_obj_o, T, prev_regret_list_x[I_hash], starting_histories))
 
