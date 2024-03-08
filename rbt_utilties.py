@@ -2,6 +2,7 @@ from rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, Tic
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
 from multiprocessing import Pool
 import logging
+import gc
 from config import num_workers
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
@@ -366,11 +367,9 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, 
 
     prob_reaching_h_list = get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player)
     
-    args = [(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list) for action in actions]
-
     util_a_list = [0 for _ in actions]
     for idx in range(len(actions)):
-        util_a_list[idx] = calc_util_a_given_I_and_action(*args[idx])
+        util_a_list[idx] = calc_util_a_given_I_and_action(I, actions[idx], policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list)
 
     util = 0
     for action, util_a in zip(actions, util_a_list):
@@ -387,6 +386,6 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, 
         
         final_regret_T = max(0, regret_T)
         regret_list[action] = final_regret_T
- 
+    
     logging.info('Calculated regret list for {}...'.format(I.get_hash()))
     return regret_list

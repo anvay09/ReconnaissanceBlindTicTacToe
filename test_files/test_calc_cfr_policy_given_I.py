@@ -2,6 +2,7 @@ from rbt_classes import InformationSet, Policy
 from rbt_utilties import calc_cfr_policy_given_I
 import logging
 import json
+import numpy as np
 from multiprocessing import Pool
 from config import num_workers
 
@@ -24,17 +25,26 @@ if __name__ == '__main__':
         lines = f.readlines()
         for line in lines:
             P1_reachable_information_sets.add(line.strip())
+    
+    # P1_reachable_information_sets = set(list(P1_reachable_information_sets)[:20])
 
     prev_regret_list_x = {I_hash:[0 for _ in range(13)] for I_hash in P1_reachable_information_sets}
- 
-    # with open('data_files/p2_valid_histories_for_reachable_I.json', 'r') as f:
-    #     p2_valid_histories_for_I = json.load(f)
+    
+    logging.info('Loading valid histories...')
+    with open('data_files/p1_valid_histories_for_reachable_I.json', 'r') as f:
+        p1_valid_histories_for_I = json.load(f)
+    
+    # for I_hash in P1_reachable_information_sets:
+        # p1_valid_histories_for_I[I_hash] = np.asarray(p1_valid_histories_for_I[I_hash], dtype = np.uint8)
 
     for T in range(1,10):
         args = []
         for I_hash in P1_reachable_information_sets:
             I = InformationSet(player='x', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
-            args.append((I, policy_obj_x, policy_obj_o, T, prev_regret_list_x[I_hash], None))
+            starting_histories = p1_valid_histories_for_I[I_hash]
+            # starting_histories = np.array([np.array(h).astype(np.uint8) for h in starting_histories])
+
+            args.append((I, policy_obj_x, policy_obj_o, T, prev_regret_list_x[I_hash], starting_histories))
         logging.info('Starting iteration {}...'.format(T))
         with Pool(num_workers) as p:
             regrets = p.starmap(calc_cfr_policy_given_I, args)
