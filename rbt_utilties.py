@@ -311,7 +311,6 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
 
 
 def get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, initial_player):
-    get_prob_h_given_policy_args = []
     prob_reaching_h_list_all = []
     for h in starting_histories:
         h = h.decode(action_bit_encoding)
@@ -323,32 +322,26 @@ def get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_hi
                 InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
                 TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
                 'x', h[0], policy_obj_x, policy_obj_o, 1, h_object, I, initial_player)
-            get_prob_h_given_policy_args.append(temp_args)
+            
+            prob_reaching_h = get_prob_h_given_policy_wrapper(*temp_args)
         else:
-            temp_args = []
-            get_prob_h_given_policy_args.append(temp_args)
+            prob_reaching_h = 1
 
-        prob_reaching_h = get_prob_h_given_policy_wrapper(*temp_args)
         prob_reaching_h_list_all.append(prob_reaching_h)
 
     return prob_reaching_h_list_all
 
 
 def calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list):
-    # new_policy_obj_x = policy_obj_x.copy()
-    # new_policy_obj_o = policy_obj_o.copy()
-
     if I.move_flag:
         prob_dist = [1 if i == action else 0 for i in range(9)]
         if I.player == 'x':
             old_prob_dist = copy.deepcopy(policy_obj_x.policy_dict[I.get_hash()])
-            # new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
             policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
             util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list)
             policy_obj_x.policy_dict[I.get_hash()] = old_prob_dist
         else:
             old_prob_dist = copy.deepcopy(policy_obj_o.policy_dict[I.get_hash()])
-            # new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
             policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
             util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list)
             policy_obj_o.policy_dict[I.get_hash()] = old_prob_dist
@@ -356,19 +349,15 @@ def calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starti
         prob_dist = [1 if i == action else 0 for i in range(9, 13)]
         if I.player == 'x':
             old_prob_dist = copy.deepcopy(policy_obj_x.policy_dict[I.get_hash()])
-            # new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
             policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
             util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list)
             policy_obj_x.policy_dict[I.get_hash()] = old_prob_dist
         else:
             old_prob_dist = copy.deepcopy(policy_obj_o.policy_dict[I.get_hash()])
-            # new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
             policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
             util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list)
             policy_obj_o.policy_dict[I.get_hash()] = old_prob_dist
         
-    # util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories, prob_reaching_h_list)
- 
     return util_a
 
 
