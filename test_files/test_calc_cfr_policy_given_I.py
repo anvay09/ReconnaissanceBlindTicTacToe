@@ -23,11 +23,11 @@ if __name__ == '__main__':
     logging.info('Loaded policy objects...')
 
     P1_reachable_information_sets_file = 'data_files/reachable_P1_information_sets.txt'
-    P1_reachable_information_sets = set()
+    P1_reachable_information_sets = []
     with open(P1_reachable_information_sets_file, 'r') as f:
         lines = f.readlines()
         for line in lines:
-            P1_reachable_information_sets.add(line.strip())
+            P1_reachable_information_sets.append(line.strip())
     
     prev_regret_list_x = {I_hash:[0 for _ in range(13)] for I_hash in P1_reachable_information_sets}
     
