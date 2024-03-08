@@ -3,6 +3,7 @@ from rbt_utilties import calc_cfr_policy_given_I
 from rbt_classes import InformationSet, Policy
 from multiprocessing import Pool
 from bitarray import bitarray
+from tqdm import tqdm
 import logging
 import json
 import copy
@@ -36,10 +37,11 @@ if __name__ == '__main__':
         with open('data_files/p1_valid_histories_for_reachable_I.json', 'r') as f:
             p1_valid_histories_for_I = json.load(f)
 
-        for I_hash in P1_reachable_information_sets:
+        logging.info('Converting histories to bit arrays and generating arguments...')
+        for I_hash in tqdm(P1_reachable_information_sets):
             I = InformationSet(player='x', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
             starting_histories = copy.deepcopy(p1_valid_histories_for_I[I_hash])
-            logging.info('Converting histories to bit arrays...')
+            
             for i in range(len(starting_histories)):
                 b = bitarray()
                 starting_histories[i] = b.encode(action_bit_encoding, starting_histories[i])
