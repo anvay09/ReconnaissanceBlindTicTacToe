@@ -1,9 +1,8 @@
 from rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, TicTacToeBoard
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
-from multiprocessing import Pool
 import logging
-import gc
-from config import num_workers
+from bitarray import bitarray
+from config import action_bit_encoding
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
@@ -292,6 +291,7 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
     utility = 0
     count = 0
     for h in starting_histories:
+        h = h.decode(action_bit_encoding)
         h_object = NonTerminalHistory(h)
         curr_I_1, curr_I_2 = h_object.get_information_sets()
         true_board, _, _ = h_object.get_board()
@@ -313,6 +313,7 @@ def get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_hi
     get_prob_h_given_policy_args = []
     prob_reaching_h_list_all = []
     for h in starting_histories:
+        h = h.decode(action_bit_encoding)
         h_object = NonTerminalHistory(h)
 
         if not I.get_hash() == "000000000m":
@@ -350,8 +351,7 @@ def calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starti
             new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
 
     util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories, prob_reaching_h_list)
-    # logging.info('Calculated cf-utility-a = {} for action {}...'.format(util_a, action))
-
+ 
     return util_a
 
 
