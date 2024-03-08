@@ -1,6 +1,7 @@
 from rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, TicTacToeBoard
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
 import logging
+import copy
 from bitarray import bitarray
 from config import action_bit_encoding
 
@@ -334,23 +335,39 @@ def get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_hi
 
 
 def calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list):
-    new_policy_obj_x = policy_obj_x.copy()
-    new_policy_obj_o = policy_obj_o.copy()
+    # new_policy_obj_x = policy_obj_x.copy()
+    # new_policy_obj_o = policy_obj_o.copy()
 
     if I.move_flag:
         prob_dist = [1 if i == action else 0 for i in range(9)]
         if I.player == 'x':
-            new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
+            old_prob_dist = copy.deepcopy(policy_obj_x.policy_dict[I.get_hash()])
+            # new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
+            policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
+            util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list)
+            policy_obj_x.policy_dict[I.get_hash()] = old_prob_dist
         else:
-            new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
+            old_prob_dist = copy.deepcopy(policy_obj_o.policy_dict[I.get_hash()])
+            # new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
+            policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
+            util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list)
+            policy_obj_o.policy_dict[I.get_hash()] = old_prob_dist
     else:
         prob_dist = [1 if i == action else 0 for i in range(9, 13)]
         if I.player == 'x':
-            new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
+            old_prob_dist = copy.deepcopy(policy_obj_x.policy_dict[I.get_hash()])
+            # new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
+            policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
+            util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list)
+            policy_obj_x.policy_dict[I.get_hash()] = old_prob_dist
         else:
-            new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
-
-    util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories, prob_reaching_h_list)
+            old_prob_dist = copy.deepcopy(policy_obj_o.policy_dict[I.get_hash()])
+            # new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
+            policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
+            util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list)
+            policy_obj_o.policy_dict[I.get_hash()] = old_prob_dist
+        
+    # util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories, prob_reaching_h_list)
  
     return util_a
 
