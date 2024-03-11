@@ -6,8 +6,6 @@ from bitarray import bitarray
 from tqdm import tqdm
 import logging
 import json
-import copy
-import gc
 
 if __name__ == '__main__':
     logging.info('Initializing policy objects...')
