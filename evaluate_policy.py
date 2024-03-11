@@ -153,8 +153,8 @@ def parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj):
 
     print('P2 Information Sets: ', len(P2_information_sets))
     # with open('data_files/reachable_P2_information_sets.txt', 'w') as f:
-    #   for item in P2_information_sets:
-    #       f.write(item + '\n')
+    #    for item in P2_information_sets:
+    #        f.write(item + '\n')
     
     return
 
@@ -239,17 +239,17 @@ if __name__ == "__main__":
     I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
     player = 'x'
 
-    p1_policy_dict = json.load(open('data_files/P1_iteration_6_cfr_policy.json', 'r'))
+    p1_policy_dict = json.load(open('data_files/P1_iteration_9_cfr_policy.json', 'r'))
     p1_policy_obj = Policy(policy_dict=p1_policy_dict, player='x')
 
-    p2_policy_dict = json.load(open('data_files/P2_iteration_9_cfr_policy.json', 'r'))
+    p2_policy_dict = json.load(open('data_files/P2_iteration_29_cfr_policy.json', 'r'))
     # p2_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
     p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
 
     # p2_random_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
     # p2_random_policy_obj = Policy(policy_dict=p2_random_policy_dict, player='o')
 
-    # parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj)
+    parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj)
 
     logging.info("Getting expected utility...")
     expected_utility = get_expected_utility(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, 1, NonTerminalHistory(), player)
