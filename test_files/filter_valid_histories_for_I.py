@@ -6,11 +6,11 @@ from multiprocessing import Pool
 from config import num_workers
 
 if __name__ == '__main__':
-    with open('./data_files/{}.json'.format('P1_iteration_9_cfr_policy'), 'r') as f:
+    with open('./data_files/{}.json'.format('P2_iteration_40_cfr_policy'), 'r') as f:
         policy_dict = json.load(f)
-    policy_obj_x = Policy(player='x', policy_dict=policy_dict)
+    policy_obj_o = Policy(player='o', policy_dict=policy_dict)
 
-    P2_reachable_information_sets_file = 'data_files/reachable_P2_information_sets.txt'
+    P2_reachable_information_sets_file = 'data_files/reachable_P1_information_sets.txt'
     P2_reachable_information_sets = set()
     with open(P2_reachable_information_sets_file, 'r') as f:
         lines = f.readlines()
@@ -21,8 +21,8 @@ if __name__ == '__main__':
     args = []
 
     for I_hash in P2_reachable_information_sets:
-        I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
-        args.append((I, policy_obj_x, None))
+        I = InformationSet(player='x', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
+        args.append((I, None, policy_obj_o))
 
     logging.info('Filtering valid histories for P2 information sets...')
     with Pool(num_workers) as p:
@@ -34,6 +34,6 @@ if __name__ == '__main__':
         I_hash = args[idx][0].get_hash()
         histories[I_hash] = H[idx]
 
-    with open('data_files/p2_valid_histories_for_reachable_I.json', 'w') as f:
+    with open('data_files/p1_valid_histories_for_reachable_I.json', 'w') as f:
         json.dump(histories, f)
         

@@ -147,9 +147,9 @@ def parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj):
 
     print('Total Histories: ', Total_histories)
     print('P1 Information Sets: ', len(P1_information_sets))
-    # with open('data_files/reachable_P1_information_sets.txt', 'w') as f:
-    #   for item in P1_information_sets:
-    #       f.write(item + '\n')
+    with open('data_files/reachable_P1_information_sets.txt', 'w') as f:
+      for item in P1_information_sets:
+          f.write(item + '\n')
 
     print('P2 Information Sets: ', len(P2_information_sets))
     # with open('data_files/reachable_P2_information_sets.txt', 'w') as f:
