@@ -187,7 +187,7 @@ def parse_commandline_args():
     parser.add_argument('--PolicyFileO', type=str, required=True)
     parser.add_argument('--Round', type=str, required=True)
     arguments = parser.parse_args()
-    return arguments.CurrentPlayer, arguments.PolicyFileX, arguments.PolicyFileO, arguments.Round
+    return arguments.CurrentPlayer, arguments.PolicyFileX, arguments.PolicyFileO, int(arguments.Round)
 
 
 if __name__ == "__main__":
