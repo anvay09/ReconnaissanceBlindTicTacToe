@@ -202,50 +202,28 @@ def valid_histories_play(I_1, I_2, true_board, player, current_history, end_I,
 
                 if player == 'x':
                     if end_I.player == 'x':
-                        if not new_I == end_I:
-                            valid_histories_list.extend(
-                                valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, 
-                                                     played_actions, policy_obj_x, policy_obj_o))
-                        else:
-                            next_I_2 = I_2.copy()
-                            next_sense_actions = next_I_2.get_actions_given_policy(policy_obj_o)
-                            has_game_ended_flag = True
-                            for s in next_sense_actions:
-                                next_next_I_2 = next_I_2.copy()
-                                next_next_I_2.simulate_sense(s, new_true_board)
-                                if next_next_I_2.win_exists() == -1 or next_next_I_2.draw_exists() == -1:
-                                    has_game_ended_flag = False
-                                    break
-                                
-                            if not has_game_ended_flag:
-                                valid_histories_list.append(new_history.history)
-                    else:
                         valid_histories_list.extend(
                             valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, 
-                                                 played_actions, policy_obj_x, policy_obj_o))
+                                                    played_actions, policy_obj_x, policy_obj_o))
+                    else:
+                        if I_2 == end_I:
+                            valid_histories_list.append(new_history.history)
+                        else:
+                            valid_histories_list.extend(
+                                valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, 
+                                                    played_actions, policy_obj_x, policy_obj_o))
                 else:
                     if end_I.player == 'o':
-                        if not new_I == end_I:
-                            valid_histories_list.extend(
-                                valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, 
-                                                     played_actions, policy_obj_x, policy_obj_o))
-                        else:
-                            next_I_1 = I_1.copy()
-                            next_sense_actions = next_I_1.get_actions_given_policy(policy_obj_x)
-                            has_game_ended_flag = True
-                            for s in next_sense_actions:
-                                next_next_I_1 = next_I_1.copy()
-                                next_next_I_1.simulate_sense(s, new_true_board)
-                                if next_next_I_1.win_exists() == -1 or next_next_I_1.draw_exists() == -1:
-                                    has_game_ended_flag = False
-                                    break
-                            
-                            if not has_game_ended_flag:
-                                valid_histories_list.append(new_history.history)
-                    else:
                         valid_histories_list.extend(
                             valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, 
-                                                 played_actions, policy_obj_x, policy_obj_o))
+                                                    played_actions, policy_obj_x, policy_obj_o))
+                    else:
+                        if I_1 == end_I:
+                            valid_histories_list.append(new_history.history)
+                        else:
+                            valid_histories_list.extend(
+                                valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, 
+                                                    played_actions, policy_obj_x, policy_obj_o))
 
     else:
         for action in actions:
