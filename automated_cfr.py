@@ -186,8 +186,11 @@ def parse_commandline_args():
     parser.add_argument('--PolicyFileX', type=str, required=True)
     parser.add_argument('--PolicyFileO', type=str, required=True)
     parser.add_argument('--Round', type=str, required=True)
+    parser.add_argument('--ReachableISFlag', type=str, required=True)
+    parser.add_argument('--FilterValidHistoriesFlag', type=str, required=True)
     arguments = parser.parse_args()
-    return arguments.CurrentPlayer, arguments.PolicyFileX, arguments.PolicyFileO, int(arguments.Round)
+    return arguments.CurrentPlayer, arguments.PolicyFileX, arguments.PolicyFileO, int(arguments.Round), int(
+        arguments.ReachableISFlag), int(arguments.FilterValidHistoriesFlag)
 
 
 if __name__ == "__main__":
@@ -196,21 +199,24 @@ if __name__ == "__main__":
     I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
     I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
     player = 'x'
-    cfr_player, policy_file_x, policy_file_o, cfr_round = parse_commandline_args()
+    cfr_player, policy_file_x, policy_file_o, cfr_round, reachable_IS_flag, filter_valid_histories_flag = parse_commandline_args()
+
+    if cfr_player == 'o':
+        reachable_IS_file_player = 'data_files/reachable_P2_information_sets.txt'
+        valid_histories_file_player = 'data_files/p2_valid_histories_for_reachable_I.json'
+    else:
+        reachable_IS_file_player = 'data_files/reachable_P1_information_sets.txt'
+        valid_histories_file_player = 'data_files/p1_valid_histories_for_reachable_I.json'
 
     p1_policy_dict = json.load(open(policy_file_x, 'r'))
     policy_obj_x = Policy(policy_dict=p1_policy_dict, player='x')
     p2_policy_dict = json.load(open(policy_file_o, 'r'))
     policy_obj_o = Policy(policy_dict=p2_policy_dict, player='o')
 
-    parallel_play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, cfr_player)
+    if reachable_IS_flag:
+        parallel_play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, cfr_player)
 
     # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% filter valid histories and save %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if cfr_player == 'o':
-        reachable_IS_file_player = 'data_files/reachable_P2_information_sets.txt'
-    else:
-        reachable_IS_file_player = 'data_files/reachable_P1_information_sets.txt'
-
     player_reachable_information_sets = set()
     with open(reachable_IS_file_player, 'r') as f:
         lines = f.readlines()
@@ -227,21 +233,18 @@ if __name__ == "__main__":
         else:
             args.append((I, None, policy_obj_o))
 
-    logging.info('Filtering valid histories for player {} information sets...'.format(cfr_player))
-    with Pool(num_workers) as p:
-        H = p.starmap(get_histories_given_I, args)
+    if filter_valid_histories_flag:
+        logging.info('Filtering valid histories for player {} information sets...'.format(cfr_player))
+        with Pool(num_workers) as p:
+            H = p.starmap(get_histories_given_I, args)
 
-    logging.info('Saving valid histories for cfr player {} information sets...'.format(cfr_player))
+        logging.info('Saving valid histories for cfr player {} information sets...'.format(cfr_player))
 
-    for idx in range(len(args)):
-        I_hash = args[idx][0].get_hash()
-        histories[I_hash] = H[idx]
+        for idx in range(len(args)):
+            I_hash = args[idx][0].get_hash()
+            histories[I_hash] = H[idx]
 
-    if cfr_player == 'x':
-        with open('data_files/p1_valid_histories_for_reachable_I.json', 'w') as f:
-            json.dump(histories, f)
-    else:
-        with open('data_files/p2_valid_histories_for_reachable_I.json', 'w') as f:
+        with open(valid_histories_file_player, 'w') as f:
             json.dump(histories, f)
 
     # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% cfr run %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -263,6 +266,10 @@ if __name__ == "__main__":
         else:
             prev_regret_list_player = json.load(
                 open('./data_files/P2_prev_regret_list_round_{}.json'.format(cfr_round - 1), 'r'))
+
+    logging.info('Loading valid histories...')
+    with open(valid_histories_file_player, 'r') as f:
+        histories = json.load(f)
 
     print(len(histories.keys()))
     args = []
