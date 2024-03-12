@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     histories = {}
     args = []
-    P2_reachable_information_sets = P2_reachable_information_sets[1055:1059]
+    P2_reachable_information_sets = P2_reachable_information_sets[0:4]
     
     for I_hash in P2_reachable_information_sets:
         I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     logging.info('Filtering valid histories for P2 information sets...')
     with Pool(num_workers) as p:
-        H = p.starmap(upgraded_get_histories_given_I, args)
+        H = p.starmap(get_histories_given_I, args)
     
     logging.info('Saving valid histories for P2 information sets...')
     
