@@ -2,8 +2,6 @@ from rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, Tic
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
 import logging
 import copy
-from bitarray import bitarray
-from config import action_bit_encoding
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
@@ -142,11 +140,23 @@ def get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
 
 
 def upgraded_get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
-    pass
+    if I.get_hash() == "000000000m":
+        return [[]]
+    
+    I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
+    I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
+    true_board = TicTacToeBoard(['0', '0', '0', '0', '0', '0', '0', '0', '0'])
+    player = 'x'
+    played_actions = I.get_played_actions()
+    
+    histories = valid_histories_play(I_1, I_2, true_board, player, NonTerminalHistory([]), 
+                                     I, played_actions, policy_obj_x, policy_obj_o)
+    logging.info('Calculated {} valid histories for {}...'.format(len(histories), I.get_hash()))
+    return histories
 
 
-def valid_histories_play(I_1, I_2, true_board, player, policy_obj_x=None, policy_obj_o=None, current_history, end_I,
-                         played_actions):
+def valid_histories_play(I_1, I_2, true_board, player, current_history, end_I, 
+                         played_actions, policy_obj_x=None, policy_obj_o=None):
     """
 
     :param I_1:
@@ -194,26 +204,26 @@ def valid_histories_play(I_1, I_2, true_board, player, policy_obj_x=None, policy
                     if end_I.player == 'x':
                         if not I == end_I:
                             valid_histories_list.extend(
-                                valid_histories_play(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o,
-                                                     new_history, end_I, played_actions))
+                                valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, 
+                                                     played_actions, policy_obj_x, policy_obj_o))
                         else:
                             valid_histories_list.append(new_history.history)
                     else:
                         valid_histories_list.extend(
-                            valid_histories_play(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o,
-                                                 new_history, end_I, played_actions))
-                if player == 'o':
+                            valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, 
+                                                 played_actions, policy_obj_x, policy_obj_o))
+                else:
                     if end_I.player == 'o':
                         if not I == end_I:
                             valid_histories_list.extend(
-                                valid_histories_play(new_I, I_2, new_true_board, 'x', policy_obj_x, policy_obj_o,
-                                                     new_history, end_I, played_actions))
+                                valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, 
+                                                     played_actions, policy_obj_x, policy_obj_o))
                         else:
                             valid_histories_list.append(new_history.history)
                     else:
                         valid_histories_list.extend(
-                            valid_histories_play(new_I, I_2, new_true_board, 'x', policy_obj_x, policy_obj_o,
-                                                 new_history, end_I, played_actions))
+                            valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, 
+                                                 played_actions, policy_obj_x, policy_obj_o))
 
     else:
         for action in actions:
@@ -225,11 +235,29 @@ def valid_histories_play(I_1, I_2, true_board, player, policy_obj_x=None, policy
             new_history.history.append(action)
 
             if player == 'x':
-                valid_histories_list.extend(
-                    valid_histories_play(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o,
-                                         new_history, end_I, played_actions))
+                if end_I.player == 'x':
+                    if not I == end_I:
+                        valid_histories_list.extend(
+                            valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, 
+                                                played_actions, policy_obj_x, policy_obj_o))
+                    else:
+                        valid_histories_list.append(new_history.history)
+                else:
+                    valid_histories_list.extend(
+                            valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, 
+                                                played_actions, policy_obj_x, policy_obj_o))
             else:
-                valid_histories_list.append(new_history.history)
+                if end_I.player == 'o':
+                    if not I == end_I:
+                        valid_histories_list.extend(
+                            valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, 
+                                                played_actions, policy_obj_x, policy_obj_o))
+                    else:
+                        valid_histories_list.append(new_history.history)
+                else:
+                    valid_histories_list.extend(
+                            valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, 
+                                                played_actions, policy_obj_x, policy_obj_o))
 
     return valid_histories_list
 

@@ -3,7 +3,7 @@ from multiprocessing import Pool
 import json
 import logging
 from config import num_workers
-from rbt_utilties import get_histories_given_I
+from rbt_utilties import get_histories_given_I, upgraded_get_histories_given_I
 from rbt_utilties import calc_cfr_policy_given_I
 import argparse
 
@@ -255,13 +255,13 @@ if __name__ == "__main__":
             player_reachable_information_sets.append(line.strip())
 
     if cfr_player == 'x':
-        if round == 1:
+        if cfr_round == 1:
             prev_regret_list_player = {I_hash: [0 for _ in range(13)] for I_hash in player_reachable_information_sets}
         else:
             prev_regret_list_player = json.load(
                 open('./data_files/P1_prev_regret_list_round_{}.json'.format(cfr_round - 1), 'r'))
     else:
-        if round == 1:
+        if cfr_round == 1:
             prev_regret_list_player = {I_hash: [0 for _ in range(13)] for I_hash in player_reachable_information_sets}
         else:
             prev_regret_list_player = json.load(
