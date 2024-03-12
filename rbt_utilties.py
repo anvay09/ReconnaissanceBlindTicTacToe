@@ -202,7 +202,7 @@ def valid_histories_play(I_1, I_2, true_board, player, current_history, end_I,
 
                 if player == 'x':
                     if end_I.player == 'x':
-                        if not I == end_I:
+                        if not new_I == end_I:
                             valid_histories_list.extend(
                                 valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, 
                                                      played_actions, policy_obj_x, policy_obj_o))
@@ -214,7 +214,7 @@ def valid_histories_play(I_1, I_2, true_board, player, current_history, end_I,
                                                  played_actions, policy_obj_x, policy_obj_o))
                 else:
                     if end_I.player == 'o':
-                        if not I == end_I:
+                        if not new_I == end_I:
                             valid_histories_list.extend(
                                 valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, 
                                                      played_actions, policy_obj_x, policy_obj_o))
@@ -236,27 +236,27 @@ def valid_histories_play(I_1, I_2, true_board, player, current_history, end_I,
 
             if player == 'x':
                 if end_I.player == 'x':
-                    if not I == end_I:
+                    if not new_I == end_I:
                         valid_histories_list.extend(
-                            valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, 
+                            valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, 
                                                 played_actions, policy_obj_x, policy_obj_o))
                     else:
                         valid_histories_list.append(new_history.history)
                 else:
                     valid_histories_list.extend(
-                            valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, 
+                            valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, 
                                                 played_actions, policy_obj_x, policy_obj_o))
             else:
                 if end_I.player == 'o':
-                    if not I == end_I:
+                    if not new_I == end_I:
                         valid_histories_list.extend(
-                            valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, 
+                            valid_histories_play(I_1, new_I, new_true_board, 'o', new_history, end_I, 
                                                 played_actions, policy_obj_x, policy_obj_o))
                     else:
                         valid_histories_list.append(new_history.history)
                 else:
                     valid_histories_list.extend(
-                            valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, 
+                            valid_histories_play(I_1, new_I, new_true_board, 'o', new_history, end_I, 
                                                 played_actions, policy_obj_x, policy_obj_o))
 
     return valid_histories_list
@@ -492,9 +492,9 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, 
 
     if starting_histories is None:
         if I.player == 'x':
-            starting_histories = get_histories_given_I(I, None, policy_obj_o)
+            starting_histories = upgraded_get_histories_given_I(I, None, policy_obj_o)
         else:
-            starting_histories = get_histories_given_I(I, policy_obj_x, None)
+            starting_histories = upgraded_get_histories_given_I(I, policy_obj_x, None)
 
     prob_reaching_h_list = get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories,
                                                              I.player)

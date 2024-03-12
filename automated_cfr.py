@@ -236,7 +236,7 @@ if __name__ == "__main__":
     if filter_valid_histories_flag:
         logging.info('Filtering valid histories for player {} information sets...'.format(cfr_player))
         with Pool(num_workers) as p:
-            H = p.starmap(get_histories_given_I, args)
+            H = p.starmap(upgraded_get_histories_given_I, args)
 
         logging.info('Saving valid histories for cfr player {} information sets...'.format(cfr_player))
 
