@@ -229,9 +229,9 @@ if __name__ == "__main__":
     for I_hash in player_reachable_information_sets:
         I = InformationSet(player=cfr_player, move_flag=I_hash[-1] == 'm', board=[*I_hash[:-1]])
         if cfr_player == 'x':
-            args.append((I, policy_obj_x, None))
-        else:
             args.append((I, None, policy_obj_o))
+        else:
+            args.append((I, policy_obj_x, None))
 
     if filter_valid_histories_flag:
         logging.info('Filtering valid histories for player {} information sets...'.format(cfr_player))
