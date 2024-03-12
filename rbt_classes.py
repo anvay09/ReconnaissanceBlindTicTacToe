@@ -340,6 +340,23 @@ class InformationSet(TicTacToeBoard):
                 return zero
 
         return -1
+    
+    def draw_exists(self):
+        """
+        :return: int, action that leads to a win
+        """
+        zeroes = []
+        for i in range(len(self.board)):
+            if self.board[i] == '0':
+                zeroes.append(i)
+
+        for zero in zeroes:
+            new_I_board = self.board.copy()
+            new_I_board[zero] = self.player
+            if InformationSet(self.player, self.move_flag, new_I_board).is_over():
+                return zero
+
+        return -1
 
     def is_over(self):
         """

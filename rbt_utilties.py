@@ -213,7 +213,7 @@ def valid_histories_play(I_1, I_2, true_board, player, current_history, end_I,
                             for s in next_sense_actions:
                                 next_next_I_2 = next_I_2.copy()
                                 next_next_I_2.simulate_sense(s, new_true_board)
-                                if next_next_I_2.win_exists() == -1:
+                                if next_next_I_2.win_exists() == -1 or next_next_I_2.draw_exists() == -1:
                                     has_game_ended_flag = False
                                     break
                                 
@@ -236,7 +236,7 @@ def valid_histories_play(I_1, I_2, true_board, player, current_history, end_I,
                             for s in next_sense_actions:
                                 next_next_I_1 = next_I_1.copy()
                                 next_next_I_1.simulate_sense(s, new_true_board)
-                                if next_next_I_1.win_exists() == -1:
+                                if next_next_I_1.win_exists() == -1 or next_next_I_1.draw_exists() == -1:
                                     has_game_ended_flag = False
                                     break
                             
