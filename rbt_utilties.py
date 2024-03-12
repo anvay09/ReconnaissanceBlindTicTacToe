@@ -413,9 +413,9 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
     utility = 0
     count = 0
     for h in starting_histories:
-        # h = h.decode(action_bit_encoding)
         h_object = NonTerminalHistory(h)
         curr_I_1, curr_I_2 = h_object.get_information_sets()
+
         true_board, _, _ = h_object.get_board()
         if prob_reaching_h_list[count] > 0:
             expected_utility_h = play(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1,

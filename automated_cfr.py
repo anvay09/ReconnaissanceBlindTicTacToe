@@ -271,7 +271,6 @@ if __name__ == "__main__":
     with open(valid_histories_file_player, 'r') as f:
         histories = json.load(f)
 
-    print(len(histories.keys()))
     args = []
 
     # logging.info('Converting histories to bit arrays and generating arguments...')
