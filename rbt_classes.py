@@ -238,6 +238,13 @@ class InformationSet(TicTacToeBoard):
                 valid_moves.append(i)
         return valid_moves
 
+    def get_played_actions(self):
+        played_moves = []
+        for i in range(len(self.board)):
+            if self.board[i] == self.player:
+                played_moves.append(i)
+        return played_moves
+
     def get_useful_senses(self):
         """
         :return: list of valid senses
