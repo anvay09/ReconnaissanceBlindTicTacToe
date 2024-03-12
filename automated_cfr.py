@@ -109,7 +109,7 @@ def play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj):
     return num_histories, I_1_set, I_2_set
 
 
-def parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, current_player_run):
+def parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, current_player_run, cfr_round):
     Total_histories = 0
     I_1_vars = []
     I_2_vars = []
@@ -163,13 +163,13 @@ def parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, cu
     print('Total Histories: ', Total_histories)
     if current_player_run == 'x':
         print('P1 Information Sets: ', len(P1_information_sets))
-        with open('data_files/reachable_P1_information_sets.txt', 'w') as f:
+        with open('data_files/reachable_P1_information_sets_round_{}.txt'.format(cfr_round), 'w') as f:
             for item in P1_information_sets:
                 f.write(item + '\n')
 
     if current_player_run == 'o':
         print('P2 Information Sets: ', len(P2_information_sets))
-        with open('data_files/reachable_P2_information_sets.txt', 'w') as f:
+        with open('data_files/reachable_P2_information_sets_round_{}.txt'.format(cfr_round), 'w') as f:
             for item in P2_information_sets:
                 f.write(item + '\n')
 
@@ -202,11 +202,11 @@ if __name__ == "__main__":
     cfr_player, policy_file_x, policy_file_o, cfr_round, reachable_IS_flag, filter_valid_histories_flag = parse_commandline_args()
 
     if cfr_player == 'o':
-        reachable_IS_file_player = 'data_files/reachable_P2_information_sets.txt'
-        valid_histories_file_player = 'data_files/p2_valid_histories_for_reachable_I.json'
+        reachable_IS_file_player = 'data_files/reachable_P2_information_sets_round_{}.txt'.format(cfr_round)
+        valid_histories_file_player = 'data_files/p2_valid_histories_for_reachable_I_round_{}.json'.format(cfr_round)
     else:
-        reachable_IS_file_player = 'data_files/reachable_P1_information_sets.txt'
-        valid_histories_file_player = 'data_files/p1_valid_histories_for_reachable_I.json'
+        reachable_IS_file_player = 'data_files/reachable_P1_information_sets_round_{}.txt'.format(cfr_round)
+        valid_histories_file_player = 'data_files/p1_valid_histories_for_reachable_I_round_{}.json'.format(cfr_round)
 
     p1_policy_dict = json.load(open(policy_file_x, 'r'))
     policy_obj_x = Policy(policy_dict=p1_policy_dict, player='x')
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     policy_obj_o = Policy(policy_dict=p2_policy_dict, player='o')
 
     if reachable_IS_flag:
-        parallel_play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, cfr_player)
+        parallel_play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, cfr_player, cfr_round)
 
     # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% filter valid histories and save %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     player_reachable_information_sets = set()
