@@ -216,13 +216,13 @@ def valid_histories_play(I_1, I_2, true_board, player, current_history, end_I,
                     if end_I.player == 'o':
                         if not I == end_I:
                             valid_histories_list.extend(
-                                valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, 
+                                valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, 
                                                      played_actions, policy_obj_x, policy_obj_o))
                         else:
                             valid_histories_list.append(new_history.history)
                     else:
                         valid_histories_list.extend(
-                            valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, 
+                            valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, 
                                                  played_actions, policy_obj_x, policy_obj_o))
 
     else:
@@ -250,13 +250,13 @@ def valid_histories_play(I_1, I_2, true_board, player, current_history, end_I,
                 if end_I.player == 'o':
                     if not I == end_I:
                         valid_histories_list.extend(
-                            valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, 
+                            valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, 
                                                 played_actions, policy_obj_x, policy_obj_o))
                     else:
                         valid_histories_list.append(new_history.history)
                 else:
                     valid_histories_list.extend(
-                            valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, 
+                            valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, 
                                                 played_actions, policy_obj_x, policy_obj_o))
 
     return valid_histories_list
