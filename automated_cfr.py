@@ -256,13 +256,21 @@ if __name__ == "__main__":
 
     if cfr_player == 'x':
         if cfr_round == 1:
-            prev_regret_list_player = {I_hash: [0 for _ in range(13)] for I_hash in player_reachable_information_sets}
+            p1_policy_dict_for_IS_keys = json.load(open('./data_files/P1_uniform_policy.json', 'r'))
+            prev_regret_list_player = {}
+            for key in p1_policy_dict_for_IS_keys.keys():
+                prev_regret_list_player[key] = [0 for _ in range(13)]
+            # prev_regret_list_player = {I_hash: [0 for _ in range(13)] for I_hash in player_reachable_information_sets}
         else:
             prev_regret_list_player = json.load(
                 open('./data_files/P1_prev_regret_list_round_{}.json'.format(cfr_round - 1), 'r'))
     else:
         if cfr_round == 1:
-            prev_regret_list_player = {I_hash: [0 for _ in range(13)] for I_hash in player_reachable_information_sets}
+            p2_policy_dict_for_IS_keys = json.load(open('./data_files/P2_uniform_policy.json', 'r'))
+            prev_regret_list_player = {}
+            for key in p2_policy_dict_for_IS_keys.keys():
+                prev_regret_list_player[key] = [0 for _ in range(13)]
+            # prev_regret_list_player = {I_hash: [0 for _ in range(13)] for I_hash in player_reachable_information_sets}
         else:
             prev_regret_list_player = json.load(
                 open('./data_files/P2_prev_regret_list_round_{}.json'.format(cfr_round - 1), 'r'))
