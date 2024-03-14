@@ -6,6 +6,7 @@ from config import num_workers
 from rbt_utilties import get_histories_given_I, upgraded_get_histories_given_I
 from rbt_utilties import calc_cfr_policy_given_I
 import argparse
+from tqdm import tqdm
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
@@ -236,7 +237,7 @@ if __name__ == "__main__":
     if filter_valid_histories_flag:
         logging.info('Filtering valid histories for player {} information sets...'.format(cfr_player))
         with Pool(num_workers) as p:
-            H = p.starmap(upgraded_get_histories_given_I, args)
+            H = p.starmap(upgraded_get_histories_given_I, tqdm(args, total=len(args)))
 
         logging.info('Saving valid histories for cfr player {} information sets...'.format(cfr_player))
 
@@ -275,9 +276,9 @@ if __name__ == "__main__":
             prev_regret_list_player = json.load(
                 open('./data_files/P2_prev_regret_list_round_{}.json'.format(cfr_round - 1), 'r'))
 
-    logging.info('Loading valid histories...')
-    with open(valid_histories_file_player, 'r') as f:
-        histories = json.load(f)
+    # logging.info('Loading valid histories...')
+    # with open(valid_histories_file_player, 'r') as f:
+    #    histories = json.load(f)
 
     args = []
 
@@ -285,7 +286,8 @@ if __name__ == "__main__":
     logging.info('Generating arguments...')
     for I_hash in player_reachable_information_sets:
         I = InformationSet(player=cfr_player, move_flag=I_hash[-1] == 'm', board=[*I_hash[:-1]])
-        starting_histories = histories[I_hash]
+        # starting_histories = histories[I_hash]
+        starting_histories = None
 
         args.append((I, policy_obj_x, policy_obj_o, cfr_round, prev_regret_list_player[I_hash], starting_histories))
 
@@ -293,7 +295,7 @@ if __name__ == "__main__":
     # gc.collect()
     logging.info('cfr round {}...'.format(cfr_round))
     with Pool(num_workers) as p:
-        regrets = p.starmap(calc_cfr_policy_given_I, args)
+        regrets = p.starmap(calc_cfr_policy_given_I, tqdm(args, total=len(args)))
 
     logging.info('Updating policy objects...')
     for arg in args:
