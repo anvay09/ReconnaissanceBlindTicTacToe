@@ -239,10 +239,10 @@ if __name__ == "__main__":
     I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
     player = 'x'
 
-    p1_policy_dict = json.load(open('data_files/P1_cfr_policy_round_18.json', 'r'))
+    p1_policy_dict = json.load(open('data_files/P1_cfr_policy_round_30.json', 'r'))
     p1_policy_obj = Policy(policy_dict=p1_policy_dict, player='x')
 
-    p2_policy_dict = json.load(open('data_files/P2_cfr_policy_round_18.json', 'r'))
+    p2_policy_dict = json.load(open('data_files/P2_cfr_policy_round_30.json', 'r'))
     # p2_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
     p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
 
@@ -255,8 +255,8 @@ if __name__ == "__main__":
     expected_utility = get_expected_utility(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, 1, NonTerminalHistory(), player)
     print('Expected Utility: ', expected_utility)
 
-    # terminal_histories.sort(key=lambda x: x[2], reverse=True)
+    terminal_histories.sort(key=lambda x: x[2], reverse=True)
 
-    # with open('data_files/games.txt', 'w') as f:
-    #     for item in terminal_histories:
-    #         f.write('History: {}, Probability: {}, Reward: {}\n'.format(item[0].history, item[1], item[2]))
+    with open('data_files/games.txt', 'w') as f:
+        for item in terminal_histories:
+            f.write('History: {}, Probability: {}, Reward: {}\n'.format(item[0].history, item[1], item[2]))
