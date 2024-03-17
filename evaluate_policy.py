@@ -239,10 +239,10 @@ if __name__ == "__main__":
     I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
     player = 'x'
 
-    p1_policy_dict = json.load(open('data_files/P1_cfr_policy_round_30.json', 'r'))
+    p1_policy_dict = json.load(open('data_files/P1_cfr_policy_round_60.json', 'r'))
     p1_policy_obj = Policy(policy_dict=p1_policy_dict, player='x')
 
-    p2_policy_dict = json.load(open('data_files/P2_cfr_policy_round_30.json', 'r'))
+    p2_policy_dict = json.load(open('data_files/P2_cfr_policy_round_60.json', 'r'))
     # p2_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
     p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
 
