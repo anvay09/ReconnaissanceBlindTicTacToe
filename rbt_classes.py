@@ -238,6 +238,13 @@ class InformationSet(TicTacToeBoard):
                 valid_moves.append(i)
         return valid_moves
 
+    def get_played_actions(self):
+        played_moves = []
+        for i in range(len(self.board)):
+            if self.board[i] == self.player:
+                played_moves.append(i)
+        return played_moves
+
     def get_useful_senses(self):
         """
         :return: list of valid senses
@@ -330,6 +337,23 @@ class InformationSet(TicTacToeBoard):
             new_I_board = self.board.copy()
             new_I_board[zero] = self.player
             if InformationSet(self.player, self.move_flag, new_I_board).is_win_for_player():
+                return zero
+
+        return -1
+    
+    def draw_exists(self):
+        """
+        :return: int, action that leads to a win
+        """
+        zeroes = []
+        for i in range(len(self.board)):
+            if self.board[i] == '0':
+                zeroes.append(i)
+
+        for zero in zeroes:
+            new_I_board = self.board.copy()
+            new_I_board[zero] = self.player
+            if InformationSet(self.player, self.move_flag, new_I_board).is_over():
                 return zero
 
         return -1

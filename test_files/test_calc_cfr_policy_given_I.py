@@ -14,13 +14,13 @@ if __name__ == '__main__':
         policy_dict = json.load(f)
     policy_obj_x = Policy(player='x', policy_dict=policy_dict)
 
-    with open('./data_files/{}.json'.format('P2_iteration_9_cfr_policy'), 'r') as f:
+    with open('./data_files/{}.json'.format('P2_iteration_40_cfr_policy'), 'r') as f:
         policy_dict = json.load(f)
     policy_obj_o = Policy(player='o', policy_dict=policy_dict)
 
     logging.info('Loaded policy objects...')
 
-    P2_reachable_information_sets_file = 'data_files/reachable_P2_information_sets.txt'
+    P2_reachable_information_sets_file = 'data_files/reachable_P1_information_sets.txt'
     P2_reachable_information_sets = []
     with open(P2_reachable_information_sets_file, 'r') as f:
         lines = f.readlines()
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     prev_regret_list_o = {I_hash:[0 for _ in range(13)] for I_hash in P2_reachable_information_sets}
     
     logging.info('Loading valid histories...')
-    with open('data_files/p2_valid_histories_for_reachable_I.json', 'r') as f:
+    with open('data_files/p1_valid_histories_for_reachable_I.json', 'r') as f:
         p2_valid_histories_for_I = json.load(f)     
 
     print(len(p2_valid_histories_for_I.keys()))
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         # logging.info('Converting histories to bit arrays and generating arguments...')
         logging.info('Generating arguments...')
         for I_hash in tqdm(P2_reachable_information_sets):
-            I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
+            I = InformationSet(player='x', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
             # starting_histories = copy.deepcopy(p1_valid_histories_for_I[I_hash])
             starting_histories = p2_valid_histories_for_I[I_hash]
             
@@ -73,5 +73,5 @@ if __name__ == '__main__':
 
         logging.info('Completed iteration {}...'.format(T+9))
         logging.info('Saving policy objects...')
-        with open('./data_files/P2_iteration_{}_cfr_policy.json'.format(T+9), 'w') as f:
+        with open('./data_files/P1_iteration_{}_cfr_policy_round_2.json'.format(T+9), 'w') as f:
             json.dump(policy_obj_o.policy_dict, f)
