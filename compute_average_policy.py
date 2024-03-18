@@ -121,6 +121,7 @@ def get_average_policy(policy_obj_list, I_list, initial_player):
     """
     average_policy = {}
     for I_hash in tqdm(I_list):
+        logging.info('Computing average policy for {}...'.format(I_hash))
         average_policy[I_hash] = {}
         I = InformationSet(player=initial_player, move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
         actions = I.get_actions()
@@ -132,6 +133,8 @@ def get_average_policy(policy_obj_list, I_list, initial_player):
             else:
                 prob_term = get_probability_of_reaching_I(I, None, policy_obj, initial_player)
             prob_term_list.append(prob_term)
+        
+        logging.info('Probability terms for {} computed...'.format(I_hash))
         
         for action in actions:
             numerator = 0
@@ -146,6 +149,8 @@ def get_average_policy(policy_obj_list, I_list, initial_player):
             else:
                 average_policy[I_hash][action] = numerator / denominator
 
+        logging.info('Average policy for {} computed to be {}...'.format(I_hash, average_policy[I_hash]))
+                     
     return average_policy
 
 if __name__ == '__main__':
@@ -158,7 +163,7 @@ if __name__ == '__main__':
 
     policy_obj_list = []
 
-    for i in range(int(arguments.NumRounds)):
+    for i in range(1, int(arguments.NumRounds)+1):
         with open(arguments.PolicyFileBase + str(i) + '.json', 'r') as f:
             policy_obj_list.append(json.load(f))
 
