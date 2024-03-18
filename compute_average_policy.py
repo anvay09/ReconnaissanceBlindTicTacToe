@@ -163,7 +163,7 @@ if __name__ == '__main__':
             policy_obj_list.append(json.load(f))
 
     with open(arguments.ISetFile, 'r') as f:
-        I_list = json.load(f)
+        I_list = f.read().splitlines()
 
     average_policy = get_average_policy(policy_obj_list, I_list, arguments.CurrentPlayer)
     
