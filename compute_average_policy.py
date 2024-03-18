@@ -1,4 +1,3 @@
-from rbt_utilties import upgraded_get_histories_given_I
 from rbt_classes import NonTerminalHistory, InformationSet, TicTacToeBoard
 from tqdm import tqdm
 import argparse
@@ -8,6 +7,130 @@ from config import num_workers
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
+
+
+def valid_histories_play(I_1, I_2, true_board, player, current_history, end_I, 
+                         played_actions, policy_obj_x=None, policy_obj_o=None):
+    """
+
+    :param I_1:
+    :param I_2:
+    :param true_board:
+    :param player:
+    :param policy_obj_x:
+    :param policy_obj_o:
+    :param current_history:
+    :return:
+    """
+    valid_histories_list = []
+
+    if player == 'x':
+        I = I_1
+        if end_I.player == 'x':
+            actions = I.get_actions_given_policy(policy_obj_x)
+            if I.move_flag:
+                actions = [action for action in played_actions if action in actions]
+        else:
+            actions = I.get_actions()
+    else:
+        I = I_2
+        if end_I.player == 'o':
+            actions = I.get_actions_given_policy(policy_obj_o)
+            if I.move_flag:
+                actions = [action for action in played_actions if action in actions]
+        else:
+            actions = I.get_actions()
+
+    if I.move_flag:
+        for action in actions:
+            new_true_board = true_board.copy()
+            success = new_true_board.update_move(action, player)
+
+            new_history = current_history.copy()
+            new_history.history.append(action)
+
+            if success and not new_true_board.is_win()[0] and not new_true_board.is_over():
+                new_I = I.copy()
+                new_I.update_move(action, player)
+                new_I.reset_zeros()
+
+                if player == 'x':
+                    if end_I.player == 'x':
+                        valid_histories_list.extend(
+                            valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, 
+                                                    played_actions, policy_obj_x, policy_obj_o))
+                    else:
+                        if I_2 == end_I:
+                            valid_histories_list.append(new_history.history)
+                        else:
+                            valid_histories_list.extend(
+                                valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, 
+                                                    played_actions, policy_obj_x, policy_obj_o))
+                else:
+                    if end_I.player == 'o':
+                        valid_histories_list.extend(
+                            valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, 
+                                                    played_actions, policy_obj_x, policy_obj_o))
+                    else:
+                        if I_1 == end_I:
+                            valid_histories_list.append(new_history.history)
+                        else:
+                            valid_histories_list.extend(
+                                valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, 
+                                                    played_actions, policy_obj_x, policy_obj_o))
+
+    else:
+        for action in actions:
+            new_I = I.copy()
+            new_I.simulate_sense(action, true_board)
+            new_true_board = true_board.copy()
+
+            new_history = current_history.copy()
+            new_history.history.append(action)
+
+            if player == 'x':
+                if end_I.player == 'x':
+                    if not new_I == end_I:
+                        valid_histories_list.extend(
+                            valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, 
+                                                played_actions, policy_obj_x, policy_obj_o))
+                    else:
+                        valid_histories_list.append(new_history.history)
+                else:
+                    valid_histories_list.extend(
+                            valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, 
+                                                played_actions, policy_obj_x, policy_obj_o))
+            else:
+                if end_I.player == 'o':
+                    if not new_I == end_I:
+                        valid_histories_list.extend(
+                            valid_histories_play(I_1, new_I, new_true_board, 'o', new_history, end_I, 
+                                                played_actions, policy_obj_x, policy_obj_o))
+                    else:
+                        valid_histories_list.append(new_history.history)
+                else:
+                    valid_histories_list.extend(
+                            valid_histories_play(I_1, new_I, new_true_board, 'o', new_history, end_I, 
+                                                played_actions, policy_obj_x, policy_obj_o))
+
+    return valid_histories_list
+
+
+def upgraded_get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
+    if I.get_hash() == "000000000m":
+        return [[]]
+    
+    I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
+    I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
+    true_board = TicTacToeBoard(['0', '0', '0', '0', '0', '0', '0', '0', '0'])
+    player = 'x'
+    played_actions = I.get_played_actions()
+    
+    histories = valid_histories_play(I_1, I_2, true_board, player, NonTerminalHistory([]), 
+                                     I, played_actions, policy_obj_x, policy_obj_o)
+    logging.info('Calculated {} valid histories for {}...'.format(len(histories), I.get_hash()))
+    return histories
+
 
 def get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_obj_x, policy_obj_o, probability,
                             history_obj, initial_player):
