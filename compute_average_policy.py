@@ -1,9 +1,10 @@
-from rbt_utilties import get_histories_given_I
+from rbt_utilties import upgraded_get_histories_given_I
 from rbt_classes import NonTerminalHistory, InformationSet, TicTacToeBoard
 from tqdm import tqdm
 import argparse
 import json
 import logging
+from config import num_workers
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
@@ -107,7 +108,7 @@ def get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_hi
 
 
 def get_probability_of_reaching_I(I, policy_obj_x, policy_obj_o, initial_player):
-    starting_histories = get_histories_given_I(I, policy_obj_x, policy_obj_o)
+    starting_histories = upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o)
     prob_reaching_h_list_all = get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, initial_player)
     return sum(prob_reaching_h_list_all)
 
@@ -135,7 +136,7 @@ def get_average_policy(policy_obj_list, I_list, initial_player):
             prob_term_list.append(prob_term)
         
         logging.info('Probability terms for {} computed...'.format(I_hash))
-        
+
         for action in actions:
             numerator = 0
             denominator = 0
