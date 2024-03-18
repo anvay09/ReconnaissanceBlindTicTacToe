@@ -1,4 +1,4 @@
-from rbt_classes import NonTerminalHistory, InformationSet, TicTacToeBoard
+from rbt_classes import NonTerminalHistory, InformationSet, TicTacToeBoard, Policy
 from tqdm import tqdm
 import argparse
 import json
@@ -289,7 +289,7 @@ if __name__ == '__main__':
 
     for i in range(1, int(arguments.NumRounds)+1):
         with open(arguments.PolicyFileBase + str(i) + '.json', 'r') as f:
-            policy_obj_list.append(json.load(f))
+            policy_obj_list.append(Policy(json.load(f), player=arguments.CurrentPlayer))
 
     with open(arguments.ISetFile, 'r') as f:
         I_list = f.read().splitlines()
