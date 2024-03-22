@@ -18,8 +18,6 @@ def calc_average_policy(policy_obj_list, I_hash, initial_player):
     I = InformationSet(player=initial_player, move_flag=I_hash[-1] == 'm', board=[*I_hash[:-1]])
     actions = I.get_actions()
 
-    logging.info('Probability terms for {} computed...'.format(I_hash))
-
     sum_prob_over_actions = {}
     for action in actions:
         for p in range(len(policy_obj_list)):
