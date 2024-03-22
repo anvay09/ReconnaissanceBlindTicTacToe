@@ -45,7 +45,7 @@ def get_average_policy(policy_obj_list, I_list, initial_player):
     """
 
     with Pool(num_workers) as pool:
-        pool.starmap(get_average_policy, [(policy_obj_list, I_hash, initial_player) for I_hash in I_list])
+        pool.starmap(calc_average_policy, [(policy_obj_list, I_hash, initial_player) for I_hash in I_list])
 
 
 if __name__ == '__main__':
