@@ -13,6 +13,7 @@ average_policy = {}
 
 
 def calc_average_policy(policy_obj_list, I_hash, initial_player):
+    global average_policy
     logging.info('Computing average policy for {}...'.format(I_hash))
     average_policy[I_hash] = {}
     I = InformationSet(player=initial_player, move_flag=I_hash[-1] == 'm', board=[*I_hash[:-1]])
