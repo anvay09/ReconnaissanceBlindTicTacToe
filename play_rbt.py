@@ -427,6 +427,7 @@ while running:
                 winning_line = None
                 winner = None
                 blank_screen = False
+                stats_flag = 0
                 P1_sense_buffer = 0
             elif event.key == pygame.K_n:
                 # quit game when n pressed
