@@ -1,6 +1,7 @@
 import pygame
 import random
 import json
+import os
 
 # pygame setup
 pygame.init()
@@ -20,9 +21,12 @@ game_over = False
 winning_line = None
 winner = None
 blank_screen = False
-file_name = './data_files/P1_cfr_policy_round_100.json'
+policy_name = 'P1_cfr_policy_round_1'
+file_name = './data_files/{}.json'.format(policy_name)
+stats_file = './data_files/{}_stats.json'.format(policy_name)
 use_policy = True
 P1_sense_buffer = 0
+stats_flag = 0
 
 # define the colors
 BOARD_COLOR = "white"
@@ -85,7 +89,7 @@ def draw_shape(x_pos, y_pos, s, turn):
 
 
 def draw_board(s):
-    global moves, winning_line, turn, sensing, board, p1_boardview, p2_boardview, game_over, arial_font, winner, board_index_to_coordinates_map, blank_screen
+    global moves, winning_line, turn, sensing, board, p1_boardview, p2_boardview, game_over, arial_font, winner, board_index_to_coordinates_map, blank_screen, stats_flag, stats_file
     s.fill(BG_COLOR)
 
     if blank_screen:
@@ -113,13 +117,38 @@ def draw_board(s):
             pygame.draw.line(s, P1_COLOR, winning_line[0], winning_line[1], 15)
 
         img = arial_font.render('Player ' + str(int(winner)) + ' Wins!', True, BOARD_COLOR)
+        if not stats_flag:
+            if os.path.exists(stats_file):
+                stats_dict = json.load(open(stats_file, 'r'))
+            else:
+                stats_dict = {'win': 0, 'loss': 0, 'draw': 0, 'total': 0}
+            if int(winner) == 1:
+                stats_dict['win'] += 1
+                stats_dict['total'] += 1
+            else:
+                stats_dict['loss'] += 1
+                stats_dict['total'] += 1
+
+            with open(stats_file, 'w') as f:
+                json.dump(stats_dict, f)
+            stats_flag = 1
+
         s.blit(img, (135, 20))
     elif game_over and winner is None:
         for move in moves:
             draw_shape(move[0], move[1], s, move[2])
 
         img = arial_font.render('Draw!', True, BOARD_COLOR)
-        s.blit(img, (200, 20))
+        if not stats_flag:
+            if os.path.exists(stats_file):
+                stats_dict = json.load(open(stats_file, 'r'))
+            else:
+                stats_dict = {'win': 0, 'loss': 0, 'draw': 0, 'total': 0}
+            stats_dict['draw'] += 1
+            stats_dict['total'] += 1
+            with open(stats_file, 'w') as f:
+                json.dump(stats_dict, f)
+            stats_flag = 1
     elif winner is not None:
         for move in moves:
             draw_shape(move[0], move[1], s, move[2])
