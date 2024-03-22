@@ -1,5 +1,6 @@
 import pygame
 import random
+import json
 
 # pygame setup
 pygame.init()
@@ -14,13 +15,12 @@ last_click_time = 0
 dt = 0
 running = True
 turn = False
-sensing = True
+sensing = False
 game_over = False
 winning_line = None
 winner = None
 blank_screen = False
-file_name = 'p1_policy.txt'
-P1_policy = {}
+file_name = './data_files/P1_cfr_policy_round_100.json'
 use_policy = True
 P1_sense_buffer = 0
 
@@ -34,7 +34,7 @@ BG_COLOR = "paleturquoise4"
 arial_font = pygame.font.SysFont('arialunicode', 36)
 
 board = ['0', '0', '0', '0', '0', '0', '0', '0', '0']
-p1_boardview = ['-', '-', '-', '-', '-', '-', '-', '-', '-']
+p1_boardview = ['0', '0', '0', '0', '0', '0', '0', '0', '0']
 p2_boardview = ['-', '-', '-', '-', '-', '-', '-', '-', '-']
 
 moves = set()
@@ -372,19 +372,7 @@ def move_action(event, last_click_time, square, surface):
     return last_click_time
 
 
-with open(file_name, 'r') as f:
-    lines = f.readlines()
-    for line in lines:
-        # line start with # is comment
-        if line.startswith('#'):
-            continue
-        line = line.strip()
-        line = line.split(' ')
-
-        options = (len(line) - 1) // 2
-        P1_policy[line[0]] = []
-        for i in range(options):
-            P1_policy[line[0]].append((int(line[1 + 2 * i]), int(line[2 + 2 * i])))
+P1_policy = json.load(open(file_name, 'r'))
 
 # game loop
 while running:
@@ -401,11 +389,11 @@ while running:
             elif event.key == pygame.K_y:
                 # reset game when y pressed
                 board = ['0', '0', '0', '0', '0', '0', '0', '0', '0']
-                p1_boardview = ['-', '-', '-', '-', '-', '-', '-', '-', '-']
+                p1_boardview = ['0', '0', '0', '0', '0', '0', '0', '0', '0']
                 p2_boardview = ['-', '-', '-', '-', '-', '-', '-', '-', '-']
                 moves = set()
                 turn = False
-                sensing = True
+                sensing = False
                 game_over = False
                 winning_line = None
                 winner = None
@@ -438,16 +426,43 @@ while running:
                 update_boardview(sense_coordinates)
                 sensing = False
             else:
-                P1_information_set = ''.join(p1_boardview)
-                if P1_information_set not in P1_policy:
+                P1_information_set = ''.join(p1_boardview) + 'm'
+                if P1_information_set not in P1_policy.keys():
                     print('Error: Invalid information set:', P1_information_set)
                     exit(1)
                 # choose a move uniformly at random from P1_policy[P1_information_set]
                 available_plays = P1_policy[P1_information_set]
-                chosen_play = random.choice(available_plays)
+                random_number = random.uniform(0, 1)
+                sum = 0
+                for key, val in available_plays.items():
+                    sum += available_plays[key]
+                    if random_number <= sum:
+                        chosen_play = key
+                        break
+                move_coordinates = board_index_to_coordinates_map[int(chosen_play)]
+                P1_information_set_next = ['-' for i in range(len(P1_information_set))]
+                for i in range(len(P1_information_set)):
+                    if i == int(chosen_play):
+                        P1_information_set_next[i] = 'x'
+                    else:
+                        if P1_information_set[i] == 'x' or P1_information_set[i] == 'o':
+                            P1_information_set_next[i] = P1_information_set[i]
+                P1_information_set_next[-1] = 's'
+                P1_information_set_next = ''.join(P1_information_set_next)
 
-                move_coordinates = board_index_to_coordinates_map[chosen_play[0]]
-                P1_sense_buffer = chosen_play[1]
+                if P1_information_set_next in P1_policy.keys():
+                    available_plays = P1_policy[P1_information_set_next]
+                    random_number = random.uniform(0, 1)
+                    sum = 0
+                    for key, val in available_plays.items():
+                        sum += available_plays[key]
+                        if random_number <= sum:
+                            chosen_play = key
+                            break
+
+                    P1_sense_buffer = int(chosen_play) - 9
+                else:
+                    P1_sense_buffer = 0
 
                 # print(P1_information_set, chosen_play[0], chosen_play[1])
 
