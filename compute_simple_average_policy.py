@@ -9,11 +9,9 @@ from config import num_workers
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
 
-average_policy = {}
-
 
 def calc_average_policy(policy_obj_list, I_hash, initial_player):
-    global average_policy
+    average_policy = {}
     logging.info('Computing average policy for {}...'.format(I_hash))
     average_policy[I_hash] = {}
     I = InformationSet(player=initial_player, move_flag=I_hash[-1] == 'm', board=[*I_hash[:-1]])
@@ -34,6 +32,7 @@ def calc_average_policy(policy_obj_list, I_hash, initial_player):
             average_policy[I_hash][action] = sum_prob_over_actions[action] / normalizing_sum
 
     logging.info('Average policy for {} computed to be {}...'.format(I_hash, average_policy[I_hash]))
+    return average_policy
 
 
 def get_average_policy(policy_obj_list, I_list, initial_player):
@@ -44,9 +43,15 @@ def get_average_policy(policy_obj_list, I_list, initial_player):
     :return:
     """
 
-    with Pool(num_workers) as pool:
-        pool.starmap(calc_average_policy, [(policy_obj_list, I_hash, initial_player) for I_hash in I_list])
+    average_policy = {}
 
+    with Pool(num_workers) as pool:
+        dict_list = pool.starmap(calc_average_policy, [(policy_obj_list, I_hash, initial_player) for I_hash in I_list])
+
+    for item in dict_list:
+        average_policy.update(item)
+
+    return average_policy
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -65,7 +70,7 @@ if __name__ == '__main__':
     with open(arguments.ISetFile, 'r') as f:
         I_list = f.read().splitlines()
 
-    get_average_policy(policy_obj_list, I_list, arguments.CurrentPlayer)
+    average_policy = get_average_policy(policy_obj_list, I_list, arguments.CurrentPlayer)
 
     if arguments.CurrentPlayer == 'x':
         outfile_name = 'P1_average_policy_after_{}_rounds.json'.format(arguments.NumRounds)
