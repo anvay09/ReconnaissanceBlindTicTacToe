@@ -25,12 +25,20 @@ def calc_average_policy(policy_obj_list, I_hash, initial_player):
     normalizing_sum = 0
     for action in actions:
         normalizing_sum += sum_prob_over_actions[action]
-    for action in actions:
-        if normalizing_sum <= 0:
-            average_policy[I_hash][action] = 1/(len(actions))
+    if I.move_flag:
+        range1 = 0
+        range2 = 9
+    else:
+        range1 = 9
+        range2 = 13
+    for action in range(range1, range2):
+        if action in actions:
+            if normalizing_sum <= 0:
+                average_policy[I_hash][action] = 1/(len(actions))
+            else:
+                average_policy[I_hash][action] = sum_prob_over_actions[action] / normalizing_sum
         else:
-            average_policy[I_hash][action] = sum_prob_over_actions[action] / normalizing_sum
-
+            average_policy[I_hash][action] = 0
     logging.info('Average policy for {} computed to be {}...'.format(I_hash, average_policy[I_hash]))
     return average_policy
 
