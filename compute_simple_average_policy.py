@@ -20,6 +20,7 @@ def calc_average_policy(policy_obj_list, I_hash, initial_player):
 
     sum_prob_over_actions = {}
     for action in actions:
+        sum_prob_over_actions[action] = 0
         for p in range(len(policy_obj_list)):
             sum_prob_over_actions[action] += policy_obj_list[p].policy_dict[I_hash][action]
     normalizing_sum = 0
