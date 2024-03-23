@@ -1,6 +1,7 @@
 from rbt_classes import TicTacToeBoard, InformationSet, Policy, NonTerminalHistory, TerminalHistory
 from multiprocessing import Pool
 import json
+import argparse
 import logging
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
@@ -239,10 +240,15 @@ if __name__ == "__main__":
     I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
     player = 'x'
 
-    p1_policy_dict = json.load(open('data_files_new/P1_iteration_42_cfr_policy.json', 'r'))
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--Iteration', type=str, required=True)
+    arguments = parser.parse_args()
+    Itr = arguments.Iteration
+    
+    p1_policy_dict = json.load(open('data_files_new/P1_iteration_{}_cfr_policy.json'.format(Itr), 'r'))
     p1_policy_obj = Policy(policy_dict=p1_policy_dict, player='x')
 
-    p2_policy_dict = json.load(open('data_files_new/P2_iteration_42_cfr_policy.json', 'r'))
+    p2_policy_dict = json.load(open('data_files_new/P2_iteration_{}_cfr_policy.json'.format(Itr), 'r'))
     # p2_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
     p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
 
