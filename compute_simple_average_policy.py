@@ -67,12 +67,13 @@ if __name__ == '__main__':
     parser.add_argument('--PolicyFileBase', type=str, required=True)
     parser.add_argument('--NumRounds', type=str, required=True)
     parser.add_argument('--ISetFile', type=str, required=True)
+    parser.add_argument('--OutPath', type=str, required=True)
     arguments = parser.parse_args()
 
     policy_obj_list = []
 
     for i in range(1, int(arguments.NumRounds) + 1):
-        with open(arguments.PolicyFileBase + str(i) + '.json', 'r') as f:
+        with open(arguments.PolicyFileBase.format(i), 'r') as f:
             policy_obj_list.append(Policy(policy_dict=json.load(f), player=arguments.CurrentPlayer))
 
     with open(arguments.ISetFile, 'r') as f:
@@ -85,7 +86,7 @@ if __name__ == '__main__':
     else:
         outfile_name = 'P2_average_policy_after_{}_rounds.json'.format(arguments.NumRounds)
 
-    with open(outfile_name, 'w') as f:
+    with open('{}/{}'.format(arguments.OutPath, outfile_name), 'w') as f:
         json.dump(average_policy, f)
 
 
