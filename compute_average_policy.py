@@ -284,12 +284,12 @@ if __name__ == '__main__':
     parser.add_argument('--NumRounds', type=str, required=True)
     parser.add_argument('--ISetFile', type=str, required=True)
     arguments = parser.parse_args()
-
+    
     policy_obj_list = []
 
     for i in range(1, int(arguments.NumRounds)+1):
-        with open(arguments.PolicyFileBase + str(i) + '.json', 'r') as f:
-            policy_obj_list.append(Policy(json.load(f), player=arguments.CurrentPlayer))
+        with open(arguments.PolicyFileBase + str(i) + '_cfr_policy.json', 'r') as f:
+            policy_obj_list.append(Policy(policy_dict=json.load(f), player=arguments.CurrentPlayer))
 
     with open(arguments.ISetFile, 'r') as f:
         I_list = f.read().splitlines()
@@ -297,9 +297,9 @@ if __name__ == '__main__':
     average_policy = get_average_policy(policy_obj_list, I_list, arguments.CurrentPlayer)
     
     if arguments.CurrentPlayer == 'x':
-        outfile_name = 'P1_average_policy_after_{}_rounds.json'.format(arguments.NumRounds)
+        outfile_name = 'P1_full_tree_cfr_average_policy_after_{}_rounds.json'.format(arguments.NumRounds)
     else:
-        outfile_name = 'P2_average_policy_after_{}_rounds.json'.format(arguments.NumRounds)
+        outfile_name = 'P2_full_tree_cfr_average_policy_after_{}_rounds.json'.format(arguments.NumRounds)
 
     with open(outfile_name, 'w') as f:
         json.dump(average_policy, f)
