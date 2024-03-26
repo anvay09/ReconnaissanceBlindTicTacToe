@@ -30,7 +30,7 @@ if __name__ == "__main__":
         p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
 
         logging.info("Getting expected utility...")
-        expected_utility, games = get_expected_utility_parallel(I_1, I_2, true_board, player, p1_policy_obj,
+        expected_utility = get_expected_utility_parallel(I_1, I_2, true_board, player, p1_policy_obj,
                                                                 p2_policy_obj, 1, NonTerminalHistory(), player)
         logging.info("Expected Utility: {}".format(expected_utility))
 
