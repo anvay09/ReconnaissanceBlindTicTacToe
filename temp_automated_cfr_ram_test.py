@@ -8,6 +8,7 @@ from rbt_utilties import calc_cfr_policy_given_I
 import argparse
 from tqdm import tqdm
 from compute_average_policy import get_probability_of_reaching_I
+import copy
 
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
@@ -299,8 +300,8 @@ if __name__ == "__main__":
     with Pool(num_workers) as p:
         regrets = p.starmap(calc_cfr_policy_given_I, tqdm(args, total=len(args)))
 
-    avg_policy_x = policy_obj_x.policy_dict.deepcopy()
-    avg_policy_o = policy_obj_o.policy_dict.deepcopy()
+    avg_policy_x = copy.deepcopy(policy_obj_x.policy_dict)
+    avg_policy_o = copy.deepcopy(policy_obj_o.policy_dict)
 
     logging.info('Updating policy objects...')
     for arg in args:
