@@ -285,6 +285,16 @@ if __name__ == "__main__":
 
     args = []
 
+    avg_policy_x = copy.deepcopy(policy_obj_x.policy_dict)
+    avg_policy_o = copy.deepcopy(policy_obj_o.policy_dict)
+    for key, val in avg_policy_x.items():
+        for k, v in val.items():
+            avg_policy_x[key][k] = 0
+
+    for key, val in avg_policy_o.items():
+        for k, v in val.items():
+            avg_policy_o[key][k] = 0
+
     # logging.info('Converting histories to bit arrays and generating arguments...')
     logging.info('Generating arguments...')
     for I_hash in player_reachable_information_sets:
@@ -299,9 +309,6 @@ if __name__ == "__main__":
     logging.info('cfr round {}...'.format(cfr_round))
     with Pool(num_workers) as p:
         regrets = p.starmap(calc_cfr_policy_given_I, tqdm(args, total=len(args)))
-
-    avg_policy_x = copy.deepcopy(policy_obj_x.policy_dict)
-    avg_policy_o = copy.deepcopy(policy_obj_o.policy_dict)
 
     logging.info('Updating policy objects...')
     for arg in args:
