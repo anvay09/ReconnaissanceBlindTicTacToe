@@ -7,6 +7,8 @@ from rbt_utilties import get_histories_given_I, upgraded_get_histories_given_I
 from rbt_utilties import calc_cfr_policy_given_I
 import argparse
 from tqdm import tqdm
+from compute_average_policy import get_probability_of_reaching_I
+
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
@@ -164,13 +166,13 @@ def parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, cu
     print('Total Histories: ', Total_histories)
     if current_player_run == 'x':
         print('P1 Information Sets: ', len(P1_information_sets))
-        with open('data_files/test_ram/reachable_P1_information_sets_round_{}.txt'.format(cfr_round), 'w') as f:
+        with open('data_files/reachable_P1_information_sets_round_{}.txt'.format(cfr_round), 'w') as f:
             for item in P1_information_sets:
                 f.write(item + '\n')
 
     if current_player_run == 'o':
         print('P2 Information Sets: ', len(P2_information_sets))
-        with open('data_files/test_ram/reachable_P2_information_sets_round_{}.txt'.format(cfr_round), 'w') as f:
+        with open('data_files/reachable_P2_information_sets_round_{}.txt'.format(cfr_round), 'w') as f:
             for item in P2_information_sets:
                 f.write(item + '\n')
 
@@ -203,11 +205,11 @@ if __name__ == "__main__":
     cfr_player, policy_file_x, policy_file_o, cfr_round, reachable_IS_flag, filter_valid_histories_flag = parse_commandline_args()
 
     if cfr_player == 'o':
-        reachable_IS_file_player = 'data_files/test_ram/reachable_P2_information_sets_round_{}.txt'.format(cfr_round)
-        valid_histories_file_player = 'data_files/test_ram/p2_valid_histories_for_reachable_I_round_{}.json'.format(cfr_round)
+        reachable_IS_file_player = 'data_files/reachable_P2_information_sets_round_{}.txt'.format(cfr_round)
+        valid_histories_file_player = 'data_files/p2_valid_histories_for_reachable_I_round_{}.json'.format(cfr_round)
     else:
-        reachable_IS_file_player = 'data_files/test_ram/reachable_P1_information_sets_round_{}.txt'.format(cfr_round)
-        valid_histories_file_player = 'data_files/test_ram/p1_valid_histories_for_reachable_I_round_{}.json'.format(cfr_round)
+        reachable_IS_file_player = 'data_files/reachable_P1_information_sets_round_{}.txt'.format(cfr_round)
+        valid_histories_file_player = 'data_files/p1_valid_histories_for_reachable_I_round_{}.json'.format(cfr_round)
 
     p1_policy_dict = json.load(open(policy_file_x, 'r'))
     policy_obj_x = Policy(policy_dict=p1_policy_dict, player='x')
@@ -215,12 +217,7 @@ if __name__ == "__main__":
     policy_obj_o = Policy(policy_dict=p2_policy_dict, player='o')
 
     if reachable_IS_flag:
-        if cfr_player == 'x':
-            x_uniform_policy = Policy(policy_dict=json.load(open('./data_files/P1_uniform_policy.json', 'r')), player='x')
-            parallel_play(I_1, I_2, true_board, player, x_uniform_policy, policy_obj_o, cfr_player, cfr_round)
-        else:
-            o_uniform_policy = Policy(policy_dict=json.load(open('./data_files/P2_uniform_policy.json', 'r')), player='o')
-            parallel_play(I_1, I_2, true_board, player, policy_obj_x, o_uniform_policy, cfr_player, cfr_round)
+        parallel_play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, cfr_player, cfr_round)
 
     # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% filter valid histories and save %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     player_reachable_information_sets = set()
@@ -269,7 +266,7 @@ if __name__ == "__main__":
             # prev_regret_list_player = {I_hash: [0 for _ in range(13)] for I_hash in player_reachable_information_sets}
         else:
             prev_regret_list_player = json.load(
-                open('./data_files/test_ram/P1_prev_regret_list_round_{}.json'.format(cfr_round - 1), 'r'))
+                open('./data_files_avg/P1_prev_regret_list_round_{}.json'.format(cfr_round - 1), 'r'))
     else:
         if cfr_round == 1:
             p2_policy_dict_for_IS_keys = json.load(open('./data_files/P2_uniform_policy.json', 'r'))
@@ -279,7 +276,7 @@ if __name__ == "__main__":
             # prev_regret_list_player = {I_hash: [0 for _ in range(13)] for I_hash in player_reachable_information_sets}
         else:
             prev_regret_list_player = json.load(
-                open('./data_files/test_ram/P2_prev_regret_list_round_{}.json'.format(cfr_round - 1), 'r'))
+                open('./data_files_avg/P2_prev_regret_list_round_{}.json'.format(cfr_round - 1), 'r'))
 
     # logging.info('Loading valid histories...')
     # with open(valid_histories_file_player, 'r') as f:
@@ -302,6 +299,9 @@ if __name__ == "__main__":
     with Pool(num_workers) as p:
         regrets = p.starmap(calc_cfr_policy_given_I, tqdm(args, total=len(args)))
 
+    avg_policy_x = policy_obj_x.policy_dict.deepcopy()
+    avg_policy_o = policy_obj_o.policy_dict.deepcopy()
+
     logging.info('Updating policy objects...')
     for arg in args:
         actions = arg[0].get_actions()
@@ -309,31 +309,46 @@ if __name__ == "__main__":
         prev_regret_list_player[I_hash] = regrets.pop(0)
         total_regret = sum(prev_regret_list_player[I_hash])
 
+        if cfr_player == 'x':
+            prob_I = get_probability_of_reaching_I(arg[0], policy_obj_x, None, cfr_player)
+        else:
+            prob_I = get_probability_of_reaching_I(arg[0], None, policy_obj_o, cfr_player)
+
         if total_regret > 0:
             for action in actions:
                 if cfr_player == 'x':
                     policy_obj_x.policy_dict[I_hash][action] = prev_regret_list_player[I_hash][
                                                                    action] / total_regret
+                    avg_policy_x[I_hash][action] = prob_I * prev_regret_list_player[I_hash][
+                                                                   action] / total_regret
                 else:
                     policy_obj_o.policy_dict[I_hash][action] = prev_regret_list_player[I_hash][
+                                                                   action] / total_regret
+                    avg_policy_o[I_hash][action] = prob_I * prev_regret_list_player[I_hash][
                                                                    action] / total_regret
         else:
             for action in actions:
                 if cfr_player == 'x':
                     policy_obj_x.policy_dict[I_hash][action] = 1 / len(actions)
+                    avg_policy_x[I_hash][action] = prob_I * 1 / len(actions)
                 else:
                     policy_obj_o.policy_dict[I_hash][action] = 1 / len(actions)
+                    avg_policy_o[I_hash][action] = prob_I * 1 / len(actions)
 
     logging.info('Completed cfr_round {}...'.format(cfr_round))
     logging.info('Saving policy objects...')
 
     if cfr_player == 'x':
-        with open('./data_files/test_ram/P1_cfr_policy_round_{}.json'.format(cfr_round), 'w') as f:
+        with open('./data_files_avg/P1_cfr_policy_round_{}.json'.format(cfr_round), 'w') as f:
             json.dump(policy_obj_x.policy_dict, f)
-        with open('./data_files/test_ram/P1_prev_regret_list_round_{}.json'.format(cfr_round), 'w') as f:
+        with open('./data_files_avg/P1_avg_policy_after_round_{}.json'.format(cfr_round), 'w') as f:
+            json.dump(avg_policy_x, f)
+        with open('./data_files_avg/P1_prev_regret_list_round_{}.json'.format(cfr_round), 'w') as f:
             json.dump(prev_regret_list_player, f)
     else:
-        with open('./data_files/test_ram/P2_cfr_policy_round_{}.json'.format(cfr_round), 'w') as f:
+        with open('./data_files_avg/P2_cfr_policy_round_{}.json'.format(cfr_round), 'w') as f:
             json.dump(policy_obj_o.policy_dict, f)
-        with open('./data_files/test_ram/P2_prev_regret_list_round_{}.json'.format(cfr_round), 'w') as f:
+        with open('./data_files_avg/P2_avg_policy_after_round_{}.json'.format(cfr_round), 'w') as f:
+            json.dump(avg_policy_o, f)
+        with open('./data_files_avg/P2_prev_regret_list_round_{}.json'.format(cfr_round), 'w') as f:
             json.dump(prev_regret_list_player, f)
