@@ -21,8 +21,8 @@ game_over = False
 winning_line = None
 winner = None
 blank_screen = False
-policy_name = 'P1_average_policy_after_100_rounds'
-file_name = './{}.json'.format(policy_name)
+policy_name = 'P1_cfr_policy_round_100'
+file_name = 'data_files/{}.json'.format(policy_name)
 stats_file = './{}_stats.json'.format(policy_name)
 use_policy = True
 P1_sense_buffer = 0
@@ -32,10 +32,13 @@ stats_flag = 0
 BOARD_COLOR = "white"
 P1_COLOR = "darkgoldenrod2"
 P2_COLOR = "crimson"
-SENSE_COLOR = "aquamarine"
-BG_COLOR = "paleturquoise4"
+SENSE_COLOR = "cadetblue1"
+# BG_COLOR = "paleturquoise4"
+BG_COLOR = "black"
 
-arial_font = pygame.font.SysFont('arialunicode', 36)
+game_font = pygame.font.SysFont('American Typewriter', 36)
+small_game_font = pygame.font.SysFont('American Typewriter', 18)
+antialias_setting = True
 
 board = ['0', '0', '0', '0', '0', '0', '0', '0', '0']
 p1_boardview = ['0', '0', '0', '0', '0', '0', '0', '0', '0']
@@ -89,7 +92,7 @@ def draw_shape(x_pos, y_pos, s, turn):
 
 
 def draw_board(s):
-    global moves, winning_line, turn, sensing, board, p1_boardview, p2_boardview, game_over, arial_font, winner, board_index_to_coordinates_map, blank_screen, stats_flag, stats_file
+    global moves, winning_line, turn, sensing, board, p1_boardview, p2_boardview, game_over, game_font, winner, board_index_to_coordinates_map, blank_screen, stats_flag, stats_file
     s.fill(BG_COLOR)
 
     if blank_screen:
@@ -116,7 +119,9 @@ def draw_board(s):
         else:
             pygame.draw.line(s, P1_COLOR, winning_line[0], winning_line[1], 15)
 
-        img = arial_font.render('Player ' + str(int(winner)) + ' Wins!', True, BOARD_COLOR)
+        text = 'Player ' + str(int(winner)) + ' Wins!'
+        img = game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
+
         if not stats_flag:
             if os.path.exists(stats_file):
                 stats_dict = json.load(open(stats_file, 'r'))
@@ -133,12 +138,15 @@ def draw_board(s):
                 json.dump(stats_dict, f)
             stats_flag = 1
 
-        s.blit(img, (135, 20))
+        s.blit(img, img.get_rect(center=(250, 50)))
+
     elif game_over and winner is None:
         for move in moves:
             draw_shape(move[0], move[1], s, move[2])
 
-        img = arial_font.render('Draw!', True, BOARD_COLOR)
+        text = 'Draw!'
+        img = game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
+        
         if not stats_flag:
             if os.path.exists(stats_file):
                 stats_dict = json.load(open(stats_file, 'r'))
@@ -149,11 +157,15 @@ def draw_board(s):
             with open(stats_file, 'w') as f:
                 json.dump(stats_dict, f)
             stats_flag = 1
+        s.blit(img, img.get_rect(center=(250, 50)))
+
     elif winner is not None:
         for move in moves:
             draw_shape(move[0], move[1], s, move[2])
 
-        img = arial_font.render('Player ' + str(int(winner)) + ' Wins!', True, BOARD_COLOR)
+        text = 'Player ' + str(int(winner)) + ' Wins!'
+        img = game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
+        
         if not stats_flag:
             if os.path.exists(stats_file):
                 stats_dict = json.load(open(stats_file, 'r'))
@@ -169,7 +181,9 @@ def draw_board(s):
             with open(stats_file, 'w') as f:
                 json.dump(stats_dict, f)
             stats_flag = 1
-        s.blit(img, (135, 20))
+
+        s.blit(img, img.get_rect(center=(250, 50)))
+
     else:
         for move in moves:
             ind = coordinates_to_board_index_map[(move[0], move[1])]
@@ -182,16 +196,20 @@ def draw_board(s):
 
         if turn:
             if sensing:
-                img = arial_font.render('Player 2 Sense', True, P2_COLOR)
+                text = 'Player 2 Sense'
+                img = game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
             else:
-                img = arial_font.render('Player 2 Move', True, P2_COLOR)
+                text = 'Player 2 Move'
+                img= game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
         else:
             if sensing:
-                img = arial_font.render('Player 1 Sense', True, P1_COLOR)
+                text = 'Player 1 Sense'
+                img = game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
             else:
-                img = arial_font.render('Player 1 Move', True, P1_COLOR)
-
-        s.blit(img, (130, 20))
+                text = 'Player 1 Move'
+                img = game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
+                
+        s.blit(img, img.get_rect(center=(250, 50)))
 
 
 def check_win():
@@ -536,9 +554,16 @@ while running:
     else:
         draw_board(screen)
         # show message "Play again? y/n"
-        img = arial_font.render('Play again? y/n', True, BOARD_COLOR)
-        screen.blit(img, (130, 430))
+        text = 'Play again? y/n'
+        img = game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
 
+        if os.path.exists(stats_file):
+            stats_dict = json.load(open(stats_file, 'r'))
+            text = 'Wins: ' + str(stats_dict['loss']) + '\t\tLosses: ' + str(stats_dict['win']) + '\t\tDraws: ' + str(stats_dict['draw']) + '\t\tTotal: ' + str(stats_dict['total'])
+            img2 = small_game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
+
+        screen.blit(img, img.get_rect(center=(250, 440)))
+        screen.blit(img2, img2.get_rect(center=(250, 475)))
     # flip() the display to put your work on screen
     pygame.display.flip()
 
