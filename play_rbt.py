@@ -2,10 +2,11 @@ import pygame
 import random
 import json
 import os
+from random import choices
 
 # pygame setup
 pygame.init()
-screen = pygame.display.set_mode((500, 500))
+screen = pygame.display.set_mode((500, 530))
 
 pygame.display.set_caption("Reconnaissance Blind Tic Tac Toe")
 
@@ -21,11 +22,19 @@ game_over = False
 winning_line = None
 winner = None
 blank_screen = False
-policy_name = 'P1_cfr_policy_round_100'
-file_name = 'data_files/{}.json'.format(policy_name)
-stats_file = './{}_stats.json'.format(policy_name)
+choose_player_screen = True
+AI_player = None
+P1_policy_name = 'P1_cfr_policy_round_120'
+P1_file_name = 'data_files/{}.json'.format(P1_policy_name)
+P1_stats_file = './{}_stats.json'.format(P1_policy_name)
+P2_policy_name = 'P2_cfr_policy_round_120'
+P2_file_name = 'data_files/{}.json'.format(P2_policy_name)
+P2_stats_file = './{}_stats.json'.format(P2_policy_name)
 use_policy = True
+P1_policy = json.load(open(P1_file_name, 'r'))
+P2_policy = json.load(open(P2_file_name, 'r'))
 P1_sense_buffer = 0
+P2_sense_buffer = choices([0, 1, 2, 3], list(P2_policy['---------s'].values()))[0]
 stats_flag = 0
 
 # define the colors
@@ -37,7 +46,7 @@ SENSE_COLOR = "cadetblue1"
 BG_COLOR = "black"
 
 game_font = pygame.font.SysFont('American Typewriter', 36)
-small_game_font = pygame.font.SysFont('American Typewriter', 18)
+small_game_font = pygame.font.SysFont('American Typewriter', 24)
 antialias_setting = True
 
 board = ['0', '0', '0', '0', '0', '0', '0', '0', '0']
@@ -92,7 +101,7 @@ def draw_shape(x_pos, y_pos, s, turn):
 
 
 def draw_board(s):
-    global moves, winning_line, turn, sensing, board, p1_boardview, p2_boardview, game_over, game_font, winner, board_index_to_coordinates_map, blank_screen, stats_flag, stats_file
+    global moves, winning_line, turn, sensing, board, p1_boardview, p2_boardview, game_over, game_font, winner, board_index_to_coordinates_map, blank_screen, stats_flag, P1_stats_file, P2_stats_file, AI_player
     s.fill(BG_COLOR)
 
     if blank_screen:
@@ -123,6 +132,11 @@ def draw_board(s):
         img = game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
 
         if not stats_flag:
+            if AI_player == 1:
+                stats_file = P1_stats_file
+            elif AI_player == 2:
+                stats_file = P2_stats_file
+
             if os.path.exists(stats_file):
                 stats_dict = json.load(open(stats_file, 'r'))
             else:
@@ -148,6 +162,11 @@ def draw_board(s):
         img = game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
         
         if not stats_flag:
+            if AI_player == 1:
+                stats_file = P1_stats_file
+            elif AI_player == 2:
+                stats_file = P2_stats_file
+
             if os.path.exists(stats_file):
                 stats_dict = json.load(open(stats_file, 'r'))
             else:
@@ -167,6 +186,11 @@ def draw_board(s):
         img = game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
         
         if not stats_flag:
+            if AI_player == 1:
+                stats_file = P1_stats_file
+            elif AI_player == 2:
+                stats_file = P2_stats_file
+
             if os.path.exists(stats_file):
                 stats_dict = json.load(open(stats_file, 'r'))
             else:
@@ -434,8 +458,6 @@ def move_action(event, last_click_time, square, surface):
     return last_click_time
 
 
-P1_policy = json.load(open(file_name, 'r'))
-
 # game loop
 while running:
     # poll for events
@@ -462,6 +484,9 @@ while running:
                 blank_screen = False
                 stats_flag = 0
                 P1_sense_buffer = 0
+                P2_sense_buffer = choices([0, 1, 2, 3], list(P2_policy['---------s'].values()))[0]
+                choose_player_screen = True
+                AI_player = None
             elif event.key == pygame.K_n:
                 # quit game when n pressed
                 running = False
@@ -469,10 +494,40 @@ while running:
     x = pygame.mouse.get_pos()[0]
     y = pygame.mouse.get_pos()[1]
     # create a surface to draw on of the same size as the screen
-    surface = pygame.Surface((500, 500))
+    surface = pygame.Surface((500, 530))
     surface.set_alpha(100)
 
-    if blank_screen:
+    if choose_player_screen:
+        screen.fill(BG_COLOR)
+        draw_circle(325, 250, screen)
+        draw_cross(75, 250, screen)
+        # show message "Choose player: 1/2"
+        text = 'Choose player'
+        img = game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
+        screen.blit(img, img.get_rect(center=(250, 150)))
+       
+        if x < 250 and y > 0 and y < 530:
+            pygame.draw.rect(surface, SENSE_COLOR, (0, 0, 250, 530))
+            screen.blit(surface, (0, 0))
+        elif x > 250 and y > 0 and y < 530:
+            pygame.draw.rect(surface, SENSE_COLOR, (250, 0, 250, 530))
+            screen.blit(surface, (0, 0))
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            current_time = pygame.time.get_ticks()
+
+            if current_time - last_click_time > click_delay:
+                if x < 250:
+                    AI_player = 2 # Player 2 is AI
+                else:
+                    AI_player = 1 # Player 1 is AI
+                choose_player_screen = False
+
+            # Update last click time
+            last_click_time = current_time
+        
+    elif blank_screen:
+        # waiting animation just because it looks cool
         draw_board(screen)
         for i in range(8):
             pygame.draw.arc(screen, BOARD_COLOR, (220, 220, 60, 60), 0.33 * i * 3.14, 0.33 * (i + 1) * 3.14, 8)
@@ -483,7 +538,7 @@ while running:
         blank_screen = False
 
     elif not game_over:
-        if use_policy and not turn:
+        if use_policy and not turn and AI_player == 1:
             if sensing:
                 sense_coordinates = sense_index_to_sense_coordinates_map[P1_sense_buffer]
                 update_boardview(sense_coordinates)
@@ -542,6 +597,65 @@ while running:
                         game_over = True
                         winner = 2
 
+        elif use_policy and turn and AI_player == 2:
+            if sensing:
+                sense_coordinates = sense_index_to_sense_coordinates_map[P2_sense_buffer]
+                update_boardview(sense_coordinates)
+                sensing = False
+            else:
+                P2_information_set = ''.join(p2_boardview) + 'm'
+                if P2_information_set not in P2_policy.keys():
+                    print('Error: Invalid information set:', P2_information_set)
+                    exit(1)
+                # choose a move uniformly at random from P2_policy[P2_information_set]
+                available_plays = P2_policy[P2_information_set]
+                random_number = random.uniform(0, 1)
+                sum = 0
+                for key, val in available_plays.items():
+                    sum += available_plays[key]
+                    if random_number <= sum:
+                        chosen_play = key
+                        break
+                move_coordinates = board_index_to_coordinates_map[int(chosen_play)]
+                P2_information_set_next = ['-' for i in range(len(P2_information_set))]
+                for i in range(len(P2_information_set)):
+                    if i == int(chosen_play):
+                        P2_information_set_next[i] = 'o'
+                    else:
+                        if P2_information_set[i] == 'x' or P2_information_set[i] == 'o':
+                            P2_information_set_next[i] = P2_information_set[i]
+                P2_information_set_next[-1] = 's'
+                P2_information_set_next = ''.join(P2_information_set_next)
+
+                if P2_information_set_next in P2_policy.keys():
+                    available_plays = P2_policy[P2_information_set_next]
+                    random_number = random.uniform(0, 1)
+                    sum = 0
+                    for key, val in available_plays.items():
+                        sum += available_plays[key]
+                        if random_number <= sum:
+                            chosen_play = key
+                            break
+
+                    P2_sense_buffer = int(chosen_play) - 9
+                else:
+                    P2_sense_buffer = 0
+
+                # print(P1_information_set, chosen_play[0], chosen_play[1])
+
+                if (move_coordinates[0], move_coordinates[1], turn) and (
+                        move_coordinates[0], move_coordinates[1], not turn) not in moves:
+                    game_over = make_move((move_coordinates[0], move_coordinates[1], turn))
+                    turn = not turn
+                    sensing = True
+                    blank_screen = True
+                    draw_board(screen)
+                else:
+                    ind = coordinates_to_board_index_map[move_coordinates]
+                    if p2_boardview[ind] == '0' or p2_boardview[ind] == '-':
+                        game_over = True
+                        winner = 1
+
         else:
             square = return_square(x, y)
             if square is None:
@@ -557,13 +671,19 @@ while running:
         text = 'Play again? y/n'
         img = game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
 
-        if os.path.exists(stats_file):
-            stats_dict = json.load(open(stats_file, 'r'))
-            text = 'Wins: ' + str(stats_dict['loss']) + '\t\tLosses: ' + str(stats_dict['win']) + '\t\tDraws: ' + str(stats_dict['draw']) + '\t\tTotal: ' + str(stats_dict['total'])
-            img2 = small_game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
+        if AI_player == 1:
+            if os.path.exists(P1_stats_file):
+                stats_dict = json.load(open(P1_stats_file, 'r'))
+                text = 'Wins: ' + str(stats_dict['loss']) + '\t\tLosses: ' + str(stats_dict['win']) + '\t\tDraws: ' + str(stats_dict['draw']) + '\t\tTotal: ' + str(stats_dict['total'])
+                img2 = small_game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
+        elif AI_player == 2:
+            if os.path.exists(P2_stats_file):
+                stats_dict = json.load(open(P2_stats_file, 'r'))
+                text = 'Wins: ' + str(stats_dict['win']) + '\t\tLosses: ' + str(stats_dict['loss']) + '\t\tDraws: ' + str(stats_dict['draw']) + '\t\tTotal: ' + str(stats_dict['total'])
+                img2 = small_game_font.render(text, antialias_setting, BOARD_COLOR, BG_COLOR)
 
         screen.blit(img, img.get_rect(center=(250, 440)))
-        screen.blit(img2, img2.get_rect(center=(250, 475)))
+        screen.blit(img2, img2.get_rect(center=(250, 490)))
     # flip() the display to put your work on screen
     pygame.display.flip()
 
