@@ -192,9 +192,10 @@ def parse_commandline_args():
     parser.add_argument('--Round', type=str, required=True)
     parser.add_argument('--ReachableISFlag', type=str, required=True)
     parser.add_argument('--FilterValidHistoriesFlag', type=str, required=True)
+    parser.add_argument('--CfrFlag', type=str, required=True)
     arguments = parser.parse_args()
     return arguments.CurrentPlayer, arguments.PolicyFileX, arguments.PolicyFileO, int(arguments.Round), int(
-        arguments.ReachableISFlag), int(arguments.FilterValidHistoriesFlag)
+        arguments.ReachableISFlag), int(arguments.FilterValidHistoriesFlag), int(arguments.CfrFlag)
 
 
 if __name__ == "__main__":
@@ -203,7 +204,7 @@ if __name__ == "__main__":
     I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
     I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
     player = 'x'
-    cfr_player, policy_file_x, policy_file_o, cfr_round, reachable_IS_flag, filter_valid_histories_flag = parse_commandline_args()
+    cfr_player, policy_file_x, policy_file_o, cfr_round, reachable_IS_flag, filter_valid_histories_flag, cfr_flag = parse_commandline_args()
 
     if cfr_player == 'o':
         reachable_IS_file_player = 'data_files/reachable_P2_information_sets_round_{}.txt'.format(cfr_round)
@@ -306,15 +307,26 @@ if __name__ == "__main__":
 
     # del p1_valid_histories_for_I
     # gc.collect()
-    logging.info('cfr round {}...'.format(cfr_round))
-    with Pool(num_workers) as p:
-        regrets = p.starmap(calc_cfr_policy_given_I, tqdm(args, total=len(args)))
+    if cfr_flag:
+        logging.info('cfr round {}...'.format(cfr_round))
+        with Pool(num_workers) as p:
+            regrets = p.starmap(calc_cfr_policy_given_I, tqdm(args, total=len(args)))
+    else:
+        if cfr_player == 'x':
+            new_prev_regret_list_player = json.load(
+                open('./data_files/P1_prev_regret_list_round_{}.json'.format(cfr_round), 'r'))
+        else:
+            new_prev_regret_list_player = json.load(
+                open('./data_files/P1_prev_regret_list_round_{}.json'.format(cfr_round), 'r'))
 
     logging.info('Updating policy objects...')
     for arg in args:
         actions = arg[0].get_actions()
         I_hash = arg[0].get_hash()
-        prev_regret_list_player[I_hash] = regrets.pop(0)
+        if cfr_flag:
+            prev_regret_list_player[I_hash] = regrets.pop(0)
+        else:
+            prev_regret_list_player[I_hash] = new_prev_regret_list_player[I_hash]
         total_regret = sum(prev_regret_list_player[I_hash])
 
         if cfr_player == 'x':
