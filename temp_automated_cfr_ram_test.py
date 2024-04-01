@@ -268,7 +268,7 @@ if __name__ == "__main__":
             # prev_regret_list_player = {I_hash: [0 for _ in range(13)] for I_hash in player_reachable_information_sets}
         else:
             prev_regret_list_player = json.load(
-                open('./data_files_avg/P1_prev_regret_list_round_{}.json'.format(cfr_round - 1), 'r'))
+                open('./data_files/P1_prev_regret_list_round_{}.json'.format(cfr_round - 1), 'r'))
     else:
         if cfr_round == 1:
             p2_policy_dict_for_IS_keys = json.load(open('./data_files/P2_uniform_policy.json', 'r'))
@@ -278,7 +278,7 @@ if __name__ == "__main__":
             # prev_regret_list_player = {I_hash: [0 for _ in range(13)] for I_hash in player_reachable_information_sets}
         else:
             prev_regret_list_player = json.load(
-                open('./data_files_avg/P2_prev_regret_list_round_{}.json'.format(cfr_round - 1), 'r'))
+                open('./data_files/P2_prev_regret_list_round_{}.json'.format(cfr_round - 1), 'r'))
 
     # logging.info('Loading valid histories...')
     # with open(valid_histories_file_player, 'r') as f:
@@ -317,7 +317,7 @@ if __name__ == "__main__":
                 open('./data_files/P1_prev_regret_list_round_{}.json'.format(cfr_round), 'r'))
         else:
             new_prev_regret_list_player = json.load(
-                open('./data_files/P1_prev_regret_list_round_{}.json'.format(cfr_round), 'r'))
+                open('./data_files/P2_prev_regret_list_round_{}.json'.format(cfr_round), 'r'))
 
     logging.info('Updating policy objects...')
     for arg in args:
@@ -363,12 +363,12 @@ if __name__ == "__main__":
             json.dump(policy_obj_x.policy_dict, f)
         with open('./data_files_avg/P1_avg_policy_after_round_{}.json'.format(cfr_round), 'w') as f:
             json.dump(avg_policy_x, f)
-        with open('./data_files_avg/P1_prev_regret_list_round_{}.json'.format(cfr_round), 'w') as f:
-            json.dump(prev_regret_list_player, f)
+        # with open('./data_files_avg/P1_prev_regret_list_round_{}.json'.format(cfr_round), 'w') as f:
+        #     json.dump(prev_regret_list_player, f)
     else:
         with open('./data_files_avg/P2_cfr_policy_round_{}.json'.format(cfr_round), 'w') as f:
             json.dump(policy_obj_o.policy_dict, f)
         with open('./data_files_avg/P2_avg_policy_after_round_{}.json'.format(cfr_round), 'w') as f:
             json.dump(avg_policy_o, f)
-        with open('./data_files_avg/P2_prev_regret_list_round_{}.json'.format(cfr_round), 'w') as f:
-            json.dump(prev_regret_list_player, f)
+        # with open('./data_files_avg/P2_prev_regret_list_round_{}.json'.format(cfr_round), 'w') as f:
+        #     json.dump(prev_regret_list_player, f)
