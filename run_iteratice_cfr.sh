@@ -1,15 +1,15 @@
 numiterations=2
 basefile="output_files_iterative_2"
-echo "python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_deterministic_policy.json --PolicyFileO ./$basefile/P2_deterministic_policy.json --Round 1 --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile"
-python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_deterministic_policy.json --PolicyFileO ./$basefile/P2_deterministic_policy.json --Round 1 --ReachableISFlag 1 --FilterValidHistoriesFlag 0 --BasePath $basefile
+echo "python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_DG_policy.json --PolicyFileO ./$basefile/P2_deterministic_policy.json --Round 1 --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile"
+python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_DG_policy.json --PolicyFileO ./$basefile/P2_deterministic_policy.json --Round 1 --ReachableISFlag 1 --FilterValidHistoriesFlag 0 --BasePath $basefile
 for i in $(eval echo {2..$numiterations})
 do
-  echo "python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_deterministic_policy.json --PolicyFileO ./$basefile/P2_cfr_policy_round_$(($i-1)).json --Round $i --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile"
-  python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_deterministic_policy.json --PolicyFileO ./$basefile/P2_cfr_policy_round_$(($i-1)).json --Round $i --ReachableISFlag 1 --FilterValidHistoriesFlag 0 --BasePath $basefile
+  echo "python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_DG_policy.json --PolicyFileO ./$basefile/P2_cfr_policy_round_$(($i-1)).json --Round $i --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile"
+  python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_DG_policy.json --PolicyFileO ./$basefile/P2_cfr_policy_round_$(($i-1)).json --Round $i --ReachableISFlag 1 --FilterValidHistoriesFlag 0 --BasePath $basefile
 done
 
-echo "python3 ./automated_cfr.py --CurrentPlayer x --PolicyFileX ./$basefile/P1_deterministic_policy.json --PolicyFileO ./$basefile/P2_cfr_policy_round_$numiterations.json --Round 1 --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile"
-python3 ./automated_cfr.py --CurrentPlayer x --PolicyFileX ./$basefile/P1_deterministic_policy.json --PolicyFileO ./$basefile/P2_cfr_policy_round_$numiterations.json --Round 1 --ReachableISFlag 1 --FilterValidHistoriesFlag 0 --BasePath $basefile
+echo "python3 ./automated_cfr.py --CurrentPlayer x --PolicyFileX ./$basefile/P1_DG_policy.json --PolicyFileO ./$basefile/P2_cfr_policy_round_$numiterations.json --Round 1 --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile"
+python3 ./automated_cfr.py --CurrentPlayer x --PolicyFileX ./$basefile/P1_DG_policy.json --PolicyFileO ./$basefile/P2_cfr_policy_round_$numiterations.json --Round 1 --ReachableISFlag 1 --FilterValidHistoriesFlag 0 --BasePath $basefile
 for i in $(eval echo {2..$numiterations})
 do
   echo "python3 ./automated_cfr.py --CurrentPlayer x --PolicyFileX ./$basefile/P1_cfr_policy_round_$(($i-1)).json --PolicyFileO ./$basefile/P2_cfr_policy_round_$numiterations.json --Round $i --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile"
