@@ -1,5 +1,5 @@
-numiterations = 2
-basefile = "output_files_iterative_2"
+numiterations=2
+basefile="output_files_iterative_2"
 echo "python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$(basefile)/P1_deterministic_policy.json --PolicyFileO ./$(basefile)/P2_deterministic_policy.json --Round 1 --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $(basefile)
 "
 python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_deterministic_policy.json --PolicyFileO ./$(basefile)/P2_deterministic_policy.json --Round 1 --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $(basefile)
