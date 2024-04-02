@@ -4,6 +4,7 @@ echo "python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_
 python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_deterministic_policy.json --PolicyFileO ./$basefile/P2_deterministic_policy.json --Round 1 --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile
 for i in {2..$numiterations}
 do
+  echo "python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_deterministic_policy.json --PolicyFileO ./$basefile/P2_cfr_policy_round_$($i-1).json --Round $i --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile"
   python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_deterministic_policy.json --PolicyFileO ./$basefile/P2_cfr_policy_round_$($i-1).json --Round $i --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile
 done
 
