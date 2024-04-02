@@ -21,13 +21,13 @@ for i in {2..100}
 do
   for j in $(eval echo {1..$numiterations})
   do
-    echo "python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_cfr_policy_round_ $(($numiterations*i-$numiterations)).json --PolicyFileO ./$basefile/P2_cfr_policy_round_ $(($numiterations*i-$numiterations+$j-1)).json --Round $(($numiterations*i-$numiterations+$j)) --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile"
-    python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_cfr_policy_round_ $(($numiterations*i-$numiterations)).json --PolicyFileO ./$basefile/P2_cfr_policy_round_ $(($numiterations*i-$numiterations+$j-1)).json --Round $(($numiterations*i-$numiterations+$j)) --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile
+    echo "python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_cfr_policy_round_$(($numiterations*i-$numiterations)).json --PolicyFileO ./$basefile/P2_cfr_policy_round_$(($numiterations*i-$numiterations+$j-1)).json --Round $(($numiterations*i-$numiterations+$j)) --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile"
+    python3 ./automated_cfr.py --CurrentPlayer o --PolicyFileX ./$basefile/P1_cfr_policy_round_$(($numiterations*i-$numiterations)).json --PolicyFileO ./$basefile/P2_cfr_policy_round_$(($numiterations*i-$numiterations+$j-1)).json --Round $(($numiterations*i-$numiterations+$j)) --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile
   done
 
   for j in $(eval echo {1..$numiterations})
   do
-    echo "python3 ./automated_cfr.py --CurrentPlayer x --PolicyFileX ./$basefile/P1_cfr_policy_round_ $(($numiterations*i-$numiterations+$j-1)).json --PolicyFileO ./$basefile/P2_cfr_policy_round_ $(($numiterations*i)).json --Round $(($numiterations*i-$numiterations+$j)) --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile"
-    python3 ./automated_cfr.py --CurrentPlayer x --PolicyFileX ./$basefile/P1_cfr_policy_round_ $(($numiterations*i-$numiterations+$j-1)).json --PolicyFileO ./$basefile/P2_cfr_policy_round_ $(($numiterations*i)).json --Round $(($numiterations*i-$numiterations+$j)) --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile
+    echo "python3 ./automated_cfr.py --CurrentPlayer x --PolicyFileX ./$basefile/P1_cfr_policy_round_$(($numiterations*i-$numiterations+$j-1)).json --PolicyFileO ./$basefile/P2_cfr_policy_round_$(($numiterations*i)).json --Round $(($numiterations*i-$numiterations+$j)) --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile"
+    python3 ./automated_cfr.py --CurrentPlayer x --PolicyFileX ./$basefile/P1_cfr_policy_round_$(($numiterations*i-$numiterations+$j-1)).json --PolicyFileO ./$basefile/P2_cfr_policy_round_$(($numiterations*i)).json --Round $(($numiterations*i-$numiterations+$j)) --ReachableISFlag 1 --FilterValidHistoriesFlag 1 --BasePath $basefile
   done
 done
