@@ -45,6 +45,7 @@ if __name__ == "__main__":
     plt.plot(dict_list)
     plt.xticks(range(0, len(x_range)*2, 2), x_range)
     plt.xlabel('Round')
+    plt.xticks(rotation=-60)
     plt.ylabel('Expected Utility')
     plt.title('Convergence of Expected Utility')
     plt.savefig('avg_expected_utility_convergence.png')
