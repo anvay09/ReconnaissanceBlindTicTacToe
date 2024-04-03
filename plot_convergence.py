@@ -31,7 +31,7 @@ if __name__ == "__main__":
         logging.info('Expected Utility: {}'.format(expected_utility))
         expected_utility_list.append(expected_utility)
 
-    plt.plot([i for i in range(1, 3)], expected_utility_list)
+    plt.plot([i for i in range(1, 89)], expected_utility_list)
     # plt.xticks(range(0, len(x_range)*2, 2), x_range)
     plt.xlabel('Round')
     plt.xticks(rotation=-60)
