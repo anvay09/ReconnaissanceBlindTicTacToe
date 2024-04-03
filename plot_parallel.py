@@ -28,7 +28,8 @@ if __name__ == "__main__":
     p2_file_base = 'data_files_avg/P2_average_overall_policy_after_{}_rounds'
     expected_utility_list = []
 
-    x_range = range(1, 31)
+    num = 90
+    x_range = range(1, num)
     args = []
     for round in x_range:
         p1_policy_dict = json.load(open(p1_file_base.format(str(round)) + '.json', 'r'))
@@ -42,8 +43,8 @@ if __name__ == "__main__":
     with Pool(num_workers) as pool:
         dict_list = pool.starmap(parallel_run, args)
 
-    plt.plot(dict_list)
-    plt.xticks(range(0, len(x_range)*2, 2), x_range)
+    plt.plot([i for i in range(1, num)], dict_list)
+    # plt.xticks(range(0, len(x_range)*2, 2), x_range)
     plt.xlabel('Round')
     plt.xticks(rotation=-60)
     plt.ylabel('Expected Utility')
