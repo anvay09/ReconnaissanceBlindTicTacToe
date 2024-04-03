@@ -202,10 +202,10 @@ if __name__ == "__main__":
     arguments = parser.parse_args()
     Itr = arguments.Iteration
     
-    p1_policy_dict = json.load(open('data_files_new/P1_iteration_{}_cfr_policy.json'.format(Itr), 'r'))
+    p1_policy_dict = json.load(open('data_files_avg/P1_average_overall_policy_after_{}_rounds.json'.format(Itr), 'r'))
     p1_policy_obj = Policy(policy_dict=p1_policy_dict, player='x')
 
-    p2_policy_dict = json.load(open('data_files_new/P2_iteration_{}_cfr_policy.json'.format(Itr), 'r'))
+    p2_policy_dict = json.load(open('data_files_avg/P2_average_overall_policy_after_{}_rounds.json'.format(Itr), 'r'))
     p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
 
     logging.info("Getting expected utility...")

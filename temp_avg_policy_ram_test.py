@@ -10,8 +10,16 @@ from config import num_workers
 def calc_average_policy(policy_obj_list, I_hash, initial_player):
     average_policy = {}
     logging.info('Computing average policy for {}...'.format(I_hash))
-    average_policy[I_hash] = {}
     I = InformationSet(player=initial_player, move_flag=I_hash[-1] == 'm', board=[*I_hash[:-1]])
+    if I.move_flag:
+        average_policy[I_hash] ={}
+        for k in range(9):
+            average_policy[I_hash][k] = 0
+    else:
+        average_policy[I_hash] ={}
+        for k in range(9, 13):
+            average_policy[I_hash][k] = 0
+
     actions = I.get_actions()
 
     for action in actions:
