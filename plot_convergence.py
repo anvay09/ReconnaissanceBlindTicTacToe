@@ -17,7 +17,8 @@ if __name__ == "__main__":
     p2_file_base = 'data_files_avg/P2_average_overall_policy_after_{}_rounds'
     expected_utility_list = []
 
-    x_range = range(1, 89)
+    num = 90
+    x_range = range(1, num)
 
     for round in x_range:
         p1_policy_dict = json.load(open(p1_file_base.format(str(round)) + '.json', 'r'))
@@ -31,7 +32,7 @@ if __name__ == "__main__":
         logging.info('Expected Utility: {}'.format(expected_utility))
         expected_utility_list.append(expected_utility)
 
-    plt.plot([i for i in range(1, 89)], expected_utility_list)
+    plt.plot([i for i in range(1, num)], expected_utility_list)
     # plt.xticks(range(0, len(x_range)*2, 2), x_range)
     plt.xlabel('Round')
     plt.xticks(rotation=-60)
