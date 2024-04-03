@@ -1,8 +1,7 @@
 from rbt_classes import InformationSet, NonTerminalHistory, TerminalHistory, TicTacToeBoard
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
-from multiprocessing import Pool
 import logging
-from config import num_workers
+import copy
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
@@ -70,7 +69,6 @@ def is_valid_history(H, end_I, policy_obj_x=None, policy_obj_o=None):
                 else:
                     I_2 = I.copy()
 
-
     if end_I.player == 'x':
         return I_1 == end_I
     else:
@@ -83,7 +81,6 @@ def get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
     states = I.get_states()
     histories = []
     sense_actions = list(I.sense_square_dict.keys())
-    logging.info('Calculating h for {}...'.format(I.get_hash()))
 
     for state in states:
         p1_moves = [idx for idx, value in enumerate(state.board) if value == 'x']
@@ -111,7 +108,7 @@ def get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
                     player = 'x'
                     idx_1 = 0
                     idx_2 = 0
-                    # print(p1, p2, s) 
+
                     if p1 == []:
                         history.append([])
                     elif s == []:
@@ -134,16 +131,135 @@ def get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
                         elif idx_2 < len(p2):
                             history.append(p2[idx_2])
 
-                    histories.append(history)
+                    if is_valid_history(history, I, policy_obj_x, policy_obj_o):
+                        histories.append(history)
 
-    logging.info('Filtering valid histories in {} out of {} histories...'.format(I.get_hash(), len(histories)))
-    args = [(h, I, policy_obj_x, policy_obj_o) for h in histories]
-    with Pool(num_workers) as p:
-        valid_histories = p.starmap(is_valid_history, args)
+    logging.info('Calculated {} valid histories for {}...'.format(len(histories), I.get_hash()))
 
-    valid_histories = [h for h, valid in zip(histories, valid_histories) if valid]
-    logging.info('Filtered {} valid histories for {}...'.format(len(valid_histories), I.get_hash()))
-    return valid_histories
+    return histories
+
+
+def upgraded_get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
+    if I.get_hash() == "000000000m":
+        return [[]]
+    
+    I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
+    I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
+    true_board = TicTacToeBoard(['0', '0', '0', '0', '0', '0', '0', '0', '0'])
+    player = 'x'
+    played_actions = I.get_played_actions()
+    
+    histories = valid_histories_play(I_1, I_2, true_board, player, NonTerminalHistory([]), 
+                                     I, played_actions, policy_obj_x, policy_obj_o)
+    logging.info('Calculated {} valid histories for {}...'.format(len(histories), I.get_hash()))
+    return histories
+
+
+def valid_histories_play(I_1, I_2, true_board, player, current_history, end_I, 
+                         played_actions, policy_obj_x=None, policy_obj_o=None):
+    """
+
+    :param I_1:
+    :param I_2:
+    :param true_board:
+    :param player:
+    :param policy_obj_x:
+    :param policy_obj_o:
+    :param current_history:
+    :return:
+    """
+    valid_histories_list = []
+
+    if player == 'x':
+        I = I_1
+        if end_I.player == 'x':
+            actions = I.get_actions()
+            if I.move_flag:
+                actions = [action for action in played_actions if action in actions]
+        else:
+            actions = I.get_actions_given_policy(policy_obj_x)
+    else:
+        I = I_2
+        if end_I.player == 'o':
+            actions = I.get_actions()
+            if I.move_flag:
+                actions = [action for action in played_actions if action in actions]
+        else:
+            actions = I.get_actions_given_policy(policy_obj_o)
+
+    if I.move_flag:
+        for action in actions:
+            new_true_board = true_board.copy()
+            success = new_true_board.update_move(action, player)
+
+            new_history = current_history.copy()
+            new_history.history.append(action)
+
+            if success and not new_true_board.is_win()[0] and not new_true_board.is_over():
+                new_I = I.copy()
+                new_I.update_move(action, player)
+                new_I.reset_zeros()
+
+                if player == 'x':
+                    if end_I.player == 'x':
+                        valid_histories_list.extend(
+                            valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, 
+                                                    played_actions, policy_obj_x, policy_obj_o))
+                    else:
+                        if I_2 == end_I:
+                            valid_histories_list.append(new_history.history)
+                        else:
+                            valid_histories_list.extend(
+                                valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, 
+                                                    played_actions, policy_obj_x, policy_obj_o))
+                else:
+                    if end_I.player == 'o':
+                        valid_histories_list.extend(
+                            valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, 
+                                                    played_actions, policy_obj_x, policy_obj_o))
+                    else:
+                        if I_1 == end_I:
+                            valid_histories_list.append(new_history.history)
+                        else:
+                            valid_histories_list.extend(
+                                valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, 
+                                                    played_actions, policy_obj_x, policy_obj_o))
+
+    else:
+        for action in actions:
+            new_I = I.copy()
+            new_I.simulate_sense(action, true_board)
+            new_true_board = true_board.copy()
+
+            new_history = current_history.copy()
+            new_history.history.append(action)
+
+            if player == 'x':
+                if end_I.player == 'x':
+                    if not new_I == end_I:
+                        valid_histories_list.extend(
+                            valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, 
+                                                played_actions, policy_obj_x, policy_obj_o))
+                    else:
+                        valid_histories_list.append(new_history.history)
+                else:
+                    valid_histories_list.extend(
+                            valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, 
+                                                played_actions, policy_obj_x, policy_obj_o))
+            else:
+                if end_I.player == 'o':
+                    if not new_I == end_I:
+                        valid_histories_list.extend(
+                            valid_histories_play(I_1, new_I, new_true_board, 'o', new_history, end_I, 
+                                                played_actions, policy_obj_x, policy_obj_o))
+                    else:
+                        valid_histories_list.append(new_history.history)
+                else:
+                    valid_histories_list.extend(
+                            valid_histories_play(I_1, new_I, new_true_board, 'o', new_history, end_I, 
+                                                played_actions, policy_obj_x, policy_obj_o))
+
+    return valid_histories_list
 
 
 def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, current_history, initial_player):
@@ -175,8 +291,8 @@ def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, 
         for action in actions:
             new_true_board = true_board.copy()
             success = new_true_board.update_move(action, player)
-            
-            probability_new = probability*policy_obj.policy_dict[I.get_hash()][action]
+
+            probability_new = probability * policy_obj.policy_dict[I.get_hash()][action]
             new_history = current_history.copy()
             new_history.history.append(action)
 
@@ -186,10 +302,12 @@ def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, 
                 new_I.reset_zeros()
 
                 if player == 'x':
-                    expected_utility_h += play(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o, probability_new,
+                    expected_utility_h += play(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o,
+                                               probability_new,
                                                new_history, initial_player)
                 else:
-                    expected_utility_h += play(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o, probability_new,
+                    expected_utility_h += play(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o,
+                                               probability_new,
                                                new_history, initial_player)
             else:
                 terminal_history = TerminalHistory(new_history.history.copy())
@@ -201,7 +319,7 @@ def play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, probability, 
             new_I = I.copy()
             new_I.simulate_sense(action, true_board)
             new_true_board = true_board.copy()
-            probability_new = probability*policy_obj.policy_dict[I.get_hash()][action]
+            probability_new = probability * policy_obj.policy_dict[I.get_hash()][action]
             new_history = current_history.copy()
             new_history.history.append(action)
 
@@ -297,6 +415,7 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
     for h in starting_histories:
         h_object = NonTerminalHistory(h)
         curr_I_1, curr_I_2 = h_object.get_information_sets()
+
         true_board, _, _ = h_object.get_board()
         if prob_reaching_h_list[count] > 0:
             expected_utility_h = play(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1,
@@ -306,16 +425,16 @@ def get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_historie
                 probability_reaching_h = prob_reaching_h_list[count]
             else:
                 probability_reaching_h = 1
-  
+
             utility += expected_utility_h * probability_reaching_h
         count += 1
     return utility
 
 
 def get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, initial_player):
-    get_prob_h_given_policy_args = []
     prob_reaching_h_list_all = []
     for h in starting_histories:
+        # h = h.decode(action_bit_encoding)
         h_object = NonTerminalHistory(h)
 
         if not I.get_hash() == "000000000m":
@@ -324,51 +443,66 @@ def get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_hi
                 InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-']),
                 TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0']),
                 'x', h[0], policy_obj_x, policy_obj_o, 1, h_object, I, initial_player)
-            get_prob_h_given_policy_args.append(temp_args)
-        else:
-            temp_args = []
-            get_prob_h_given_policy_args.append(temp_args)
 
-        prob_reaching_h = get_prob_h_given_policy_wrapper(*temp_args)
+            prob_reaching_h = get_prob_h_given_policy_wrapper(*temp_args)
+        else:
+            prob_reaching_h = 1
+
         prob_reaching_h_list_all.append(prob_reaching_h)
 
     return prob_reaching_h_list_all
 
 
 def calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list):
-    new_policy_obj_x = policy_obj_x.copy()
-    new_policy_obj_o = policy_obj_o.copy()
-
     if I.move_flag:
         prob_dist = [1 if i == action else 0 for i in range(9)]
         if I.player == 'x':
-            new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
+            old_prob_dist = copy.deepcopy(policy_obj_x.policy_dict[I.get_hash()])
+            policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
+            util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories,
+                                                 prob_reaching_h_list)
+            policy_obj_x.policy_dict[I.get_hash()] = old_prob_dist
         else:
-            new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
+            old_prob_dist = copy.deepcopy(policy_obj_o.policy_dict[I.get_hash()])
+            policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
+            util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories,
+                                                 prob_reaching_h_list)
+            policy_obj_o.policy_dict[I.get_hash()] = old_prob_dist
     else:
         prob_dist = [1 if i == action else 0 for i in range(9, 13)]
         if I.player == 'x':
-            new_policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
+            old_prob_dist = copy.deepcopy(policy_obj_x.policy_dict[I.get_hash()])
+            policy_obj_x.update_policy_for_given_information_set(I, prob_dist)
+            util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories,
+                                                 prob_reaching_h_list)
+            policy_obj_x.policy_dict[I.get_hash()] = old_prob_dist
         else:
-            new_policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
-
-    util_a = get_counter_factual_utility(I, new_policy_obj_x, new_policy_obj_o, starting_histories, prob_reaching_h_list)
-    logging.info('Calculated cf-utility-a = {} for action {}...'.format(util_a, action))
+            old_prob_dist = copy.deepcopy(policy_obj_o.policy_dict[I.get_hash()])
+            policy_obj_o.update_policy_for_given_information_set(I, prob_dist)
+            util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories,
+                                                 prob_reaching_h_list)
+            policy_obj_o.policy_dict[I.get_hash()] = old_prob_dist
 
     return util_a
 
 
-def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, next_itr_policy_obj_x, next_itr_policy_obj_o, starting_histories):
+def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, starting_histories=None):
     actions = I.get_actions()
     regret_list = [0 for _ in range(13)]
-    
-    # starting_histories = get_histories_given_I(I, policy_obj_x, policy_obj_o)
-    prob_reaching_h_list = get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player)
-    
-    args = [(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list) for action in actions]
 
-    with Pool(len(actions)) as p:
-        util_a_list = p.starmap(calc_util_a_given_I_and_action, args)
+    if starting_histories is None:
+        if I.player == 'x':
+            starting_histories = upgraded_get_histories_given_I(I, None, policy_obj_o)
+        else:
+            starting_histories = upgraded_get_histories_given_I(I, policy_obj_x, None)
+
+    prob_reaching_h_list = get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories,
+                                                             I.player)
+
+    util_a_list = [0 for _ in actions]
+    for idx in range(len(actions)):
+        util_a_list[idx] = calc_util_a_given_I_and_action(I, actions[idx], policy_obj_x, policy_obj_o,
+                                                          starting_histories, prob_reaching_h_list)
 
     util = 0
     for action, util_a in zip(actions, util_a_list):
@@ -377,30 +511,14 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, 
         else:
             util += util_a * policy_obj_o.policy_dict[I.get_hash()][action]
 
-    logging.info('Calculated cf-utility = {}...'.format(util))
-    
     for action, util_a in zip(actions, util_a_list):
         if T == 0:
             regret_T = util_a - util
         else:
             regret_T = (1 / T) * ((T - 1) * prev_regret_list[action] + util_a - util)
-        
+
         final_regret_T = max(0, regret_T)
         regret_list[action] = final_regret_T
-        logging.info('Calculated regret for {}, {} = {}...'.format(I.get_hash(), action, final_regret_T))
 
-    total_regret_I = sum(regret_list)
-
-    if I.player == 'x':
-        policy = next_itr_policy_obj_x
-    else:
-        policy = next_itr_policy_obj_o
-
-    if total_regret_I > 0:
-        for action in actions:
-            policy.policy_dict[I.get_hash()][action] = regret_list[action] / total_regret_I
-    else:
-        for action in actions:
-            policy.policy_dict[I.get_hash()][action] = 1 / len(actions)
-
-    return next_itr_policy_obj_x, next_itr_policy_obj_o, regret_list
+    logging.info('Calculated regret list for {}...'.format(I.get_hash()))
+    return regret_list

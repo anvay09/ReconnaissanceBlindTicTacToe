@@ -156,8 +156,9 @@ if __name__ == "__main__":
     true_board = TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
     I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
     I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
-    player = 'x'
+    player = 'o'
 
-    p2_policy_dict = json.load(open('data_files/P2_iteration_2_cfr_policy.json', 'r'))
-    p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
-    parallel_play(I_1, I_2, true_board, player, p2_policy_obj)
+
+    p1_policy_dict = json.load(open('data_files/P1_iteration_9_cfr_policy.json', 'r'))
+    p1_policy_obj = Policy(policy_dict=p1_policy_dict, player='x')
+    parallel_play(I_1, I_2, true_board, player, p1_policy_obj)

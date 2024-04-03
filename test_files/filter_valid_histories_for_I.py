@@ -1,28 +1,41 @@
 from rbt_classes import InformationSet, Policy
-from rbt_utilties import get_histories_given_I
+from rbt_utilties import get_histories_given_I, upgraded_get_histories_given_I
 import json
-from tqdm import tqdm
+import logging
+from multiprocessing import Pool
+from config import num_workers
 
 if __name__ == '__main__':
-    with open('./data_files/{}.json'.format('p2_iteration_10_cfr_policy.json'), 'r') as f:
+    with open('./data_files/{}.json'.format('P1_DG_policy'), 'r') as f:
         policy_dict = json.load(f)
-    policy_obj_o = Policy(player='o', policy_dict=policy_dict)
+    policy_obj_x = Policy(player='x', policy_dict=policy_dict)
 
-    P1_reachable_information_sets_file = 'data_files/reachable_P1_information_sets.txt'
-    P1_reachable_information_sets = set()
-    with open(P1_reachable_information_sets_file, 'r') as f:
+    P2_reachable_information_sets_file = 'data_files/reachable_P2_information_sets.txt'
+    P2_reachable_information_sets = []
+    with open(P2_reachable_information_sets_file, 'r') as f:
         lines = f.readlines()
         for line in lines:
-            P1_reachable_information_sets.add(line.strip())
+            P2_reachable_information_sets.append(line.strip())
 
     histories = {}
-
-    for I_hash in tqdm(P1_reachable_information_sets):
-        I = InformationSet(player='x', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
+    args = []
+    P2_reachable_information_sets = P2_reachable_information_sets[0:10]
     
-        H = get_histories_given_I(I, policy_obj_x=None, policy_obj_o=policy_obj_o)
-        histories[I_hash] = H
+    for I_hash in P2_reachable_information_sets:
+        I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
+        args.append((I, policy_obj_x, None))
 
-    with open('data_files/p1_valid_histories_for_reachable_I.json', 'w') as f:
+    logging.info('Filtering valid histories for P2 information sets...')
+    with Pool(num_workers) as p:
+        H = p.starmap(upgraded_get_histories_given_I, args)
+    
+    logging.info('Saving valid histories for P2 information sets...')
+    
+    for idx in range(len(args)):
+        I_hash = args[idx][0].get_hash()
+        histories[I_hash] = H[idx]
+
+    print(histories)
+    with open('data_files/test.json', 'w') as f:
         json.dump(histories, f)
         
