@@ -61,6 +61,7 @@ def get_average_policy(policy_obj_list, I_list, initial_player):
 
     return average_policy
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--CurrentPlayer', type=str, required=True)
