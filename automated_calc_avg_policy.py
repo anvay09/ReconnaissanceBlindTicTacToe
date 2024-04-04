@@ -12,11 +12,11 @@ def calc_average_policy(policy_obj_list, I_hash, initial_player):
     logging.info('Computing average policy for {}...'.format(I_hash))
     I = InformationSet(player=initial_player, move_flag=I_hash[-1] == 'm', board=[*I_hash[:-1]])
     if I.move_flag:
-        average_policy[I_hash] ={}
+        average_policy[I_hash] = {}
         for k in range(9):
             average_policy[I_hash][k] = 0
     else:
-        average_policy[I_hash] ={}
+        average_policy[I_hash] = {}
         for k in range(9, 13):
             average_policy[I_hash][k] = 0
 
@@ -63,24 +63,31 @@ if __name__ == '__main__':
     parser.add_argument('--CurrentPlayer', type=str, required=True)
     parser.add_argument('--PolicyFileBase', type=str, required=True)
     parser.add_argument('--NumRounds', type=str, required=True)
-    parser.add_argument('--ISetFile', type=str, required=True)
+    parser.add_argument('--BasePath', type=str, required=True)
     arguments = parser.parse_args()
 
     policy_obj_list = []
 
     for i in range(1, int(arguments.NumRounds) + 1):
-        with open(arguments.PolicyFileBase + str(i) + '.json', 'r') as f:
+        with open(arguments.PolicyFileBase.format(str(i)), 'r') as f:
             policy_obj_list.append(Policy(policy_dict=json.load(f), player=arguments.CurrentPlayer))
 
-    with open(arguments.ISetFile, 'r') as f:
-        I_list = f.read().splitlines()
+    if arguments.CurrentPlayer == 'o':
+        IS_file_player = 'data/P2_information_sets.json'
+    else:
+        IS_file_player = 'data/P1_information_sets.json'
+
+    I_set = json.load(open(IS_file_player, 'r'))
+    I_list = list(I_set.keys())
 
     average_policy = get_average_policy(policy_obj_list, I_list, arguments.CurrentPlayer)
 
     if arguments.CurrentPlayer == 'x':
-        outfile_name = './data_files_avg/P1_average_overall_policy_after_{}_rounds.json'.format(arguments.NumRounds)
+        outfile_name = './{}/average/P1_average_overall_policy_after_{}_rounds.json'.format(arguments.BasePath,
+                                                                                            arguments.NumRounds)
     else:
-        outfile_name = './data_files_avg/P2_average_overall_policy_after_{}_rounds.json'.format(arguments.NumRounds)
+        outfile_name = './{}/average/P2_average_overall_policy_after_{}_rounds.json'.format(arguments.BasePath,
+                                                                                            arguments.NumRounds)
 
     with open(outfile_name, 'w') as f:
         json.dump(average_policy, f)
