@@ -164,13 +164,13 @@ def parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, cu
     print('Total Histories: ', Total_histories)
     if current_player_run == 'x':
         print('P1 Information Sets: ', len(P1_information_sets))
-        with open('{}/reachable_P1_information_sets_round_{}.txt'.format(base_path, cfr_round), 'w') as f:
+        with open('./{}/reachable_is/reachable_P1_information_sets_round_{}.txt'.format(base_path, cfr_round), 'w') as f:
             for item in P1_information_sets:
                 f.write(item + '\n')
 
     if current_player_run == 'o':
         print('P2 Information Sets: ', len(P2_information_sets))
-        with open('{}/reachable_P2_information_sets_round_{}.txt'.format(base_path, cfr_round), 'w') as f:
+        with open('./{}/reachable_is/reachable_P2_information_sets_round_{}.txt'.format(base_path, cfr_round), 'w') as f:
             for item in P2_information_sets:
                 f.write(item + '\n')
 
@@ -204,11 +204,11 @@ if __name__ == "__main__":
     cfr_player, policy_file_x, policy_file_o, cfr_round, reachable_IS_flag, filter_valid_histories_flag, base_path = parse_commandline_args()
 
     if cfr_player == 'o':
-        reachable_IS_file_player = '{}/reachable_P2_information_sets_round_{}.txt'.format(base_path, cfr_round)
-        valid_histories_file_player = '{}/p2_valid_histories_for_reachable_I_round_{}.json'.format(base_path, cfr_round)
+        reachable_IS_file_player = './{}/reachable_is/reachable_P2_information_sets_round_{}.txt'.format(base_path, cfr_round)
+        valid_histories_file_player = './{}/valid_histories/p2_valid_histories_for_reachable_I_round_{}.json'.format(base_path, cfr_round)
     else:
-        reachable_IS_file_player = '{}/reachable_P1_information_sets_round_{}.txt'.format(base_path, cfr_round)
-        valid_histories_file_player = '{}/p1_valid_histories_for_reachable_I_round_{}.json'.format(base_path, cfr_round)
+        reachable_IS_file_player = './{}/reachable_is/reachable_P1_information_sets_round_{}.txt'.format(base_path, cfr_round)
+        valid_histories_file_player = './{}/valid_histories/p1_valid_histories_for_reachable_I_round_{}.json'.format(base_path, cfr_round)
 
     p1_policy_dict = json.load(open(policy_file_x, 'r'))
     policy_obj_x = Policy(policy_dict=p1_policy_dict, player='x')
@@ -219,23 +219,22 @@ if __name__ == "__main__":
         parallel_play(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, cfr_player, cfr_round, base_path)
 
     # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% filter valid histories and save %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    player_reachable_information_sets = set()
-    with open(reachable_IS_file_player, 'r') as f:
-        lines = f.readlines()
-        for line in lines:
-            player_reachable_information_sets.add(line.strip())
-
-    histories = {}
-    args = []
-
-    for I_hash in player_reachable_information_sets:
-        I = InformationSet(player=cfr_player, move_flag=I_hash[-1] == 'm', board=[*I_hash[:-1]])
-        if cfr_player == 'x':
-            args.append((I, None, policy_obj_o))
-        else:
-            args.append((I, policy_obj_x, None))
-
     if filter_valid_histories_flag:
+        player_reachable_information_sets = set()
+        with open(reachable_IS_file_player, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                player_reachable_information_sets.add(line.strip())
+
+        histories = {}
+        args = []
+
+        for I_hash in player_reachable_information_sets:
+            I = InformationSet(player=cfr_player, move_flag=I_hash[-1] == 'm', board=[*I_hash[:-1]])
+            if cfr_player == 'x':
+                args.append((I, None, policy_obj_o))
+            else:
+                args.append((I, policy_obj_x, None))
         logging.info('Filtering valid histories for player {} information sets...'.format(cfr_player))
         with Pool(num_workers) as p:
             H = p.starmap(upgraded_get_histories_given_I, tqdm(args, total=len(args)))
@@ -258,24 +257,24 @@ if __name__ == "__main__":
 
     if cfr_player == 'x':
         if cfr_round == 1:
-            p1_policy_dict_for_IS_keys = json.load(open('./{}/P1_uniform_policy.json'.format(base_path), 'r'))
+            p1_policy_dict_for_IS_keys = json.load(open('./data/P1_uniform_policy.json', 'r'))
             prev_regret_list_player = {}
             for key in p1_policy_dict_for_IS_keys.keys():
                 prev_regret_list_player[key] = [0 for _ in range(13)]
             # prev_regret_list_player = {I_hash: [0 for _ in range(13)] for I_hash in player_reachable_information_sets}
         else:
             prev_regret_list_player = json.load(
-                open('./{}/P1_prev_regret_list_round_{}.json'.format(base_path, cfr_round - 1), 'r'))
+                open('./{}/prev_regret_list/P1_prev_regret_list_round_{}.json'.format(base_path, cfr_round - 1), 'r'))
     else:
         if cfr_round == 1:
-            p2_policy_dict_for_IS_keys = json.load(open('./{}/P2_uniform_policy.json'.format(base_path), 'r'))
+            p2_policy_dict_for_IS_keys = json.load(open('./data/P2_uniform_policy.json', 'r'))
             prev_regret_list_player = {}
             for key in p2_policy_dict_for_IS_keys.keys():
                 prev_regret_list_player[key] = [0 for _ in range(13)]
             # prev_regret_list_player = {I_hash: [0 for _ in range(13)] for I_hash in player_reachable_information_sets}
         else:
             prev_regret_list_player = json.load(
-                open('./{}/P2_prev_regret_list_round_{}.json'.format(base_path, cfr_round - 1), 'r'))
+                open('./{}/prev_regret_list/P2_prev_regret_list_round_{}.json'.format(base_path, cfr_round - 1), 'r'))
 
     # logging.info('Loading valid histories...')
     # with open(valid_histories_file_player, 'r') as f:
@@ -324,12 +323,12 @@ if __name__ == "__main__":
     logging.info('Saving policy objects...')
 
     if cfr_player == 'x':
-        with open('./{}/P1_cfr_policy_round_{}.json'.format(base_path, cfr_round), 'w') as f:
+        with open('./{}/cfr_policy/P1_cfr_policy_round_{}.json'.format(base_path, cfr_round), 'w') as f:
             json.dump(policy_obj_x.policy_dict, f)
-        with open('./{}/P1_prev_regret_list_round_{}.json'.format(base_path, cfr_round), 'w') as f:
+        with open('./{}/prev_regret_list/P1_prev_regret_list_round_{}.json'.format(base_path, cfr_round), 'w') as f:
             json.dump(prev_regret_list_player, f)
     else:
-        with open('./{}/P2_cfr_policy_round_{}.json'.format(base_path, cfr_round), 'w') as f:
+        with open('./{}/cfr_policy/P2_cfr_policy_round_{}.json'.format(base_path, cfr_round), 'w') as f:
             json.dump(policy_obj_o.policy_dict, f)
-        with open('./{}/P2_prev_regret_list_round_{}.json'.format(base_path, cfr_round), 'w') as f:
+        with open('./{}/prev_regret_list/P2_prev_regret_list_round_{}.json'.format(base_path, cfr_round), 'w') as f:
             json.dump(prev_regret_list_player, f)
