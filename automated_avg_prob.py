@@ -309,7 +309,7 @@ if __name__ == "__main__":
             if cfr_player == 'x':
                 avg_policy_x[I_hash][action] = prob_I * policy_obj_x.policy_dict[I_hash][action]
             else:
-                avg_policy_o[I_hash][action] = prob_I * policy_obj_x.policy_dict[I_hash][action]
+                avg_policy_o[I_hash][action] = prob_I * policy_obj_o.policy_dict[I_hash][action]
             prob_dict[I_hash] = prob_I
 
     logging.info('Completed computing avg policy {}...'.format(cfr_round))
