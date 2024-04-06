@@ -377,6 +377,7 @@ class InformationSet(TicTacToeBoard):
                 count += 1
         return count
 
+
 class History:
     """
     Parent class for RBT histories
