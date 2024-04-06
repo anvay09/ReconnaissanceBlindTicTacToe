@@ -11,6 +11,7 @@
 using namespace std;
 
 static vector<char> EMPTY_BOARD = {'0', '0', '0', '0', '0', '0', '0', '0', '0'};
+static map<int, vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
 class Policy;
 
 class TicTacToeBoard
@@ -34,7 +35,6 @@ public:
 class InformationSet : public TicTacToeBoard
 {
 public:
-    map<int, vector<int> > sense_square_dict;
     char player;
     bool move_flag;
     InformationSet();

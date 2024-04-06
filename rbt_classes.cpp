@@ -101,13 +101,11 @@ void TicTacToeBoard::print_board() {
 
 
 InformationSet::InformationSet() : TicTacToeBoard() {
-    this->sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
     this->player = 'x';
     this->move_flag = true;
 }
 
 InformationSet::InformationSet(char player, bool move_flag, vector<char> board) : TicTacToeBoard(board) {
-    this->sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
     this->player = player;
     this->move_flag = move_flag;
 }
@@ -186,7 +184,7 @@ vector<int> InformationSet::get_actions_given_policy(Policy policy_obj) {
             }
         }
     } else {
-        for (auto &sense : this->sense_square_dict) {
+        for (auto &sense : sense_square_dict) {
             try {
                 if (policy_obj.policy_dict[this->get_hash()][sense.first] > 0) {
                     action_list.push_back(sense.first);
@@ -228,7 +226,7 @@ vector<int> InformationSet::get_played_actions() {
 
 vector<int> InformationSet::get_useful_senses() {
     vector<int> valid_sense;
-    for (auto &sense : this->sense_square_dict) {
+    for (auto &sense : sense_square_dict) {
         for (int i = 0; i < sense.second.size(); i++) {
             if (this->board[sense.second[i]] == '-') {
                 valid_sense.push_back(sense.first);
@@ -269,7 +267,7 @@ vector<int> InformationSet::get_uncertain_squares() {
 
 void InformationSet::simulate_sense(int action, TicTacToeBoard true_board) {
     this->reset_zeros();
-    for (int square : this->sense_square_dict[action]) {
+    for (int square : sense_square_dict[action]) {
         this->board[square] = true_board[square];
     }
 

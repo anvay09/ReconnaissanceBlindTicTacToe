@@ -1,6 +1,10 @@
 from rbt_classes import TicTacToeBoard
 from rbt_classes import InformationSet
 from multiprocessing import Pool
+import logging
+
+logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
+                    level=logging.INFO)
 
 
 def get_information_set_from_states(states, player):
@@ -161,6 +165,7 @@ if __name__ == "__main__":
     # I_2 = InformationSet(player='o', move_flag=True, board=['-', '-', '-', '0', 'x', '-', '0', '0', '-'])
     # player = 'o'
 
+    logging.info('Starting playthrough')
     output = play(I_1, I_2, true_board, player)
     total_histories = output[0]
-    print('Total Histories: ', total_histories)
+    logging.info('Total Histories: %d' % total_histories)
