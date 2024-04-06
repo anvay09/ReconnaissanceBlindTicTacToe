@@ -169,3 +169,6 @@ if __name__ == "__main__":
     output = play(I_1, I_2, true_board, player)
     total_histories = output[0]
     logging.info('Total Histories: %d' % total_histories)
+    # print size of information sets
+    logging.info('Size of P1 information set: %d' % len(output[1]))
+    logging.info('Size of P2 information set: %d' % len(output[2]))
