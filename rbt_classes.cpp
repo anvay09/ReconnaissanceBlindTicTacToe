@@ -1,4 +1,7 @@
 #include "rbt_classes.h"
+#include "json.hpp"
+using json = nlohmann::json;
+#include <fstream>
 
 TicTacToeBoard::TicTacToeBoard(vector<char> board) {
     if (board.empty()) {
@@ -179,24 +182,14 @@ void InformationSet::get_actions(vector<int> &actions) {
 void InformationSet::get_actions_given_policy(vector<int>& actions, Policy &policy_obj) {
     if (this->move_flag) {
         for (int move = 0; move < 9; move++) {
-            try {
-                if (policy_obj.policy_dict[this->get_hash()][move] > 0) {
-                    actions.push_back(move);
-                }
-            } catch (const out_of_range &e) {
-                cout << this->get_hash() << " " << move << " " << this->player << endl;
-                throw e;
+            if (policy_obj.policy_dict[this->get_hash()][move] > 0) {
+                actions.push_back(move);
             }
         }
     } else {
-        for (auto &sense : sense_square_dict) {
-            try {
-                if (policy_obj.policy_dict[this->get_hash()][sense.first] > 0) {
-                    actions.push_back(sense.first);
-                }
-            } catch (const out_of_range &e) {
-                cout << this->get_hash() << " " << sense.first << " " << this->player << endl;
-                throw e;
+        for (int sense = 9; sense < 13; sense++) {
+            if (policy_obj.policy_dict[this->get_hash()][sense] > 0) {
+                actions.push_back(sense);
             }
         }
     }
@@ -388,18 +381,18 @@ char History::other_player(char player) {
     return (player == 'x') ? 'o' : 'x';
 }
 
-tuple<TicTacToeBoard, bool, char> History::get_board() {
-    TicTacToeBoard true_board;
-    char curr_player = 'x';
+bool History::get_board(TicTacToeBoard &true_board, char& curr_player) {
+    curr_player = 'x';
     for (int action : this->history) {
         if (action < 9) {
             if (!true_board.update_move(action, curr_player)) {
-                return {true_board, true, curr_player};
+                return true;
             }
             curr_player = this->other_player(curr_player);
         }
     }
-    return {true_board, false, '0'};
+    curr_player = '0';
+    return false;
 }
 
 pair<InformationSet, InformationSet> History::get_information_sets() {
@@ -429,7 +422,7 @@ pair<InformationSet, InformationSet> History::get_information_sets() {
     return {I_1, I_2};
 }
 
-TerminalHistory::TerminalHistory(vector<int> history, map<char, int> reward) : History(history) {
+TerminalHistory::TerminalHistory(vector<int> history, unordered_map<char, int> reward) : History(history) {
     if (reward.empty()) {
         this->reward = {{'x', 0}, {'o', 0}};
     } else {
@@ -445,7 +438,8 @@ void TerminalHistory::set_reward() {
     TicTacToeBoard true_board;
     bool overlapping_move_flag;
     char overlapping_move_player;
-    tie(true_board, overlapping_move_flag, overlapping_move_player) = this->get_board();
+
+    overlapping_move_flag = this->get_board(true_board, overlapping_move_player);
 
     if (overlapping_move_flag) {
         this->reward[overlapping_move_player] = -1;
@@ -466,26 +460,14 @@ NonTerminalHistory NonTerminalHistory::copy() {
 }
 
 
-Policy::Policy(char player, map<string, map<int, double> > policy_dict) {
+Policy::Policy(char player, string file_path) {
+    this->player = player;
+    unordered_map<string, unordered_map<int, double> > policy_dict = this->read_policy_from_json(file_path);
+}
+
+Policy::Policy(char player, unordered_map<string, unordered_map<int, double> > policy_dict) {
     this->player = player;
     this->policy_dict = policy_dict;
-    vector<string> keys;
-    for (auto &policy : this->policy_dict) {
-        keys.push_back(policy.first);
-    }
-    for (string I_hash : keys) {
-        map<int, double> prob_dist = this->policy_dict[I_hash];
-        vector<int> actions;
-        for (auto &action : prob_dist) {
-            actions.push_back(action.first);
-        }
-        for (int action : actions) {
-            if (typeid(action) == typeid(string)) {
-                prob_dist[(int)action] = prob_dist[action];
-                prob_dist.erase(action);
-            }
-        }
-    }
 }
 
 Policy Policy::copy() {
@@ -494,9 +476,35 @@ Policy Policy::copy() {
 
 void Policy::update_policy_for_given_information_set(InformationSet information_set, vector<double> prob_distribution) {
     string I_hash = information_set.get_hash();
-    map<int, double> prob_dist;
+    unordered_map<int, double> prob_dist;
     for (int i = 0; i < prob_distribution.size(); i++) {
         prob_dist[i] = prob_distribution[i];
     }
     this->policy_dict[I_hash] = prob_dist;
+}
+
+unordered_map<string, unordered_map<int, double> > Policy::read_policy_from_json(string file_path){
+    ifstream i(file_path);
+    json policy_obj;
+    i >> policy_obj;
+    
+    for (json::iterator it = policy_obj.begin(); it != policy_obj.end(); ++it) {
+        string key = it.key();
+        unordered_map <int, double> probability_distribution;
+        if (key.back() == 's') {
+            vector<string> sense_keys = {"9", "10", "11", "12"};
+            for (int i = 0; i < sense_keys.size(); i++) {
+                probability_distribution[stoi(sense_keys[i])] = policy_obj[key][sense_keys[i]];
+            }
+        }
+        else if (key.back() == 'm') {
+            vector<string> move_keys = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};
+            for (int i = 0; i < move_keys.size(); i++) {
+                probability_distribution[stoi(move_keys[i])] = policy_obj[key][move_keys[i]];
+            }
+        }
+        policy_dict[key] = probability_distribution;
+    }
+
+    return policy_dict;
 }

@@ -1,5 +1,5 @@
 #include <iostream>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <algorithm>
 #include <string>
@@ -11,7 +11,7 @@
 using namespace std;
 
 static vector<char> EMPTY_BOARD = {'0', '0', '0', '0', '0', '0', '0', '0', '0'};
-static map<int, vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
+static unordered_map<int, vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
 class Policy;
 
 class TicTacToeBoard
@@ -69,15 +69,15 @@ public:
     int track_traversal_index;
     History(vector<int> history);
     char other_player(char player);
-    tuple<TicTacToeBoard, bool, char> get_board();
+    bool get_board(TicTacToeBoard &board, char& curr_player);
     pair<InformationSet, InformationSet> get_information_sets();
 };
 
 class TerminalHistory : public History
 {
 public:
-    map<char, int> reward;
-    TerminalHistory(vector<int> history, map<char, int> reward = {{'x', 0}, {'o', 0}});
+    unordered_map<char, int> reward;
+    TerminalHistory(vector<int> history, unordered_map<char, int> reward = {{'x', 0}, {'o', 0}});
     TerminalHistory copy();
     void set_reward();
 };
@@ -93,8 +93,10 @@ class Policy
 {
 public:
     char player;
-    map<string, map<int, double> > policy_dict;
-    Policy(char player, map<string, map<int, double> > policy_dict);
+    unordered_map<string, unordered_map<int, double> > policy_dict;
+    Policy(char player, string file_path);
+    Policy(char player, unordered_map<string, unordered_map<int, double> > policy_dict);
     Policy copy();
     void update_policy_for_given_information_set(InformationSet information_set, vector<double> prob_distribution);
+    unordered_map<string, unordered_map<int, double> > read_policy_from_json(string file_path);
 };

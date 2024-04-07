@@ -208,27 +208,25 @@ def get_expected_utility(I_1, I_2, true_board, player, policy_obj_x, policy_obj_
                     expected_utility_h += get_expected_utility(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o, probability_new,
                                                new_history, initial_player)
             else:
-                terminal_history = TerminalHistory(new_history.history.copy())
-                terminal_history.set_reward()
+                new_history.set_reward()
                 
-                terminal_histories.append((terminal_history, probability_new, terminal_history.reward[initial_player]))
-                expected_utility_h += probability_new * terminal_history.reward[initial_player]
+                terminal_histories.append((new_history, probability_new, new_history.reward[initial_player]))
+                expected_utility_h += probability_new * new_history.reward[initial_player]
 
     else:
         for action in actions:
             new_I = I.copy()
             new_I.simulate_sense(action, true_board)
-            new_true_board = true_board.copy()
            
             probability_new = probability*policy_obj.policy_dict[I.get_hash()][action]
             new_history = current_history.copy()
             new_history.history.append(action)
 
             if player == 'x':
-                expected_utility_h += get_expected_utility(new_I, I_2, new_true_board, 'x', policy_obj_x, policy_obj_o, probability_new,
+                expected_utility_h += get_expected_utility(new_I, I_2, true_board, 'x', policy_obj_x, policy_obj_o, probability_new,
                                            new_history, initial_player)
             else:
-                expected_utility_h += get_expected_utility(I_1, new_I, new_true_board, 'o', policy_obj_x, policy_obj_o, probability_new,
+                expected_utility_h += get_expected_utility(I_1, new_I, true_board, 'o', policy_obj_x, policy_obj_o, probability_new,
                                            new_history, initial_player)
 
     return expected_utility_h
@@ -245,18 +243,19 @@ if __name__ == "__main__":
     arguments = parser.parse_args()
     Itr = arguments.Iteration
     
-    p1_policy_dict = json.load(open('data_files_avg/P1_average_overall_policy_after_{}_rounds.json'.format(Itr), 'r'))
+    p1_policy_dict = json.load(open('data/Iterative_1/cfr_policy/P1_cfr_policy_round_{}.json'.format(Itr), 'r'))
     p1_policy_obj = Policy(policy_dict=p1_policy_dict, player='x')
 
-    p2_policy_dict = json.load(open('data_files_avg/P2_average_overall_policy_after_{}_rounds.json'.format(Itr), 'r'))
+    p2_policy_dict = json.load(open('data/Iterative_1/cfr_policy/P2_cfr_policy_round_{}.json'.format(Itr), 'r'))
     p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
 
     logging.info("Getting expected utility...")
-    expected_utility = get_expected_utility(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, 1, NonTerminalHistory(), player)
-    print('Expected Utility: ', expected_utility)
+    expected_utility = get_expected_utility(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, 1, TerminalHistory(), player)
+    logging.info("Expected Utility: {}".format(expected_utility))
+    logging.info("Terminal Histories: {}".format(len(terminal_histories)))
+    
+    # terminal_histories.sort(key=lambda x: x[2], reverse=True)
 
-    terminal_histories.sort(key=lambda x: x[2], reverse=True)
-
-    with open('data_files/games.txt', 'w') as f:
-        for item in terminal_histories:
-            f.write('History: {}, Probability: {}, Reward: {}\n'.format(item[0].history, item[1], item[2]))
+    # with open('data_files/games.txt', 'w') as f:
+    #     for item in terminal_histories:
+    #         f.write('History: {}, Probability: {}, Reward: {}\n'.format(item[0].history, item[1], item[2]))
