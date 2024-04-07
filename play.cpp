@@ -3,7 +3,6 @@
 #include <ctime>
 #include <unordered_set>
 
-// convert the below code to C++ code
 int play(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, unordered_set<string>& I_1_set, unordered_set<string>& I_2_set, char player) {
     int num_histories = 0;
     
@@ -16,7 +15,7 @@ int play(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, u
     } else {
         I = &I_2;
     }
-    // cout << "Checkpoint 0 " << I->get_hash() << endl;
+
     vector<int> actions = I->get_actions();
     
     if (I->move_flag) {
@@ -28,8 +27,7 @@ int play(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, u
                 InformationSet new_I(*I);
                 new_I.update_move(action, player);
                 new_I.reset_zeros();
-                // cout << "Checkpoint 1 " << new_I.get_hash() << endl;
-
+                
                 if (player == 'x') {
                     num_histories += play(new_I, I_2, new_true_board, I_1_set, I_2_set, 'o');
                 } else {
@@ -43,7 +41,6 @@ int play(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, u
         for (int action : actions) {
             InformationSet new_I(*I);
             new_I.simulate_sense(action, true_board);
-            // cout << "Checkpoint 2 " << new_I.get_hash() << endl;
             TicTacToeBoard new_true_board = true_board;
 
             if (player == 'x') {

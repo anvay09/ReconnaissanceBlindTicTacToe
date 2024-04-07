@@ -45,7 +45,7 @@ public:
     string get_hash();
     vector<TicTacToeBoard> get_states();
     vector<int> get_actions();
-    vector<int> get_actions_given_policy(Policy policy_obj);
+    vector<int> get_actions_given_policy(Policy &policy_obj);
     vector<int> get_valid_moves();
     vector<int> get_played_actions();
     vector<int> get_useful_senses();

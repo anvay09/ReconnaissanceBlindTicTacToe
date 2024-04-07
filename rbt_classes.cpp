@@ -2,7 +2,7 @@
 
 TicTacToeBoard::TicTacToeBoard(vector<char> board) {
     if (board.empty()) {
-        this->board = {'0', '0', '0', '0', '0', '0', '0', '0', '0'};
+        this->board = EMPTY_BOARD;
     } else {
         this->board = board;
     }
@@ -170,7 +170,7 @@ vector<int> InformationSet::get_actions() {
     }
 }
 
-vector<int> InformationSet::get_actions_given_policy(Policy policy_obj) {
+vector<int> InformationSet::get_actions_given_policy(Policy &policy_obj) {
     vector<int> action_list;
     if (this->move_flag) {
         for (int move = 0; move < 9; move++) {
