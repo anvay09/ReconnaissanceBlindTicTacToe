@@ -28,26 +28,31 @@ TicTacToeBoard TicTacToeBoard::copy() {
     return TicTacToeBoard(this->board);
 }
 
-pair<bool, char> TicTacToeBoard::is_win() {
+bool TicTacToeBoard::is_win(char& winner) {
     for (int i = 0; i < 3; i++) {
         if ((this->board[3 * i] == this->board[3 * i + 1]) && (this->board[3 * i + 1] == this->board[3 * i + 2]) && (this->board[3 * i] != '0')) {
-            return {true, this->board[3 * i]};
+            winner = this->board[3 * i];
+            return true;
         }
 
         if ((this->board[i] == this->board[i + 3]) && (this->board[i + 3] == this->board[i + 6]) && (this->board[i] != '0')) {
-            return {true, this->board[i]};
+            winner = this->board[i];
+            return true;
         }
     }
 
     if ((this->board[0] == this->board[4] && this->board[4] == this->board[8] && this->board[0] != '0')) {
-        return {true, this->board[0]};
+        winner = this->board[0];
+        return true;
     }
 
     if ((this->board[2] == this->board[4] && this->board[4] == this->board[6] && this->board[2] != '0')) {
-        return {true, this->board[2]};
+        winner = this->board[2];
+        return true;
     }
     
-    return {false, '0'};
+    winner = '0';
+    return false;
 }
 
 bool TicTacToeBoard::is_over() {
@@ -60,7 +65,8 @@ bool TicTacToeBoard::is_over() {
 }
 
 bool TicTacToeBoard::is_draw() {
-    if (!this->is_win().first && this->is_over()) {
+    char winner;
+    if (!this->is_win(winner) && this->is_over()) {
         return true;
     }
     return false;
@@ -130,7 +136,7 @@ string InformationSet::get_hash() {
     }
 }
 
-vector<TicTacToeBoard> InformationSet::get_states() {
+void InformationSet::get_states(vector<TicTacToeBoard> &states) {
     int num_unknown_opponent_moves = this->get_number_of_unknown_opponent_moves();
     vector<char> board_copy = this->board;
     for (int i = 0; i < board_copy.size(); i++) {
@@ -140,11 +146,11 @@ vector<TicTacToeBoard> InformationSet::get_states() {
     }
 
     if (num_unknown_opponent_moves == 0) {
-        return {TicTacToeBoard(board_copy)};
+        states.push_back(TicTacToeBoard(board_copy));
     } 
     else {
-        vector<TicTacToeBoard> output_states;
-        vector<int> uncertain_ind = this->get_uncertain_squares();
+        vector<int> uncertain_ind;
+        this->get_uncertain_squares(uncertain_ind);
         vector<char> base_perm(num_unknown_opponent_moves, this->other_player());
         base_perm.insert(base_perm.end(), uncertain_ind.size() - num_unknown_opponent_moves, '0');
 
@@ -153,30 +159,29 @@ vector<TicTacToeBoard> InformationSet::get_states() {
             for (int j = 0; j < base_perm.size(); j++) {
                 new_state[uncertain_ind[j]] = base_perm[j];
             }
-            if (!new_state.is_win().first && !new_state.is_over()) {
-                output_states.push_back(new_state);
+            char winner;
+            if (!new_state.is_win(winner) && !new_state.is_over()) {
+                states.push_back(new_state);
             }
         } while (next_permutation(base_perm.begin(), base_perm.end()));
 
-        return output_states;
     }
 }
 
-vector<int> InformationSet::get_actions() {
+void InformationSet::get_actions(vector<int> &actions) {
     if (this->move_flag) {
-        return this->get_valid_moves();
+        this->get_valid_moves(actions);
     } else {
-        return this->get_useful_senses();
+        this->get_useful_senses(actions);
     }
 }
 
-vector<int> InformationSet::get_actions_given_policy(Policy &policy_obj) {
-    vector<int> action_list;
+void InformationSet::get_actions_given_policy(vector<int>& actions, Policy &policy_obj) {
     if (this->move_flag) {
         for (int move = 0; move < 9; move++) {
             try {
                 if (policy_obj.policy_dict[this->get_hash()][move] > 0) {
-                    action_list.push_back(move);
+                    actions.push_back(move);
                 }
             } catch (const out_of_range &e) {
                 cout << this->get_hash() << " " << move << " " << this->player << endl;
@@ -187,7 +192,7 @@ vector<int> InformationSet::get_actions_given_policy(Policy &policy_obj) {
         for (auto &sense : sense_square_dict) {
             try {
                 if (policy_obj.policy_dict[this->get_hash()][sense.first] > 0) {
-                    action_list.push_back(sense.first);
+                    actions.push_back(sense.first);
                 }
             } catch (const out_of_range &e) {
                 cout << this->get_hash() << " " << sense.first << " " << this->player << endl;
@@ -195,46 +200,39 @@ vector<int> InformationSet::get_actions_given_policy(Policy &policy_obj) {
             }
         }
     }
-
-    return action_list;
 }
 
-vector<int> InformationSet::get_valid_moves() {
+void InformationSet::get_valid_moves(vector<int> &actions) {
     int w = this->win_exists();
     if (w != -1) {
-        return {w};
+        actions.push_back(w);
     }
-
-    vector<int> valid_moves;
-    for (int i = 0; i < this->board.size(); i++) {
-        if (this->board[i] == '0' || this->board[i] == '-') {
-            valid_moves.push_back(i);
+    else {
+        for (int i = 0; i < this->board.size(); i++) {
+            if (this->board[i] == '0' || this->board[i] == '-') {
+                actions.push_back(i);
+            }
         }
     }
-    return valid_moves;
 }
 
-vector<int> InformationSet::get_played_actions() {
-    vector<int> played_moves;
+void InformationSet::get_played_actions(vector<int> &actions) {
     for (int i = 0; i < this->board.size(); i++) {
         if (this->board[i] == this->player) {
-            played_moves.push_back(i);
+            actions.push_back(i);
         }
     }
-    return played_moves;
 }
 
-vector<int> InformationSet::get_useful_senses() {
-    vector<int> valid_sense;
+void InformationSet::get_useful_senses(vector<int> &actions) {
     for (auto &sense : sense_square_dict) {
         for (int i = 0; i < sense.second.size(); i++) {
             if (this->board[sense.second[i]] == '-') {
-                valid_sense.push_back(sense.first);
+                actions.push_back(sense.first);
                 break;
             }
         }
     }
-    return valid_sense;
 }
 
 int InformationSet::get_number_of_unknown_opponent_moves() {
@@ -255,14 +253,12 @@ int InformationSet::get_number_of_unknown_opponent_moves() {
     }
 }
 
-vector<int> InformationSet::get_uncertain_squares() {
-    vector<int> uncertain_squares;
+void InformationSet::get_uncertain_squares(vector<int> &squares) {
     for (int i = 0; i < this->board.size(); i++) {
         if (this->board[i] == '-') {
-            uncertain_squares.push_back(i);
+            squares.push_back(i);
         }
     }
-    return uncertain_squares;
 }
 
 void InformationSet::simulate_sense(int action, TicTacToeBoard true_board) {
@@ -455,10 +451,10 @@ void TerminalHistory::set_reward() {
         this->reward[overlapping_move_player] = -1;
         this->reward[this->other_player(overlapping_move_player)] = 1;
     } else {
-        pair<bool, char> win = true_board.is_win();
-        if (win.first) {
-            this->reward[win.second] = 1;
-            this->reward[this->other_player(win.second)] = -1;
+        char winner;
+        if (true_board.is_win(winner)) {
+            this->reward[winner] = 1;
+            this->reward[this->other_player(winner)] = -1;
         }
     }
 }

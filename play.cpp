@@ -9,22 +9,19 @@ int play(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, u
     I_1_set.insert(I_1.get_hash());
     I_2_set.insert(I_2.get_hash());
 
-    InformationSet* I;
-    if (player == 'x') {
-        I = &I_1;
-    } else {
-        I = &I_2;
-    }
-
-    vector<int> actions = I->get_actions();
+    InformationSet& I = player == 'x' ? I_1 : I_2;
     
-    if (I->move_flag) {
+    vector<int> actions;
+    I.get_actions(actions);
+    
+    if (I.move_flag) {
         for (int action : actions) {
             TicTacToeBoard new_true_board = true_board;
             bool success = new_true_board.update_move(action, player);
 
-            if (success && !new_true_board.is_win().first && !new_true_board.is_over()) {
-                InformationSet new_I(*I);
+            char winner;
+            if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
+                InformationSet new_I(I);
                 new_I.update_move(action, player);
                 new_I.reset_zeros();
                 
@@ -39,7 +36,7 @@ int play(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, u
         }
     } else {
         for (int action : actions) {
-            InformationSet new_I(*I);
+            InformationSet new_I(I);
             new_I.simulate_sense(action, true_board);
             TicTacToeBoard new_true_board = true_board;
 
@@ -57,7 +54,7 @@ int play(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, u
 
 int main() {
     TicTacToeBoard true_board = TicTacToeBoard({'x', '0', '0', '0', 'o', '0', '0', '0', '0'});
-    InformationSet I_1 = InformationSet('x', true, {'x', '0', '-', '0', 'o', '-', '-', '-', '-'});
+    InformationSet I_1 = InformationSet('x', false, {'x', '-', '-', '-', '-', '-', '-', '-', '-'});
     InformationSet I_2 = InformationSet('o', false, {'x', '-', '-', '-', 'o', '-', '-', '-', '-'});
     unordered_set<string> I_1_set;
     unordered_set<string> I_2_set;

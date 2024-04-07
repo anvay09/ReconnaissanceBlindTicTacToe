@@ -156,7 +156,7 @@ def parallel_play(I_1, I_2, true_board, player):
 
 if __name__ == "__main__":
     true_board = TicTacToeBoard(board=['x', '0', '0', '0', 'o', '0', '0', '0', '0'])
-    I_1 = InformationSet(player='x', move_flag=True, board=['x', '0', '-', '0', 'o', '-', '-', '-', '-'])
+    I_1 = InformationSet(player='x', move_flag=False, board=['x', '-', '-', '-', '-', '-', '-', '-', '-'])
     I_2 = InformationSet(player='o', move_flag=False, board=['x', '-', '-', '-', 'o', '-', '-', '-', '-'])
     player = 'x'
   
