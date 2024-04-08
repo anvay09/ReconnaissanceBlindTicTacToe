@@ -4,7 +4,7 @@
 
 vector<tuple<TerminalHistory, double, int>> terminal_histories;
 
-double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, Policy &policy_obj_x, Policy &policy_obj_o, double probability, TerminalHistory& current_history, char initial_player) {
+double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, Policy &policy_obj_x, Policy &policy_obj_o, double probability, History& current_history, char initial_player) {
     double expected_utility_h = 0;
     
     InformationSet& I = player == 'x' ? I_1 : I_2;
@@ -19,7 +19,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
             bool success = new_true_board.update_move(action, player);
 
             double probability_new = probability * policy_obj.policy_dict[I.get_hash()][action];
-            TerminalHistory new_history = current_history;
+            History new_history = current_history;
             new_history.history.push_back(action);
                 
             char winner;
@@ -34,9 +34,16 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
                     expected_utility_h += get_expected_utility(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player);
                 }
             } else {
-                new_history.set_reward();
-                terminal_histories.push_back(make_tuple(new_history, probability_new, new_history.reward[initial_player]));
-                expected_utility_h += new_history.reward[initial_player] * probability_new;
+                TerminalHistory H_T = TerminalHistory(new_history.history);
+                H_T.set_reward();
+                if (initial_player == 'x'){
+                    terminal_histories.push_back(make_tuple(H_T, probability_new, H_T.reward[0]));
+                    expected_utility_h += H_T.reward[0] * probability_new;
+                }
+                else{
+                    terminal_histories.push_back(make_tuple(H_T, probability_new, H_T.reward[1]));
+                    expected_utility_h += H_T.reward[1] * probability_new;
+                }
             }
         }
     } else {
@@ -45,7 +52,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
             new_I.simulate_sense(action, true_board);
             
             double probability_new = probability * policy_obj.policy_dict[I.get_hash()][action];
-            TerminalHistory new_history = current_history;
+            History new_history = current_history;
             new_history.history.push_back(action);
 
             if (player == 'x') {
@@ -61,13 +68,18 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
 
 
 int main() {
-    TicTacToeBoard true_board = TicTacToeBoard({'0', '0', '0', '0', '0', '0', '0', '0', '0'});
-    InformationSet I_1 = InformationSet('x', true, {'0', '0', '0', '0', '0', '0', '0', '0', '0'});
-    InformationSet I_2 = InformationSet('o', false, {'-', '-', '-', '-', '-', '-', '-', '-', '-'});
+    string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    string board_1 = "000000000";
+    string board_2 = "---------";
+    InformationSet I_1 = InformationSet('x', true, board_1);
+    InformationSet I_2 = InformationSet('o', false, board_2);
     
     char player = 'x';
-    Policy policy_obj_x('x', "data/Iterative_1/cfr_policy/P1_cfr_policy_round_10.json");
-    Policy policy_obj_o('o', "data/Iterative_1/cfr_policy/P2_cfr_policy_round_10.json");
+    string file_path_1 = "data/Iterative_1/cfr_policy/P1_cfr_policy_round_10.json";
+    string file_path_2 = "data/Iterative_1/cfr_policy/P2_cfr_policy_round_10.json";
+    Policy policy_obj_x('x', file_path_1);
+    Policy policy_obj_o('o', file_path_2);
     TerminalHistory start_history = TerminalHistory({});
 
     cout << "Getting expected utility..." << endl;

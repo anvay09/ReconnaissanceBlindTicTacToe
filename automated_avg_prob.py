@@ -254,9 +254,9 @@ def parse_commandline_args():
 
 
 if __name__ == "__main__":
-    p1_policy_dict = json.load(open('data/Iterative_1/cfr_policy/P1_cfr_policy_round_10.json', 'r'))
+    p1_policy_dict = json.load(open('data/Iterative_1/cfr_policy/P1_cfr_policy_round_2.json', 'r'))
     policy_obj_x = Policy(policy_dict=p1_policy_dict, player='x')
-    p2_policy_dict = json.load(open('data/Iterative_1/cfr_policy/P2_cfr_policy_round_10.json', 'r'))
+    p2_policy_dict = json.load(open('data/Iterative_1/cfr_policy/P2_cfr_policy_round_2.json', 'r'))
     policy_obj_o = Policy(policy_dict=p2_policy_dict, player='o')
     
     I = InformationSet(player='x', move_flag=True, board=['x', 'o', 'x', 'o', 'x', 'x', '0', 'o', '-'])
