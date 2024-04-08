@@ -55,6 +55,6 @@ if __name__ == "__main__":
     plt.ylabel('Expected Utility')
     plt.title('Convergence of Expected Utility')
 
-    plt.savefig('./{}/expected_util/plots/{}.png'.format(arguments.BasePath, arguments.OutputFileName))
+    plt.savefig('./{}/expected_util/plots/{}.pdf'.format(arguments.BasePath, arguments.OutputFileName))
     with open('./{}/expected_util/{}.json'.format(arguments.BasePath, arguments.OutputFileName), 'w') as f:
         json.dump({"0": exp_util_list}, f)
