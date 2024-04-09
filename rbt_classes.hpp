@@ -1,3 +1,6 @@
+#ifndef RBT_CLASSES_HPP
+#define RBT_CLASSES_HPP
+
 #include <iostream>
 #include <unordered_map>
 #include <map>
@@ -101,3 +104,5 @@ public:
     void update_policy_for_given_information_set(InformationSet& information_set, vector<double>& prob_distribution);
     unordered_map<string, vector<double> > read_policy_from_json(string& file_path);
 };
+
+#endif // RBT_CLASSES_HPP_
