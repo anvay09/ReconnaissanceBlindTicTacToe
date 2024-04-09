@@ -181,14 +181,14 @@ void InformationSet::get_actions(vector<int> &actions) {
 
 void InformationSet::get_actions_given_policy(vector<int>& actions, Policy &policy_obj) {
     if (this->move_flag) {
-        unordered_map<int, double>& prob_dist = policy_obj.policy_dict[this->get_hash()];
+        vector<double>& prob_dist = policy_obj.policy_dict[this->get_hash()];
         for (int move = 0; move < 9; move++) {
             if (prob_dist[move] > 0) {
                 actions.push_back(move);
             }
         }
     } else {
-        unordered_map<int, double>& prob_dist = policy_obj.policy_dict[this->get_hash()];
+        vector<double>& prob_dist = policy_obj.policy_dict[this->get_hash()];
         for (int sense = 9; sense < 13; sense++) {
             if (prob_dist[sense] > 0) {
                 actions.push_back(sense);
@@ -315,11 +315,12 @@ bool InformationSet::is_win_for_player() {
 int InformationSet::win_exists() {
     for (int i = 0; i < 9; i++) {
         if (this->board[i] == '0') {
-            string new_I_board = this->board;
-            new_I_board[i] = this->player;
-            if (InformationSet(this->player, this->move_flag, new_I_board).is_win_for_player()) {
+            this->board[i] = this->player;
+            if (InformationSet(this->player, this->move_flag, this->board).is_win_for_player()) {
+                this->board[i] = '0';
                 return i;
             }
+            this->board[i] = '0';
         }
     }
 
@@ -473,10 +474,10 @@ NonTerminalHistory NonTerminalHistory::copy() {
 
 Policy::Policy(char player, string& file_path) {
     this->player = player;
-    unordered_map<string, unordered_map<int, double> > policy_dict = this->read_policy_from_json(file_path);
+    unordered_map<string, vector<double> > policy_dict = this->read_policy_from_json(file_path);
 }
 
-Policy::Policy(char player, unordered_map<string, unordered_map<int, double> >& policy_dict) {
+Policy::Policy(char player, unordered_map<string, vector<double> >& policy_dict) {
     this->player = player;
     this->policy_dict = policy_dict;
 }
@@ -486,21 +487,26 @@ Policy Policy::copy() {
 }
 
 void Policy::update_policy_for_given_information_set(InformationSet& information_set, vector<double>& prob_distribution) {
-    unordered_map<int, double> prob_dist;
+    vector<double> prob_dist;
     for (int i = 0; i < prob_distribution.size(); i++) {
         prob_dist[i] = prob_distribution[i];
     }
     this->policy_dict[information_set.get_hash()] = prob_dist;
 }
 
-unordered_map<string, unordered_map<int, double> > Policy::read_policy_from_json(string& file_path){
+unordered_map<string, vector<double> > Policy::read_policy_from_json(string& file_path){
     ifstream i(file_path);
     json policy_obj;
     i >> policy_obj;
     
     for (json::iterator it = policy_obj.begin(); it != policy_obj.end(); ++it) {
         string key = it.key();
-        unordered_map <int, double> probability_distribution;
+        vector <double> probability_distribution(13);
+        // initialise all values to zero
+        for (int i = 0; i < 13; i++) {
+            probability_distribution[i] = 0;
+        }
+
         if (key.back() == 's') {
             vector<string> sense_keys = {"9", "10", "11", "12"};
             for (int i = 0; i < sense_keys.size(); i++) {

@@ -260,6 +260,7 @@ if __name__ == "__main__":
     policy_obj_o = Policy(policy_dict=p2_policy_dict, player='o')
     
     I = InformationSet(player='x', move_flag=True, board=['x', 'o', 'x', 'o', 'x', 'x', '0', 'o', '-'])
+    # I = InformationSet(player='x', move_flag=True, board=['o', '0', '0', 'x', '0', 'x', 'o', '-', 'x'])
 
     logging.info('Getting starting histories...')
     start_time = time.time()

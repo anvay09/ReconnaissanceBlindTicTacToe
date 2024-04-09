@@ -302,8 +302,8 @@ int main() {
     string board = "xoxoxx0o-";
     InformationSet I('x', true, board);
     // vector<vector<int>> valid_histories_list;
-
     auto start = std::chrono::system_clock::now();   
+    
     // upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o, valid_histories_list);
     // cout << "Number of valid histories: " << valid_histories_list.size() << endl;
 

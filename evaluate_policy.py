@@ -3,6 +3,7 @@ from multiprocessing import Pool
 import json
 import argparse
 import logging
+import time
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
@@ -250,9 +251,12 @@ if __name__ == "__main__":
     p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
 
     logging.info("Getting expected utility...")
+    start_time = time.time()
+
     expected_utility = get_expected_utility(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, 1, TerminalHistory(), player)
     logging.info("Expected Utility: {}".format(expected_utility))
     logging.info("Terminal Histories: {}".format(len(terminal_histories)))
+    logging.info('Time taken: {}'.format(time.time() - start_time))
     
     # terminal_histories.sort(key=lambda x: x[2], reverse=True)
 

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <unordered_map>
+#include <map>
 #include <vector>
 #include <algorithm>
 #include <string>
@@ -93,10 +94,10 @@ class Policy
 {
 public:
     char player;
-    unordered_map<string, unordered_map<int, double> > policy_dict;
+    unordered_map<string, vector<double> > policy_dict;
     Policy(char player, string& file_path);
-    Policy(char player, unordered_map<string, unordered_map<int, double> >& policy_dict);
+    Policy(char player, unordered_map<string, vector<double> >& policy_dict);
     Policy copy();
     void update_policy_for_given_information_set(InformationSet& information_set, vector<double>& prob_distribution);
-    unordered_map<string, unordered_map<int, double> > read_policy_from_json(string& file_path);
+    unordered_map<string, vector<double> > read_policy_from_json(string& file_path);
 };
