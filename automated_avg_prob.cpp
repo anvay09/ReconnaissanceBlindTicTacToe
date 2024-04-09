@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cassert>
 
-vector<int> intersection(vector<int> const& left_vector, vector<int> const& right_vector) {
+std::vector<int> intersection(std::vector<int> const& left_vector, std::vector<int> const& right_vector) {
     auto left = left_vector.begin();
     auto left_end = left_vector.end();
     auto right = right_vector.begin();
@@ -13,7 +13,7 @@ vector<int> intersection(vector<int> const& left_vector, vector<int> const& righ
     assert(is_sorted(left, left_end));
     assert(is_sorted(right, right_end));
 
-    vector<int> result;
+    std::vector<int> result;
 
     while (left != left_end && right != right_end) {
         if (*left == *right) {
@@ -39,11 +39,11 @@ vector<int> intersection(vector<int> const& left_vector, vector<int> const& righ
 void valid_histories_play(InformationSet& I_1, InformationSet& I_2, 
                           TicTacToeBoard& true_board, char player, 
                           History& current_history, InformationSet& end_I, 
-                          vector<int>& played_actions, Policy& policy_obj_x, 
-                          Policy& policy_obj_o, vector<vector<int>>& valid_histories_list){
+                          std::vector<int>& played_actions, Policy& policy_obj_x, 
+                          Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     
     InformationSet& I = player == 'x' ? I_1 : I_2;
-    vector<int> actions;
+    std::vector<int> actions;
 
     if (player == 'x') {
         if (end_I.player == 'x'){
@@ -152,19 +152,19 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2,
 
 
 void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, 
-                                    Policy& policy_obj_o, vector<vector<int>>& valid_histories_list){
+                                    Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     
     if (I.get_hash() == "000000000m"){
         return;
     }
 
-    string board_1 = "000000000";
-    string board_2 = "---------";
+    std::string board_1 = "000000000";
+    std::string board_2 = "---------";
     InformationSet I_1('x', true, board_1);
     InformationSet I_2('o', false, board_2);
     TicTacToeBoard true_board = TicTacToeBoard(EMPTY_BOARD);
     char player = 'x';
-    vector<int> played_actions;
+    std::vector<int> played_actions;
     I.get_played_actions(played_actions);
 
     History current_history({});
@@ -248,10 +248,10 @@ double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2,
 
 
 void get_probability_of_reaching_all_h(InformationSet &I, Policy& policy_obj_x,
-                                       Policy& policy_obj_o, vector<vector<int>>& starting_histories,
-                                       char initial_player, vector<double>& prob_reaching_h_list_all) {
+                                       Policy& policy_obj_o, std::vector<std::vector<int>>& starting_histories,
+                                       char initial_player, std::vector<double>& prob_reaching_h_list_all) {
 
-    for (vector<int> history: starting_histories) {
+    for (std::vector<int> history: starting_histories) {
         NonTerminalHistory h_object = NonTerminalHistory(history);
         double prob_reaching_h;
 
@@ -259,9 +259,9 @@ void get_probability_of_reaching_all_h(InformationSet &I, Policy& policy_obj_x,
             prob_reaching_h = 1.0;
         }
         else {
-            string board_1 = "000000000";
-            string board_2 = "---------";
-            string board = "000000000";
+            std::string board_1 = "000000000";
+            std::string board_2 = "---------";
+            std::string board = "000000000";
 
             InformationSet I_1('x', true, board_1);
             InformationSet I_2('o', false, board_2);
@@ -278,8 +278,8 @@ void get_probability_of_reaching_all_h(InformationSet &I, Policy& policy_obj_x,
 
 
 double get_probability_of_reaching_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, char initial_player) {
-    vector<vector<int>> starting_histories;
-    vector<double> prob_reaching_h_list_all;
+    std::vector<std::vector<int>> starting_histories;
+    std::vector<double> prob_reaching_h_list_all;
 
     upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o, starting_histories);
     get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, initial_player, prob_reaching_h_list_all);
@@ -294,12 +294,12 @@ double get_probability_of_reaching_I(InformationSet& I, Policy& policy_obj_x, Po
 
 
 int main() {
-    string file_path_1 = "data/Iterative_1/cfr_policy/P1_cfr_policy_round_2.json";
-    string file_path_2 = "data/Iterative_1/cfr_policy/P2_cfr_policy_round_2.json";
+    std::string file_path_1 = "data/Iterative_1/cfr_policy/P1_cfr_policy_round_2.json";
+    std::string file_path_2 = "data/Iterative_1/cfr_policy/P2_cfr_policy_round_2.json";
 
     Policy policy_obj_x('x', file_path_1);
     Policy policy_obj_o('o', file_path_2);
-    string board = "xoxoxx0o-";
+    std::string board = "xoxoxx0o-";
     InformationSet I('x', true, board);
     // vector<vector<int>> valid_histories_list;
     auto start = std::chrono::system_clock::now();   
@@ -308,7 +308,7 @@ int main() {
     // cout << "Number of valid histories: " << valid_histories_list.size() << endl;
 
     double prob_reaching_I = get_probability_of_reaching_I(I, policy_obj_x, policy_obj_o, 'x');
-    cout << "Probability of reaching I: " << prob_reaching_I << endl;
+    std::cout << "Probability of reaching I: " << prob_reaching_I << std::endl;
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;

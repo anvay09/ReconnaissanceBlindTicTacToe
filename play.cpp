@@ -3,7 +3,7 @@
 #include <ctime>
 #include <unordered_set>
 
-int play(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, unordered_set<string>& I_1_set, unordered_set<string>& I_2_set, char player) {
+int play(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, std::unordered_set<std::string>& I_1_set, std::unordered_set<std::string>& I_2_set, char player) {
     int num_histories = 0;
     
     I_1_set.insert(I_1.get_hash());
@@ -11,7 +11,7 @@ int play(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, u
 
     InformationSet& I = player == 'x' ? I_1 : I_2;
     
-    vector<int> actions;
+    std::vector<int> actions;
     I.get_actions(actions);
     
     if (I.move_flag) {
@@ -53,21 +53,21 @@ int play(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, u
 
 
 int main() {
-    string board = "x000o0000";
+    std::string board = "x000o0000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
-    string board_1 = "x0-0o----";
-    string board_2 = "x---o----";
+    std::string board_1 = "x0-0o----";
+    std::string board_2 = "x---o----";
     InformationSet I_1 = InformationSet('x', true, board_1);
     InformationSet I_2 = InformationSet('o', false, board_2);
-    unordered_set<string> I_1_set;
-    unordered_set<string> I_2_set;
+    std::unordered_set<std::string> I_1_set;
+    std::unordered_set<std::string> I_2_set;
     char player = 'x';
 
     auto start = std::chrono::system_clock::now();   
     int output = play(I_1, I_2, true_board, I_1_set, I_2_set, player);
-    std::cout << output << endl;
-    std::cout << I_1_set.size() << endl;
-    std::cout << I_2_set.size() << endl;
+    std::cout << output << std::endl;
+    std::cout << I_1_set.size() << std::endl;
+    std::cout << I_2_set.size() << std::endl;
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;

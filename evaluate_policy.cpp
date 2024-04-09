@@ -2,7 +2,7 @@
 #include <chrono>
 #include <ctime>
 
-vector<tuple<TerminalHistory, double, int>> terminal_histories;
+std::vector<std::tuple<TerminalHistory, double, int>> terminal_histories;
 
 double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, Policy &policy_obj_x, Policy &policy_obj_o, double probability, History& current_history, char initial_player) {
     double expected_utility_h = 0;
@@ -10,7 +10,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
     InformationSet& I = player == 'x' ? I_1 : I_2;
     Policy& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     
-    vector<int> actions;
+    std::vector<int> actions;
     I.get_actions_given_policy(actions, policy_obj);
     
     if (I.move_flag) {
@@ -37,11 +37,11 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
                 TerminalHistory H_T = TerminalHistory(new_history.history);
                 H_T.set_reward();
                 if (initial_player == 'x'){
-                    terminal_histories.push_back(make_tuple(H_T, probability_new, H_T.reward[0]));
+                    terminal_histories.push_back(std::make_tuple(H_T, probability_new, H_T.reward[0]));
                     expected_utility_h += H_T.reward[0] * probability_new;
                 }
                 else{
-                    terminal_histories.push_back(make_tuple(H_T, probability_new, H_T.reward[1]));
+                    terminal_histories.push_back(std::make_tuple(H_T, probability_new, H_T.reward[1]));
                     expected_utility_h += H_T.reward[1] * probability_new;
                 }
             }
@@ -68,27 +68,27 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
 
 
 int main() {
-    string board = "000000000";
+    std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
-    string board_1 = "000000000";
-    string board_2 = "---------";
+    std::string board_1 = "000000000";
+    std::string board_2 = "---------";
     InformationSet I_1 = InformationSet('x', true, board_1);
     InformationSet I_2 = InformationSet('o', false, board_2);
     
     char player = 'x';
-    string file_path_1 = "data/Iterative_1/cfr_policy/P1_cfr_policy_round_10.json";
-    string file_path_2 = "data/Iterative_1/cfr_policy/P2_cfr_policy_round_10.json";
+    std::string file_path_1 = "data/Iterative_1/cfr_policy/P1_cfr_policy_round_10.json";
+    std::string file_path_2 = "data/Iterative_1/cfr_policy/P2_cfr_policy_round_10.json";
     Policy policy_obj_x('x', file_path_1);
     Policy policy_obj_o('o', file_path_2);
     TerminalHistory start_history = TerminalHistory({});
 
-    cout << "Getting expected utility..." << endl;
+    std::cout << "Getting expected utility..." << std::endl;
     auto start = std::chrono::system_clock::now();   
     
     double expected_utility = get_expected_utility(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, 1, start_history, player);
-    cout << "Expected utility: " << expected_utility << endl;
+    std::cout << "Expected utility: " << expected_utility << std::endl;
   
-    cout << "Number of terminal histories: " << terminal_histories.size() << endl;
+    std::cout << "Number of terminal histories: " << terminal_histories.size() << std::endl;
     
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
