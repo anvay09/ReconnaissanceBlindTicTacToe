@@ -39,6 +39,11 @@ void calc_average_policy(std::vector<Policy>& policy_obj_list, InformationSet& I
 }
 
 
+void get_average_policy(std::vector<Policy>& policy_obj_list, std::vector<InformationSet>& I_list, char initial_player, Policy& average_policy) {
+    for (InformationSet& I: I_list) {
+        calc_average_policy(policy_obj_list, I, initial_player, average_policy);
+    }
+}
 
 int main() {
     std::vector<Policy> policy_obj_list;

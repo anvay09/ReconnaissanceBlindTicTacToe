@@ -167,7 +167,8 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x,
     std::vector<int> played_actions;
     I.get_played_actions(played_actions);
 
-    History current_history({});
+    std::vector<int> h = {};
+    History current_history(h);
     valid_histories_play(I_1, I_2, true_board, player, current_history, I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
     return;
 }   

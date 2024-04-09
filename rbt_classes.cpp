@@ -366,7 +366,7 @@ int InformationSet::num_self_moves() {
 }
 
 
-History::History(std::vector<int> history) {
+History::History(std::vector<int>& history) {
     if (history.empty()) {
         this->history = {};
     } else {
@@ -422,7 +422,7 @@ std::pair<InformationSet, InformationSet> History::get_information_sets() {
     return {I_1, I_2};
 }
 
-TerminalHistory::TerminalHistory(std::vector<int> history, std::vector<int> reward) : History(history) {
+TerminalHistory::TerminalHistory(std::vector<int>& history, std::vector<int> reward) : History(history) {
     if (reward.empty()) {
         this->reward = {0, 0};
     } else {
@@ -465,7 +465,7 @@ void TerminalHistory::set_reward() {
     }
 }
 
-NonTerminalHistory::NonTerminalHistory(std::vector<int> history) : History(history) {}
+NonTerminalHistory::NonTerminalHistory(std::vector<int>& history) : History(history) {}
 
 NonTerminalHistory NonTerminalHistory::copy() {
     return NonTerminalHistory(this->history);

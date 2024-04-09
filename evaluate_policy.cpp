@@ -80,7 +80,9 @@ int main() {
     std::string file_path_2 = "data/Iterative_1/cfr_policy/P2_cfr_policy_round_10.json";
     Policy policy_obj_x('x', file_path_1);
     Policy policy_obj_o('o', file_path_2);
-    TerminalHistory start_history = TerminalHistory({});
+
+    std::vector<int> h = {};
+    TerminalHistory start_history = TerminalHistory(h);
 
     std::cout << "Getting expected utility..." << std::endl;
     auto start = std::chrono::system_clock::now();   

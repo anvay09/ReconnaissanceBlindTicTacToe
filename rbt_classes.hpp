@@ -70,7 +70,7 @@ class History
 public:
     std::vector<int> history;
     int track_traversal_index;
-    History(std::vector<int> history);
+    History(std::vector<int>& history);
     char other_player(char player);
     bool get_board(TicTacToeBoard &board, char& curr_player);
     std::pair<InformationSet, InformationSet> get_information_sets();
@@ -80,7 +80,7 @@ class TerminalHistory : public History
 {
 public:
     std::vector<int> reward;
-    TerminalHistory(std::vector<int> history, std::vector<int> reward = {0, 0});
+    TerminalHistory(std::vector<int>& history, std::vector<int> reward = {0, 0});
     TerminalHistory copy();
     void set_reward();
 };
@@ -88,7 +88,7 @@ public:
 class NonTerminalHistory : public History
 {
 public:
-    NonTerminalHistory(std::vector<int> history);
+    NonTerminalHistory(std::vector<int>& history);
     NonTerminalHistory copy();
 };
 
