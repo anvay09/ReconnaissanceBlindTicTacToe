@@ -263,8 +263,10 @@ if __name__ == "__main__":
 
     logging.info('Getting starting histories...')
     start_time = time.time()
-    starting_histories = upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o)
-    logging.info('Starting histories: {}'.format(len(starting_histories)))
+    # starting_histories = upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o)
+    # logging.info('Starting histories: {}'.format(len(starting_histories)))
+    probabiliity = get_probability_of_reaching_I(I, policy_obj_x, policy_obj_o, 'x')
+    logging.info('Probability of reaching I: {}'.format(probabiliity))
     logging.info('Time taken: {}'.format(time.time() - start_time))
 
 # if __name__ == "__main__":

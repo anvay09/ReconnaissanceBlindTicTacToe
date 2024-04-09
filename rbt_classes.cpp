@@ -142,7 +142,7 @@ string InformationSet::get_hash() {
 void InformationSet::get_states(vector<TicTacToeBoard> &states) {
     int num_unknown_opponent_moves = this->get_number_of_unknown_opponent_moves();
     string board_copy = this->board;
-    for (int i = 0; i < board_copy.size(); i++) {
+    for (int i = 0; i < 9; i++) {
         if (board_copy[i] == '-') {
             board_copy[i] = '0';
         }
@@ -203,7 +203,7 @@ void InformationSet::get_valid_moves(vector<int> &actions) {
         actions.push_back(w);
     }
     else {
-        for (int i = 0; i < this->board.size(); i++) {
+        for (int i = 0; i < 9; i++) {
             if (this->board[i] == '0' || this->board[i] == '-') {
                 actions.push_back(i);
             }
@@ -212,7 +212,7 @@ void InformationSet::get_valid_moves(vector<int> &actions) {
 }
 
 void InformationSet::get_played_actions(vector<int> &actions) {
-    for (int i = 0; i < this->board.size(); i++) {
+    for (int i = 0; i < 9; i++) {
         if (this->board[i] == this->player) {
             actions.push_back(i);
         }
@@ -221,7 +221,7 @@ void InformationSet::get_played_actions(vector<int> &actions) {
 
 void InformationSet::get_useful_senses(vector<int> &actions) {
     for (auto &sense : sense_square_dict) {
-        for (int i = 0; i < sense.second.size(); i++) {
+        for (int i = 0; i < 4; i++) {
             if (this->board[sense.second[i]] == '-') {
                 actions.push_back(sense.first);
                 break;
@@ -233,7 +233,7 @@ void InformationSet::get_useful_senses(vector<int> &actions) {
 int InformationSet::get_number_of_unknown_opponent_moves() {
     int count_x = 0;
     int count_o = 0;
-    for (int i = 0; i < this->board.size(); i++) {
+    for (int i = 0; i < 9; i++) {
         if (this->board[i] == 'x') {
             count_x++;
         }
@@ -249,7 +249,7 @@ int InformationSet::get_number_of_unknown_opponent_moves() {
 }
 
 void InformationSet::get_uncertain_squares(vector<int> &squares) {
-    for (int i = 0; i < this->board.size(); i++) {
+    for (int i = 0; i < 9; i++) {
         if (this->board[i] == '-') {
             squares.push_back(i);
         }
@@ -266,7 +266,7 @@ void InformationSet::simulate_sense(int action, TicTacToeBoard& true_board) {
 }
 
 void InformationSet::reset_zeros() {
-    for (int i = 0; i < this->board.size(); i++) {
+    for (int i = 0; i < 9; i++) {
         if (this->board[i] == '0') {
             this->board[i] = '-';
         }
@@ -313,7 +313,7 @@ bool InformationSet::is_win_for_player() {
 }
 
 int InformationSet::win_exists() {
-    for (int i = 0; i < this->board.size(); i++) {
+    for (int i = 0; i < 9; i++) {
         if (this->board[i] == '0') {
             string new_I_board = this->board;
             new_I_board[i] = this->player;
@@ -328,7 +328,7 @@ int InformationSet::win_exists() {
 
 int InformationSet::draw_exists() {
     vector<int> zeroes;
-    for (int i = 0; i < this->board.size(); i++) {
+    for (int i = 0; i < 9; i++) {
         if (this->board[i] == '0') {
             zeroes.push_back(i);
         }
@@ -346,7 +346,7 @@ int InformationSet::draw_exists() {
 }
 
 bool InformationSet::is_over() {
-    for (int i = 0; i < this->board.size(); i++) {
+    for (int i = 0; i < 9; i++) {
         if (this->board[i] == '0' || this->board[i] == '-') {
             return false;
         }
@@ -356,7 +356,7 @@ bool InformationSet::is_over() {
 
 int InformationSet::num_self_moves() {
     int count = 0;
-    for (int i = 0; i < this->board.size(); i++) {
+    for (int i = 0; i < 9; i++) {
         if (this->board[i] == this->player) {
             count++;
         }
