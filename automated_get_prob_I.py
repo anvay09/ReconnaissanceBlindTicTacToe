@@ -13,14 +13,14 @@ logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt=
 
 
 def get_probability_of_reaching_I_cpp(I, policy_file_x, policy_file_o, cfr_player, cfr_round):
-    I_hash = I.gethash()
-    os.system("./automated_get_prob_I" + " " + policy_file_x + " " + policy_file_o + " " + I_hash + " " + str(cfr_player) + str(cfr_round))
-    outfile = "prob_I" + I_hash + "_round_" + str(cfr_round) + ".txt"
+    I_hash = I.get_hash()
+    os.system("./automated_get_prob_I" + " " + policy_file_x + " " + policy_file_o + " " + I_hash + " " + str(cfr_player) +  " " + str(cfr_round))
+    outfile = "prob_I_" + I_hash + "_round_" + str(cfr_round) + ".txt"
     with open(outfile, 'r') as f:
         prob_I = f.read()
     os.system("rm " + outfile)
     logging.info('Prob for I {} player {} round {} : {}'.format(I_hash, cfr_player, cfr_round, prob_I))
-    return prob_I 
+    return float(prob_I)
 
 
 def parse_commandline_args():
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         if cfr_player == 'x':
             args.append((I, policy_file_x, policy_file_o, cfr_player, cfr_round))
         else:
-            args.append((I, policy_file_x, policy_obj_o, cfr_player, cfr_round))
+            args.append((I, policy_file_x, policy_file_o, cfr_player, cfr_round))
 
     logging.info('get_probability_of_reaching_I parallel run {}...'.format(cfr_round))
     with Pool(num_workers) as p:

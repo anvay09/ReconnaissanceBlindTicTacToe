@@ -267,7 +267,7 @@ int main(int argc, char *argv[]) {
 
     bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
     I_hash.pop_back();
-
+    
     InformationSet I(player, move_flag, I_hash);
     Policy policy_obj_x('x', file_path_1);
     Policy policy_obj_o('o', file_path_2);
