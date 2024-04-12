@@ -12,14 +12,6 @@ import os
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
 
-
-def parallel_run(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, History, round):
-    logging.info("Getting expected utility for round {}...".format(round))
-    expected_utility = get_expected_utility(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, 1,
-                                            History, player)
-    logging.info('Expected Utility:{}'.format(expected_utility))
-    return expected_utility
-
 def parallel_cpp(file_path_1, file_path_2, round, save_games):
     os.system("./evaluate_policy" + " " + file_path_1 + " " + file_path_2 + " " + str(round) + " " + str(save_games))
     
@@ -27,16 +19,10 @@ def parallel_cpp(file_path_1, file_path_2, round, save_games):
     with open(outfile, 'r') as f:
         expected_utility = f.read()
     os.system("rm " + outfile)
-    logging.info('Expected Utility for round {} : {}'.format(expected_utility, round))
+    logging.info('Expected Utility for round {} : {}'.format(round, expected_utility))
     return expected_utility
-
         
 if __name__ == "__main__":
-    true_board = TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
-    I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
-    I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
-    player = 'x'
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--PolicyFileXBase', type=str, required=True)
     parser.add_argument('--PolicyFileOBase', type=str, required=True)
@@ -63,10 +49,10 @@ if __name__ == "__main__":
 
     X = [i for i in range(start_round, num)]
     Y = [float(exp_util) for exp_util in exp_util_list]
-    plt.plot(X, Y, marker='o', color='b', label='Expected Utility')
+    plt.plot(X, Y, color='b', label='Expected Utility')
     plt.xlabel('Round')
     plt.xticks(rotation=-60)
-    plt.yticks(np.arange(0, 1, 0.1))
+    plt.yticks(np.arange(0.3, 0.65, 0.025))
     plt.ylabel('Expected Utility')
     plt.title('Convergence of Expected Utility')
 
