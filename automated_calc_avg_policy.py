@@ -6,6 +6,8 @@ import logging
 from multiprocessing import Pool
 from config import num_workers
 
+logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
+                    level=logging.INFO)
 
 def calc_average_policy(policy_obj_list, I_hash, initial_player):
     average_policy = {}
@@ -80,13 +82,14 @@ if __name__ == '__main__':
     I_set = json.load(open(IS_file_player, 'r'))
     I_list = list(I_set.keys())
 
+    logging.info("Starting average run...")
     average_policy = get_average_policy(policy_obj_list, I_list, arguments.CurrentPlayer)
 
     if arguments.CurrentPlayer == 'x':
-        outfile_name = './{}/average/P1_average_overall_policy_after_{}_rounds.json'.format(arguments.BasePath,
+        outfile_name = '{}/average/P1_average_overall_policy_after_{}_rounds.json'.format(arguments.BasePath,
                                                                                             arguments.NumRounds)
     else:
-        outfile_name = './{}/average/P2_average_overall_policy_after_{}_rounds.json'.format(arguments.BasePath,
+        outfile_name = '{}/average/P2_average_overall_policy_after_{}_rounds.json'.format(arguments.BasePath,
                                                                                             arguments.NumRounds)
 
     with open(outfile_name, 'w') as f:
