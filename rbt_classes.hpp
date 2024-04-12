@@ -2,7 +2,9 @@
 #define RBT_CLASSES_HPP
 
 #include <iostream>
+#include <fstream>
 #include <unordered_map>
+#include <unordered_set>
 #include <map>
 #include <vector>
 #include <algorithm>
@@ -11,7 +13,9 @@
 #include <iterator>
 #include <utility>
 #include <tuple>
-
+#include <cassert>
+#include <chrono>
+#include <ctime>
 
 static std::string EMPTY_BOARD = "000000000";
 static std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
@@ -104,5 +108,10 @@ public:
     void update_policy_for_given_information_set(InformationSet& information_set, std::vector<double>& prob_distribution);
     std::unordered_map<std::string, std::vector<double> > read_policy_from_json(std::string& file_path);
 };
+
+// similar to python's split method
+void split(std::string str, std::string splitBy, std::vector<std::string>& tokens);
+// intersection of two sets
+std::vector<int> intersection(std::vector<int> const& left_vector, std::vector<int> const& right_vector);
 
 #endif // RBT_CLASSES_HPP_

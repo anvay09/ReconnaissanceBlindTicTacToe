@@ -1,40 +1,4 @@
 #include "rbt_classes.hpp"
-#include <chrono>
-#include <ctime>
-#include <algorithm>
-#include <cassert>
-
-std::vector<int> intersection(std::vector<int> const& left_vector, std::vector<int> const& right_vector) {
-    auto left = left_vector.begin();
-    auto left_end = left_vector.end();
-    auto right = right_vector.begin();
-    auto right_end = right_vector.end();
-
-    assert(is_sorted(left, left_end));
-    assert(is_sorted(right, right_end));
-
-    std::vector<int> result;
-
-    while (left != left_end && right != right_end) {
-        if (*left == *right) {
-            result.push_back(*left);
-            ++left;
-            ++right;
-            continue;
-        }
-
-        if (*left < *right) {
-            ++left;
-            continue;
-        }
-
-        assert(*left > *right);
-        ++right;
-    }
-
-    return result;
-}
-
 
 void valid_histories_play(InformationSet& I_1, InformationSet& I_2, 
                           TicTacToeBoard& true_board, char player, 

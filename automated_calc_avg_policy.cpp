@@ -1,7 +1,4 @@
 #include "rbt_classes.hpp"
-#include <chrono>
-#include <ctime>
-
 
 void calc_average_policy(std::vector<Policy>& policy_obj_list, InformationSet& I, char initial_player, Policy& average_policy) {
     std::string I_hash = I.get_hash();
