@@ -77,7 +77,7 @@ public:
     History(std::vector<int>& history);
     char other_player(char player);
     bool get_board(TicTacToeBoard &board, char& curr_player);
-    std::pair<InformationSet, InformationSet> get_information_sets();
+    void get_information_sets(InformationSet& I_1, InformationSet& I_2);
 };
 
 class TerminalHistory : public History

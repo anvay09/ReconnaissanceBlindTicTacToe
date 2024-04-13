@@ -460,11 +460,7 @@ bool History::get_board(TicTacToeBoard &true_board, char& curr_player) {
     return false;
 }
 
-std::pair<InformationSet, InformationSet> History::get_information_sets() {
-    std::string board_1 = "000000000";
-    std::string board_2 = "---------";
-    InformationSet I_1('x', true, board_1);
-    InformationSet I_2('o', false, board_2);
+void History::get_information_sets(InformationSet &I_1, InformationSet &I_2) {
     TicTacToeBoard true_board;
     char curr_player = 'x';
     for (int action : this->history) {
@@ -486,7 +482,6 @@ std::pair<InformationSet, InformationSet> History::get_information_sets() {
             }
         }
     }
-    return {I_1, I_2};
 }
 
 TerminalHistory::TerminalHistory(std::vector<int>& history, std::vector<int> reward) : History(history) {
