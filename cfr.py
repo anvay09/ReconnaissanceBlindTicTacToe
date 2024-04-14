@@ -4,6 +4,9 @@ from tqdm import tqdm
 import logging
 import os
 
+logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
+                    level=logging.INFO)
+
 def calc_cfr_policy_given_I_cpp(policy_file_x, policy_file_o, I_hash, player, T, next_policy_file):
     os.system('./cfr ' + policy_file_x + ' ' + policy_file_o + ' ' + I_hash + ' ' + player + ' ' + str(T) + ' ' + next_policy_file)
 
