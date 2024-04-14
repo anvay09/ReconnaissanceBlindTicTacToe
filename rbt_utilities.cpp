@@ -356,6 +356,11 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
     Policy& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<std::vector<int>> starting_histories;
     std::vector<double> prob_reaching_h_list;
+    std::vector<double> util_a_list;
+    
+    for (int i = 0; i < 13; i++) {
+        util_a_list.push_back(0);
+    }
 
     I.get_actions(actions);
     upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o, starting_histories);
@@ -364,11 +369,14 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
     for (int action : actions) {
         double util_a = calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list);
         util += util_a * policy_obj.policy_dict[I.get_hash()][action];
+        util_a_list[action] = util_a;
+    }
 
+    for (int action : actions) {
         if (T == 0) {
-            regret_T = util_a - util;
+            regret_T = util_a_list[action] - util;
         } else {
-            regret_T = (1 / T) * ((T - 1) * regret_list[action] + util_a - util);
+            regret_T = (1 / T) * ((T - 1) * regret_list[action] + util_a_list[action] - util);
         }
 
         regret_T = regret_T > 0 ? regret_T : 0;
