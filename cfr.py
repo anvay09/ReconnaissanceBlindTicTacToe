@@ -12,9 +12,8 @@ def calc_cfr_policy_given_I_cpp(policy_file_x, policy_file_o, I_hash, player, T,
 
 
 if __name__ == '__main__':
-    logging.info('Initializing policy objects...')
-    policy_file_x = 'data/P1_uniform_policy.json'
-    policy_file_o = 'data/P2_uniform_policy.json'
+    policy_file_x = 'data/P1_deterministic_policy.json'
+    policy_file_o = 'data/P2_deterministic_policy.json'
 
     P1_information_sets_file = 'data/P1_information_sets.txt'
     P2_information_sets_file = 'data/P2_information_sets.txt'

@@ -393,7 +393,7 @@ int main(int argc, char* argv[]) {
     int T = std::stoi(argv[5]);
     std::string policy_outfile = argv[6];
 
-    std::string outfile = "regrets_" + I_hash + ".txt";
+    std::string outfile = "regrets_" + (std::string)argv[4] + "_" + I_hash + ".txt";
     bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
     I_hash.pop_back();
     InformationSet I(player, move_flag, I_hash);
