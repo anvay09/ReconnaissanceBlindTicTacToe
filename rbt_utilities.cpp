@@ -1,14 +1,13 @@
 #include "rbt_classes.hpp"
+#include "json.hpp"
+using json = nlohmann::json;
 
 char toggle_player(char player) {
     return (player == 'x') ? 'o' : 'x';
 }
 
-void valid_histories_play(InformationSet& I_1, InformationSet& I_2, 
-                          TicTacToeBoard& true_board, char player, 
-                          History& current_history, InformationSet& end_I, 
-                          std::vector<int>& played_actions, Policy& policy_obj_x, 
-                          Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
+void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, History& current_history, InformationSet& end_I, 
+                          std::vector<int>& played_actions, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     
     InformationSet& I = player == 'x' ? I_1 : I_2;
     std::vector<int> actions;
@@ -119,8 +118,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2,
 }
 
 
-void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, 
-                                    Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
+void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     
     if (I.get_hash() == "000000000m"){
         return;
@@ -142,7 +140,8 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x,
 }   
 
 
-double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, Policy &policy_obj_x, Policy &policy_obj_o, double probability, History& current_history, char initial_player) {
+double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, Policy &policy_obj_x, 
+                            Policy &policy_obj_o, double probability, History& current_history, char initial_player) {
     double expected_utility_h = 0;
     
     InformationSet& I = player == 'x' ? I_1 : I_2;
@@ -203,11 +202,8 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
 }
 
 
-double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, 
-                               TicTacToeBoard& true_board, char player, 
-                               int next_action, Policy& policy_obj_x, 
-                               Policy& policy_obj_o, double probability, 
-                               History history_obj, char initial_player){
+double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, 
+                               Policy& policy_obj_x, Policy& policy_obj_o, double probability, History history_obj, char initial_player){
 
     InformationSet& I = player == 'x' ? I_1 : I_2;
     Policy& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
@@ -263,11 +259,8 @@ double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2,
 }
 
 
-double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, 
-                                       TicTacToeBoard& true_board, char player, 
-                                       int next_action, Policy& policy_obj_x, 
-                                       Policy& policy_obj_o, double probability,
-                                       History history_obj, InformationSet& curr_I_1, char initial_player){
+double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, Policy& policy_obj_x, 
+                                       Policy& policy_obj_o, double probability, History history_obj, InformationSet& curr_I_1, char initial_player){
     
     if (curr_I_1.get_hash() == "000000000m"){
         return 1.0;
@@ -314,7 +307,8 @@ double get_counter_factual_utility(InformationSet& I, Policy& policy_obj_x, Poli
 }
 
 
-void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& starting_histories, char initial_player, std::vector<double>& prob_reaching_h_list_all) {
+void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& starting_histories, 
+                                       char initial_player, std::vector<double>& prob_reaching_h_list_all) {
     for (std::vector<int> h : starting_histories) {
         NonTerminalHistory h_object(h);
 
@@ -334,7 +328,8 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
 }
 
 
-double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& starting_histories, std::vector<double>& prob_reaching_h_list) {
+double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& policy_obj_x, Policy& policy_obj_o, 
+                                      std::vector<std::vector<int>>& starting_histories, std::vector<double>& prob_reaching_h_list) {
     double util_a = 0;
     std::vector <double> prob_dist(13);
     std::vector <double> old_prob_dist(13);
@@ -354,7 +349,7 @@ double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& pol
 }
 
 
-void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, int T, std::vector<double>& prev_regret_list, std::vector<double>& regret_list) {
+void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, int T, std::vector<double>& regret_list) {
     double util = 0;
     double regret_T = 0;
     std::vector<int> actions;
@@ -373,7 +368,7 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         if (T == 0) {
             regret_T = util_a - util;
         } else {
-            regret_T = (1 / T) * ((T - 1) * prev_regret_list[action] + util_a - util);
+            regret_T = (1 / T) * ((T - 1) * regret_list[action] + util_a - util);
         }
 
         regret_T = regret_T > 0 ? regret_T : 0;
@@ -381,4 +376,89 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
     }
 
     std::cout << "Calculated regret for I: " << I.get_hash() << std::endl;
+}
+
+
+int main(char argc, char* argv[]) {
+    std::string file_path_1 = argv[1];
+    std::string file_path_2 = argv[2];
+    std::string I_hash = argv[3];
+    char player = argv[4][0];
+    int T = std::stoi(argv[5]);
+    std::string policy_outfile = argv[6];
+
+    std::string outfile = "regrets_" + I_hash + ".txt";
+    bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
+    I_hash.pop_back();
+    InformationSet I(player, move_flag, I_hash);
+    I_hash += move_flag ? "m" : "s";
+
+    Policy policy_obj_x('x', file_path_1);
+    Policy policy_obj_o('o', file_path_2);
+    
+    std::vector<double> regret_list;
+
+
+    // read regret list from file
+    std::ifstream f_in;
+    f_in.open(outfile, std::ios::in);
+    if (f_in.is_open()) {
+        std::string line;
+        while (std::getline(f_in, line)) {
+            regret_list.push_back(std::stod(line));
+        }
+        f_in.close();
+    } else {
+        for (int i = 0; i < 13; i++) {
+            regret_list.push_back(0);
+        }
+    }
+
+    calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, regret_list);
+
+    // update policy
+    Policy& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
+    double total_regret = 0;
+    std::vector<int> actions;
+    I.get_actions(actions);
+
+    for (int i = 0; i < 13; i++) {
+        total_regret += regret_list[i];
+    }
+
+    if (total_regret > 0) {
+        for (int action: actions) {
+            policy_obj.policy_dict[I_hash][action] = regret_list[action] / total_regret;
+        }
+    }
+    else {
+        for (int action: actions) {
+            policy_obj.policy_dict[I_hash][action] = 1.0 / actions.size();
+        }
+    }
+
+    // save policy to file
+    std::ofstream f_out_policy;
+    f_out_policy.open(policy_outfile, std::ios::trunc);
+
+    json j;
+    for (auto& it: policy_obj.policy_dict) {
+        for (int i = 0; i < 13; i++) {
+            j[it.first][std::to_string(i)] = it.second[i];
+        }
+    }
+    f_out_policy << j.dump() << std::endl;
+    f_out_policy.close();
+    
+    // save regret list to file
+    std::ofstream f_out;
+    f_out.open(outfile, std::ios::trunc);
+    if (f_out.is_open()) {
+        for (int i = 0; i < 13; i++) {
+            f_out << regret_list[i] << std::endl;
+        }
+        f_out.close();
+    }
+
+    return 0;
 }

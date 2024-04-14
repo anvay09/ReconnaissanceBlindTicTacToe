@@ -105,5 +105,6 @@ int main(int argc, char* argv[]) {
         }
     }
     out << j.dump() << std::endl;
+    out.close();
     return 0;
 }
