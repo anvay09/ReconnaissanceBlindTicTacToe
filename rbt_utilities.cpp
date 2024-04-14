@@ -379,7 +379,7 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
 }
 
 
-int main(char argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
     std::string I_hash = argv[3];

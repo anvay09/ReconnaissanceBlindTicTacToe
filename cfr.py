@@ -10,11 +10,11 @@ def calc_cfr_policy_given_I_cpp(policy_file_x, policy_file_o, I_hash, player, T,
 
 if __name__ == '__main__':
     logging.info('Initializing policy objects...')
-    policy_file_x = 'data_files/P1_deterministic_policy.json'
-    policy_file_o = 'data_files/P2_deterministic_policy.json'
+    policy_file_x = 'data/P1_deterministic_policy.json'
+    policy_file_o = 'data/P2_deterministic_policy.json'
 
-    P1_information_sets_file = 'data_files/P1_information_sets.txt'
-    P2_information_sets_file = 'data_files/P2_information_sets.txt'
+    P1_information_sets_file = 'data/P1_information_sets.txt'
+    P2_information_sets_file = 'data/P2_information_sets.txt'
     P1_information_sets = []
     P2_information_sets = []
    
@@ -31,8 +31,8 @@ if __name__ == '__main__':
     for T in range(1,1001):
         P1_args = []
         P2_args = []
-        next_policy_file_x = 'data_files/P1_iteration_{}_cfr_policy_cpp.json'.format(T)
-        next_policy_file_o = 'data_files/P2_iteration_{}_cfr_policy_cpp.json'.format(T)
+        next_policy_file_x = 'data/P1_iteration_{}_cfr_policy_cpp.json'.format(T)
+        next_policy_file_o = 'data/P2_iteration_{}_cfr_policy_cpp.json'.format(T)
         
         logging.info('Generating arguments...')
         for I_hash in tqdm(P1_information_sets):
