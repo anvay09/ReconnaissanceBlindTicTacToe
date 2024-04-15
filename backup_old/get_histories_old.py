@@ -1,4 +1,4 @@
-from rbt_classes import InformationSet, TicTacToeBoard
+from python_files.rbt_classes import InformationSet, TicTacToeBoard
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
 
 

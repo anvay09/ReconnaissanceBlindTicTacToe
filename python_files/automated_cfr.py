@@ -1,10 +1,10 @@
-from rbt_classes import TicTacToeBoard, InformationSet, Policy
+from python_files.rbt_classes import TicTacToeBoard, InformationSet, Policy
 from multiprocessing import Pool
 import json
 import logging
-from config import num_workers
-from rbt_utilties import get_histories_given_I, upgraded_get_histories_given_I
-from rbt_utilties import calc_cfr_policy_given_I
+from python_files.config import num_workers
+from python_files.rbt_utilties import get_histories_given_I, upgraded_get_histories_given_I
+from python_files.rbt_utilties import calc_cfr_policy_given_I
 import argparse
 from tqdm import tqdm
 

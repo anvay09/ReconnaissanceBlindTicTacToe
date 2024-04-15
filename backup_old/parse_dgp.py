@@ -1,4 +1,4 @@
-from rbt_classes import TicTacToeBoard, InformationSet, Policy
+from python_files.rbt_classes import TicTacToeBoard, InformationSet, Policy
 import json
 
 policy_file = './data_files/p1_policy.txt'

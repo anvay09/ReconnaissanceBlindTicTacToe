@@ -1,9 +1,9 @@
-from rbt_classes import InformationSet, Policy
-from rbt_utilties import get_histories_given_I, upgraded_get_histories_given_I
+from python_files.rbt_classes import InformationSet, Policy
+from python_files.rbt_utilties import get_histories_given_I, upgraded_get_histories_given_I
 import json
 import logging
 from multiprocessing import Pool
-from config import num_workers
+from python_files.config import num_workers
 
 if __name__ == '__main__':
     with open('./data_files/{}.json'.format('P1_DG_policy'), 'r') as f:

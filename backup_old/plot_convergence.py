@@ -1,5 +1,5 @@
-from rbt_classes import TicTacToeBoard, InformationSet, Policy, NonTerminalHistory
-from evaluate_policy_parallel import get_expected_utility_parallel
+from python_files.rbt_classes import TicTacToeBoard, InformationSet, Policy, NonTerminalHistory
+from python_files.evaluate_policy_parallel import get_expected_utility_parallel
 import matplotlib.pyplot as plt
 import logging
 import json

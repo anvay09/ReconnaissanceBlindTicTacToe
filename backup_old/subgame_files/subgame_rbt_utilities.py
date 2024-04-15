@@ -2,7 +2,7 @@ from subgame_files.subgame_rbt_classes import InformationSet, NonTerminalHistory
 from sympy.utilities.iterables import multiset_permutations, combinations_with_replacement
 from multiprocessing import Pool
 import logging
-from config import num_workers
+from python_files.config import num_workers
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)

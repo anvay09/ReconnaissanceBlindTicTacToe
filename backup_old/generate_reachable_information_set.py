@@ -1,4 +1,4 @@
-from rbt_classes import TicTacToeBoard, InformationSet, Policy
+from python_files.rbt_classes import TicTacToeBoard, InformationSet, Policy
 from multiprocessing import Pool
 import json
 

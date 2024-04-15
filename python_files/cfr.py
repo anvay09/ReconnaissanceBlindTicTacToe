@@ -1,5 +1,5 @@
 from multiprocessing import Pool
-from config import num_workers
+from python_files.config import num_workers
 from tqdm import tqdm
 import logging
 import os

@@ -1,8 +1,8 @@
-from rbt_classes import TicTacToeBoard, InformationSet, Policy, NonTerminalHistory
-from evaluate_policy_parallel import get_expected_utility, get_expected_utility_parallel
+from python_files.rbt_classes import TicTacToeBoard, InformationSet, Policy, NonTerminalHistory
+from python_files.evaluate_policy_parallel import get_expected_utility, get_expected_utility_parallel
 from multiprocessing import Pool
 import matplotlib.pyplot as plt
-from config import num_workers
+from python_files.config import num_workers
 import argparse
 import logging
 import numpy as np

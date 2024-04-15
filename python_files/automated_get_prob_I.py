@@ -1,8 +1,8 @@
-from rbt_classes import InformationSet, Policy
+from python_files.rbt_classes import InformationSet, Policy
 from multiprocessing import Pool
 import json
 import logging
-from config import num_workers
+from python_files.config import num_workers
 import argparse
 from tqdm import tqdm
 import copy

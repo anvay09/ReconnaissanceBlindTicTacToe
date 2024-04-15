@@ -1,6 +1,6 @@
-from rbt_classes import TicTacToeBoard, InformationSet, Policy, NonTerminalHistory, TerminalHistory
+from python_files.rbt_classes import TicTacToeBoard, InformationSet, Policy, NonTerminalHistory, TerminalHistory
 from multiprocessing import Pool
-from config import num_workers
+from python_files.config import num_workers
 import argparse
 import logging
 import json

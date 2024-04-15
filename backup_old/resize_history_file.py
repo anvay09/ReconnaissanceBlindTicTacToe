@@ -1,4 +1,4 @@
-from config import action_bit_encoding
+from python_files.config import action_bit_encoding
 import json
 from bitarray import bitarray
 import pickle

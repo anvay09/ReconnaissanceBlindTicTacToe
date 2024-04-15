@@ -79,5 +79,6 @@
         "valarray": "cpp",
         "variant": "cpp",
         "algorithm": "cpp"
-    }
+    },
+    "editor.tabSize": 4
 }

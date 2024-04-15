@@ -1,4 +1,4 @@
-from rbt_classes import TicTacToeBoard, InformationSet, Policy, NonTerminalHistory, TerminalHistory
+from python_files.rbt_classes import TicTacToeBoard, InformationSet, Policy, NonTerminalHistory, TerminalHistory
 from multiprocessing import Pool
 import json
 import argparse

@@ -1,4 +1,4 @@
-from rbt_classes import TicTacToeBoard
+from python_files.rbt_classes import TicTacToeBoard
 
 if __name__ == '__main__':
     board = TicTacToeBoard()

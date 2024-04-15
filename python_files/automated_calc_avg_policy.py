@@ -1,10 +1,10 @@
-from rbt_classes import NonTerminalHistory, InformationSet, TicTacToeBoard, Policy
+from python_files.rbt_classes import NonTerminalHistory, InformationSet, TicTacToeBoard, Policy
 from tqdm import tqdm
 import argparse
 import json
 import logging
 from multiprocessing import Pool
-from config import num_workers
+from python_files.config import num_workers
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)

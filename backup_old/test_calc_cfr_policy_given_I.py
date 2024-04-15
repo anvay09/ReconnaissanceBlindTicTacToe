@@ -1,6 +1,6 @@
-from config import num_workers, action_bit_encoding
-from rbt_utilties import calc_cfr_policy_given_I
-from rbt_classes import InformationSet, Policy
+from python_files.config import num_workers, action_bit_encoding
+from python_files.rbt_utilties import calc_cfr_policy_given_I
+from python_files.rbt_classes import InformationSet, Policy
 from multiprocessing import Pool
 from bitarray import bitarray
 from tqdm import tqdm

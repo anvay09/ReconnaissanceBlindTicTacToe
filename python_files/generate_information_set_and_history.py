@@ -1,5 +1,5 @@
-from rbt_classes import TicTacToeBoard
-from rbt_classes import InformationSet
+from python_files.rbt_classes import TicTacToeBoard
+from python_files.rbt_classes import InformationSet
 from multiprocessing import Pool
 import logging
 
