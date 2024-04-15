@@ -383,89 +383,10 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         regret_T = regret_T > 0 ? regret_T : 0;
         regret_list[action] = regret_T;
     }
+
+    std::cout << "Calculated regret for " << I.get_hash() << " : ";
+    for (int i = 0; i < regret_list.size(); i++) {
+        std::cout << regret_list[i] << " ";
+    }
+    std::cout << std::endl;
 }
-
-
-// int main(int argc, char* argv[]) {
-//     std::string file_path_1 = argv[1];
-//     std::string file_path_2 = argv[2];
-//     std::string I_hash = argv[3];
-//     char player = argv[4][0];
-//     int T = std::stoi(argv[5]);
-//     std::string policy_outfile = argv[6];
-
-//     std::string outfile = "regrets_" + (std::string)argv[4] + "_" + I_hash + ".txt";
-//     bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
-//     I_hash.pop_back();
-//     InformationSet I(player, move_flag, I_hash);
-//     I_hash += move_flag ? "m" : "s";
-
-//     Policy policy_obj_x('x', file_path_1);
-//     Policy policy_obj_o('o', file_path_2);
-    
-//     std::vector<double> regret_list;
-
-
-//     // read regret list from file
-//     std::ifstream f_in;
-//     f_in.open(outfile, std::ios::in);
-//     if (f_in.is_open()) {
-//         std::string line;
-//         while (std::getline(f_in, line)) {
-//             regret_list.push_back(std::stod(line));
-//         }
-//         f_in.close();
-//     } else {
-//         for (int i = 0; i < 13; i++) {
-//             regret_list.push_back(0);
-//         }
-//     }
-
-//     calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, regret_list);
-
-//     // update policy
-//     Policy& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
-//     double total_regret = 0;
-//     std::vector<int> actions;
-//     I.get_actions(actions);
-
-//     for (int i = 0; i < 13; i++) {
-//         total_regret += regret_list[i];
-//     }
-
-//     if (total_regret > 0) {
-//         for (int action: actions) {
-//             policy_obj.policy_dict[I_hash][action] = regret_list[action] / total_regret;
-//         }
-//     }
-//     else {
-//         for (int action: actions) {
-//             policy_obj.policy_dict[I_hash][action] = 1.0 / actions.size();
-//         }
-//     }
-
-//     // save policy to file
-//     std::ofstream f_out_policy;
-//     f_out_policy.open(policy_outfile, std::ios::trunc);
-
-//     json j;
-//     for (auto& it: policy_obj.policy_dict) {
-//         for (int i = 0; i < 13; i++) {
-//             j[it.first][std::to_string(i)] = it.second[i];
-//         }
-//     }
-//     f_out_policy << j.dump() << std::endl;
-//     f_out_policy.close();
-    
-//     // save regret list to file
-//     std::ofstream f_out;
-//     f_out.open(outfile, std::ios::trunc);
-//     if (f_out.is_open()) {
-//         for (int i = 0; i < 13; i++) {
-//             f_out << regret_list[i] << std::endl;
-//         }
-//         f_out.close();
-//     }
-
-//     return 0;
-// }

@@ -1,3 +1,5 @@
+// Compile: g++-13 -O3 openmptest.cpp -o testMP -fopenmp -I /Users/anvay/Downloads/boost_1_84_0
+
 #include <vector>
 #include <algorithm>
 #include <iostream>
