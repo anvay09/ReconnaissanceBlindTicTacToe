@@ -6,8 +6,8 @@
 #include <boost/mpi/environment.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <iostream>
-#include "rbt_classes.hpp"
-#include "rbt_utilities.hpp"
+#include "cpp_headers/rbt_classes.hpp"
+#include "cpp_headers/rbt_utilities.hpp"
 namespace mpi = boost::mpi;
 
 int main(int argc, char* argv[])

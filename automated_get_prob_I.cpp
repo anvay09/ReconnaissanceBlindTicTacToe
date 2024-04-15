@@ -1,4 +1,4 @@
-#include "rbt_classes.hpp"
+#include "cpp_headers/rbt_classes.hpp"
 
 void valid_histories_play(InformationSet& I_1, InformationSet& I_2, 
                           TicTacToeBoard& true_board, char player, 

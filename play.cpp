@@ -1,4 +1,4 @@
-#include "rbt_classes.hpp"
+#include "cpp_headers/rbt_classes.hpp"
 
 int play(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, std::unordered_set<std::string>& I_1_set, std::unordered_set<std::string>& I_2_set, char player) {
     int num_histories = 0;

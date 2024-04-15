@@ -1,5 +1,5 @@
-#include "rbt_classes.hpp"
-#include "json.hpp"
+#include "cpp_headers/rbt_classes.hpp"
+#include "cpp_headers/json.hpp"
 using json = nlohmann::json;
 
 void split(std::string str, std::string splitBy, std::vector<std::string>& tokens)

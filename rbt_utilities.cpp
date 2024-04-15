@@ -1,6 +1,6 @@
-#include "rbt_classes.hpp"
-#include "rbt_utilities.hpp"
-#include "json.hpp"
+#include "cpp_headers/rbt_classes.hpp"
+#include "cpp_headers/rbt_utilities.hpp"
+#include "cpp_headers/json.hpp"
 using json = nlohmann::json;
 
 char toggle_player(char player) {

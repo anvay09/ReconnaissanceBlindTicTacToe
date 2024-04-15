@@ -1,5 +1,5 @@
-#include "rbt_classes.hpp"
-#include "json.hpp"
+#include "cpp_headers/rbt_classes.hpp"
+#include "cpp_headers/json.hpp"
 using json = nlohmann::json;
 
 void calc_average_policy(std::vector<Policy>& policy_obj_list, InformationSet& I, char initial_player, Policy& average_policy) {
