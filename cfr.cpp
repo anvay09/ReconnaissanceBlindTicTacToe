@@ -48,6 +48,7 @@ int main() {
         std::string next_policy_file_o = "data/P2_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
 
         std::cout << "Starting iteration " << T << " for player x..." << std::endl;
+        auto start = std::chrono::system_clock::now();
 
         #pragma omp parallel for 
         for (int i = 0; i < P1_information_sets.size(); i++) {
@@ -59,7 +60,16 @@ int main() {
             calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, regret_list_x[i]);
         }
 
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end - start;
+        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    
+        std::cout << "finished computation at " << std::ctime(&end_time)
+                << "elapsed time: " << elapsed_seconds.count() << "s"
+                << std::endl;
+
         std::cout << "Starting iteration " << T << " for player o..." << std::endl;
+        start = std::chrono::system_clock::now();
 
         #pragma omp parallel for
         for (int i = 0; i < P2_information_sets.size(); i++) {
@@ -70,6 +80,14 @@ int main() {
 
             calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, regret_list_o[i]);
         }
+
+        end = std::chrono::system_clock::now();
+        elapsed_seconds = end - start;
+        end_time = std::chrono::system_clock::to_time_t(end);
+
+        std::cout << "finished computation at " << std::ctime(&end_time)
+                << "elapsed time: " << elapsed_seconds.count() << "s"
+                << std::endl;
         
         std::cout << "Updating policy for player x..." << std::endl;
 

@@ -384,9 +384,9 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         regret_list[action] = regret_T;
     }
 
-    std::cout << "Calculated regret for " << I.get_hash() << " : ";
-    for (int i = 0; i < regret_list.size(); i++) {
-        std::cout << regret_list[i] << " ";
-    }
-    std::cout << std::endl;
+    // std::cout << "Calculated regret for " << I.get_hash() << " : ";
+    // for (int i = 0; i < regret_list.size(); i++) {
+    //     std::cout << regret_list[i] << " ";
+    // }
+    // std::cout << std::endl;
 }
