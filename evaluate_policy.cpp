@@ -12,6 +12,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
     I.get_actions_given_policy(actions, policy_obj);
     
     if (I.move_flag) {
+        // # pragma omp parallel for
         for (int action : actions) {
             TicTacToeBoard new_true_board = true_board;
             bool success = new_true_board.update_move(action, player);
@@ -49,6 +50,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
             }
         }
     } else {
+        // # pragma omp parallel for
         for (int action : actions) {
             InformationSet new_I(I);
             new_I.simulate_sense(action, true_board);
@@ -63,6 +65,106 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
                 expected_utility_h += get_expected_utility(I_1, new_I, true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, save_games);
             }
         }
+    }
+
+    return expected_utility_h;
+}
+
+
+double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, Policy &policy_obj_x, Policy &policy_obj_o, double probability, History& current_history, char initial_player, int save_games) {
+    double expected_utility_h = 0;
+    std::vector<InformationSet> Depth_1_P1_Isets;
+    std::vector<InformationSet> Depth_1_P2_Isets;
+    std::vector<TicTacToeBoard> Depth_1_boards;
+    std::vector<char> Depth_1_players;
+    std::vector<double> Depth_1_probabilities;
+    std::vector<History> Depth_1_histories;
+    
+    InformationSet I = player == 'x' ? I_1 : I_2;
+    Policy policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
+
+    std::vector<int> actions;
+    I.get_actions_given_policy(actions, policy_obj);
+
+    if (I.move_flag) {
+        for (int action : actions) {
+            TicTacToeBoard new_true_board = true_board;
+            bool success = new_true_board.update_move(action, player);
+
+            double probability_new = probability * policy_obj.policy_dict[I.get_hash()][action];
+            History new_history = current_history;
+            new_history.history.push_back(action);
+
+            char winner;
+            if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
+                InformationSet new_I(I);
+                new_I.update_move(action, player);
+                new_I.reset_zeros();
+
+                if (player == 'x') {
+                    Depth_1_P1_Isets.push_back(new_I);
+                    Depth_1_P2_Isets.push_back(I_2);
+                    Depth_1_boards.push_back(new_true_board);
+                    Depth_1_players.push_back('o');
+                    Depth_1_probabilities.push_back(probability_new);
+                    Depth_1_histories.push_back(new_history);
+                } else {
+                    Depth_1_P1_Isets.push_back(I_1);
+                    Depth_1_P2_Isets.push_back(new_I);
+                    Depth_1_boards.push_back(new_true_board);
+                    Depth_1_players.push_back('x');
+                    Depth_1_probabilities.push_back(probability_new);
+                    Depth_1_histories.push_back(new_history);
+                }
+            } else {
+                TerminalHistory H_T = TerminalHistory(new_history.history);
+                H_T.set_reward();
+                if (initial_player == 'x'){
+                    if (save_games){
+                        terminal_histories.push_back(std::make_tuple(H_T, probability_new, H_T.reward[0]));
+                    }
+                    expected_utility_h += H_T.reward[0] * probability_new;
+                }
+                else{
+                    if (save_games){
+                        terminal_histories.push_back(std::make_tuple(H_T, probability_new, H_T.reward[1]));
+                    }
+                    expected_utility_h += H_T.reward[1] * probability_new;
+                }
+            }
+        
+        }
+    }
+    else {
+        for (int action : actions) {
+            InformationSet new_I(I);
+            new_I.simulate_sense(action, true_board);
+
+            double probability_new = probability * policy_obj.policy_dict[I.get_hash()][action];
+            History new_history = current_history;
+            new_history.history.push_back(action);
+
+            if (player == 'x') {
+                Depth_1_P1_Isets.push_back(new_I);
+                Depth_1_P2_Isets.push_back(I_2);
+                Depth_1_boards.push_back(true_board);
+                Depth_1_players.push_back('x');
+                Depth_1_probabilities.push_back(probability_new);
+                Depth_1_histories.push_back(new_history);
+            } else {
+                Depth_1_P1_Isets.push_back(I_1);
+                Depth_1_P2_Isets.push_back(new_I);
+                Depth_1_boards.push_back(true_board);
+                Depth_1_players.push_back('o');
+                Depth_1_probabilities.push_back(probability_new);
+                Depth_1_histories.push_back(new_history);
+            }   
+        }
+    }
+
+    # pragma omp parallel for
+    for (int i = 0; i < Depth_1_P1_Isets.size(); i++) {
+        expected_utility_h += get_expected_utility(Depth_1_P1_Isets[i], Depth_1_P2_Isets[i], Depth_1_boards[i], Depth_1_players[i], policy_obj_x, policy_obj_o, Depth_1_probabilities[i], Depth_1_histories[i], initial_player, save_games);
     }
 
     return expected_utility_h;
@@ -92,15 +194,9 @@ int main(int argc, char** argv) {
     std::cout << "Getting expected utility..." << std::endl;
     auto start = std::chrono::system_clock::now();   
     
-    double expected_utility = get_expected_utility(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, 1, start_history, player, save_games);
+    double expected_utility = get_expected_utility_parallel(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, 1, start_history, player, save_games);
     std::cout << "Expected utility: " << expected_utility << std::endl;
 
-    // Save expected utility to file
-    std::ofstream file;
-    
-    file.open("round_" + std::to_string(round) + "_expected_utility.txt");
-    file << expected_utility;
-  
     if (save_games) {
         std::cout << "Number of terminal histories: " << terminal_histories.size() << std::endl;
     }
