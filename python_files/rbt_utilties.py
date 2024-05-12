@@ -520,5 +520,5 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, 
         final_regret_T = max(0, regret_T)
         regret_list[action] = final_regret_T
 
-    logging.info('Calculated regret list for {}...'.format(I.get_hash()))
+    # logging.info('Calculated regret list for {}...'.format(I.get_hash()))
     return regret_list
