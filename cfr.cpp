@@ -42,10 +42,6 @@ int main() {
     }
     f2.close();
 
-    // select only first 5 information sets for testing
-    // P1_information_sets = std::vector<std::string>(P1_information_sets.begin(), P1_information_sets.begin() + 5);
-    // P2_information_sets = std::vector<std::string>(P2_information_sets.begin(), P2_information_sets.begin() + 5);
-
     std::ofstream f_out_policy;
     for (int T = 1; T <= 1; T++) {
         std::string next_policy_file_x = "data/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";

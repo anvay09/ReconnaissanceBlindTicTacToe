@@ -24,7 +24,6 @@ int main(int argc, char* argv[]) {
     int num_iterations = std::stoi(argv[3]);
 
     std::string policy_name;
-    // extract file name from policy_file by removing everything before the last '/'
     std::string::size_type pos = policy_file.find_last_of("/");
     if (pos != std::string::npos) {
         policy_name = policy_file.substr(pos + 1);
@@ -75,14 +74,14 @@ int main(int argc, char* argv[]) {
         std::cout << "Starting iteration " << T << "..." << std::endl;
         auto start = std::chrono::system_clock::now();
 
-        #pragma omp parallel for num_threads(96)
+        #pragma omp parallel for num_threads(8)
         for (int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
             bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
             I_hash.pop_back();
             InformationSet I(player[0], move_flag, I_hash);
             
-            std::cout << i << " : " << std::endl;
+            std::cout << i << " : ";
             calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, regret_list[i]);
         }
 
