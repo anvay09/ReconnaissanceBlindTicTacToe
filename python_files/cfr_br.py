@@ -24,8 +24,8 @@ if __name__ == '__main__':
     final_policy_name = policy_file.split('/')[-1]
     num_iterations = args.T
 
-    policy_file_x = 'data/P1_deterministic_policy.json'
-    policy_file_o = 'data/P2_deterministic_policy.json'
+    policy_file_x = 'data/Iterative_1/average/P1_average_overall_policy_after_100_rounds.json'
+    policy_file_o = 'data/Iterative_1/average/P2_average_overall_policy_after_100_rounds.json'
     
     P1_information_sets_file = 'data/P1_information_sets.txt'
     P2_information_sets_file = 'data/P2_information_sets.txt'

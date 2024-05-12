@@ -78,7 +78,8 @@
         "unordered_set": "cpp",
         "valarray": "cpp",
         "variant": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "strstream": "cpp"
     },
     "editor.tabSize": 4
 }

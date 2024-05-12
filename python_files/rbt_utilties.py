@@ -151,7 +151,7 @@ def upgraded_get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
     
     histories = valid_histories_play(I_1, I_2, true_board, player, NonTerminalHistory([]), 
                                      I, played_actions, policy_obj_x, policy_obj_o)
-    logging.info('Calculated {} valid histories for {}...'.format(len(histories), I.get_hash()))
+    # logging.info('Calculated {} valid histories for {}...'.format(len(histories), I.get_hash()))
     return histories
 
 
