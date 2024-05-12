@@ -4,8 +4,8 @@
 #include "cpp_headers/rbt_utilities.hpp"
 
 int main() {
-    std::string policy_file_x = "data/P1_deterministic_policy.json";
-    std::string policy_file_o = "data/P2_deterministic_policy.json";
+    std::string policy_file_x = "data/P1_uniform_policy.json";
+    std::string policy_file_o = "data/P2_uniform_policy.json";
 
     Policy policy_obj_x('x', policy_file_x);
     Policy policy_obj_o('o', policy_file_o);
@@ -42,15 +42,19 @@ int main() {
     }
     f2.close();
 
+    // select only first 5 information sets for testing
+    // P1_information_sets = std::vector<std::string>(P1_information_sets.begin(), P1_information_sets.begin() + 5);
+    // P2_information_sets = std::vector<std::string>(P2_information_sets.begin(), P2_information_sets.begin() + 5);
+
     std::ofstream f_out_policy;
-    for (int T = 1; T <= 1000; T++) {
+    for (int T = 1; T <= 1; T++) {
         std::string next_policy_file_x = "data/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
         std::string next_policy_file_o = "data/P2_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
 
         std::cout << "Starting iteration " << T << " for player x..." << std::endl;
         auto start = std::chrono::system_clock::now();
 
-        #pragma omp parallel for 
+        #pragma omp parallel for num_threads(8)
         for (int i = 0; i < P1_information_sets.size(); i++) {
             std::string I_hash = P1_information_sets[i];
             bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
@@ -71,7 +75,7 @@ int main() {
         std::cout << "Starting iteration " << T << " for player o..." << std::endl;
         start = std::chrono::system_clock::now();
 
-        #pragma omp parallel for
+        #pragma omp parallel for num_threads(8)
         for (int i = 0; i < P2_information_sets.size(); i++) {
             std::string I_hash = P2_information_sets[i];
             bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
