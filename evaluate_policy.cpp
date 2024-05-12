@@ -162,7 +162,7 @@ double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, T
         }
     }
 
-    # pragma omp parallel for
+    # pragma omp parallel for num_threads(8)
     for (int i = 0; i < Depth_1_P1_Isets.size(); i++) {
         expected_utility_h += get_expected_utility(Depth_1_P1_Isets[i], Depth_1_P2_Isets[i], Depth_1_boards[i], Depth_1_players[i], policy_obj_x, policy_obj_o, Depth_1_probabilities[i], Depth_1_histories[i], initial_player, save_games);
     }

@@ -105,6 +105,7 @@ public:
     Policy(char player, std::string& file_path);
     Policy(char player, std::unordered_map<std::string, std::vector<double> >& policy_dict);
     Policy copy();
+    void load_policy(char player, std::string& file_path);
     void update_policy_for_given_information_set(InformationSet& information_set, std::vector<double>& prob_distribution);
     std::unordered_map<std::string, std::vector<double> > read_policy_from_json(std::string& file_path);
 };

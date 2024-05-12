@@ -137,6 +137,7 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
     std::vector<int> h = {};
     History current_history(h);
     valid_histories_play(I_1, I_2, true_board, player, current_history, I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+    // std::cout << "Valid histories for " << I.get_hash() << " : " << valid_histories_list.size() << std::endl;
     return;
 }   
 
@@ -384,9 +385,5 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         regret_list[action] = regret_T;
     }
 
-    // std::cout << "Calculated regret for " << I.get_hash() << " : ";
-    // for (int i = 0; i < regret_list.size(); i++) {
-    //     std::cout << regret_list[i] << " ";
-    // }
-    // std::cout << std::endl;
+    std::cout << "Calculated regret for " << I.get_hash() << std::endl;
 }

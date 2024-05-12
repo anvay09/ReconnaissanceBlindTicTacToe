@@ -553,6 +553,11 @@ Policy Policy::copy() {
     return Policy(this->player, this->policy_dict);
 }
 
+void Policy::load_policy(char player, std::string& file_path) {
+    this->player = player;
+    this->policy_dict = this->read_policy_from_json(file_path);
+}
+
 void Policy::update_policy_for_given_information_set(InformationSet& information_set, std::vector<double>& prob_distribution) {
     std::vector<double> prob_dist;
     for (int i = 0; i < prob_distribution.size(); i++) {
