@@ -181,8 +181,8 @@ int main(int argc, char** argv) {
 
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
-    int round = std::stoi(argv[3]);
-    int save_games = std::stoi(argv[4]);
+    // int round = std::stoi(argv[3]);
+    // int save_games = std::stoi(argv[4]);
     
     char player = 'x';
     Policy policy_obj_x('x', file_path_1);
@@ -194,12 +194,18 @@ int main(int argc, char** argv) {
     std::cout << "Getting expected utility..." << std::endl;
     auto start = std::chrono::system_clock::now();   
     
-    double expected_utility = get_expected_utility_parallel(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, 1, start_history, player, save_games);
+    double expected_utility = get_expected_utility_parallel(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, 1, start_history, player, 0);
     std::cout << "Expected utility: " << expected_utility << std::endl;
+    
+    // save expected utility to file
+    std::ofstream file;
+    file.open("expected_utility.txt");
+    file << expected_utility;
+    file.close();
 
-    if (save_games) {
-        std::cout << "Number of terminal histories: " << terminal_histories.size() << std::endl;
-    }
+    // if (save_games) {
+    //     std::cout << "Number of terminal histories: " << terminal_histories.size() << std::endl;
+    // }
     
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
