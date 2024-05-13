@@ -8,8 +8,8 @@
 int main(int argc, char* argv[]) {
     std::string P1_information_sets_file = "data/P1_information_sets.txt";
     std::string P2_information_sets_file = "data/P2_information_sets.txt";
-    std::string P1_policy_file = "data/Iterative_1/average/P1_avg_policy_after_round_100.json";
-    std::string P2_policy_file = "data/Iterative_1/average/P2_avg_policy_after_round_100.json";
+    std::string P1_policy_file = "data/Iterative_1/average/P1_avg_policy_after_round_100_normalised.json";
+    std::string P2_policy_file = "data/Iterative_1/average/P2_avg_policy_after_round_100_normalised.json";
     Policy policy_obj_x;
     Policy policy_obj_o;
     
