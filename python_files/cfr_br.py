@@ -63,13 +63,14 @@ if __name__ == '__main__':
     expu_I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
     expu_player = 'x'
 
+    
     for T in range(1, num_iterations+1):
         args = []
         
         for I_hash in information_sets:
             I = InformationSet(player, I_hash[-1]=='m', board=[*I_hash[:-1]])
             args.append((I, policy_obj_x, policy_obj_o, T, regret_set[I_hash]))
-
+        
         expected_utility = get_expected_utility_parallel(expu_I_1, expu_I_2, expu_true_board, expu_player, policy_obj_x, policy_obj_o, 1, NonTerminalHistory(), expu_player)
         logging.info('Expected utility: {}'.format(expected_utility))
         logging.info('Starting iteration {}...'.format(T))

@@ -30,8 +30,7 @@ if __name__ == '__main__':
         total = sum(prob_dict.values())
 
         if total == 0:
-            for action in prob_dict:
-                prob_dict[action] = 1/len(prob_dict)
+            continue
         else:
             for action in prob_dict:
                 prob_dict[action] /= total
