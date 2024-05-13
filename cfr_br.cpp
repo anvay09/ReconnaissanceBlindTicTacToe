@@ -8,12 +8,11 @@
 int main(int argc, char* argv[]) {
     std::string P1_information_sets_file = "data/P1_information_sets.txt";
     std::string P2_information_sets_file = "data/P2_information_sets.txt";
-    std::string P1_policy_file = "data/P1_uniform_policy.json";
-    std::string P2_policy_file = "data/P2_uniform_policy.json";
+    std::string P1_policy_file = "data/Iterative_1/average/P1_avg_policy_after_round_100.json";
+    std::string P2_policy_file = "data/Iterative_1/average/P2_avg_policy_after_round_100.json";
     Policy policy_obj_x;
     Policy policy_obj_o;
-    Policy& policy_obj = policy_obj_x; 
-
+    
     if (argc != 4) {
         std::cout << "Usage: ./cfr_br <player> <other_player_policy_file> <iterations>" << std::endl;
         return 1;
@@ -37,28 +36,22 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    std::ifstream f1;
     if (player == "o") {
         policy_obj_x.load_policy('x', policy_file);
         policy_obj_o.load_policy('o', P2_policy_file);
-        policy_obj = policy_obj_x;
+        f1.open(P2_information_sets_file);
     }
     else {
         policy_obj_x.load_policy('x', P1_policy_file);
         policy_obj_o.load_policy('o', policy_file);
-        policy_obj = policy_obj_o;
+        f1.open(P1_information_sets_file);
     }
 
     std::vector<std::string> information_sets;
     std::vector<std::vector<double>> regret_list;
-
-    std::ifstream f1;
-    if (player == "x"){
-        f1.open(P1_information_sets_file);
-    }
-    else {
-        f1.open(P2_information_sets_file);
-    }
     std::string line;
+
     while (std::getline(f1, line)) {
         information_sets.push_back(line);
         std::vector<double> regret_vector;
@@ -81,7 +74,6 @@ int main(int argc, char* argv[]) {
             I_hash.pop_back();
             InformationSet I(player[0], move_flag, I_hash);
             
-            std::cout << i << " : ";
             calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, regret_list[i]);
         }
 
@@ -111,17 +103,34 @@ int main(int argc, char* argv[]) {
                 total_regret += regret_vector[j];
             }
             
-            std::vector<double>& prob_dist = policy_obj.policy_dict[I_hash];
-            if (total_regret > 0) {
-                for (int action : actions) {
-                    prob_dist[action] = regret_vector[action] / total_regret;
+            if (player == "x") {
+                std::vector<double>& prob_dist = policy_obj_x.policy_dict[I_hash];
+                if (total_regret > 0) {
+                    for (int action : actions) {
+                        prob_dist[action] = regret_vector[action] / total_regret;
+                    }
+                }
+                else {
+                    for (int action : actions) {
+                        prob_dist[action] = 1.0 / actions.size();
+                    }
                 }
             }
             else {
-                for (int action : actions) {
-                    prob_dist[action] = 1.0 / actions.size();
+                std::vector<double>& prob_dist = policy_obj_o.policy_dict[I_hash];
+                if (total_regret > 0) {
+                    for (int action : actions) {
+                        prob_dist[action] = regret_vector[action] / total_regret;
+                    }
+                }
+                else {
+                    for (int action : actions) {
+                        prob_dist[action] = 1.0 / actions.size();
+                    }
                 }
             }
+
+            
         }
     }
 
