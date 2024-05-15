@@ -12,6 +12,8 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
 
 double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, Policy &policy_obj_x, Policy &policy_obj_o, double probability, History& current_history, char initial_player);
 
+double get_expected_utility_wrapper(Policy& policy_obj_x, Policy& policy_obj_o);
+
 double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, Policy& policy_obj_x, Policy& policy_obj_o, double probability, History history_obj, char initial_player);
     
 double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, Policy& policy_obj_x, Policy& policy_obj_o, double probability, History history_obj, InformationSet& curr_I_1, char initial_player);

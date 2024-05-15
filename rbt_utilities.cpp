@@ -299,6 +299,21 @@ double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, T
 }
 
 
+double get_expected_utility_wrapper(Policy& policy_obj_x, Policy& policy_obj_o){
+    std::string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::string board_1 = "000000000";
+    std::string board_2 = "---------";
+    InformationSet I_1 = InformationSet('x', true, board_1);
+    InformationSet I_2 = InformationSet('o', false, board_2);
+    std::vector<int> h = {};
+    TerminalHistory start_history = TerminalHistory(h);
+
+    double expected_utility = get_expected_utility_parallel(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x');
+    return expected_utility;
+}
+
+
 double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, 
                                Policy& policy_obj_x, Policy& policy_obj_o, double probability, History history_obj, char initial_player){
 
