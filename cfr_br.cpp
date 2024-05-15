@@ -156,17 +156,17 @@ int main(int argc, char* argv[]) {
 
         double expected_utility = get_expected_utility_parallel(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x');
         std::cout << "Expected utility: " << expected_utility << std::endl; 
-    }
+    
+        std::string out_policy_file = "data/best_response/iteration_" + std::to_string(T) + "_best_response_against_" + policy_name;
+        f_out_policy.open(out_policy_file, std::ios::trunc);
 
-    std::string out_policy_file = "data/best_response/best_response_against_" + policy_name;
-    f_out_policy.open(out_policy_file, std::ios::trunc);
-
-    json jx;
-    for (auto& it: policy_obj_x.policy_dict) {
-        for (int i = 0; i < 13; i++) {
-            jx[it.first][std::to_string(i)] = it.second[i];
+        json jx;
+        for (auto& it: policy_obj_x.policy_dict) {
+            for (int i = 0; i < 13; i++) {
+                jx[it.first][std::to_string(i)] = it.second[i];
+            }
         }
+        f_out_policy << jx.dump() << std::endl;
+        f_out_policy.close();
     }
-    f_out_policy << jx.dump() << std::endl;
-    f_out_policy.close();
 }
