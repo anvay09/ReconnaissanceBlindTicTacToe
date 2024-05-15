@@ -121,16 +121,16 @@ int main() {
         }
 
         
-        // f_out_policy.open(next_policy_file_x, std::ios::trunc);
+        f_out_policy.open(next_policy_file_x, std::ios::trunc);
 
-        // json jx;
-        // for (auto& it: policy_obj_x.policy_dict) {
-        //     for (int i = 0; i < 13; i++) {
-        //         jx[it.first][std::to_string(i)] = it.second[i];
-        //     }
-        // }
-        // f_out_policy << jx.dump() << std::endl;
-        // f_out_policy.close();
+        json jx;
+        for (auto& it: policy_obj_x.policy_dict) {
+            for (int i = 0; i < 13; i++) {
+                jx[it.first][std::to_string(i)] = it.second[i];
+            }
+        }
+        f_out_policy << jx.dump() << std::endl;
+        f_out_policy.close();
 
         std::cout << "Updating policy for player o..." << std::endl;
 
@@ -162,15 +162,15 @@ int main() {
             }
         }
 
-        // f_out_policy.open(next_policy_file_o, std::ios::trunc);
+        f_out_policy.open(next_policy_file_o, std::ios::trunc);
 
-        // json jo;
-        // for (auto& it: policy_obj_o.policy_dict) {
-        //     for (int i = 0; i < 13; i++) {
-        //         jo[it.first][std::to_string(i)] = it.second[i];
-        //     }
-        // }
-        // f_out_policy << jo.dump() << std::endl;
-        // f_out_policy.close();
+        json jo;
+        for (auto& it: policy_obj_o.policy_dict) {
+            for (int i = 0; i < 13; i++) {
+                jo[it.first][std::to_string(i)] = it.second[i];
+            }
+        }
+        f_out_policy << jo.dump() << std::endl;
+        f_out_policy.close();
     }
 }
