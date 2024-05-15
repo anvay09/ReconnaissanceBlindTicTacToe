@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
             I.get_actions(actions);
 
             for (int j = 0; j < actions.size(); j++) {
-                total_regret += regret_vector[j];
+                total_regret += regret_vector[actions[j]];
             }
             
             if (player == "x") {
