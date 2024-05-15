@@ -23,3 +23,5 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
 double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& starting_histories, std::vector<double>& prob_reaching_h_list);
 
 void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, int T, std::vector<double>& regret_list);
+
+std::unordered_map<std::string, std::vector<double> > get_prev_regrets(std::string& file_path);

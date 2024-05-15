@@ -481,3 +481,35 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
     }
 
 }
+
+std::unordered_map<std::string, std::vector<double> > get_prev_regrets(std::string& file_path){
+    std::ifstream i(file_path);
+    json regret_obj;
+    i >> regret_obj;
+    std::unordered_map<std::string, std::vector<double> > regret_map;
+        
+    for (json::iterator it = regret_obj.begin(); it != regret_obj.end(); ++it) {
+        std::string key = it.key();
+        std::vector <double> probability_distribution(13);
+        // initialise all values to zero
+        for (int i = 0; i < 13; i++) {
+            probability_distribution[i] = 0;
+        }
+
+        if (key.back() == 's') {
+            std::vector<std::string> sense_keys = {"9", "10", "11", "12"};
+            for (int i = 0; i < sense_keys.size(); i++) {
+                probability_distribution[stoi(sense_keys[i])] = regret_obj[key][sense_keys[i]];
+            }
+        }
+        else if (key.back() == 'm') {
+            std::vector<std::string> move_keys = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};
+            for (int i = 0; i < move_keys.size(); i++) {
+                probability_distribution[stoi(move_keys[i])] = regret_obj[key][move_keys[i]];
+            }
+        }
+        regret_map[key] = probability_distribution;
+    }
+
+    return regret_map;
+}
