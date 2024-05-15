@@ -204,6 +204,101 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
 }
 
 
+double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, Policy &policy_obj_x, 
+                                     Policy &policy_obj_o, double probability, History& current_history, char initial_player) {
+    double expected_utility_h = 0;
+    std::vector<InformationSet> Depth_1_P1_Isets;
+    std::vector<InformationSet> Depth_1_P2_Isets;
+    std::vector<TicTacToeBoard> Depth_1_boards;
+    std::vector<char> Depth_1_players;
+    std::vector<double> Depth_1_probabilities;
+    std::vector<History> Depth_1_histories;
+    
+    InformationSet I = player == 'x' ? I_1 : I_2;
+    Policy policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
+
+    std::vector<int> actions;
+    I.get_actions_given_policy(actions, policy_obj);
+
+    if (I.move_flag) {
+        for (int action : actions) {
+            TicTacToeBoard new_true_board = true_board;
+            bool success = new_true_board.update_move(action, player);
+
+            double probability_new = probability * policy_obj.policy_dict[I.get_hash()][action];
+            History new_history = current_history;
+            new_history.history.push_back(action);
+
+            char winner;
+            if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
+                InformationSet new_I(I);
+                new_I.update_move(action, player);
+                new_I.reset_zeros();
+
+                if (player == 'x') {
+                    Depth_1_P1_Isets.push_back(new_I);
+                    Depth_1_P2_Isets.push_back(I_2);
+                    Depth_1_boards.push_back(new_true_board);
+                    Depth_1_players.push_back('o');
+                    Depth_1_probabilities.push_back(probability_new);
+                    Depth_1_histories.push_back(new_history);
+                } else {
+                    Depth_1_P1_Isets.push_back(I_1);
+                    Depth_1_P2_Isets.push_back(new_I);
+                    Depth_1_boards.push_back(new_true_board);
+                    Depth_1_players.push_back('x');
+                    Depth_1_probabilities.push_back(probability_new);
+                    Depth_1_histories.push_back(new_history);
+                }
+            } else {
+                TerminalHistory H_T = TerminalHistory(new_history.history);
+                H_T.set_reward();
+                if (initial_player == 'x'){
+                    expected_utility_h += H_T.reward[0] * probability_new;
+                }
+                else{
+                    expected_utility_h += H_T.reward[1] * probability_new;
+                }
+            }
+        
+        }
+    }
+    else {
+        for (int action : actions) {
+            InformationSet new_I(I);
+            new_I.simulate_sense(action, true_board);
+
+            double probability_new = probability * policy_obj.policy_dict[I.get_hash()][action];
+            History new_history = current_history;
+            new_history.history.push_back(action);
+
+            if (player == 'x') {
+                Depth_1_P1_Isets.push_back(new_I);
+                Depth_1_P2_Isets.push_back(I_2);
+                Depth_1_boards.push_back(true_board);
+                Depth_1_players.push_back('x');
+                Depth_1_probabilities.push_back(probability_new);
+                Depth_1_histories.push_back(new_history);
+            } else {
+                Depth_1_P1_Isets.push_back(I_1);
+                Depth_1_P2_Isets.push_back(new_I);
+                Depth_1_boards.push_back(true_board);
+                Depth_1_players.push_back('o');
+                Depth_1_probabilities.push_back(probability_new);
+                Depth_1_histories.push_back(new_history);
+            }   
+        }
+    }
+
+    # pragma omp parallel for num_threads(96)
+    for (int i = 0; i < Depth_1_P1_Isets.size(); i++) {
+        expected_utility_h += get_expected_utility(Depth_1_P1_Isets[i], Depth_1_P2_Isets[i], Depth_1_boards[i], Depth_1_players[i], policy_obj_x, policy_obj_o, Depth_1_probabilities[i], Depth_1_histories[i], initial_player);
+    }
+
+    return expected_utility_h;
+}
+
+
 double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, 
                                Policy& policy_obj_x, Policy& policy_obj_o, double probability, History history_obj, char initial_player){
 

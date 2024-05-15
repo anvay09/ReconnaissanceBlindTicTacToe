@@ -44,10 +44,6 @@ int main() {
 
     std::ofstream f_out_policy;
 
-    // select first 20 information sets for player x and player o
-    P1_information_sets = std::vector<std::string>(P1_information_sets.begin(), P1_information_sets.begin() + 20);
-    P2_information_sets = std::vector<std::string>(P2_information_sets.begin(), P2_information_sets.begin() + 20);
-
     for (int T = 1; T <= 1; T++) {
         std::string next_policy_file_x = "data/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
         std::string next_policy_file_o = "data/P2_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
@@ -55,7 +51,7 @@ int main() {
         std::cout << "Starting iteration " << T << " for player x..." << std::endl;
         auto start = std::chrono::system_clock::now();
 
-        #pragma omp parallel for num_threads(8)
+        #pragma omp parallel for num_threads(96)
         for (int i = 0; i < P1_information_sets.size(); i++) {
             std::string I_hash = P1_information_sets[i];
             bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
@@ -76,7 +72,7 @@ int main() {
         std::cout << "Starting iteration " << T << " for player o..." << std::endl;
         start = std::chrono::system_clock::now();
 
-        #pragma omp parallel for num_threads(8)
+        #pragma omp parallel for num_threads(96)
         for (int i = 0; i < P2_information_sets.size(); i++) {
             std::string I_hash = P2_information_sets[i];
             bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;

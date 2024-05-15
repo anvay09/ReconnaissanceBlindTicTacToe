@@ -12,7 +12,6 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
     I.get_actions_given_policy(actions, policy_obj);
     
     if (I.move_flag) {
-        // # pragma omp parallel for
         for (int action : actions) {
             TicTacToeBoard new_true_board = true_board;
             bool success = new_true_board.update_move(action, player);
@@ -50,7 +49,6 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
             }
         }
     } else {
-        // # pragma omp parallel for
         for (int action : actions) {
             InformationSet new_I(I);
             new_I.simulate_sense(action, true_board);
@@ -162,7 +160,7 @@ double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, T
         }
     }
 
-    # pragma omp parallel for num_threads(8)
+    # pragma omp parallel for num_threads(96)
     for (int i = 0; i < Depth_1_P1_Isets.size(); i++) {
         expected_utility_h += get_expected_utility(Depth_1_P1_Isets[i], Depth_1_P2_Isets[i], Depth_1_boards[i], Depth_1_players[i], policy_obj_x, policy_obj_o, Depth_1_probabilities[i], Depth_1_histories[i], initial_player, save_games);
     }
@@ -181,9 +179,7 @@ int main(int argc, char** argv) {
 
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
-    // int round = std::stoi(argv[3]);
-    // int save_games = std::stoi(argv[4]);
-    
+
     char player = 'x';
     Policy policy_obj_x('x', file_path_1);
     Policy policy_obj_o('o', file_path_2);
@@ -196,17 +192,12 @@ int main(int argc, char** argv) {
     
     double expected_utility = get_expected_utility_parallel(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, 1, start_history, player, 0);
     std::cout << "Expected utility: " << expected_utility << std::endl;
-    
-    // save expected utility to file
+
     std::ofstream file;
     file.open("expected_utility.txt");
     file << expected_utility;
     file.close();
 
-    // if (save_games) {
-    //     std::cout << "Number of terminal histories: " << terminal_histories.size() << std::endl;
-    // }
-    
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
