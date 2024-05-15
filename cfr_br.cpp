@@ -80,6 +80,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
             bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
+            
             I_hash.pop_back();
             InformationSet I(player[0], move_flag, I_hash);
             
@@ -99,6 +100,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
             bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
+            
             I_hash.pop_back();
             InformationSet I(player[0], move_flag, I_hash);
             I_hash += move_flag ? "m" : "s";
@@ -107,8 +109,8 @@ int main(int argc, char* argv[]) {
             std::vector<int> actions;
             I.get_actions(actions);
 
-            for (int j = 0; j < actions.size(); j++) {
-                total_regret += regret_vector[actions[j]];
+            for (int action : actions) {
+                total_regret += regret_vector[action];
             }
             
             if (player == "x") {

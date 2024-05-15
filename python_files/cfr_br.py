@@ -15,24 +15,28 @@ logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt=
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--player', type=str, default='x', help='Player to calculate policy for')
-    parser.add_argument('--policy', type=str, help='Other player\'s policy file')
+    parser.add_argument('--policy_x', type=str)
+    parser.add_argument('--policy_o', type=str)
     parser.add_argument('--T', type=int, default=1, help='Number of iterations to run')
     args = parser.parse_args()
 
     player = args.player
-    policy_file = args.policy
-    final_policy_name = policy_file.split('/')[-1]
     num_iterations = args.T
 
-    policy_file_x = 'data/Iterative_1/average/P1_average_overall_policy_after_90_rounds_normalised.json'
-    policy_file_o = 'data/Iterative_1/average/P2_average_overall_policy_after_90_rounds_normalised.json'
+    policy_file_x = args.policy_x
+    policy_file_o = args.policy_o
     
     P1_information_sets_file = 'data/P1_information_sets.txt'
     P2_information_sets_file = 'data/P2_information_sets.txt'
     information_sets = []
     regret_set = {}
+    p1_policy_dict = json.load(open(policy_file_x, 'r'))
+    policy_obj_x = Policy(policy_dict=p1_policy_dict, player='x')
+    p2_policy_dict = json.load(open(policy_file_o, 'r'))
+    policy_obj_o = Policy(policy_dict=p2_policy_dict, player='o')
 
     if player == 'x':
+        policy_file = policy_file_x
         with open(P1_information_sets_file, 'r') as f:
             lines = f.readlines()
             for line in lines:
@@ -40,30 +44,22 @@ if __name__ == '__main__':
                 information_sets.append(I_hash)
                 regret_set[I_hash] = [0]*13
 
-        p1_policy_dict = json.load(open(policy_file_x, 'r'))
-        policy_obj_x = Policy(policy_dict=p1_policy_dict, player='x')
-        p2_policy_dict = json.load(open(policy_file, 'r'))
-        policy_obj_o = Policy(policy_dict=p2_policy_dict, player='o')
-
     else:
+        policy_file = policy_file_o
         with open(P2_information_sets_file, 'r') as f:
             lines = f.readlines()
             for line in lines:
                 I_hash = line.strip()
                 information_sets.append(I_hash)
                 regret_set[I_hash] = [0]*13
-                
-        p1_policy_dict = json.load(open(policy_file, 'r'))
-        policy_obj_x = Policy(policy_dict=p1_policy_dict, player='x')
-        p2_policy_dict = json.load(open(policy_file_o, 'r'))
-        policy_obj_o = Policy(policy_dict=p2_policy_dict, player='o')
 
+
+    final_policy_name = policy_file.split('/')[-1]
     expu_true_board = TicTacToeBoard(board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
     expu_I_1 = InformationSet(player='x', move_flag=True, board=['0', '0', '0', '0', '0', '0', '0', '0', '0'])
     expu_I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
     expu_player = 'x'
 
-    
     for T in range(1, num_iterations+1):
         args = []
         
