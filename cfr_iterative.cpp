@@ -4,10 +4,10 @@
 #include "cpp_headers/rbt_utilities.hpp"
 
 int main(int argc, char* argv[])  {
-    std::int number_threads = std::stoi(argv[1]); //96;
+    int number_threads = std::stoi(argv[1]); //96;
     std::string base_path = argv[2]; //"data/Iterative_1";
-    std::int start_iter = std::stoi(argv[3]); //1;
-    std::int end_iter = std::stoi(argv[4]); //1000;
+    int start_iter = std::stoi(argv[3]); //1;
+    int end_iter = std::stoi(argv[4]); //1000;
     std::string policy_file_x = argv[5]; //"data/P1_uniform_policy.json";
     std::string policy_file_o = argv[6]; //"data/P2_uniform_policy.json";
 
@@ -25,7 +25,7 @@ int main(int argc, char* argv[])  {
     std::unordered_map<std::string, std::vector<double> > regret_map_x;
     std::unordered_map<std::string, std::vector<double> > regret_map_o;
 
-    if start_iter == 1 {
+    if (start_iter == 1) {
         std::ifstream f1(P1_information_sets_file);
         std::string line;
         
@@ -120,13 +120,13 @@ int main(int argc, char* argv[])  {
 
         f_out_policy.open(next_regret_file_x, std::ios::trunc);
 
-        json jx;
+        json jx_regret;
         for (auto& it: regret_map_x) {
             for (int i = 0; i < 13; i++) {
-                jx[it.first][std::to_string(i)] = it.second[i];
+                jx_regret[it.first][std::to_string(i)] = it.second[i];
             }
         }
-        f_out_policy << jx.dump() << std::endl;
+        f_out_policy << jx_regret.dump() << std::endl;
         f_out_policy.close();
 
 
@@ -202,13 +202,13 @@ int main(int argc, char* argv[])  {
 
         f_out_policy.open(next_regret_file_o, std::ios::trunc);
 
-        json jx;
+        json jo_regret;
         for (auto& it: regret_map_o) {
             for (int i = 0; i < 13; i++) {
-                jx[it.first][std::to_string(i)] = it.second[i];
+                jo_regret[it.first][std::to_string(i)] = it.second[i];
             }
         }
-        f_out_policy << jx.dump() << std::endl;
+        f_out_policy << jo_regret.dump() << std::endl;
         f_out_policy.close();
 
         std::cout << "Updating policy for player o..." << std::endl;
