@@ -43,6 +43,11 @@ int main() {
     f2.close();
 
     std::ofstream f_out_policy;
+
+    // select first 20 information sets for player x and player o
+    P1_information_sets = std::vector<std::string>(P1_information_sets.begin(), P1_information_sets.begin() + 20);
+    P2_information_sets = std::vector<std::string>(P2_information_sets.begin(), P2_information_sets.begin() + 20);
+
     for (int T = 1; T <= 1; T++) {
         std::string next_policy_file_x = "data/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
         std::string next_policy_file_o = "data/P2_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
@@ -120,16 +125,16 @@ int main() {
         }
 
         
-        f_out_policy.open(next_policy_file_x, std::ios::trunc);
+        // f_out_policy.open(next_policy_file_x, std::ios::trunc);
 
-        json jx;
-        for (auto& it: policy_obj_x.policy_dict) {
-            for (int i = 0; i < 13; i++) {
-                jx[it.first][std::to_string(i)] = it.second[i];
-            }
-        }
-        f_out_policy << jx.dump() << std::endl;
-        f_out_policy.close();
+        // json jx;
+        // for (auto& it: policy_obj_x.policy_dict) {
+        //     for (int i = 0; i < 13; i++) {
+        //         jx[it.first][std::to_string(i)] = it.second[i];
+        //     }
+        // }
+        // f_out_policy << jx.dump() << std::endl;
+        // f_out_policy.close();
 
         std::cout << "Updating policy for player o..." << std::endl;
 
@@ -161,15 +166,15 @@ int main() {
             }
         }
 
-        f_out_policy.open(next_policy_file_o, std::ios::trunc);
+        // f_out_policy.open(next_policy_file_o, std::ios::trunc);
 
-        json jo;
-        for (auto& it: policy_obj_o.policy_dict) {
-            for (int i = 0; i < 13; i++) {
-                jo[it.first][std::to_string(i)] = it.second[i];
-            }
-        }
-        f_out_policy << jo.dump() << std::endl;
-        f_out_policy.close();
+        // json jo;
+        // for (auto& it: policy_obj_o.policy_dict) {
+        //     for (int i = 0; i < 13; i++) {
+        //         jo[it.first][std::to_string(i)] = it.second[i];
+        //     }
+        // }
+        // f_out_policy << jo.dump() << std::endl;
+        // f_out_policy.close();
     }
 }
