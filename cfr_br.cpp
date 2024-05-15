@@ -48,6 +48,19 @@ int main(int argc, char* argv[]) {
         f1.open(P1_information_sets_file);
     }
 
+    // calculate expected utility
+    std::string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::string board_1 = "000000000";
+    std::string board_2 = "---------";
+    InformationSet I_1 = InformationSet('x', true, board_1);
+    InformationSet I_2 = InformationSet('o', false, board_2);
+    std::vector<int> h = {};
+    TerminalHistory start_history = TerminalHistory(h);
+
+    double expected_utility = get_expected_utility_parallel(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x');
+    std::cout << "Expected utility: " << expected_utility << std::endl; 
+
     std::vector<std::string> information_sets;
     std::vector<std::vector<double>> regret_list;
     std::string line;
