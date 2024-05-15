@@ -468,7 +468,7 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         util += util_a * policy_obj.policy_dict[I.get_hash()][action];
         util_a_list[action] = util_a;
     }
-
+    
     for (int action : actions) {
         if (T == 0) {
             regret_T = util_a_list[action] - util;
