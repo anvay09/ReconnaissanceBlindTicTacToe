@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Starting iteration " << T << "..." << std::endl;
         auto start = std::chrono::system_clock::now();
 
-        #pragma omp parallel for num_threads(96)
+        #pragma omp parallel for num_threads(96) shared(regret_list)
         for (int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
             bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;

@@ -19,12 +19,12 @@ int main(int argc, char* argv[]) {
     if (player == "x") {
         policy_obj_x.load_policy('x', policy_file);
         policy_obj_o.load_policy('o', P2_policy_file);
-        f1.open(P2_information_sets_file);
+        f1.open(P1_information_sets_file);
     }
     else {
         policy_obj_x.load_policy('x', P1_policy_file);
         policy_obj_o.load_policy('o', policy_file);
-        f1.open(P1_information_sets_file);
+        f1.open(P2_information_sets_file);
     }
 
     std::vector<std::string> information_sets;
