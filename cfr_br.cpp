@@ -121,6 +121,12 @@ int main(int argc, char* argv[]) {
                 if (total_regret > 0) {
                     for (int action : actions) {
                         prob_dist[action] = regret_vector[action] / total_regret;
+                        if (prob_dist[action] > 1.0) {
+                            for (int action : actions) {
+                                std::cout << regret_vector[action] << " ";
+                            }
+                            std::cout << std::endl;
+                        }
                     }
                 }
                 else {
@@ -134,6 +140,12 @@ int main(int argc, char* argv[]) {
                 if (total_regret > 0) {
                     for (int action : actions) {
                         prob_dist[action] = regret_vector[action] / total_regret;
+                        if (prob_dist[action] > 1.0) {
+                            for (int action : actions) {
+                                std::cout << regret_vector[action] << " ";
+                            }
+                            std::cout << std::endl;
+                        }
                     }
                 }
                 else {
