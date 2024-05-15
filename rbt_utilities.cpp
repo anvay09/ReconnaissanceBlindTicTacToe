@@ -468,6 +468,11 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         util += util_a * policy_obj.policy_dict[I.get_hash()][action];
         util_a_list[action] = util_a;
     }
+    
+    std::cout << "Util: " << util << std::endl;
+    for (int action : actions) {
+        std::cout << "Util_a: " << util_a_list[action] << std::endl;
+    }
 
     for (int action : actions) {
         if (T == 0) {
