@@ -466,7 +466,6 @@ double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& pol
 
 void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, int T, std::vector<double>& regret_list) {
     double util = 0;
-    double regret_T = 0;
     std::vector<int> actions;
     Policy& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<std::vector<int>> starting_histories;
@@ -478,6 +477,7 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
     }
 
     I.get_actions(actions);
+    
     upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o, starting_histories);
     get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player, prob_reaching_h_list);
     
@@ -488,10 +488,11 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
     }
     
     for (int action : actions) {
+        double regret_T = 0;
         if (T == 0) {
             regret_T = util_a_list[action] - util;
         } else {
-            regret_T = (1 / T) * ((T - 1) * regret_list[action] + util_a_list[action] - util);
+            regret_T = (1.0 / double(T)) * ((double(T) - 1.0) * regret_list[action] + util_a_list[action] - util);
         }
 
         regret_T = regret_T > 0 ? regret_T : 0;
