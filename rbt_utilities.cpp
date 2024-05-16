@@ -7,6 +7,7 @@ char toggle_player(char player) {
     return (player == 'x') ? 'o' : 'x';
 }
 
+
 void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, History& current_history, InformationSet& end_I, 
                           std::vector<int>& played_actions, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     
@@ -15,24 +16,24 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 
     if (player == 'x') {
         if (end_I.player == 'x'){
-            I.get_actions_given_policy(actions, policy_obj_x);
+            I.get_actions(actions);
             if (I.move_flag) {
                 actions = intersection(actions, played_actions);
             }
         }
         else {
-            I.get_actions(actions);
+            I.get_actions_given_policy(actions, policy_obj_x);
         }
         
     } else {
         if (end_I.player == 'o'){
-            I.get_actions_given_policy(actions, policy_obj_o);
+            I.get_actions(actions);
             if (I.move_flag) {
                 actions = intersection(actions, played_actions);
             }
         }
         else {
-            I.get_actions(actions);
+            I.get_actions_given_policy(actions, policy_obj_o);
         }
     }
 
@@ -127,17 +128,17 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
 
     std::string board_1 = "000000000";
     std::string board_2 = "---------";
+    std::string board = "000000000";
     InformationSet I_1('x', true, board_1);
     InformationSet I_2('o', false, board_2);
-    TicTacToeBoard true_board = TicTacToeBoard(EMPTY_BOARD);
+    TicTacToeBoard true_board = TicTacToeBoard(board);
     char player = 'x';
     std::vector<int> played_actions;
     I.get_played_actions(played_actions);
 
     std::vector<int> h = {};
-    History current_history(h);
+    NonTerminalHistory current_history(h);
     valid_histories_play(I_1, I_2, true_board, player, current_history, I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
-    // std::cout << "Valid histories for " << I.get_hash() << " : " << valid_histories_list.size() << std::endl;
     return;
 }   
 
@@ -390,9 +391,10 @@ double get_counter_factual_utility(InformationSet& I, Policy& policy_obj_x, Poli
         NonTerminalHistory h_object(h);
         std::string board_1 = "000000000";
         std::string board_2 = "---------";
+        std::string board = "000000000";
         InformationSet curr_I_1('x', true, board_1);
         InformationSet curr_I_2('o', false, board_2);
-        TicTacToeBoard true_board = TicTacToeBoard(EMPTY_BOARD);
+        TicTacToeBoard true_board = TicTacToeBoard(board);
         h_object.get_information_sets(curr_I_1, curr_I_2);
         char curr_player = 'x';
         h_object.get_board(true_board, curr_player);
@@ -425,11 +427,12 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
         NonTerminalHistory h_object(h);
 
         if (!(I.get_hash() == "000000000m")) {
+            std::string board = "000000000";
             std::string board_1 = "000000000";
             std::string board_2 = "---------";
             InformationSet I_1('x', true, board_1);
             InformationSet I_2('o', false, board_2);
-            TicTacToeBoard true_board = TicTacToeBoard(EMPTY_BOARD);
+            TicTacToeBoard true_board = TicTacToeBoard(board);
             double probability_reaching_h = get_prob_h_given_policy_wrapper(I_1, I_2, true_board, 'x', h[0], policy_obj_x, policy_obj_o, 1, h_object, I, initial_player);
             prob_reaching_h_list_all.push_back(probability_reaching_h);
         }
@@ -479,7 +482,7 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
     get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player, prob_reaching_h_list);
     
     for (int action : actions) {
-        double util_a = calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list);
+        double util_a = calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list); 
         util += util_a * policy_obj.policy_dict[I.get_hash()][action];
         util_a_list[action] = util_a;
     }
@@ -494,8 +497,8 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         regret_T = regret_T > 0 ? regret_T : 0;
         regret_list[action] = regret_T;
     }
-
 }
+
 
 std::unordered_map<std::string, std::vector<double> > get_prev_regrets(std::string& file_path){
     std::ifstream i(file_path);

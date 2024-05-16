@@ -151,7 +151,6 @@ def upgraded_get_histories_given_I(I, policy_obj_x=None, policy_obj_o=None):
     
     histories = valid_histories_play(I_1, I_2, true_board, player, NonTerminalHistory([]), 
                                      I, played_actions, policy_obj_x, policy_obj_o)
-    # logging.info('Calculated {} valid histories for {}...'.format(len(histories), I.get_hash()))
     return histories
 
 
@@ -520,5 +519,4 @@ def calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, prev_regret_list, 
         final_regret_T = max(0, regret_T)
         regret_list[action] = final_regret_T
 
-    # logging.info('Calculated regret list for {}...'.format(I.get_hash()))
     return regret_list
