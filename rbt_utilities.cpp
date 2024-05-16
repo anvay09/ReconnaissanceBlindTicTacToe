@@ -145,7 +145,7 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
 
 double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, Policy &policy_obj_x, 
                             Policy &policy_obj_o, double probability, History& current_history, char initial_player) {
-    double expected_utility_h = 0;
+    double expected_utility_h = 0.0;
     
     InformationSet& I = player == 'x' ? I_1 : I_2;
     Policy& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
@@ -207,7 +207,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
 
 double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, Policy &policy_obj_x, 
                                      Policy &policy_obj_o, double probability, History& current_history, char initial_player) {
-    double expected_utility_h = 0;
+    double expected_utility_h = 0.0;
     std::vector<InformationSet> Depth_1_P1_Isets;
     std::vector<InformationSet> Depth_1_P2_Isets;
     std::vector<TicTacToeBoard> Depth_1_boards;
@@ -385,7 +385,7 @@ double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2,
 
 
 double get_counter_factual_utility(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& starting_histories, std::vector<double>& prob_reaching_h_list) {
-    double counter_factual_utility = 0;
+    double counter_factual_utility = 0.0;
     int count = 0;
     for (std::vector<int> h : starting_histories) {
         NonTerminalHistory h_object(h);
@@ -445,15 +445,15 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
 
 double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& policy_obj_x, Policy& policy_obj_o, 
                                       std::vector<std::vector<int>>& starting_histories, std::vector<double>& prob_reaching_h_list) {
-    double util_a = 0;
+    double util_a = 0.0;
     std::vector <double> prob_dist(13);
     std::vector <double> old_prob_dist(13);
     Policy& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
 
     for (int i = 0; i < 13; i++) {
-        prob_dist[i] = 0;
+        prob_dist[i] = 0.0;
     }
-    prob_dist[action] = 1;
+    prob_dist[action] = 1.0;
 
     old_prob_dist = policy_obj.policy_dict[I.get_hash()];
     policy_obj.policy_dict[I.get_hash()] = prob_dist;
@@ -465,7 +465,7 @@ double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& pol
 
 
 void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, int T, std::vector<double>& regret_list) {
-    double util = 0;
+    double util = 0.0;
     std::vector<int> actions;
     Policy& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<std::vector<int>> starting_histories;
@@ -473,7 +473,7 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
     std::vector<double> util_a_list;
     
     for (int i = 0; i < 13; i++) {
-        util_a_list.push_back(0);
+        util_a_list.push_back(0.0);
     }
 
     I.get_actions(actions);
@@ -488,14 +488,14 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
     }
     
     for (int action : actions) {
-        double regret_T = 0;
+        double regret_T = 0.0;
         if (T == 0) {
             regret_T = util_a_list[action] - util;
         } else {
             regret_T = (1.0 / double(T)) * ((double(T) - 1.0) * regret_list[action] + util_a_list[action] - util);
         }
 
-        regret_T = regret_T > 0 ? regret_T : 0;
+        regret_T = regret_T > 0.0 ? regret_T : 0.0;
         regret_list[action] = regret_T;
     }
 }
