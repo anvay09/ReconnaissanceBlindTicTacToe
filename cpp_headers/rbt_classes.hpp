@@ -83,8 +83,8 @@ public:
 class TerminalHistory : public History
 {
 public:
-    std::vector<int> reward;
-    TerminalHistory(std::vector<int>& history, std::vector<double> reward = {0, 0});
+    std::vector<double> reward;
+    TerminalHistory(std::vector<int>& history, std::vector<double> reward = {0.0, 0.0});
     TerminalHistory copy();
     void set_reward();
 };
