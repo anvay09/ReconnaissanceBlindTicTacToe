@@ -155,7 +155,7 @@ int main(int argc, char* argv[])  {
             }
             else {
                 for (int action : actions) {
-                    prob_dist[action] = 1.0 / actions.size();
+                    prob_dist[action] = 1.0 / double(actions.size());
                 }
             }
         }
@@ -236,7 +236,7 @@ int main(int argc, char* argv[])  {
             }
             else {
                 for (int action : actions) {
-                    prob_dist[action] = 1.0 / actions.size();
+                    prob_dist[action] = 1.0 / double(actions.size());
                 }
             }
         }

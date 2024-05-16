@@ -115,7 +115,7 @@ int main() {
             }
             else {
                 for (int action : actions) {
-                    prob_dist[action] = 1.0 / actions.size();
+                    prob_dist[action] = 1.0 / double(actions.size());
                 }
             }
         }
@@ -157,7 +157,7 @@ int main() {
             }
             else {
                 for (int action : actions) {
-                    prob_dist[action] = 1.0 / actions.size();
+                    prob_dist[action] = 1.0 / double(actions.size());
                 }
             }
         }
