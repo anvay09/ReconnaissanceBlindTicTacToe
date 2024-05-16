@@ -26,8 +26,8 @@ if __name__ == '__main__':
     policy_file_x = args.policy_x
     policy_file_o = args.policy_o
     
-    P1_information_sets_file = 'data/P1_information_sets_10.txt'
-    P2_information_sets_file = 'data/P2_information_sets_10.txt'
+    P1_information_sets_file = 'data/P1_information_sets.txt'
+    P2_information_sets_file = 'data/P2_information_sets.txt'
     information_sets = []
     regret_set = {}
     p1_policy_dict = json.load(open(policy_file_x, 'r'))
@@ -67,8 +67,8 @@ if __name__ == '__main__':
             I = InformationSet(player, I_hash[-1]=='m', board=[*I_hash[:-1]])
             args.append((I, policy_obj_x, policy_obj_o, T, regret_set[I_hash]))
         
-        # expected_utility = get_expected_utility_parallel(expu_I_1, expu_I_2, expu_true_board, expu_player, policy_obj_x, policy_obj_o, 1, NonTerminalHistory(), expu_player)
-        # logging.info('Expected utility: {}'.format(expected_utility))
+        expected_utility = get_expected_utility_parallel(expu_I_1, expu_I_2, expu_true_board, expu_player, policy_obj_x, policy_obj_o, 1, NonTerminalHistory(), expu_player)
+        logging.info('Expected utility: {}'.format(expected_utility))
         logging.info('Starting iteration {}...'.format(T))
         with Pool(num_workers) as p:
             regrets = p.starmap(calc_cfr_policy_given_I, tqdm(args, total=len(args)))
