@@ -484,9 +484,9 @@ void History::get_information_sets(InformationSet &I_1, InformationSet &I_2) {
     }
 }
 
-TerminalHistory::TerminalHistory(std::vector<int>& history, std::vector<int> reward) : History(history) {
+TerminalHistory::TerminalHistory(std::vector<int>& history, std::vector<double> reward) : History(history) {
     if (reward.empty()) {
-        this->reward = {0, 0};
+        this->reward = {0.0, 0.0};
     } else {
         this->reward = reward;
     }
@@ -505,23 +505,23 @@ void TerminalHistory::set_reward() {
 
     if (overlapping_move_flag) {
         if (overlapping_move_player == 'x'){
-            this->reward[0] = -1;
-            this->reward[1] = 1;
+            this->reward[0] = -1.0;
+            this->reward[1] = 1.0;
         }
         else {
-            this->reward[0] = 1;
-            this->reward[1] = -1;
+            this->reward[0] = 1.0;
+            this->reward[1] = -1.0;
         }
 
     } else {
         char winner;
         if (true_board.is_win(winner)) {
             if (winner == 'x') {
-                this->reward[0] = 1;
-                this->reward[1] = -1;
+                this->reward[0] = 1.0;
+                this->reward[1] = -1.0;
             } else {
-                this->reward[0] = -1;
-                this->reward[1] = 1;
+                this->reward[0] = -1.0;
+                this->reward[1] = 1.0;
             }
         }
     }
