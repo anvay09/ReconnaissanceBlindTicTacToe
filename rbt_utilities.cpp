@@ -512,7 +512,7 @@ std::unordered_map<std::string, std::vector<double> > get_prev_regrets(std::stri
         std::vector <double> probability_distribution(13);
         // initialise all values to zero
         for (int i = 0; i < 13; i++) {
-            probability_distribution[i] = 0;
+            probability_distribution[i] = 0.0;
         }
 
         if (key.back() == 's') {
