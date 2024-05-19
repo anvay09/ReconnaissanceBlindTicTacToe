@@ -446,19 +446,21 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
 double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& policy_obj_x, Policy& policy_obj_o, 
                                       std::vector<std::vector<int>>& starting_histories, std::vector<double>& prob_reaching_h_list) {
     double util_a = 0.0;
-    std::vector <double> prob_dist(13);
-    std::vector <double> old_prob_dist(13);
     Policy& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
+    std::vector <double> old_prob_dist(13);
+    std::vector <double>& prob_dist = policy_obj.policy_dict[I.get_hash()];
 
     for (int i = 0; i < 13; i++) {
+        old_prob_dist[i] = prob_dist[i];
         prob_dist[i] = 0.0;
     }
     prob_dist[action] = 1.0;
 
-    old_prob_dist = policy_obj.policy_dict[I.get_hash()];
-    policy_obj.policy_dict[I.get_hash()] = prob_dist;
     util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list);
-    policy_obj.policy_dict[I.get_hash()] = old_prob_dist;
+    
+    for (int i = 0; i < 13; i++) {
+        prob_dist[i] = old_prob_dist[i];
+    }
 
     return util_a;
 }
