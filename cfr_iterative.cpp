@@ -90,6 +90,9 @@ int main(int argc, char* argv[])  {
         std::string next_regret_file_x = base_path + "/regret/P1_iteration_" + std::to_string(T) + "_regret_cpp.json";
         std::string next_regret_file_o = base_path + "/regret/P2_iteration_" + std::to_string(T) + "_regret_cpp.json";
 
+        double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
+        std::cout << "Expected utility: " << expected_utility << std::endl; 
+
         std::cout << "Starting iteration " << T << " for player x..." << std::endl;
         auto start = std::chrono::system_clock::now();
 
