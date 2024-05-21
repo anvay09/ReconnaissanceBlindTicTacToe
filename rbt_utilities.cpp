@@ -508,6 +508,18 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         regret_T = regret_T > 0.0 ? regret_T : 0.0;
         regret_list[action] = regret_T;
     }
+    if (I.get_hash() == "000000000m"){
+        std::cout << "Regret list: " << std::endl;
+        for (int i = 0; i < 13; i++) {
+            std::cout << regret_list[i] << " ";
+        }
+        std::cout << "util a: " << std::endl;
+        for (int action : actions) {
+            std::cout << action << " util: " << util_a_list[action] << std::endl;
+        }
+
+    }
+
 }
 
 
