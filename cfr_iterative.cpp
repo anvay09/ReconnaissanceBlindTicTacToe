@@ -93,7 +93,7 @@ int main(int argc, char* argv[])  {
         std::cout << "Starting iteration " << T << " for player x..." << std::endl;
         auto start = std::chrono::system_clock::now();
 
-        #pragma omp parallel for num_threads(number_threads)
+        #pragma omp parallel for num_threads(number_threads) shared(regret_list_x)
         for (int i = 0; i < P1_information_sets.size(); i++) {
             std::string I_hash = P1_information_sets[i];
             bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
@@ -143,8 +143,8 @@ int main(int argc, char* argv[])  {
             std::vector<int> actions;
             I.get_actions(actions);
 
-            for (int j = 0; j < actions.size(); j++) {
-                total_regret += regret_vector[actions[j]];
+            for (int action : actions) {
+                total_regret += regret_vector[action];
             }
 
             std::vector<double>& prob_dist = policy_obj_x.policy_dict[I_hash];
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])  {
         std::cout << "Starting iteration " << T << " for player o..." << std::endl;
         start = std::chrono::system_clock::now();
 
-        #pragma omp parallel for num_threads(number_threads)
+        #pragma omp parallel for num_threads(number_threads) shared(regret_list_o)
         for (int i = 0; i < P2_information_sets.size(); i++) {
             std::string I_hash = P2_information_sets[i];
             bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
@@ -224,8 +224,8 @@ int main(int argc, char* argv[])  {
             std::vector<int> actions;
             I.get_actions(actions);
 
-            for (int j = 0; j < actions.size(); j++) {
-                total_regret += regret_vector[actions[j]];
+            for (int action : actions) {
+                total_regret += regret_vector[action];
             }
 
             std::vector<double>& prob_dist = policy_obj_o.policy_dict[I_hash];
