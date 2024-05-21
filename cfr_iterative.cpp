@@ -4,6 +4,7 @@
 #include "cpp_headers/rbt_utilities.hpp"
 
 int main(int argc, char* argv[])  {
+    std::cout.precision(17);
     int number_threads = std::stoi(argv[1]); //96;
     std::string base_path = argv[2]; //"data/Iterative_1";
     int start_iter = std::stoi(argv[3]); //1;

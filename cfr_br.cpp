@@ -39,23 +39,23 @@ int main(int argc, char* argv[]) {
     if (player == "x") {
         f1.open(P1_information_sets_file);
 
-        std::string::size_type pos = P1_policy_file.find_last_of("/");
-        if (pos != std::string::npos) {
-            policy_name = P1_policy_file.substr(pos + 1);
-        }
-        else {
-            policy_name = P1_policy_file;
-        }
-    }
-    else {
-        f1.open(P2_information_sets_file);
-
         std::string::size_type pos = P2_policy_file.find_last_of("/");
         if (pos != std::string::npos) {
             policy_name = P2_policy_file.substr(pos + 1);
         }
         else {
             policy_name = P2_policy_file;
+        }
+    }
+    else {
+        f1.open(P2_information_sets_file);
+
+        std::string::size_type pos = P1_policy_file.find_last_of("/");
+        if (pos != std::string::npos) {
+            policy_name = P1_policy_file.substr(pos + 1);
+        }
+        else {
+            policy_name = P1_policy_file;
         }
     }
 

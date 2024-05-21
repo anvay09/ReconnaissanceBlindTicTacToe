@@ -170,6 +170,7 @@ double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, T
 
 
 int main(int argc, char** argv) {
+    std::cout.precision(17);
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string board_1 = "000000000";

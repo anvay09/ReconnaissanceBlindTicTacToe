@@ -6,6 +6,7 @@
 #include "cpp_headers/rbt_utilities.hpp"
 
 int main(int argc, char* argv[]) {
+    std::cout.precision(17);
     std::string P1_information_sets_file = "data/P1_information_sets.txt";
     std::string P2_information_sets_file = "data/P2_information_sets.txt";
     std::vector<std::string> information_sets;
