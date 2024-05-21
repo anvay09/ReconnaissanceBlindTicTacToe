@@ -123,6 +123,8 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     
     if (I.get_hash() == "000000000m"){
+        std::vector<int> init_h = {};
+        valid_histories_list.push_back(init_h);
         return;
     }
 
@@ -411,14 +413,6 @@ double get_counter_factual_utility(InformationSet& I, Policy& policy_obj_x, Poli
             else {
                 probability_reaching_h = 1.0;
             }
-            if (I.get_hash() == "000000000m") {
-                std::cout << "Expected utility for: ";
-                for (int i = 0; i < h.size(); i++) {
-                    std::cout << h[i] << " ";
-                }
-                std::cout<< ":" << expected_utility_h << std::endl;
-                std::cout << "Probability reaching h: " << probability_reaching_h << std::endl;
-            }
             counter_factual_utility += expected_utility_h * probability_reaching_h;
         }
         
@@ -497,10 +491,6 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
     
     upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o, starting_histories);
     get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player, prob_reaching_h_list);
-    if (I.get_hash() == "000000000m") {
-    std::cout << "Starting histories: " << starting_histories.size() << std::endl;
-    std::cout << "Prob reaching h list: " << prob_reaching_h_list.size() << std::endl;
-    }
     
     for (int action : actions) {
         double util_a = calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list); 
@@ -519,18 +509,6 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         regret_T = regret_T > 0.0 ? regret_T : 0.0;
         regret_list[action] = regret_T;
     }
-    if (I.get_hash() == "000000000m"){
-        std::cout << "Regret list: " << std::endl;
-        for (int i = 0; i < 13; i++) {
-            std::cout << regret_list[i] << " ";
-        }
-        std::cout << "util a: " << std::endl;
-        for (int action : actions) {
-            std::cout << action << " util: " << util_a_list[action] << std::endl;
-        }
-
-    }
-
 }
 
 
