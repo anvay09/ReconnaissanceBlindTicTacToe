@@ -411,7 +411,14 @@ double get_counter_factual_utility(InformationSet& I, Policy& policy_obj_x, Poli
             else {
                 probability_reaching_h = 1.0;
             }
-
+            if (I.get_hash() == "000000000m") {
+                std::cout << "Expected utility for: ";
+                for (int i = 0; i < h.size(); i++) {
+                    std::cout << h[i] << " ";
+                }
+                std::cout<< ":" << expected_utility_h << std::endl;
+                std::cout << "Probability reaching h: " << probability_reaching_h << std::endl;
+            }
             counter_factual_utility += expected_utility_h * probability_reaching_h;
         }
         
@@ -490,6 +497,10 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
     
     upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o, starting_histories);
     get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player, prob_reaching_h_list);
+    if (I.get_hash() == "000000000m") {
+    std::cout << "Starting histories: " << starting_histories.size() << std::endl;
+    std::cout << "Prob reaching h list: " << prob_reaching_h_list.size() << std::endl;
+    }
     
     for (int action : actions) {
         double util_a = calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list); 
