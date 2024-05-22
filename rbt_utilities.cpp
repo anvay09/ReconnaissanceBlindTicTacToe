@@ -447,35 +447,27 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
 double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& policy_obj_x, Policy& policy_obj_o, 
                                       std::vector<std::vector<int>>& starting_histories, std::vector<double>& prob_reaching_h_list) {
     double util_a = 0.0;
-    Policy policy_obj_a; 
-    policy_obj_a.player = I.player;
-    
-    if (I.player == 'x') {
-        for (auto const& [key, val] : policy_obj_x.policy_dict) {
-            policy_obj_a.policy_dict[key] = val;
-        }
-    } else {
-        for (auto const& [key, val] : policy_obj_o.policy_dict) {
-            policy_obj_a.policy_dict[key] = val;
-        }
+    Policy& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
+    std::vector<double> old_prob_distribution(13);
+    std::vector<double>& prob_distrubution = policy_obj.policy_dict[I.get_hash()];
+
+    for (int i = 0; i < 13; i++) {
+        old_prob_distribution[i] = prob_distrubution[i];
+        prob_distrubution[i] = 0.0;
     }
+    prob_distrubution[action] = 1.0;
+
+    util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list);
     
     for (int i = 0; i < 13; i++) {
-        policy_obj_a.policy_dict[I.get_hash()][i] = 0.0;
+        prob_distrubution[i] = old_prob_distribution[i];
     }
-    policy_obj_a.policy_dict[I.get_hash()][action] = 1.0;
 
-    if (I.player == 'x') {
-        util_a = get_counter_factual_utility(I, policy_obj_a, policy_obj_o, starting_histories, prob_reaching_h_list);
-    } else {
-        util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_a, starting_histories, prob_reaching_h_list);
-    }
-    
     return util_a;
 }
 
 
-void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, int T, std::vector<double>& regret_list) {
+void calc_cfr_policy_given_I(InformationSet& I, Policy policy_obj_x, Policy policy_obj_o, int T, std::vector<double>& regret_list) {
     double util = 0.0;
     std::vector<int> actions;
     Policy& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
