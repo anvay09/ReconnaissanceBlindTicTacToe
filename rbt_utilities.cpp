@@ -467,10 +467,13 @@ double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& pol
 }
 
 
-void calc_cfr_policy_given_I(InformationSet& I, Policy policy_obj_x, Policy policy_obj_o, int T, std::vector<double>& regret_list) {
+void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, int T, std::vector<double>& regret_list) {
     double util = 0.0;
     std::vector<int> actions;
     Policy& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
+    Policy policy_obj_a;
+    policy_obj_a.policy_dict = policy_obj.policy_dict;
+    policy_obj_a.player = I.player;
     std::vector<std::vector<int>> starting_histories;
     std::vector<double> prob_reaching_h_list;
     std::vector<double> util_a_list;
@@ -485,7 +488,14 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy policy_obj_x, Policy poli
     get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player, prob_reaching_h_list);
     
     for (int action : actions) {
-        double util_a = calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list); 
+        double util_a = 0.0;
+        if (I.player == 'x'){
+            util_a = calc_util_a_given_I_and_action(I, action, policy_obj_a, policy_obj_o, starting_histories, prob_reaching_h_list);
+        }
+        else {
+            util_a = calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_a, starting_histories, prob_reaching_h_list);
+        }
+
         util += util_a * policy_obj.policy_dict[I.get_hash()][action];
         util_a_list[action] = util_a;
     }
