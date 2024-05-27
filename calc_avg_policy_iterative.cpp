@@ -81,11 +81,21 @@ int main(int argc, char* argv[]) {
         policy_file.erase(std::remove(policy_file.begin(), policy_file.end(), '}'), policy_file.end());
         Policy average_policy(current_player, policy_file);
 
-        std::cout << "Starting average run..." << std::endl;
+        std::cout << "Starting average run upto round " << j << std::endl;
+        auto start = std::chrono::system_clock::now();
+
         #pragma omp parallel for num_threads(number_threads)
         for (InformationSet Iset: I_list) {
             calc_average_policy(policy_obj_list, Iset, current_player, average_policy.policy_dict[Iset.get_hash()]);
         }
+
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end - start;
+        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    
+        std::cout << "finished computation at " << std::ctime(&end_time)
+                << "elapsed time: " << elapsed_seconds.count() << "s"
+                << std::endl;
 
         std::cout << "Saving avg policy upto round " << j << std::endl;
         std::string outfile_name;
