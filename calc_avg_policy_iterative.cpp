@@ -89,14 +89,6 @@ int main(int argc, char* argv[]) {
             calc_average_policy(policy_obj_list, Iset, current_player, average_policy.policy_dict[Iset.get_hash()]);
         }
 
-        auto end = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-    
-        std::cout << "finished computation at " << std::ctime(&end_time)
-                << "elapsed time: " << elapsed_seconds.count() << "s"
-                << std::endl;
-
         std::cout << "Saving avg policy upto round " << j << std::endl;
         std::string outfile_name;
         if (current_player == 'o') {
@@ -115,6 +107,14 @@ int main(int argc, char* argv[]) {
         }
         out << jo.dump() << std::endl;
         out.close();
+
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end - start;
+        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    
+        std::cout << "finished computation at " << std::ctime(&end_time)
+                << "elapsed time: " << elapsed_seconds.count() << "s"
+                << std::endl;
     }
 
     return 0;
