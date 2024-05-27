@@ -4,7 +4,6 @@ using json = nlohmann::json;
 
 void calc_average_policy(std::vector<Policy>& policy_obj_list, InformationSet& I, char initial_player, std::vector<double> pol_prob_dist) {
     std::string I_hash = I.get_hash();
-    std::cout << "Calculating average policy for " << I_hash << "..." << std::endl;
     std::vector<double> prob_dist;
     for (int i = 0; i < 13; i++) {
         prob_dist.push_back(0);
@@ -88,7 +87,7 @@ int main(int argc, char* argv[]) {
             calc_average_policy(policy_obj_list, Iset, current_player, average_policy.policy_dict[Iset.get_hash()]);
         }
 
-        std::cout << "Saving avg policy..." << std::endl;
+        std::cout << "Saving avg policy upto round " << j << std::endl;
         std::string outfile_name;
         if (current_player == 'o') {
             outfile_name = base_path + "/average/P2_average_policy_after_" + std::to_string(j) + "_rounds.json";

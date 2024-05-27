@@ -1,4 +1,4 @@
-// Compile: g++-13 -O3 cfr.cpp rbt_classes.cpp rbt_utilities.cpp -o cfr -fopenmp -I /Users/anvay/Downloads/boost_1_84_0
+// Compile: g++-13 -O3 cfr_iterative.cpp rbt_classes.cpp rbt_utilities.cpp -o cfr_i -fopenmp -I /Users/anvay/Downloads/boost_1_84_0
 
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/rbt_utilities.hpp"
