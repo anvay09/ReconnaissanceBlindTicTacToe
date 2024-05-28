@@ -2,7 +2,7 @@
 #include "cpp_headers/json.hpp"
 using json = nlohmann::json;
 
-void calc_average_policy(std::vector<Policy>& policy_obj_list, InformationSet& I, char initial_player, std::vector<double> pol_prob_dist) {
+void calc_average_policy(std::vector<Policy>& policy_obj_list, InformationSet& I, char initial_player, std::vector<double>& pol_prob_dist) {
     std::string I_hash = I.get_hash();
     std::vector<double> prob_dist;
     for (int i = 0; i < 13; i++) {
