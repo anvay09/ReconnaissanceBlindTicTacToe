@@ -123,6 +123,8 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x,
                                     Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     
     if (I.get_hash() == "000000000m"){
+        std::vector<int> init_h = {};
+        valid_histories_list.push_back(init_h);
         return;
     }
 
