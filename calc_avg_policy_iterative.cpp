@@ -40,46 +40,60 @@ int main(int argc, char* argv[]) {
     std::string policy_file_base = argv[3];
     int rounds = std::stoi(argv[4]);
     std::string base_path = argv[5];
+
+    std::string P1_info_set_file = "data/P1_information_sets.txt";
+    std::string P2_info_set_file = "data/P2_information_sets.txt";
+    std::vector<std::string> P1_information_sets;
+    std::vector<std::string> P2_information_sets;
+    std::vector<InformationSet> I1_list;
+    std::vector<InformationSet> I2_list;
+
+    std::ifstream f1(P1_info_set_file);
+    std::ifstream f2(P2_info_set_file);
+
+    std::string line;
+    while (std::getline(f1, line)) {
+        P1_information_sets.push_back(line);
+    }
+    while (std::getline(f2, line)) {
+        P2_information_sets.push_back(line);
+    }
+
+    f1.close();
+    f2.close();
+
+    for (int i = 0; i < P1_information_sets.size(); i++) {
+        std::string I_hash = P1_information_sets[i];
+        bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
+        I_hash.pop_back();
+        InformationSet I(current_player, move_flag, I_hash);
+        I1_list.push_back(I);
+    }
     
+    for (int i = 0; i < P2_information_sets.size(); i++) {
+        std::string I_hash = P2_information_sets[i];
+        bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
+        I_hash.pop_back();
+        InformationSet I(current_player, move_flag, I_hash);
+        I2_list.push_back(I);
+    }
+
+    std::vector<Policy> policy_obj_list;
+
     for (int j=1; j < rounds + 1; j++)
     {
-        std::vector<Policy> policy_obj_list;
-        std::vector<InformationSet> I_list;
-        for (int i = 1; i < j + 1; i++) {
-            std::string policy_file = policy_file_base;
-            std::replace(policy_file.begin(), policy_file.end(), '{', std::to_string(i)[0]);
-            policy_file.erase(std::remove(policy_file.begin(), policy_file.end(), '}'), policy_file.end());
-            
-            Policy policy_obj(current_player, policy_file);
-            policy_obj_list.push_back(policy_obj);
-        }
-
-        std::string IS_file_player;
-        if (current_player == 'o') {
-            IS_file_player = "data/P2_information_sets.txt";
-        }
-        else {
-            IS_file_player = "data/P1_information_sets.txt";
-        }
-        std::ifstream f1(IS_file_player);
-        std::string line;
-        std::vector<std::string> P_information_sets;
-        while (std::getline(f1, line)) {
-            P_information_sets.push_back(line);
-        }
-        f1.close();
-        for (int i = 0; i < P_information_sets.size(); i++) {
-            std::string I_hash = P_information_sets[i];
-            bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
-            I_hash.pop_back();
-            InformationSet I(current_player, move_flag, I_hash);
-            I_list.push_back(I);
-        }
-
+        std::vector<InformationSet>& I_list = current_player == 'o' ? I2_list : I1_list;
+        
         std::string policy_file = policy_file_base;
-        std::replace(policy_file.begin(), policy_file.end(), '{', std::to_string(1)[0]);
+        std::replace(policy_file.begin(), policy_file.end(), '{', std::to_string(j)[0]);
         policy_file.erase(std::remove(policy_file.begin(), policy_file.end(), '}'), policy_file.end());
-        Policy average_policy(current_player, policy_file);
+        Policy policy_obj(current_player, policy_file);
+        policy_obj_list.push_back(policy_obj);
+
+        std::string avg_policy_file = policy_file_base;
+        std::replace(avg_policy_file.begin(), avg_policy_file.end(), '{', std::to_string(1)[0]);
+        avg_policy_file.erase(std::remove(avg_policy_file.begin(), avg_policy_file.end(), '}'), avg_policy_file.end());
+        Policy average_policy(current_player, avg_policy_file);
 
         std::cout << "Starting average run upto round " << j << std::endl;
         auto start = std::chrono::system_clock::now();
