@@ -16,7 +16,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 
     if (player == 'x') {
         if (end_I.player == 'x'){
-            I.get_actions(actions);
+            I.get_actions_given_policy(actions, policy_obj_x);
             if (I.move_flag) {
                 actions = intersection(actions, played_actions);
             }
@@ -27,7 +27,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
         
     } else {
         if (end_I.player == 'o'){
-            I.get_actions(actions);
+             I.get_actions_given_policy(actions, policy_obj_o);
             if (I.move_flag) {
                 actions = intersection(actions, played_actions);
             }
