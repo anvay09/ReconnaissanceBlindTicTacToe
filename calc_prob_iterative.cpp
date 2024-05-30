@@ -255,12 +255,9 @@ void get_probability_of_reaching_I(InformationSet& I, Policy& policy_obj_x, Poli
     upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o, starting_histories);
     get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, initial_player, prob_reaching_h_list_all);
 
-    double prob_reaching_I = 0.0;
     for (double prob_reaching_h: prob_reaching_h_list_all) {
-        prob_reaching_I += prob_reaching_h;
+        prob_reaching += prob_reaching_h;
     }
-
-    prob_reaching = prob_reaching_I;
 }
 
 
@@ -338,10 +335,10 @@ int main(int argc, char *argv[]) {
 
         std::unordered_map<std::string, double> prob_reaching_map;
         std::unordered_map<std::string, std::vector<double> > avg_policy_numerator;
+        
         for (int i = 0; i < P_information_sets.size(); i++) {
             std::string I_hash = P_information_sets[i];
-            double prob_reaching = prob_reaching_list[i];
-            prob_reaching_map[I_hash] = prob_reaching;
+            prob_reaching_map[I_hash] = prob_reaching_list[i];
 
             std::vector<double> prob_vector;
             for (int j = 0; j < 13; j++) {
