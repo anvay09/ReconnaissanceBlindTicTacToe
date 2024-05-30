@@ -335,7 +335,7 @@ int main(int argc, char *argv[]) {
 
         std::unordered_map<std::string, double> prob_reaching_map;
         std::unordered_map<std::string, std::vector<double> > avg_policy_numerator;
-        
+
         for (int i = 0; i < P_information_sets.size(); i++) {
             std::string I_hash = P_information_sets[i];
             prob_reaching_map[I_hash] = prob_reaching_list[i];
@@ -346,10 +346,10 @@ int main(int argc, char *argv[]) {
             }
             for (int j = 0; j < 13; j++) {
                 if (current_player == "x") {
-                    prob_vector[j] = prob_reaching * policy_obj_x.policy_dict[I_hash][j];
+                    prob_vector[j] = prob_reaching_map[I_hash] * policy_obj_x.policy_dict[I_hash][j];
                 }
                 else {
-                    prob_vector[j] = prob_reaching * policy_obj_o.policy_dict[I_hash][j];
+                    prob_vector[j] = prob_reaching_map[I_hash] * policy_obj_o.policy_dict[I_hash][j];
                 }
                 avg_policy_numerator[I_hash] = prob_vector;
             }
