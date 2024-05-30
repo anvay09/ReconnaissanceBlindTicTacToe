@@ -21,7 +21,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2,
             }
         }
         else {
-            I.get_actions(actions);
+            I.get_actions_given_policy(actions, policy_obj_x);
         }
         
     } else {
@@ -32,7 +32,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2,
             }
         }
         else {
-            I.get_actions(actions);
+            I.get_actions_given_policy(actions, policy_obj_o);
         }
     }
 
