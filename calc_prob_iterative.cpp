@@ -296,23 +296,23 @@ int main(int argc, char *argv[]) {
         std::ofstream f_out_policy;
         std::string policy_file_x;
         std::string policy_file_o;
-        if (T == 0) {
+        if (T == 1) {
             if (current_player == "x") {
-            policy_file_x ="./data/P1_deterministic_policy.json";
-            policy_file_o = "./data/P2_deterministic_policy.json";
+            policy_file_x = base_path + "/cfr/" + "/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
+            policy_file_o = "./data/Iterative_1/average/P2_average_overall_policy_after_100_rounds_normalised.json";
             }
             else {
             policy_file_x = base_path + "/cfr/" + "/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
-            policy_file_o = "./data/P2_deterministic_policy.json";
+            policy_file_o = base_path + "/cfr/" + "/P2_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
             }
         }
         else {
             if (current_player == "x") {
             policy_file_x = base_path + "/cfr/" + "/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
-            policy_file_o = base_path + "/cfr/" + "/P2_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
+            policy_file_o = base_path + "/cfr/" + "/P2_iteration_" + std::to_string(T-1) + "_cfr_policy_cpp.json";
             }
             else {
-            policy_file_x = base_path + "/cfr/" + "/P1_iteration_" + std::to_string(T+1) + "_cfr_policy_cpp.json";
+            policy_file_x = base_path + "/cfr/" + "/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
             policy_file_o = base_path + "/cfr/" + "/P2_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
             }
         }
@@ -351,8 +351,8 @@ int main(int argc, char *argv[]) {
                 else {
                     prob_vector[j] = prob_reaching_map[I_hash] * policy_obj_o.policy_dict[I_hash][j];
                 }
-                avg_policy_numerator[I_hash] = prob_vector;
             }
+            avg_policy_numerator[I_hash] = prob_vector;
         }
 
         std::cout << "Saving probabilties..." << std::endl;
