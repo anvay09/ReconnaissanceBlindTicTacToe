@@ -4,10 +4,6 @@ using json = nlohmann::json;
 
 void calc_average_policy(std::vector<Policy>& policy_obj_list, InformationSet& I, char initial_player, std::vector<double>& pol_prob_dist) {
     std::string I_hash = I.get_hash();
-    std::vector<double> prob_dist;
-    for (int i = 0; i < 13; i++) {
-        prob_dist.push_back(0);
-    }
     
     std::vector<int> actions;
     I.get_actions(actions);
@@ -25,13 +21,11 @@ void calc_average_policy(std::vector<Policy>& policy_obj_list, InformationSet& I
         }
 
         if (denominator == 0) {
-            prob_dist[action] = 0;
+            pol_prob_dist[action] = 0;
         } else {
-            prob_dist[action] = numerator / denominator;
+            pol_prob_dist[action] = numerator / denominator;
         }
     }
-
-    pol_prob_dist = prob_dist;
 }
 
 int main(int argc, char* argv[]) {
