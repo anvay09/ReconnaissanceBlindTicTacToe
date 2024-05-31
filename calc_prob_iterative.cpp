@@ -268,31 +268,32 @@ int main(int argc, char *argv[]) {
     int end_iter = std::stoi(argv[4]); //1000;
     std::string current_player = argv[5]; //"x";
 
+    std::vector<double> prob_reaching_list;
+
+    std::string P1_information_sets_file = "data/P1_information_sets.txt";
+    std::string P2_information_sets_file = "data/P2_information_sets.txt";
+    std::vector<std::string> P_information_sets;
+    if (current_player == "x") {
+        std::ifstream f1(P1_information_sets_file);
+        std::string line;
+        while (std::getline(f1, line)) {
+        P_information_sets.push_back(line);
+        prob_reaching_list.push_back(0.0);
+    }
+    f1.close();
+    }
+    else {
+        std::ifstream f1(P2_information_sets_file);
+        std::string line;
+        while (std::getline(f1, line)) {
+        P_information_sets.push_back(line);
+        prob_reaching_list.push_back(0.0);
+    }
+    f1.close();
+    }
+
+
     for (int T = start_iter; T <= end_iter; T++) {
-         std::vector<double> prob_reaching_list;
-
-        std::string P1_information_sets_file = "data/P1_information_sets.txt";
-        std::string P2_information_sets_file = "data/P2_information_sets.txt";
-        std::vector<std::string> P_information_sets;
-        if (current_player == "x") {
-            std::ifstream f1(P1_information_sets_file);
-            std::string line;
-            while (std::getline(f1, line)) {
-            P_information_sets.push_back(line);
-            prob_reaching_list.push_back(0.0);
-        }
-        f1.close();
-        }
-        else {
-            std::ifstream f1(P2_information_sets_file);
-            std::string line;
-            while (std::getline(f1, line)) {
-            P_information_sets.push_back(line);
-            prob_reaching_list.push_back(0.0);
-        }
-        f1.close();
-        }
-
         std::ofstream f_out_policy;
         std::string policy_file_x;
         std::string policy_file_o;
@@ -325,6 +326,7 @@ int main(int argc, char *argv[]) {
         std::cout << "Computing probabilities and avg policy numerator terms for iteration " << T << std::endl;
         #pragma omp parallel for num_threads(number_threads)
         for (int i = 0; i < P_information_sets.size(); i++) {
+            prob_reaching_list[i] = 0.0;
             std::string I_hash = P_information_sets[i];
             bool move_flag = I_hash[I_hash.size()-1] == 'm' ? true : false;
             I_hash.pop_back();
