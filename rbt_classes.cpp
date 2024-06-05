@@ -383,7 +383,7 @@ int InformationSet::win_exists() {
     for (int i = 0; i < 9; i++) {
         if (this->board[i] == '0') {
             this->board[i] = this->player;
-            if (InformationSet(this->player, this->move_flag, this->board).is_win_for_player()) {
+            if (this->is_win_for_player()) {
                 this->board[i] = '0';
                 return i;
             }
