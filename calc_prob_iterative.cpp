@@ -299,22 +299,22 @@ int main(int argc, char *argv[]) {
         std::string policy_file_o;
         if (T == 1) {
             if (current_player == "x") {
-            policy_file_x = base_path + "/cfr/" + "/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
-            policy_file_o = "./data/Iterative_1/average/P2_average_overall_policy_after_100_rounds_normalised.json";
+            policy_file_x = base_path + "/average/" + "P1_average_overall_policy_after_100_rounds_normalised.json";
+            policy_file_o = base_path + "/average/" + "P2_average_overall_policy_after_100_rounds_normalised.json";
             }
             else {
-            policy_file_x = base_path + "/cfr/" + "/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
-            policy_file_o = base_path + "/cfr/" + "/P2_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
+            policy_file_x = base_path + "/cfr/" + "/P1" + "_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
+            policy_file_o = base_path + "/average/" + "P2_average_overall_policy_after_100_rounds_normalised.json";
             }
         }
         else {
             if (current_player == "x") {
-            policy_file_x = base_path + "/cfr/" + "/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
-            policy_file_o = base_path + "/cfr/" + "/P2_iteration_" + std::to_string(T-1) + "_cfr_policy_cpp.json";
+            policy_file_x = base_path + "/cfr/" + "/P1" + "_iteration_" + std::to_string(T-1) + "_cfr_policy_cpp.json";
+            policy_file_o = base_path + "/cfr/" + "/P2" + "_iteration_" + std::to_string(T-1) + "_cfr_policy_cpp.json";
             }
             else {
-            policy_file_x = base_path + "/cfr/" + "/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
-            policy_file_o = base_path + "/cfr/" + "/P2_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
+            policy_file_x = base_path + "/cfr/" + "/P1" + "_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
+            policy_file_o = base_path + "/cfr/" + "/P2" + "_iteration_" + std::to_string(T-1) + "_cfr_policy_cpp.json";
             }
         }
 
