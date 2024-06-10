@@ -14,9 +14,9 @@ void calc_average_policy(std::vector<Policy>& policy_obj_list, InformationSet& I
 
         for (int p = 0; p < policy_obj_list.size(); p++) {
             std::vector<double>& policy = policy_obj_list[p].policy_dict[I_hash];
-            numerator += double(p+1) * policy[action];
+            numerator += policy[action];
             for (int act: actions) {
-                denominator += double(p+1) * policy[act];
+                denominator += policy[act];
             }
         }
 
@@ -31,7 +31,6 @@ void calc_average_policy(std::vector<Policy>& policy_obj_list, InformationSet& I
 int main(int argc, char* argv[]) {
     int number_threads = std::stoi(argv[1]); //96;
     char current_player = argv[2][0];
-    std::string policy_file_base = argv[3];
     int rounds = std::stoi(argv[4]);
     std::string base_path = argv[5];
 
@@ -77,17 +76,17 @@ int main(int argc, char* argv[]) {
     for (int j=1; j < rounds + 1; j++)
     {
         std::vector<InformationSet>& I_list = current_player == 'o' ? I2_list : I1_list;
-        
-        std::string policy_file = policy_file_base;
-        std::replace(policy_file.begin(), policy_file.end(), '{', std::to_string(j)[0]);
-        policy_file.erase(std::remove(policy_file.begin(), policy_file.end(), '}'), policy_file.end());
+        std::string policy_file;
+        if (current_player == 'x'){
+            policy_file = base_path + "/average" + "/P1_iteration_" + std::to_string(j) + "_avg_pol_numerator_term_cpp.json";
+        }
+        else {
+            policy_file = base_path + "/average" + "/P2_iteration_" + std::to_string(j) + "_avg_pol_numerator_term_cpp.json";
+        }
         Policy policy_obj(current_player, policy_file);
         policy_obj_list.push_back(policy_obj);
 
-        std::string avg_policy_file = policy_file_base;
-        std::replace(avg_policy_file.begin(), avg_policy_file.end(), '{', std::to_string(1)[0]);
-        avg_policy_file.erase(std::remove(avg_policy_file.begin(), avg_policy_file.end(), '}'), avg_policy_file.end());
-        Policy average_policy(current_player, avg_policy_file);
+        Policy average_policy(current_player, policy_file);
 
         std::cout << "Starting average run upto round " << j << std::endl;
         auto start = std::chrono::system_clock::now();
