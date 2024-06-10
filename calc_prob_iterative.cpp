@@ -303,12 +303,12 @@ int main(int argc, char *argv[]) {
         std::string policy_file_o;
         if (T == 1) {
             if (current_player == "x") {
-                policy_file_x = base_path + "P1_deterministic_policy.json";
+                policy_file_x = "data/P1_deterministic_policy.json";
                 policy_file_o = base_path + "/cfr/" + "/P2" + "_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
             }
             else {
                 policy_file_x = base_path + "/cfr/" + "/P1" + "_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
-                policy_file_o = base_path + "P2_deterministic_policy.json";
+                policy_file_o = "data/P2_deterministic_policy.json";
             }
         }
         else {
