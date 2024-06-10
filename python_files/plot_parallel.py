@@ -51,7 +51,7 @@ if __name__ == "__main__":
     plt.plot(X, Y, color='b', label='Expected Utility')
     plt.xlabel('Round')
     plt.xticks(rotation=-60)
-    plt.yticks(np.arange(0.2, 0.8, 0.025))
+    plt.yticks(np.arange(0, 1, 0.05))
     plt.ylabel('Expected Utility')
     plt.title('Convergence of Expected Utility')
 
