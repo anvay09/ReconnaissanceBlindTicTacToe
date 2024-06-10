@@ -434,7 +434,7 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
             InformationSet I_1('x', true, board_1);
             InformationSet I_2('o', false, board_2);
             TicTacToeBoard true_board = TicTacToeBoard(board);
-            double probability_reaching_h = get_prob_h_given_policy_wrapper(I_1, I_2, true_board, 'x', h[0], policy_obj_x, policy_obj_o, 1, h_object, I, initial_player);
+            double probability_reaching_h = get_prob_h_given_policy_wrapper(I_1, I_2, true_board, 'x', h[0], policy_obj_x, policy_obj_o, 1.0, h_object, I, initial_player);
             prob_reaching_h_list_all.push_back(probability_reaching_h);
         }
         else {

@@ -130,15 +130,16 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x,
 
     std::string board_1 = "000000000";
     std::string board_2 = "---------";
+    std::string board = "000000000";
     InformationSet I_1('x', true, board_1);
     InformationSet I_2('o', false, board_2);
-    TicTacToeBoard true_board = TicTacToeBoard(EMPTY_BOARD);
+    TicTacToeBoard true_board = TicTacToeBoard(board);
     char player = 'x';
     std::vector<int> played_actions;
     I.get_played_actions(played_actions);
 
     std::vector<int> h = {};
-    History current_history(h);
+    NonTerminalHistory current_history(h);
     valid_histories_play(I_1, I_2, true_board, player, current_history, I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
     return;
 }   
@@ -248,9 +249,10 @@ void get_probability_of_reaching_all_h(InformationSet &I, Policy& policy_obj_x,
 }
 
 
-void get_probability_of_reaching_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, char initial_player, double& prob_reaching) {
+double get_probability_of_reaching_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, char initial_player) {
     std::vector<std::vector<int>> starting_histories;
     std::vector<double> prob_reaching_h_list_all;
+    double prob_reaching = 0.0;
 
     upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o, starting_histories);
     get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, initial_player, prob_reaching_h_list_all);
@@ -258,6 +260,8 @@ void get_probability_of_reaching_I(InformationSet& I, Policy& policy_obj_x, Poli
     for (double prob_reaching_h: prob_reaching_h_list_all) {
         prob_reaching += prob_reaching_h;
     }
+
+    return prob_reaching;
 }
 
 
@@ -299,22 +303,22 @@ int main(int argc, char *argv[]) {
         std::string policy_file_o;
         if (T == 1) {
             if (current_player == "x") {
-            policy_file_x = base_path + "/average/" + "P1_average_overall_policy_after_100_rounds_normalised.json";
-            policy_file_o = base_path + "/average/" + "P2_average_overall_policy_after_100_rounds_normalised.json";
+                policy_file_x = base_path + "P1_deterministic_policy.json";
+                policy_file_o = base_path + "/cfr/" + "/P2" + "_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
             }
             else {
-            policy_file_x = base_path + "/cfr/" + "/P1" + "_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
-            policy_file_o = base_path + "/average/" + "P2_average_overall_policy_after_100_rounds_normalised.json";
+                policy_file_x = base_path + "/cfr/" + "/P1" + "_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
+                policy_file_o = base_path + "P2_deterministic_policy.json";
             }
         }
         else {
             if (current_player == "x") {
-            policy_file_x = base_path + "/cfr/" + "/P1" + "_iteration_" + std::to_string(T-1) + "_cfr_policy_cpp.json";
-            policy_file_o = base_path + "/cfr/" + "/P2" + "_iteration_" + std::to_string(T-1) + "_cfr_policy_cpp.json";
+                policy_file_x = base_path + "/cfr/" + "/P1" + "_iteration_" + std::to_string(T-1) + "_cfr_policy_cpp.json";
+                policy_file_o = base_path + "/cfr/" + "/P2" + "_iteration_" + std::to_string(T-1) + "_cfr_policy_cpp.json";
             }
             else {
-            policy_file_x = base_path + "/cfr/" + "/P1" + "_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
-            policy_file_o = base_path + "/cfr/" + "/P2" + "_iteration_" + std::to_string(T-1) + "_cfr_policy_cpp.json";
+                policy_file_x = base_path + "/cfr/" + "/P1" + "_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
+                policy_file_o = base_path + "/cfr/" + "/P2" + "_iteration_" + std::to_string(T-1) + "_cfr_policy_cpp.json";
             }
         }
 
@@ -332,15 +336,16 @@ int main(int argc, char *argv[]) {
             I_hash.pop_back();
             InformationSet I(current_player[0], move_flag, I_hash);
 
-            get_probability_of_reaching_I(I, policy_obj_x, policy_obj_o, current_player[0], prob_reaching_list[i]);
+            prob_reaching_list[i] = get_probability_of_reaching_I(I, policy_obj_x, policy_obj_o, current_player[0]);
         }
 
-        std::unordered_map<std::string, double> prob_reaching_map;
         std::unordered_map<std::string, std::vector<double> > avg_policy_numerator;
 
         for (int i = 0; i < P_information_sets.size(); i++) {
             std::string I_hash = P_information_sets[i];
-            prob_reaching_map[I_hash] = prob_reaching_list[i];
+            double prob_reaching = prob_reaching_list[i];
+            std::vector<double> & prob_dist_x = policy_obj_x.policy_dict[I_hash];
+            std::vector<double> & prob_dist_o = policy_obj_o.policy_dict[I_hash];
 
             std::vector<double> prob_vector;
             for (int j = 0; j < 13; j++) {
@@ -348,31 +353,15 @@ int main(int argc, char *argv[]) {
             }
             for (int j = 0; j < 13; j++) {
                 if (current_player == "x") {
-                    prob_vector[j] = prob_reaching_map[I_hash] * policy_obj_x.policy_dict[I_hash][j];
+                    prob_vector[j] = prob_reaching * prob_dist_x[j];
                 }
                 else {
-                    prob_vector[j] = prob_reaching_map[I_hash] * policy_obj_o.policy_dict[I_hash][j];
+                    prob_vector[j] = prob_reaching * prob_dist_o[j];
                 }
             }
             avg_policy_numerator[I_hash] = prob_vector;
         }
 
-        std::cout << "Saving probabilties..." << std::endl;
-        if (current_player == "x") {
-            std::string next_prob_reaching_file = base_path + "/prob_reaching" + "/P1_iteration_" + std::to_string(T) + "_prob_reaching_cpp.json";
-            f_out_policy.open(next_prob_reaching_file, std::ios::trunc);
-        }
-        else {
-            std::string next_prob_reaching_file = base_path + "/prob_reaching" + "/P2_iteration_" + std::to_string(T) + "_prob_reaching_cpp.json";
-            f_out_policy.open(next_prob_reaching_file, std::ios::trunc);
-        }
-
-        json jso;
-        for (auto& it: prob_reaching_map) {
-                jso[it.first] = it.second;
-        }
-        f_out_policy << jso.dump() << std::endl;
-        f_out_policy.close();
 
         std::cout << "Saving avg policy numerator terms for iteration..." << T << std::endl;
         if (current_player == "x") {
