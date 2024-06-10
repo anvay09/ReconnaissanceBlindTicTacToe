@@ -31,8 +31,8 @@ void calc_average_policy(std::vector<Policy>& policy_obj_list, InformationSet& I
 int main(int argc, char* argv[]) {
     int number_threads = std::stoi(argv[1]); //96;
     char current_player = argv[2][0];
-    int rounds = std::stoi(argv[4]);
-    std::string base_path = argv[5];
+    int rounds = std::stoi(argv[3]);
+    std::string base_path = argv[4];
 
     std::string P1_info_set_file = "data/P1_information_sets.txt";
     std::string P2_info_set_file = "data/P2_information_sets.txt";
