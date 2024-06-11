@@ -14,9 +14,9 @@ void calc_average_policy(std::vector<Policy>& policy_obj_list, InformationSet& I
 
         for (int p = 0; p < policy_obj_list.size(); p++) {
             std::vector<double>& policy = policy_obj_list[p].policy_dict[I_hash];
-            numerator += double(p+1) * policy[action];
+            numerator += double((p+1)*(p+1)) * policy[action];
             for (int act: actions) {
-                denominator += double(p+1) * policy[act];
+                denominator += double((p+1)*(p+1)) * policy[act];
             }
         }
 
