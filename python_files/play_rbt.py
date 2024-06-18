@@ -24,17 +24,17 @@ winner = None
 blank_screen = False
 choose_player_screen = True
 AI_player = None
-P1_policy_name = 'P1_iteration_265_cfr_policy'
-P1_file_name = 'data_files_new/{}.json'.format(P1_policy_name)
+P1_policy_name = 'P1_linear_nash'
+P1_file_name = './data/{}.json'.format(P1_policy_name)
 P1_stats_file = './{}_stats.json'.format(P1_policy_name)
-P2_policy_name = 'P2_iteration_265_cfr_policy'
-P2_file_name = 'data_files_new/{}.json'.format(P2_policy_name)
+P2_policy_name = 'P2_linear_nash'
+P2_file_name = './data/{}.json'.format(P2_policy_name)
 P2_stats_file = './{}_stats.json'.format(P2_policy_name)
 use_policy = True
 P1_policy = json.load(open(P1_file_name, 'r'))
 P2_policy = json.load(open(P2_file_name, 'r'))
 P1_sense_buffer = 0
-P2_sense_buffer = choices([0, 1, 2, 3], list(P2_policy['---------s'].values()))[0]
+P2_sense_buffer = choices([-1, -1, 1, 2, 3, -1, -1, -1, -1, -1, -1, -1, 0], list(P2_policy['---------s'].values()))[0]
 stats_flag = 0
 
 # define the colors
@@ -484,7 +484,7 @@ while running:
                 blank_screen = False
                 stats_flag = 0
                 P1_sense_buffer = 0
-                P2_sense_buffer = choices([0, 1, 2, 3], list(P2_policy['---------s'].values()))[0]
+                P2_sense_buffer = choices([-1, -1, 1, 2, 3, -1, -1, -1, -1, -1, -1, -1, 0], list(P2_policy['---------s'].values()))[0]
                 choose_player_screen = True
                 AI_player = None
             elif event.key == pygame.K_n:
