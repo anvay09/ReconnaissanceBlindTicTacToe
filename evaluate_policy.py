@@ -1,6 +1,7 @@
 from rbt_classes import TicTacToeBoard, InformationSet, Policy, NonTerminalHistory, TerminalHistory
 from multiprocessing import Pool
 import json
+import argparse
 import logging
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
@@ -239,17 +240,16 @@ if __name__ == "__main__":
     I_2 = InformationSet(player='o', move_flag=False, board=['-', '-', '-', '-', '-', '-', '-', '-', '-'])
     player = 'x'
 
-    p1_policy_dict = json.load(open('data_files/P1_cfr_policy_round_60.json', 'r'))
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--Iteration', type=str, required=True)
+    arguments = parser.parse_args()
+    Itr = arguments.Iteration
+    
+    p1_policy_dict = json.load(open('data_files_avg/P1_average_overall_policy_after_{}_rounds.json'.format(Itr), 'r'))
     p1_policy_obj = Policy(policy_dict=p1_policy_dict, player='x')
 
-    p2_policy_dict = json.load(open('data_files/P2_cfr_policy_round_60.json', 'r'))
-    # p2_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
+    p2_policy_dict = json.load(open('data_files_avg/P2_average_overall_policy_after_{}_rounds.json'.format(Itr), 'r'))
     p2_policy_obj = Policy(policy_dict=p2_policy_dict, player='o')
-
-    # p2_random_policy_dict = json.load(open('data_files/P2_uniform_policy.json', 'r'))
-    # p2_random_policy_obj = Policy(policy_dict=p2_random_policy_dict, player='o')
-
-    # parallel_play(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj)
 
     logging.info("Getting expected utility...")
     expected_utility = get_expected_utility(I_1, I_2, true_board, player, p1_policy_obj, p2_policy_obj, 1, NonTerminalHistory(), player)

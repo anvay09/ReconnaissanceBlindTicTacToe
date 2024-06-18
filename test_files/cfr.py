@@ -10,11 +10,11 @@ import gc
 if __name__ == '__main__':
     logging.info('Initializing policy objects...')
 
-    with open('./data_files/{}.json'.format('P1_DG_policy'), 'r') as f:
+    with open('./data_files/{}.json'.format('P1_deterministic_policy'), 'r') as f:
         policy_dict = json.load(f)
     policy_obj_x = Policy(player='x', policy_dict=policy_dict)
 
-    with open('./data_files/{}.json'.format('P2_iteration_9_cfr_policy'), 'r') as f:
+    with open('./data_files/{}.json'.format('P2_deterministic_policy'), 'r') as f:
         policy_dict = json.load(f)
     policy_obj_o = Policy(player='o', policy_dict=policy_dict)
 
@@ -49,10 +49,7 @@ if __name__ == '__main__':
 
         logging.info('Starting iteration {} for player 1...'.format(T))
         with Pool(num_workers) as p:
-            regrets = p.starmap(calc_cfr_policy_given_I, P1_args)
-
-        del P1_args
-        gc.collect()
+            P1_regrets = p.starmap(calc_cfr_policy_given_I, tqdm(P1_args, total=len(P1_args)))
 
         for I_hash in tqdm(P2_information_sets):
             I = InformationSet(player='o', move_flag=I_hash[-1]=='m', board=[*I_hash[:-1]])
@@ -61,16 +58,13 @@ if __name__ == '__main__':
 
         logging.info('Starting iteration {} for player 2...'.format(T))
         with Pool(num_workers) as p:
-            regrets = p.starmap(calc_cfr_policy_given_I, P2_args)
-
-        del P2_args
-        gc.collect()
-            
+            P2_regrets = p.starmap(calc_cfr_policy_given_I, tqdm(P2_args, total=len(P2_args)))
+ 
         logging.info('Updating policy objects...')
         for arg in P1_args:
             actions = arg[0].get_actions()
             I_hash = arg[0].get_hash()
-            prev_regret_list_x[I_hash] = regrets.pop(0)
+            prev_regret_list_x[I_hash] = P1_regrets.pop(0)
             total_regret = sum(prev_regret_list_x[I_hash])
                         
             if total_regret > 0:
@@ -83,7 +77,7 @@ if __name__ == '__main__':
         for arg in P2_args:
             actions = arg[0].get_actions()
             I_hash = arg[0].get_hash()
-            prev_regret_list_o[I_hash] = regrets.pop(0)
+            prev_regret_list_o[I_hash] = P2_regrets.pop(0)
             total_regret = sum(prev_regret_list_o[I_hash])
                         
             if total_regret > 0:
