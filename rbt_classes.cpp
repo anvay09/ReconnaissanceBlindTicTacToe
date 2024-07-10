@@ -179,15 +179,78 @@ void TicTacToeBoard::print_board() {
 InformationSet::InformationSet() : TicTacToeBoard() {
     this->player = 'x';
     this->move_flag = true;
+    this->hash = "";
 }
 
-InformationSet::InformationSet(char player, bool move_flag, std::string& board) : TicTacToeBoard(board) {
+InformationSet::InformationSet(char player, bool move_flag, std::string& hash) : TicTacToeBoard() {
     this->player = player;
     this->move_flag = move_flag;
+    this->hash = hash;
+    this->board = this.get_board_from_hash();
+}
+
+std::string InformationSet::get_board_from_hash() {
+    std::string new_board = "---------";
+    int i = 0;
+    int latest_sense_index;
+
+    while(i < this->hash.size()) {
+        if (this->hash[i] != '|' || this->hash[i] != '_') {
+            if (i == 0){
+                if (this->player == 'x'){
+                    new_board[stoi(this->hash[i])] = this->player;
+                }
+                else{
+                    sense_move = stoi(this->hash[i]);
+                    latest_sense_index = i;
+                    i = i + 2;
+                    for (int square : sense_square_dict[sense_move]) {
+                        new_board[square] = this->hash[i++];
+                    }
+                    this->reset_zeros(new_board);
+                }
+            }
+            else{
+                if (this->hash[i-1] == '|'){
+                    new_board[stoi(this->hash[i])] = this->player;
+                }
+                else if (this->hash[i-1] == '_')
+                {   sense_move = stoi(this->hash[i]);
+                    latest_sense_index = i;
+                    i = i + 2;
+                    for (int square : sense_square_dict[sense_move]) {
+                        new_board[square] = this->hash[i++];
+                    }
+                    this->reset_zeros(new_board);
+                }
+            }
+        }
+        else{
+            i++;
+        }
+    }
+    
+    if (this->move_flag){
+        i = latest_sense_index;
+        sense_move = stoi(this->hash[i]);
+        i = i + 2;
+        for (int square : sense_square_dict[sense_move]) {
+            new_board[square] = this->hash[i++];
+        }
+    }
+    
+    return new_board;
+}
+
+InformationSet::InformationSet(char player, bool move_flag, std::string& hash, std::string& board) : TicTacToeBoard() {
+    this->player = player;
+    this->move_flag = move_flag;
+    this->hash = hash;
+    this->board = board;
 }
 
 bool InformationSet::operator==(const InformationSet &other) {
-    return this->board == other.board && this->player == other.player && this->move_flag == other.move_flag;
+    return this->hash == other.hash && this->player == other.player && this->move_flag == other.move_flag;
 }
 
 char InformationSet::other_player() {
@@ -195,47 +258,11 @@ char InformationSet::other_player() {
 }
 
 InformationSet InformationSet::copy() {
-    return InformationSet(this->player, this->move_flag, this->board);
+    return InformationSet(this->player, this->move_flag, this->hash, this->board);
 }
 
 std::string InformationSet::get_hash() {
-    if (this->move_flag) {
-        return this->board + "m";
-    } else {
-        return this->board + "s";
-    }
-}
-
-void InformationSet::get_states(std::vector<TicTacToeBoard> &states) {
-    int num_unknown_opponent_moves = this->get_number_of_unknown_opponent_moves();
-    std::string board_copy = this->board;
-    for (int i = 0; i < 9; i++) {
-        if (board_copy[i] == '-') {
-            board_copy[i] = '0';
-        }
-    }
-
-    if (num_unknown_opponent_moves == 0) {
-        states.push_back(TicTacToeBoard(board_copy));
-    } 
-    else {
-        std::vector<int> uncertain_ind;
-        this->get_uncertain_squares(uncertain_ind);
-        std::vector<char> base_perm(num_unknown_opponent_moves, this->other_player());
-        base_perm.insert(base_perm.end(), uncertain_ind.size() - num_unknown_opponent_moves, '0');
-
-        do {
-            TicTacToeBoard new_state(board_copy);
-            for (int j = 0; j < base_perm.size(); j++) {
-                new_state[uncertain_ind[j]] = base_perm[j];
-            }
-            char winner;
-            if (!new_state.is_win(winner) && !new_state.is_over()) {
-                states.push_back(new_state);
-            }
-        } while (next_permutation(base_perm.begin(), base_perm.end()));
-
-    }
+    return this->hash;
 }
 
 void InformationSet::get_actions(std::vector<int> &actions) {
@@ -297,40 +324,27 @@ void InformationSet::get_useful_senses(std::vector<int> &actions) {
     }
 }
 
-int InformationSet::get_number_of_unknown_opponent_moves() {
-    int count_x = 0;
-    int count_o = 0;
-    for (int i = 0; i < 9; i++) {
-        if (this->board[i] == 'x') {
-            count_x++;
-        }
-        if (this->board[i] == 'o') {
-            count_o++;
-        }
-    }
-    if (this->player == 'x') {
-        return count_x - count_o;
-    } else {
-        return count_o - count_x + 1;
-    }
-}
-
-void InformationSet::get_uncertain_squares(std::vector<int> &squares) {
-    for (int i = 0; i < 9; i++) {
-        if (this->board[i] == '-') {
-            squares.push_back(i);
-        }
-    }
-}
-
 void InformationSet::simulate_sense(int action, TicTacToeBoard& true_board) {
     this->reset_zeros();
+    std::string observation = "";
+    int count = 0;
     for (int square : sense_square_dict[action]) {
         this->board[square] = true_board[square];
+        observation[count] = true_board[square];
+        count++;
     }
-
+    this->hash = this->hash + sense_square_mapping[action] + "|" + observation + "|";
     this->move_flag = true;
 }
+
+void InformationSet::reset_zeros(TicTacToeBoard& board) {
+    for (int i = 0; i < 9; i++) {
+        if (board[i] == '0') {
+            board[i] = '-';
+        }
+    }
+}
+
 
 void InformationSet::reset_zeros() {
     for (int i = 0; i < 9; i++) {
@@ -351,6 +365,7 @@ bool InformationSet::is_valid_move(int square) {
 bool InformationSet::update_move(int square, char player) {
     if (this->is_valid_move(square)) {
         this->board[square] = player;
+        this->hash = this->hash + std::to_string(square) + "_";
         this->move_flag = false;
         return true;
     }
@@ -405,7 +420,7 @@ int InformationSet::draw_exists() {
     for (int zero : zeroes) {
         std::string new_I_board = this->board;
         new_I_board[zero] = this->player;
-        if (InformationSet(this->player, this->move_flag, new_I_board).is_over()) {
+        if (InformationSet(this->player, this->move_flag, this->hash, this->board).is_over()) {
             return zero;
         }
     }
@@ -420,16 +435,6 @@ bool InformationSet::is_over() {
         }
     }
     return true;
-}
-
-int InformationSet::num_self_moves() {
-    int count = 0;
-    for (int i = 0; i < 9; i++) {
-        if (this->board[i] == this->player) {
-            count++;
-        }
-    }
-    return count;
 }
 
 
