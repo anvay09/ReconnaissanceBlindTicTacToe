@@ -18,7 +18,9 @@
 #include <ctime>
 
 static std::string EMPTY_BOARD = "000000000";
+static std::string EMPTY_HASH = "";
 static std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
+static std::unordered_map<int, std::string> sense_square_mapping = {{9, "0"}, {10, "1"}, {11, "2"}, {12, "3"}};
 class Policy;
 
 class TicTacToeBoard
@@ -44,29 +46,30 @@ class InformationSet : public TicTacToeBoard
 public:
     char player;
     bool move_flag;
+    std::string hash;
     InformationSet();
-    InformationSet(char player, bool move_flag, std::string& board = EMPTY_BOARD);
+    InformationSet(char player, bool move_flag, std::string& hash = EMPTY_HASH, std::string& board = EMPTY_BOARD);
+    InformationSet(char player, bool move_flag, std::string& hash = EMPTY_HASH);
     bool operator==(const InformationSet &other);
     char other_player();
     InformationSet copy();
     std::string get_hash();
+    std::string get_board_from_hash();
     void get_states(std::vector<TicTacToeBoard> &states);
     void get_actions(std::vector<int> &actions);
     void get_actions_given_policy(std::vector<int>& actions, Policy& policy_obj);
     void get_valid_moves(std::vector<int> &actions);
     void get_played_actions(std::vector<int> &actions);
-    void get_useful_senses(std::vector<int> &actions);
-    int get_number_of_unknown_opponent_moves();
-    void get_uncertain_squares(std::vector<int> &squares);
     void simulate_sense(int action, TicTacToeBoard& true_board);
     void reset_zeros();
+    void reset_zeros(std::string& board);
+    void get_useful_senses(std::vector<int> &actions);
     bool is_valid_move(int square);
     bool update_move(int square, char player);
     bool is_win_for_player();
     int win_exists();
     int draw_exists();
     bool is_over();
-    int num_self_moves();
 };
 
 class History

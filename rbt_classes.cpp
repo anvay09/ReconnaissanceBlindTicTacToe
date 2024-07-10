@@ -176,17 +176,11 @@ void TicTacToeBoard::print_board() {
 }
 
 
-InformationSet::InformationSet() : TicTacToeBoard() {
-    this->player = 'x';
-    this->move_flag = true;
-    this->hash = "";
-}
-
 InformationSet::InformationSet(char player, bool move_flag, std::string& hash) : TicTacToeBoard() {
     this->player = player;
     this->move_flag = move_flag;
     this->hash = hash;
-    this->board = this.get_board_from_hash();
+    this->board = this->get_board_from_hash();
 }
 
 std::string InformationSet::get_board_from_hash() {
@@ -198,10 +192,10 @@ std::string InformationSet::get_board_from_hash() {
         if (this->hash[i] != '|' || this->hash[i] != '_') {
             if (i == 0){
                 if (this->player == 'x'){
-                    new_board[stoi(this->hash[i])] = this->player;
+                    new_board[int(this->hash[i]) - 48] = this->player;
                 }
                 else{
-                    sense_move = stoi(this->hash[i]);
+                    int sense_move = int(this->hash[i]) - 48;
                     latest_sense_index = i;
                     i = i + 2;
                     for (int square : sense_square_dict[sense_move]) {
@@ -212,10 +206,10 @@ std::string InformationSet::get_board_from_hash() {
             }
             else{
                 if (this->hash[i-1] == '|'){
-                    new_board[stoi(this->hash[i])] = this->player;
+                    new_board[int(this->hash[i]) - 48] = this->player;
                 }
                 else if (this->hash[i-1] == '_')
-                {   sense_move = stoi(this->hash[i]);
+                {   int sense_move = int(this->hash[i]) - 48;
                     latest_sense_index = i;
                     i = i + 2;
                     for (int square : sense_square_dict[sense_move]) {
@@ -232,7 +226,7 @@ std::string InformationSet::get_board_from_hash() {
     
     if (this->move_flag){
         i = latest_sense_index;
-        sense_move = stoi(this->hash[i]);
+        int sense_move = int(this->hash[i]) - 48;
         i = i + 2;
         for (int square : sense_square_dict[sense_move]) {
             new_board[square] = this->hash[i++];
@@ -337,14 +331,13 @@ void InformationSet::simulate_sense(int action, TicTacToeBoard& true_board) {
     this->move_flag = true;
 }
 
-void InformationSet::reset_zeros(TicTacToeBoard& board) {
+void InformationSet::reset_zeros(std::string& board) {
     for (int i = 0; i < 9; i++) {
         if (board[i] == '0') {
             board[i] = '-';
         }
     }
 }
-
 
 void InformationSet::reset_zeros() {
     for (int i = 0; i < 9; i++) {
