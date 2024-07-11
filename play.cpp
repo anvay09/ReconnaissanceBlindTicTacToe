@@ -50,12 +50,12 @@ int play(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, s
 
 
 int main() {
-    std::string board = "x000o0000";
+    std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
-    std::string board_1 = "x0-0o----";
-    std::string board_2 = "x---o----";
-    InformationSet I_1 = InformationSet('x', true, board_1);
-    InformationSet I_2 = InformationSet('o', false, board_2);
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    InformationSet I_1 = InformationSet('x', true, hash_1);
+    InformationSet I_2 = InformationSet('o', false, hash_2);
     std::unordered_set<std::string> I_1_set;
     std::unordered_set<std::string> I_2_set;
     char player = 'x';
