@@ -184,7 +184,13 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash) :
 }
 
 std::string InformationSet::get_board_from_hash() {
-    std::string new_board = "---------";
+    std::string new_board;
+    if (this->player == 'x') {
+        new_board = "000000000";
+    }
+    else {
+        new_board = "---------";
+    }
     int i = 0;
     int latest_sense_index;
 
@@ -224,7 +230,7 @@ std::string InformationSet::get_board_from_hash() {
         }
     }
     
-    if (this->move_flag){
+    if (this->move_flag && i != 0){
         i = latest_sense_index;
         int sense_move = int(this->hash[i]) - 48;
         i = i + 2;
