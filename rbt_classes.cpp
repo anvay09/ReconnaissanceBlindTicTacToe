@@ -545,7 +545,7 @@ Policy::Policy() {
 
 Policy::Policy(char player, std::string& file_path) {
     this->player = player;
-    this->policy_dict = this->read_policy_from_json(file_path);
+    this->policy_dict = this->read_policy_from_json(file_path, player);
 }
 
 Policy::Policy(char player, std::unordered_map<std::string, std::vector<double> >& policy_dict) {
@@ -559,7 +559,7 @@ Policy Policy::copy() {
 
 void Policy::load_policy(char player, std::string& file_path) {
     this->player = player;
-    this->policy_dict = this->read_policy_from_json(file_path);
+    this->policy_dict = this->read_policy_from_json(file_path, player);
 }
 
 void Policy::update_policy_for_given_information_set(InformationSet& information_set, std::vector<double>& prob_distribution) {
@@ -570,7 +570,7 @@ void Policy::update_policy_for_given_information_set(InformationSet& information
     this->policy_dict[information_set.get_hash()] = prob_dist;
 }
 
-std::unordered_map<std::string, std::vector<double> > Policy::read_policy_from_json(std::string& file_path){
+std::unordered_map<std::string, std::vector<double> > Policy::read_policy_from_json(std::string& file_path, char player){
     std::ifstream i(file_path);
     json policy_obj;
     i >> policy_obj;
@@ -583,18 +583,33 @@ std::unordered_map<std::string, std::vector<double> > Policy::read_policy_from_j
             probability_distribution[i] = 0;
         }
 
-        if (key.back() == 's') {
+        if (key.back() == '_') {
             std::vector<std::string> sense_keys = {"9", "10", "11", "12"};
             for (int i = 0; i < sense_keys.size(); i++) {
                 probability_distribution[stoi(sense_keys[i])] = policy_obj[key][sense_keys[i]];
             }
         }
-        else if (key.back() == 'm') {
+        else if (key.back() == '|') {
             std::vector<std::string> move_keys = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};
             for (int i = 0; i < move_keys.size(); i++) {
                 probability_distribution[stoi(move_keys[i])] = policy_obj[key][move_keys[i]];
             }
         }
+        else {
+            if (player == 'x'){
+                std::vector<std::string> move_keys = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};
+                for (int i = 0; i < move_keys.size(); i++) {
+                    probability_distribution[stoi(move_keys[i])] = policy_obj[key][move_keys[i]];
+                }
+            }
+            else{
+                std::vector<std::string> sense_keys = {"9", "10", "11", "12"};
+                for (int i = 0; i < sense_keys.size(); i++) {
+                    probability_distribution[stoi(sense_keys[i])] = policy_obj[key][sense_keys[i]];
+                }
+            }
+        }
+
         policy_dict[key] = probability_distribution;
     }
 
