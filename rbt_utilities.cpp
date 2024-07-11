@@ -122,17 +122,17 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 
 void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     
-    if (I.get_hash() == "000000000m"){
+    if (I.board == "000000000"){
         std::vector<int> init_h = {};
         valid_histories_list.push_back(init_h);
         return;
     }
 
-    std::string board_1 = "000000000";
-    std::string board_2 = "---------";
+    std::string hash_1 = "";
+    std::string hash_2 = "";
     std::string board = "000000000";
-    InformationSet I_1('x', true, board_1);
-    InformationSet I_2('o', false, board_2);
+    InformationSet I_1('x', true, hash_1);
+    InformationSet I_2('o', false, hash_2);
     TicTacToeBoard true_board = TicTacToeBoard(board);
     char player = 'x';
     std::vector<int> played_actions;
@@ -163,7 +163,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
             double probability_new = probability * policy_obj.policy_dict[I.get_hash()][action];
             History new_history = current_history;
             new_history.history.push_back(action);
-                
+            
             char winner;
             if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
                 InformationSet new_I(I);
@@ -305,10 +305,10 @@ double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, T
 double get_expected_utility_wrapper(Policy& policy_obj_x, Policy& policy_obj_o){
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
-    std::string board_1 = "000000000";
-    std::string board_2 = "---------";
-    InformationSet I_1 = InformationSet('x', true, board_1);
-    InformationSet I_2 = InformationSet('o', false, board_2);
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    InformationSet I_1 = InformationSet('x', true, hash_1);
+    InformationSet I_2 = InformationSet('o', false, hash_2);
     std::vector<int> h = {};
     TerminalHistory start_history = TerminalHistory(h);
 
@@ -377,7 +377,7 @@ double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacT
 double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, Policy& policy_obj_x, 
                                        Policy& policy_obj_o, double probability, History history_obj, InformationSet& curr_I_1, char initial_player){
     
-    if (curr_I_1.get_hash() == "000000000m"){
+    if (curr_I_1.board == "000000000"){
         return 1.0;
     }
     else {
@@ -391,11 +391,11 @@ double get_counter_factual_utility(InformationSet& I, Policy& policy_obj_x, Poli
     int count = 0;
     for (std::vector<int> h : starting_histories) {
         NonTerminalHistory h_object(h);
-        std::string board_1 = "000000000";
-        std::string board_2 = "---------";
+        std::string hash_1 = "";
+        std::string hash_2 = "";
         std::string board = "000000000";
-        InformationSet curr_I_1('x', true, board_1);
-        InformationSet curr_I_2('o', false, board_2);
+        InformationSet curr_I_1('x', true, hash_1);
+        InformationSet curr_I_2('o', false, hash_2);
         TicTacToeBoard true_board = TicTacToeBoard(board);
         h_object.get_information_sets(curr_I_1, curr_I_2);
         char curr_player = 'x';
@@ -407,7 +407,7 @@ double get_counter_factual_utility(InformationSet& I, Policy& policy_obj_x, Poli
         if (prob_reaching_h_list[count] > 0) {
             expected_utility_h = get_expected_utility(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1, h_object, I.player);
 
-            if (!(curr_I_1.get_hash() == "000000000m")){
+            if (!(curr_I_1.board == "000000000")){
                 probability_reaching_h = prob_reaching_h_list[count];
             }
             else {
@@ -427,12 +427,12 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
     for (std::vector<int> h : starting_histories) {
         NonTerminalHistory h_object(h);
 
-        if (!(I.get_hash() == "000000000m")) {
+        if (!(I.board == "000000000")) {
             std::string board = "000000000";
-            std::string board_1 = "000000000";
-            std::string board_2 = "---------";
-            InformationSet I_1('x', true, board_1);
-            InformationSet I_2('o', false, board_2);
+            std::string hash_1 = "000000000";
+            std::string hash_2 = "---------";
+            InformationSet I_1('x', true, hash_1);
+            InformationSet I_2('o', false, hash_2);
             TicTacToeBoard true_board = TicTacToeBoard(board);
             double probability_reaching_h = get_prob_h_given_policy_wrapper(I_1, I_2, true_board, 'x', h[0], policy_obj_x, policy_obj_o, 1.0, h_object, I, initial_player);
             prob_reaching_h_list_all.push_back(probability_reaching_h);
@@ -514,7 +514,7 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
 }
 
 
-std::unordered_map<std::string, std::vector<double> > get_prev_regrets(std::string& file_path){
+std::unordered_map<std::string, std::vector<double> > get_prev_regrets(std::string& file_path, char player){
     std::ifstream i(file_path);
     json regret_obj;
     i >> regret_obj;
@@ -528,16 +528,31 @@ std::unordered_map<std::string, std::vector<double> > get_prev_regrets(std::stri
             probability_distribution[i] = 0.0;
         }
 
-        if (key.back() == 's') {
+        if (key.back() == '_') {
             std::vector<std::string> sense_keys = {"9", "10", "11", "12"};
             for (int i = 0; i < sense_keys.size(); i++) {
                 probability_distribution[stoi(sense_keys[i])] = regret_obj[key][sense_keys[i]];
             }
         }
-        else if (key.back() == 'm') {
+        else if (key.back() == '|') {
             std::vector<std::string> move_keys = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};
             for (int i = 0; i < move_keys.size(); i++) {
                 probability_distribution[stoi(move_keys[i])] = regret_obj[key][move_keys[i]];
+            }
+        }
+        else {
+            if (player == 'x'){
+                std::vector<std::string> move_keys = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};
+                for (int i = 0; i < move_keys.size(); i++) {
+                    probability_distribution[stoi(move_keys[i])] = regret_obj[key][move_keys[i]];
+                }
+            }
+            else{
+                std::vector<std::string> sense_keys = {"9", "10", "11", "12"};
+                for (int i = 0; i < sense_keys.size(); i++) {
+                    probability_distribution[stoi(sense_keys[i])] = regret_obj[key][sense_keys[i]];
+                }
+
             }
         }
         regret_map[key] = probability_distribution;

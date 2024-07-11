@@ -26,4 +26,4 @@ double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& pol
 
 void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, int T, std::vector<double>& regret_list);
 
-std::unordered_map<std::string, std::vector<double> > get_prev_regrets(std::string& file_path);
+std::unordered_map<std::string, std::vector<double> > get_prev_regrets(std::string& file_path, char player);
