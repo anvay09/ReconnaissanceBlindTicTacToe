@@ -48,7 +48,7 @@ public:
     bool move_flag;
     std::string hash;
     InformationSet();
-    InformationSet(char player, bool move_flag, std::string& hash = EMPTY_HASH, std::string& board = EMPTY_BOARD);
+    InformationSet(char player, bool move_flag, std::string& hash, std::string& board);
     InformationSet(char player, bool move_flag, std::string& hash = EMPTY_HASH);
     bool operator==(const InformationSet &other);
     char other_player();
