@@ -429,8 +429,8 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
 
         if (!(I.board == "000000000")) {
             std::string board = "000000000";
-            std::string hash_1 = "000000000";
-            std::string hash_2 = "---------";
+            std::string hash_1 = "";
+            std::string hash_2 = "";
             InformationSet I_1('x', true, hash_1);
             InformationSet I_2('o', false, hash_2);
             TicTacToeBoard true_board = TicTacToeBoard(board);
