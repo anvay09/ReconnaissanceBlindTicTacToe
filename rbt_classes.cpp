@@ -185,7 +185,7 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash) :
 
 std::string InformationSet::get_board_from_hash() {
     // example hash: (P1): 6_1|00o0|0_2|0ox0|
-    std::string new_board = "---------";
+    std::string new_board = this->player == 'x' ? "000000000" : "---------";
     bool move_action = this->player == 'x' ? true : false;
     bool sense_action = this->player == 'x' ? false : true;
     bool observation = false;
