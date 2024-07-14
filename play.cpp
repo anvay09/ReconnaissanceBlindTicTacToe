@@ -73,5 +73,20 @@ int main() {
     std::cout << "finished computation at " << std::ctime(&end_time)
               << "elapsed time: " << elapsed_seconds.count() << "s"
               << std::endl;
+
+    // write I_1_set and I_2_set to file
+    std::ofstream I_1_file;
+    I_1_file.open("data/P1_information_sets_V2.txt");
+    for (std::string hash : I_1_set) {
+        I_1_file << hash << std::endl;
+    }
+    I_1_file.close();
+
+    std::ofstream I_2_file;
+    I_2_file.open("data/P2_information_sets_V2.txt");
+    for (std::string hash : I_2_set) {
+        I_2_file << hash << std::endl;
+    }
+    I_2_file.close();
     return 0;
 }
