@@ -321,7 +321,7 @@ void InformationSet::get_useful_senses(std::vector<int> &actions) {
 
 void InformationSet::simulate_sense(int action, TicTacToeBoard& true_board) {
     this->reset_zeros();
-    std::string observation = "";
+    std::string observation = "----";
     int count = 0;
     for (int square : sense_square_dict[action]) {
         this->board[square] = true_board[square];
