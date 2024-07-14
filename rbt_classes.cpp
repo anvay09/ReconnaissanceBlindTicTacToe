@@ -184,63 +184,122 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash) :
 }
 
 std::string InformationSet::get_board_from_hash() {
-    std::string new_board;
-    if (this->player == 'x') {
-        new_board = "000000000";
-    }
-    else {
-        new_board = "---------";
-    }
+    // example hash: (P1): 6_1|00o0|0_2|0ox0|
+    std::string new_board = "---------";
+    bool move_action = this->player == 'x' ? true : false;
+    bool sense_action = this->player == 'x' ? false : true;
+    bool observation = false;
+    int curr_sense_move = -1;
     int i = 0;
-    int latest_sense_index;
+    
+    while (i < this->hash.size()) {
+        switch (this->hash[i]) { // change flags at delimiters
+            case '|': // indicates start or end of observation sequence
+                if (observation) { // end of observation sequence
+                    observation = false;
+                    move_action = true;
+                }
+                else{ // beginning of observation sequence
+                    observation = true;
+                    sense_action = false;
+                }
 
-    while(i < this->hash.size()) {
-        if (this->hash[i] != '|' || this->hash[i] != '_') {
-            if (i == 0){
-                if (this->player == 'x'){
-                    new_board[int(this->hash[i]) - 48] = this->player;
+                i++;
+                break;
+
+            case '_': // an underscore only occurs immediately after a move action
+                move_action = false;
+                sense_action = true;
+
+                i++;
+                break;
+
+            default: // if not a delimiter, update board
+                if (move_action) {
+                    this->reset_zeros(new_board); // only need to reset zeros before a move action is made
+                    new_board[this->hash[i] - '0'] = this->player;
+                    
+                    i++;
                 }
-                else{
-                    int sense_move = int(this->hash[i]) - 48;
-                    latest_sense_index = i;
-                    i = i + 2;
-                    for (int square : sense_square_dict[sense_move]) {
+                else if (sense_action) { // simply setting the current sense move variable so the board can be updated in the observation condition below
+                    curr_sense_move = this->hash[i] - '0' + 9; // sense actions are between 0 - 3 but need to be converted to 9 - 12, hence 9 is added
+                    
+                    i++;
+                }
+                else if (observation) { // update board for 4 squares based on observation
+                    for (int square: sense_square_dict[curr_sense_move]) {
                         new_board[square] = this->hash[i++];
                     }
-                    this->reset_zeros(new_board);
                 }
-            }
-            else{
-                if (this->hash[i-1] == '|'){
-                    new_board[int(this->hash[i]) - 48] = this->player;
-                }
-                else if (this->hash[i-1] == '_')
-                {   int sense_move = int(this->hash[i]) - 48;
-                    latest_sense_index = i;
-                    i = i + 2;
-                    for (int square : sense_square_dict[sense_move]) {
-                        new_board[square] = this->hash[i++];
-                    }
-                    this->reset_zeros(new_board);
-                }
-            }
-        }
-        else{
-            i++;
         }
     }
-    
-    if (this->move_flag && i != 0){
-        i = latest_sense_index;
-        int sense_move = int(this->hash[i]) - 48;
-        i = i + 2;
-        for (int square : sense_square_dict[sense_move]) {
-            new_board[square] = this->hash[i++];
-        }
-    }
-    
+
     return new_board;
 }
+
+// std::string InformationSet::get_board_from_hash() {
+//     // example hash: (P1): 6_1|00o0|0_2|0ox0|
+//     std::string new_board;
+//     if (this->player == 'x') {
+//         new_board = "000000000";
+//     }
+//     else {
+//         new_board = "---------";
+//     }
+
+//     int i = 0;
+//     int latest_sense_index;
+
+//     while(i < this->hash.size()) {
+//         if (this->hash[i] != '|' || this->hash[i] != '_') {
+//             if (i == 0){
+//                 if (this->player == 'x'){
+//                     new_board[int(this->hash[i]) - 48] = this->player;
+//                 }
+//                 else{
+//                     int sense_move = int(this->hash[i]) - 48;
+//                     latest_sense_index = i;
+//                     i = i + 2;
+
+//                     for (int square : sense_square_dict[sense_move]) {
+//                         new_board[square] = this->hash[i++];
+//                     }
+//                     this->reset_zeros(new_board);
+//                 }
+//             }
+//             else{
+//                 if (this->hash[i-1] == '|'){
+//                     new_board[int(this->hash[i]) - 48] = this->player;
+//                 }
+//                 else if (this->hash[i-1] == '_')
+//                 {   int sense_move = int(this->hash[i]) - 48;
+//                     latest_sense_index = i;
+//                     i = i + 2;
+
+//                     for (int square : sense_square_dict[sense_move]) {
+//                         new_board[square] = this->hash[i++];
+//                     }
+//                     this->reset_zeros(new_board);
+//                 }
+//             }
+//         }
+//         else{
+//             i++;
+//         }
+//     }
+    
+//     if (this->move_flag && i != 0){
+//         i = latest_sense_index;
+//         int sense_move = int(this->hash[i]) - 48;
+//         i = i + 2;
+
+//         for (int square : sense_square_dict[sense_move]) {
+//             new_board[square] = this->hash[i++];
+//         }
+//     }
+    
+//     return new_board;
+// }
 
 InformationSet::InformationSet(char player, bool move_flag, std::string& hash, std::string& board) : TicTacToeBoard() {
     this->player = player;
