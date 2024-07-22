@@ -1,7 +1,7 @@
 #include "cpp_headers/rbt_classes.hpp"
 
 int play(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, std::unordered_set<std::string>& I_1_set, std::unordered_set<std::string>& I_2_set, char player) {
-    int num_histories = 0;
+    long int num_histories = 0;
     
     I_1_set.insert(I_1.get_hash());
     I_2_set.insert(I_2.get_hash());
@@ -61,7 +61,7 @@ int main() {
     char player = 'x';
 
     auto start = std::chrono::system_clock::now();   
-    int output = play(I_1, I_2, true_board, I_1_set, I_2_set, player);
+    long int output = play(I_1, I_2, true_board, I_1_set, I_2_set, player);
     std::cout << output << std::endl;
     std::cout << I_1_set.size() << std::endl;
     std::cout << I_2_set.size() << std::endl;
