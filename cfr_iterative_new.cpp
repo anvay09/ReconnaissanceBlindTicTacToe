@@ -18,7 +18,6 @@ bool get_move_flag(std::string I_hash, char player){
             move_flag = false;
         }
     }
-    std::cout << "get_move_flag" << std::endl;
     return move_flag;
 }
 
@@ -502,8 +501,8 @@ int main(int argc, char* argv[])  {
     }
 
     for (int T = start_iter; T <= end_iter; T++) {
-        //double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
-        //std::cout << "Expected utility: " << expected_utility << std::endl; 
+        double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
+        std::cout << "Expected utility: " << expected_utility << std::endl; 
         run_cfr(T, P1_information_sets, regret_list_x, policy_obj_x, policy_obj_o, 'x');
         run_cfr(T, P2_information_sets, regret_list_o, policy_obj_x, policy_obj_o, 'o');
         get_prob_reaching(P1_information_sets, prob_reaching_list_x, 'x', policy_obj_x, policy_obj_o);

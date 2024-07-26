@@ -177,24 +177,20 @@ void TicTacToeBoard::print_board() {
 
 
 InformationSet::InformationSet(char player, bool move_flag, std::string& hash) : TicTacToeBoard() {
-    std::cout << "Constuctor infoset" << std::endl;
     this->player = player;
     this->move_flag = move_flag;
     this->hash = hash;
     this->board = this->get_board_from_hash();
-    std::cout << "Constructor done" << std::endl;
 }
 
 std::string InformationSet::get_board_from_hash() {
     // example hash: (P1): 6_1|00o0|0_2|0ox0|
-    std::cout << "Infoset yay!" << this->hash << std::endl;
     std::string new_board = this->player == 'x' ? "000000000" : "---------";
     bool move_action = this->player == 'x' ? true : false;
     bool sense_action = this->player == 'x' ? false : true;
     bool observation = false;
     int curr_sense_move = -1;
     int i = 0;
-    std::cout << "init done" << std::endl;
 
     while (i < this->hash.size()) {
         switch (this->hash[i]) { // change flags at delimiters
@@ -220,26 +216,20 @@ std::string InformationSet::get_board_from_hash() {
 
             default: // if not a delimiter, update board
                 if (move_action) {
-	 	    std::cout << "move s" << std::endl;
                     this->reset_zeros(new_board); // only need to reset zeros before a move action is made
                     new_board[this->hash[i] - '0'] = this->player;
                     
                     i++;
-		    std::cout << "move e" << std::endl;
                 }
                 else if (sense_action) { // simply setting the current sense move variable so the board can be updated in the observation condition below
-                    std::cout << "sense action" << std::endl;
                     curr_sense_move = this->hash[i] - '0' + 9; // sense actions are between 0 - 3 but need to be converted to 9 - 12, hence 9 is added
                     
                     i++;
-		    std::cout << "sense end" << std::endl;
                 }
                 else if (observation) { // update board for 4 squares based on observation
-                    std::cout << "Observation start" << std::endl;
                     for (int square: sense_square_dict[curr_sense_move]) {
                         new_board[square] = this->hash[i++];
                     }
-		    std::cout << "Observation end" << std::endl;
                 }
         }
     }
