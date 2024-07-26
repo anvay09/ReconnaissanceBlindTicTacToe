@@ -22,13 +22,11 @@ void save_policy(std::string information_set_file, char player) {
     bool move_flag;
     
     while (std::getline(f_is, line_is)) {
-        std::cout << line_is << std::endl;
-	std::vector<double> p_vector;
+	    std::vector<double> p_vector;
         for (int i = 0; i < 13; i++) {
             p_vector.push_back(0.0);
         }
         policy_map[line_is] = p_vector;
-        std:: cout << "map done";
         std::string I_hash = line_is;
         if (I_hash.size() != 0){
             move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
@@ -41,7 +39,6 @@ void save_policy(std::string information_set_file, char player) {
                 move_flag = false;
             }
         }
-	std::cout << "I_hash flag";
         InformationSet I(player, move_flag, I_hash);
 
         std::vector<int> actions;
