@@ -50,10 +50,10 @@ void save_policy(std::string information_set_file, char player) {
     }
     f_is.close();
     if (player == 'x'){
-        save_map_json("P1_unfiorm_policy_v2.json", policy_map);
+        save_map_json("./data/P1_uniform_policy_v2.json", policy_map);
     }
     else {
-        save_map_json("P2_uniform_policy_v2.json", policy_map);
+        save_map_json("./data/P2_uniform_policy_v2.json", policy_map);
     }
 }
 
