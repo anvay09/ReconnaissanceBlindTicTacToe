@@ -468,6 +468,9 @@ double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& pol
 
 
 void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, int T, std::vector<double>& regret_list) {
+    std::cout << "Starting cfr " << " for I " << I.get_hash() << "..." << std::endl;
+    auto start = std::chrono::system_clock::now();
+
     double util = 0.0;
     std::vector<int> actions;
     Policy& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
@@ -510,6 +513,12 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         regret_T = regret_T > 0.0 ? regret_T : 0.0;
         regret_list[action] = regret_T;
     }
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "finished cfr" << " for I " << I.get_hash() << " at " << std::ctime(&end_time)
+            << "elapsed time: " << elapsed_seconds.count() << "s"
+            << std::endl;
 }
 
 
