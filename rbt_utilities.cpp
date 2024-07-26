@@ -483,7 +483,7 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
     }
 
     I.get_actions(actions);
-    
+    std::cout << "before updated histores" << std::endl;    
     upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o, starting_histories);
     get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player, prob_reaching_h_list);
     
