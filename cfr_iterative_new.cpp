@@ -3,6 +3,8 @@
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/rbt_utilities.hpp"
 
+int number_threads = 4;
+
 bool get_move_flag(std::string I_hash, char player){
     bool move_flag;
     if (I_hash.size() != 0){
@@ -115,6 +117,20 @@ void initialize_continue(std::string policy_file, std::string information_set_fi
     f_is.close();
 }
 
+void save_map_json(std::string output_file, std::unordered_map<std::string, std::vector<double>>& map){
+    std::ofstream f_out;
+    f_out.open(output_file, std::ios::trunc);
+    json jx;
+    for (auto& it: map) {
+        for (int i = 0; i < 13; i++) {
+            jx[it.first][std::to_string(i)] = it.second[i];
+        }
+    }
+    f_out << jx.dump() << std::endl;
+    f_out.close();
+}
+
+
 void save_output(std::string output_policy_file, std::string output_regret_file, char player, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, Policy& policy_obj) {
     std::unordered_map<std::string, std::vector<double> > regret_map;
     std::cout << "Saving regrets for player " << player << "..." << std::endl;
@@ -129,22 +145,10 @@ void save_output(std::string output_policy_file, std::string output_regret_file,
     save_map_json(output_policy_file, policy_obj.policy_dict);
 }
 
-void save_map_json(std::string output_file, std::unordered_map<std::string, std::vector<double>>& map){
-    std::ofstream f_out;
-    f_out.open(output_file, std::ios::trunc);
-    json jx;
-    for (auto& it: map) {
-        for (int i = 0; i < 13; i++) {
-            jx[it.first][std::to_string(i)] = it.second[i];
-        }
-    }
-    f_out << jx.dump() << std::endl;
-    f_out.close();
-}
 //cfr
 
 // prob
-void valid_histories_play(InformationSet& I_1, InformationSet& I_2, 
+void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2, 
                           TicTacToeBoard& true_board, char player, 
                           History& current_history, InformationSet& end_I, 
                           std::vector<int>& played_actions, Policy& policy_obj_x, 
@@ -192,27 +196,27 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2,
 
                 if (player == 'x') {
                     if (end_I.player == 'x') {
-                        valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                        valid_histories_play_prob(new_I, I_2, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
                     }
                     else {
                         if (I_2 == end_I){
                             valid_histories_list.push_back(new_history.history);
                         }
                         else {
-                            valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                            valid_histories_play_prob(new_I, I_2, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
                         }
                     }
                 }
                 else {
                     if (end_I.player == 'o') {
-                        valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                        valid_histories_play_prob(I_1, new_I, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
                     }
                     else {
                         if (I_1 == end_I){
                             valid_histories_list.push_back(new_history.history);
                         }
                         else {
-                            valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                            valid_histories_play_prob(I_1, new_I, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
                         }
                     }
                 }
@@ -231,27 +235,27 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2,
             if (player == 'x') {
                 if (end_I.player == 'x') {
                     if (!(new_I == end_I)){
-                        valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                        valid_histories_play_prob(new_I, I_2, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
                     }
                     else {
                         valid_histories_list.push_back(new_history.history);
                     }
                 }
                 else {
-                    valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                    valid_histories_play_prob(new_I, I_2, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
                 }
             }
             else {
                 if (end_I.player == 'o') {
                     if (!(new_I == end_I)){
-                        valid_histories_play(I_1, new_I, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                        valid_histories_play_prob(I_1, new_I, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
                     }
                     else {
                         valid_histories_list.push_back(new_history.history);
                     }
                 }
                 else {
-                    valid_histories_play(I_1, new_I, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                    valid_histories_play_prob(I_1, new_I, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
                 }
             }
         }
@@ -259,7 +263,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2,
 }
 
 
-void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, 
+void upgraded_get_histories_given_I_prob(InformationSet& I, Policy& policy_obj_x, 
                                     Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     
     if (I.board == "000000000"){
@@ -280,11 +284,11 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x,
 
     std::vector<int> h = {};
     NonTerminalHistory current_history(h);
-    valid_histories_play(I_1, I_2, true_board, player, current_history, I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+    valid_histories_play_prob(I_1, I_2, true_board, player, current_history, I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
     return;
 }   
 
-double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, 
+double get_prob_h_given_policy_prob(InformationSet& I_1, InformationSet& I_2, 
                                TicTacToeBoard& true_board, char player, 
                                int next_action, Policy& policy_obj_x, 
                                Policy& policy_obj_o, double probability, 
@@ -311,10 +315,10 @@ double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2,
                 new_I.reset_zeros();
 
                 if (player == 'x') {
-                    probability = get_prob_h_given_policy(new_I, I_2, new_true_board, 'o', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
+                    probability = get_prob_h_given_policy_prob(new_I, I_2, new_true_board, 'o', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
                 }
                 else {
-                    probability = get_prob_h_given_policy(I_1, new_I, new_true_board, 'x', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
+                    probability = get_prob_h_given_policy_prob(I_1, new_I, new_true_board, 'x', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
                 }
             }
         }
@@ -332,10 +336,10 @@ double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2,
             int new_next_action = history_obj.history[history_obj.track_traversal_index];
 
             if (player == 'x') {
-                probability = get_prob_h_given_policy(new_I, I_2, new_true_board, 'x', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
+                probability = get_prob_h_given_policy_prob(new_I, I_2, new_true_board, 'x', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
             }
             else {
-                probability = get_prob_h_given_policy(I_1, new_I, new_true_board, 'o', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
+                probability = get_prob_h_given_policy_prob(I_1, new_I, new_true_board, 'o', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
             }
         }
     }
@@ -344,7 +348,7 @@ double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2,
 }
 
 
-double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, 
+double get_prob_h_given_policy_wrapper_prob(InformationSet& I_1, InformationSet& I_2, 
                                        TicTacToeBoard& true_board, char player, 
                                        int next_action, Policy& policy_obj_x, 
                                        Policy& policy_obj_o, double probability,
@@ -354,12 +358,12 @@ double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2,
         return 1.0;
     }
     else {
-        return get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
+        return get_prob_h_given_policy_prob(I_1, I_2, true_board, player, next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
     }
 }
 
 
-void get_probability_of_reaching_all_h(InformationSet &I, Policy& policy_obj_x,
+void get_probability_of_reaching_all_h_prob(InformationSet &I, Policy& policy_obj_x,
                                        Policy& policy_obj_o, std::vector<std::vector<int>>& starting_histories,
                                        char initial_player, std::vector<double>& prob_reaching_h_list_all) {
 
@@ -378,7 +382,7 @@ void get_probability_of_reaching_all_h(InformationSet &I, Policy& policy_obj_x,
             InformationSet I_2('o', false, hash_2);
             TicTacToeBoard true_board = TicTacToeBoard(board);
             
-            prob_reaching_h = get_prob_h_given_policy_wrapper(I_1, I_2, true_board, 'x', history[0], policy_obj_x, policy_obj_o, 1.0, h_object, I, initial_player);
+            prob_reaching_h = get_prob_h_given_policy_wrapper_prob(I_1, I_2, true_board, 'x', history[0], policy_obj_x, policy_obj_o, 1.0, h_object, I, initial_player);
         }
 
         prob_reaching_h_list_all.push_back(prob_reaching_h);
@@ -388,13 +392,13 @@ void get_probability_of_reaching_all_h(InformationSet &I, Policy& policy_obj_x,
 }
 
 
-double get_probability_of_reaching_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, char initial_player) {
+double get_probability_of_reaching_I_prob(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, char initial_player) {
     std::vector<std::vector<int>> starting_histories;
     std::vector<double> prob_reaching_h_list_all;
     double prob_reaching = 0.0;
 
-    upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o, starting_histories);
-    get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, initial_player, prob_reaching_h_list_all);
+    upgraded_get_histories_given_I_prob(I, policy_obj_x, policy_obj_o, starting_histories);
+    get_probability_of_reaching_all_h_prob(I, policy_obj_x, policy_obj_o, starting_histories, initial_player, prob_reaching_h_list_all);
 
     for (double prob_reaching_h: prob_reaching_h_list_all) {
         prob_reaching += prob_reaching_h;
@@ -411,7 +415,7 @@ void get_prob_reaching(std::vector<std::string>& information_sets, std::vector<d
         bool move_flag = get_move_flag(I_hash, player);
         InformationSet I(player, move_flag, I_hash);
 
-        prob_reaching_list[i] = get_probability_of_reaching_I(I, policy_obj_x, policy_obj_o, player);
+        prob_reaching_list[i] = get_probability_of_reaching_I_prob(I, policy_obj_x, policy_obj_o, player);
     }
 }
 //prob
@@ -454,7 +458,7 @@ void calc_average_policy(std::vector<std::string>& information_sets, Policy& avg
 
 int main(int argc, char* argv[])  {
     std::cout.precision(17);
-    int number_threads = std::stoi(argv[1]); //96;
+    number_threads = std::stoi(argv[1]); //96;
     std::string base_path = argv[2]; //"data/Iterative_1";
     int start_iter = std::stoi(argv[3]); //1;
     int end_iter = std::stoi(argv[4]); //1000;
