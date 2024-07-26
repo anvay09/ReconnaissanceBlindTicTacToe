@@ -127,7 +127,7 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
         valid_histories_list.push_back(init_h);
         return;
     }
-
+    std::cout << "In upgraded_get_histories_given_I"<< "for I:" << I.get_hash() << std::endl;
     std::string hash_1 = "";
     std::string hash_2 = "";
     std::string board = "000000000";
@@ -428,6 +428,7 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
         NonTerminalHistory h_object(h);
 
         if (!(I.board == "000000000")) {
+            std::cout << "In get_probabiltiy_of_reaching_all_h"<< "for I:" << I.get_hash() << std::endl;
             std::string board = "000000000";
             std::string hash_1 = "";
             std::string hash_2 = "";
