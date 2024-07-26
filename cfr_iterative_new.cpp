@@ -465,8 +465,8 @@ int main(int argc, char* argv[])  {
     std::string policy_file_x = argv[5]; //"data/P1_uniform_policy.json";
     std::string policy_file_o = argv[6]; //"data/P2_uniform_policy.json";
     
-    std::string P1_information_sets_file = "data/P1_information_sets_v2.txt";
-    std::string P2_information_sets_file = "data/P2_information_sets_v2.txt";
+    std::string P1_information_sets_file = "data/P1_information_sets_V2.txt";
+    std::string P2_information_sets_file = "data/P2_information_sets_V2.txt";
     std::string P1_information_sets_mapping_file = "data/P1_information_sets_mapping.txt";
     std::string P2_information_sets_mapping_file = "data/P2_information_sets_mapping.txt";
     Policy policy_obj_x;
