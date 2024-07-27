@@ -127,7 +127,6 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
         valid_histories_list.push_back(init_h);
         return;
     }
-    std::cout << "In upgraded_get_histories_given_I"<< "for I:" << I.get_hash() << std::endl;
     std::string hash_1 = "";
     std::string hash_2 = "";
     std::string board = "000000000";
@@ -428,7 +427,6 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
         NonTerminalHistory h_object(h);
 
         if (!(I.board == "000000000")) {
-            std::cout << "In get_probabiltiy_of_reaching_all_h"<< "for I:" << I.get_hash() << std::endl;
             std::string board = "000000000";
             std::string hash_1 = "";
             std::string hash_2 = "";
@@ -469,8 +467,6 @@ double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& pol
 
 
 void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, int T, std::vector<double>& regret_list) {
-    std::cout << "Starting cfr " << " for I " << I.get_hash() << "..." << std::endl;
-    auto start = std::chrono::system_clock::now();
 
     double util = 0.0;
     std::vector<int> actions;
@@ -514,12 +510,6 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         regret_T = regret_T > 0.0 ? regret_T : 0.0;
         regret_list[action] = regret_T;
     }
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "finished cfr" << " for I " << I.get_hash() << " at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
 }
 
 
