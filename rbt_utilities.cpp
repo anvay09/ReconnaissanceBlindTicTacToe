@@ -515,11 +515,13 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         else {
             util_a = calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_a, starting_histories, prob_reaching_h_list);
         }
-
+        std::cout << "Util_a for action start: " << action << " is: " << util_a << std::endl;
         util += util_a * policy_obj.policy_dict[I.get_hash()][action];
         util_a_list[action] = util_a;
+        std::cout << "Util a for action end: " << action << " is: " << util_a << std::endl;
     }
     
+    std::cout << "regret update for information set start: " << I.get_hash() << std::endl;
     for (int action : actions) {
         double regret_T = 0.0;
         if (T == 0) {
@@ -531,6 +533,7 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         regret_T = regret_T > 0.0 ? regret_T : 0.0;
         regret_list[action] = regret_T;
     }
+    std::cout << "regret ipdate for information set end: " << I.get_hash() << std::endl;
 }
 
 
