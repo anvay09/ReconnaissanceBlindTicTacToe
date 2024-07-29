@@ -26,9 +26,10 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
         std::cout << "Starting iteration " << T << " for player " << player << "..." << std::endl;
         auto start = std::chrono::system_clock::now();
 
-        #pragma omp parallel for num_threads(number_threads) shared(regret_list)
+        #pragma omp parallel for num_threads(number_threads) shared(policy_obj_x, policy_obj_o, regret_list)
         for (long int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
+            std::cout << "Starting iteration " << " for infoset " << I_hash << "..." << std::endl;
             bool move_flag = get_move_flag(I_hash, player);
             InformationSet I(player, move_flag, I_hash);
             calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, regret_list[i]);
@@ -44,7 +45,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
 
         std::cout << "Updating policy for player " << player << "..." << std::endl;
         start = std::chrono::system_clock::now();
-        #pragma omp parallel for num_threads(number_threads)
+        #pragma omp parallel for num_threads(number_threads) shared(policy_obj_x, policy_obj_o, regret_list)
         for (long int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
             bool move_flag = get_move_flag(I_hash, player);
@@ -423,7 +424,7 @@ double get_probability_of_reaching_I_prob(InformationSet& I, Policy& policy_obj_
 }
 
 void get_prob_reaching(std::vector<std::string>& information_sets, std::vector<double>& prob_reaching_list, char player,  Policy& policy_obj_x, Policy& policy_obj_o){
-    #pragma omp parallel for num_threads(number_threads)
+    #pragma omp parallel for num_threads(number_threads) shared(policy_obj_x, policy_obj_o)
     for (long int i = 0; i < information_sets.size(); i++) {
         prob_reaching_list[i] = 0.0;
         std::string I_hash = information_sets[i];
@@ -437,7 +438,7 @@ void get_prob_reaching(std::vector<std::string>& information_sets, std::vector<d
 
 //avg
 void calc_average_terms(char player, std::vector<std::string>& information_sets, Policy& policy_obj, std::vector<double>& prob_reaching_list, std::unordered_map<std::string, std::vector<double>>& avg_policy_numerator, std::unordered_map<std::string, double>& avg_policy_denominator){
-    #pragma omp parallel for num_threads(number_threads)
+    #pragma omp parallel for num_threads(number_threads) shared(policy_obj, avg_policy_numerator, avg_policy_denominator, prob_reaching_list)
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
         bool move_flag = get_move_flag(I_hash, player);
@@ -454,7 +455,7 @@ void calc_average_terms(char player, std::vector<std::string>& information_sets,
 }
 
 void calc_average_policy(std::vector<std::string>& information_sets, Policy& avg_policy_obj, std::unordered_map<std::string, std::vector<double>> avg_policy_numerator, std::unordered_map<std::string, double> avg_policy_denominator, char player){
-    #pragma omp parallel for num_threads(number_threads)
+    #pragma omp parallel for num_threads(number_threads) shared(avg_policy_obj, avg_policy_numerator, avg_policy_denominator)
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
         bool move_flag = get_move_flag(I_hash, player);
