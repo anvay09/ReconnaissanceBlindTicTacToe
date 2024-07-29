@@ -147,6 +147,7 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
     std::cout << "upgraded_get_histories_given_I end: " << std::ctime(&end_time)
             << "elapsed time: " << elapsed_seconds.count() << "s"
             << std::endl;
+    std::cout << "Number of valid histories: " << valid_histories_list.size() << std::endl;
     return;
 }   
 
