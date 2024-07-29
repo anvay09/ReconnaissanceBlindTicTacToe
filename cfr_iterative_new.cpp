@@ -44,7 +44,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
 
 
         std::cout << "Updating policy for player " << player << "..." << std::endl;
-        auto start = std::chrono::system_clock::now();
+        start = std::chrono::system_clock::now();
         #pragma omp parallel for num_threads(number_threads)
         for (int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
@@ -73,9 +73,9 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
             }
         }
 
-        auto end = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+        end = std::chrono::system_clock::now();
+        elapsed_seconds = end - start;
+        end_time = std::chrono::system_clock::to_time_t(end);
         std::cout << "finished computation at " << std::ctime(&end_time)
                 << "elapsed time: " << elapsed_seconds.count() << "s"
                 << std::endl;
