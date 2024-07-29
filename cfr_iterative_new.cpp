@@ -44,6 +44,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
 
 
         std::cout << "Updating policy for player " << player << "..." << std::endl;
+        auto start = std::chrono::system_clock::now();
         #pragma omp parallel for num_threads(number_threads)
         for (int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
@@ -72,10 +73,19 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
             }
         }
 
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end - start;
+        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+        std::cout << "finished computation at " << std::ctime(&end_time)
+                << "elapsed time: " << elapsed_seconds.count() << "s"
+                << std::endl;
+
 
 }
 
 void initialize_start(std::string policy_file, std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list,  std::vector<double>& prob_reaching_list, Policy& policy_obj, Policy& avg_policy_obj, std::unordered_map<std::string, std::vector<double>>& avg_policy_numerator, std::unordered_map<std::string, double>& avg_policy_denominator, char player) {
+    std::cout << "initialize_start for player " << player << std::endl;
+    auto start = std::chrono::system_clock::now();
     policy_obj = Policy(player, policy_file);
     avg_policy_obj = policy_obj;
     avg_policy_numerator = policy_obj.policy_dict;
@@ -94,6 +104,12 @@ void initialize_start(std::string policy_file, std::string information_set_file,
         prob_reaching_list.push_back(0.0);
     }
     f_is.close();
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "finished computation at " << std::ctime(&end_time)
+            << "elapsed time: " << elapsed_seconds.count() << "s"
+            << std::endl;
 }
 
 void initialize_continue(std::string policy_file, std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, std::unordered_map<std::string, std::vector<double>>& regret_map, std::vector<double>& prob_reaching_list, Policy& policy_obj, Policy& avg_policy_obj, std::unordered_map<std::string, std::vector<double>>& avg_policy_numerator, std::unordered_map<std::string, double>& avg_policy_denominator, char player) {
@@ -509,8 +525,8 @@ int main(int argc, char* argv[])  {
 
 
     for (int T = start_iter; T <= end_iter; T++) {
-        double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
-        std::cout << "Expected utility: " << expected_utility << std::endl; 
+        // double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
+        // std::cout << "Expected utility: " << expected_utility << std::endl; 
         run_cfr(T, P1_information_sets, regret_list_x, policy_obj_x, policy_obj_o, 'x');
         run_cfr(T, P2_information_sets, regret_list_o, policy_obj_x, policy_obj_o, 'o');
         get_prob_reaching(P1_information_sets, prob_reaching_list_x, 'x', policy_obj_x, policy_obj_o);
