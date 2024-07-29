@@ -13,6 +13,10 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
     InformationSet& I = player == 'x' ? I_1 : I_2;
     std::vector<int> actions;
 
+    std::string hash_25 = "";
+    std::cerr << "25" << std::endl;
+    InformationSet I_25('o', false, hash_25);
+
     if (player == 'x') {
         if (end_I.player == 'x'){
             actions.push_back(played_actions[current_action_index++]);
