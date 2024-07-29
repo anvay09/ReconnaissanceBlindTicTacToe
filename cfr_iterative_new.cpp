@@ -439,6 +439,7 @@ void get_prob_reaching(std::vector<std::string>& information_sets, std::vector<d
 //avg
 void calc_average_terms(char player, std::vector<std::string>& information_sets, Policy& policy_obj, std::vector<double>& prob_reaching_list, std::unordered_map<std::string, std::vector<double>>& avg_policy_numerator, std::unordered_map<std::string, double>& avg_policy_denominator){
     #pragma omp parallel for num_threads(number_threads)
+    for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
         bool move_flag = get_move_flag(I_hash, player);
         InformationSet I(player, move_flag, I_hash);
