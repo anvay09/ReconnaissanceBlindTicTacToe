@@ -181,6 +181,7 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash) :
     this->move_flag = move_flag;
     this->hash = hash;
     this->board = this->get_board_from_hash();
+    std::cerr << "Infor set: " << hash << "size of dictionary: " << sense_square_dict.size() << std::endl;
 }
 
 std::string InformationSet::get_board_from_hash() {
@@ -261,7 +262,6 @@ std::string InformationSet::get_hash() {
 }
 
 void InformationSet::get_actions(std::vector<int> &actions) {
-    std::cerr << "getactions" << this->move_flag << std::endl;
     if (this->move_flag) {
         this->get_valid_moves(actions);
     } else {
@@ -351,19 +351,10 @@ void InformationSet::get_played_actions(std::vector<int> &actions) {
 }
 
 void InformationSet::get_useful_senses(std::vector<int> &actions) {
-    std::unordered_map<int, std::vector<int> > sense_square_dictionary = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
-    std::cerr << "1" << std::endl;
-    std::cerr << sense_square_dictionary.size() << std::endl;
-    for (auto &sense : sense_square_dictionary) {
-        std::cerr << "2" << std::endl;
+    for (auto &sense : sense_square_dict) {
         for (int i = 0; i < 4; i++) {
-            std::cerr << "3" << std::endl;
-
-            std::cerr << "size: " << this->board.size() << " sense.first " << sense.first << " sense.sceond " << sense.second.size() << std::endl;
             if (this->board[sense.second[i]] == '-') {
-                std::cerr << "4" << std::endl;
                 actions.push_back(sense.first);
-                std::cerr << "5" << std::endl;
                 break;
             }
         }

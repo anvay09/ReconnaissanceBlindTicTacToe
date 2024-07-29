@@ -10,31 +10,25 @@ char toggle_player(char player) {
 
 void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, History& current_history, InformationSet& end_I, 
                           std::vector<int>& played_actions, int current_action_index, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
-    std::cerr << "valid_histories_play 1: " << " for infor set: " << I_1.get_hash() << "..." << std::endl;
     InformationSet& I = player == 'x' ? I_1 : I_2;
     std::vector<int> actions;
 
     if (player == 'x') {
         if (end_I.player == 'x'){
-            std::cerr << "valid_histories_play 2: " << " for infor set: " << I_1.get_hash() << "..." << std::endl;
             actions.push_back(played_actions[current_action_index++]);
         }
         else {
-            std::cerr << "valid_histories_play 3: " << " for infor set: " << I_1.get_hash() << "..." << std::endl;
             I.get_actions_given_policy(actions, policy_obj_x);
         }
         
     } else {
         if (end_I.player == 'o'){
-            std::cerr << "valid_histories_play 4: " << " for infor set: " << I_1.get_hash() << "..." << std::endl;
             actions.push_back(played_actions[current_action_index++]);
         }
         else {
-            std::cerr << "valid_histories_play 5: " << " for infor set: " << I_1.get_hash() << "..." << std::endl;
             I.get_actions_given_policy(actions, policy_obj_o);
         }
     }
-    std::cerr << "valid_histories_play 6: " << " for infor set: " << I_1.get_hash() << "..." << std::endl;
 
     if (I.move_flag){
         for (int action : actions) {
@@ -120,8 +114,6 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 
 
 void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
-    std::cerr << "upgraded_get_histories_given_I 1: " << " for infor set: " << I.get_hash() << "..." << std::endl;
-    auto start = std::chrono::system_clock::now();
     if (I.board == "000000000"){
         std::vector<int> init_h = {};
         valid_histories_list.push_back(init_h);
@@ -135,21 +127,12 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
     TicTacToeBoard true_board = TicTacToeBoard(board);
     char player = 'x';
     std::vector<int> played_actions;
-    std::cerr << "upgraded_get_histories_given_I 2: " << " for infor set: " << I.get_hash() << "..." << std::endl;
     I.get_played_actions(played_actions);
-    std::cerr << "upgraded_get_histories_given_I 3: " << " for infor set: " << I.get_hash() << "..." << std::endl;
     int current_action_index = 0;
 
     std::vector<int> h = {};
     NonTerminalHistory current_history(h);
     valid_histories_play(I_1, I_2, true_board, player, current_history, I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-    std::cerr << "upgraded_get_histories_given_I end: " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
-    std::cerr << "Number of valid histories: " << valid_histories_list.size() << std::endl;
     return;
 }   
 
@@ -433,8 +416,6 @@ double get_counter_factual_utility(InformationSet& I, Policy& policy_obj_x, Poli
 
 void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& starting_histories, 
                                        char initial_player, std::vector<double>& prob_reaching_h_list_all) {
-    std::cout << "get_probability_of_reaching_all_h start: " << " for infor set: " << I.get_hash() << "..." << std::endl;
-    auto start = std::chrono::system_clock::now();
     for (std::vector<int> h : starting_histories) {
         NonTerminalHistory h_object(h);
 
@@ -452,12 +433,6 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
             prob_reaching_h_list_all.push_back(1.0);
         }
     }
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "get_probability_of_reaching_all_h end: " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
 }
 
 
@@ -510,9 +485,7 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         util_a_list.push_back(0.0);
     }
 
-    std::cerr << "get_actions start: " << I.get_hash() << std::endl;
     I.get_actions(actions);
-    std::cerr << "get_actions end: " << I.get_hash() << std::endl;
     upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o, starting_histories);
     get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player, prob_reaching_h_list);
     
@@ -524,13 +497,10 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         else {
             util_a = calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_a, starting_histories, prob_reaching_h_list);
         }
-        std::cerr << "Util_a for action start: " << action << " is: " << util_a << std::endl;
         util += util_a * policy_obj.policy_dict[I.get_hash()][action];
         util_a_list[action] = util_a;
-        std::cerr << "Util a for action end: " << action << " is: " << util_a << std::endl;
     }
     
-    std::cerr << "regret update for information set start: " << I.get_hash() << std::endl;
     for (int action : actions) {
         double regret_T = 0.0;
         if (T == 0) {
@@ -542,7 +512,6 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         regret_T = regret_T > 0.0 ? regret_T : 0.0;
         regret_list[action] = regret_T;
     }
-    std::cerr << "regret ipdate for information set end: " << I.get_hash() << std::endl;
 }
 
 
