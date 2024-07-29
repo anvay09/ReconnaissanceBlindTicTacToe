@@ -301,9 +301,50 @@ void InformationSet::get_valid_moves(std::vector<int> &actions) {
 }
 
 void InformationSet::get_played_actions(std::vector<int> &actions) {
-    for (int i = 0; i < 9; i++) {
-        if (this->board[i] == this->player) {
-            actions.push_back(i);
+    // for (int i = 0; i < 9; i++) {
+    //     if (this->board[i] == this->player) {
+    //         actions.push_back(i);
+    //     }
+    // }
+    bool move_action = this->player == 'x' ? true : false;
+    bool sense_action = this->player == 'x' ? false : true;
+    bool observation = false;
+    int i = 0;
+
+    while (i < this->hash.size()) {
+        switch (this->hash[i]) { 
+            case '|': 
+                if (observation) { 
+                    observation = false;
+                    move_action = true;
+                }
+                else{
+                    observation = true;
+                    sense_action = false;
+                }
+
+                i++;
+                break;
+
+            case '_': 
+                move_action = false;
+                sense_action = true;
+
+                i++;
+                break;
+
+            default: 
+                if (move_action) {
+                    actions.push_back(this->hash[i] - '0');
+                    i++;
+                }
+                else if (sense_action) { 
+                    actions.push_back(this->hash[i] - '0' + 9);
+                    i++;
+                }
+                else if (observation) { 
+                    i += 4;
+                }
         }
     }
 }

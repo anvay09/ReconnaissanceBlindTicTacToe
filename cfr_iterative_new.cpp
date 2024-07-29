@@ -1,4 +1,4 @@
-// Compile: g++-13 -O3 cfr_iterative.cpp rbt_classes.cpp rbt_utilities.cpp -o cfr_i -fopenmp -I /Users/anvay/Downloads/boost_1_84_0
+// Compile: g++-13 -O3 cfr_iterative_new.cpp rbt_classes.cpp rbt_utilities.cpp -o cfr_i -fopenmp -I /Users/anvay/Downloads/boost_1_84_0
 
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/rbt_utilities.hpp"
@@ -481,8 +481,8 @@ int main(int argc, char* argv[])  {
     std::string policy_file_x = argv[5]; //"data/P1_uniform_policy.json";
     std::string policy_file_o = argv[6]; //"data/P2_uniform_policy.json";
     
-    std::string P1_information_sets_file = "data/P1_information_sets_V2.txt";
-    std::string P2_information_sets_file = "data/P2_information_sets_V2.txt";
+    std::string P1_information_sets_file = "data/P1_unique_information_sets_v2.txt";
+    std::string P2_information_sets_file = "data/P2_unique_information_sets_v2.txt";
     std::string P1_information_sets_mapping_file = "data/P1_information_sets_mapping.txt";
     std::string P2_information_sets_mapping_file = "data/P2_information_sets_mapping.txt";
     Policy policy_obj_x;

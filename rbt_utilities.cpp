@@ -9,17 +9,14 @@ char toggle_player(char player) {
 
 
 void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, History& current_history, InformationSet& end_I, 
-                          std::vector<int>& played_actions, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
+                          std::vector<int>& played_actions, int current_action_index, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     
     InformationSet& I = player == 'x' ? I_1 : I_2;
     std::vector<int> actions;
 
     if (player == 'x') {
         if (end_I.player == 'x'){
-            I.get_actions(actions);
-            if (I.move_flag) {
-                actions = intersection(actions, played_actions);
-            }
+            actions.push_back(played_actions[current_action_index++]);
         }
         else {
             I.get_actions_given_policy(actions, policy_obj_x);
@@ -27,10 +24,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
         
     } else {
         if (end_I.player == 'o'){
-             I.get_actions(actions);
-            if (I.move_flag) {
-                actions = intersection(actions, played_actions);
-            }
+            actions.push_back(played_actions[current_action_index++]);
         }
         else {
             I.get_actions_given_policy(actions, policy_obj_o);
@@ -53,27 +47,27 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 
                 if (player == 'x') {
                     if (end_I.player == 'x') {
-                        valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                        valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
                     }
                     else {
                         if (I_2 == end_I){
                             valid_histories_list.push_back(new_history.history);
                         }
                         else {
-                            valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                            valid_histories_play(new_I, I_2, new_true_board, 'o', new_history, end_I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
                         }
                     }
                 }
                 else {
                     if (end_I.player == 'o') {
-                        valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                        valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
                     }
                     else {
                         if (I_1 == end_I){
                             valid_histories_list.push_back(new_history.history);
                         }
                         else {
-                            valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                            valid_histories_play(I_1, new_I, new_true_board, 'x', new_history, end_I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
                         }
                     }
                 }
@@ -92,27 +86,27 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
             if (player == 'x') {
                 if (end_I.player == 'x') {
                     if (!(new_I == end_I)){
-                        valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                        valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
                     }
                     else {
                         valid_histories_list.push_back(new_history.history);
                     }
                 }
                 else {
-                    valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                    valid_histories_play(new_I, I_2, new_true_board, 'x', new_history, end_I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
                 }
             }
             else {
                 if (end_I.player == 'o') {
                     if (!(new_I == end_I)){
-                        valid_histories_play(I_1, new_I, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                        valid_histories_play(I_1, new_I, new_true_board, 'o', new_history, end_I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
                     }
                     else {
                         valid_histories_list.push_back(new_history.history);
                     }
                 }
                 else {
-                    valid_histories_play(I_1, new_I, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                    valid_histories_play(I_1, new_I, new_true_board, 'o', new_history, end_I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
                 }
             }
         }
@@ -137,10 +131,11 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
     char player = 'x';
     std::vector<int> played_actions;
     I.get_played_actions(played_actions);
+    int current_action_index = 0;
 
     std::vector<int> h = {};
     NonTerminalHistory current_history(h);
-    valid_histories_play(I_1, I_2, true_board, player, current_history, I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+    valid_histories_play(I_1, I_2, true_board, player, current_history, I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
