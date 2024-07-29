@@ -351,9 +351,10 @@ void InformationSet::get_played_actions(std::vector<int> &actions) {
 }
 
 void InformationSet::get_useful_senses(std::vector<int> &actions) {
+    std::unordered_map<int, std::vector<int> > sense_square_dictionary = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
     std::cerr << "1" << std::endl;
-    std::cerr << sense_square_dict.size() << std::endl;
-    for (auto &sense : sense_square_dict) {
+    std::cerr << sense_square_dictionary.size() << std::endl;
+    for (auto &sense : sense_square_dictionary) {
         std::cerr << "2" << std::endl;
         for (int i = 0; i < 4; i++) {
             std::cerr << "3" << std::endl;
