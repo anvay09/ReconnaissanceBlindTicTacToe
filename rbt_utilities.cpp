@@ -40,7 +40,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 
             char winner;
             if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
-                InformationSet new_I = I;
+                InformationSet new_I(I);
                 new_I.update_move(action, player);
                 new_I.reset_zeros();
 
@@ -75,7 +75,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
     }
     else {
         for (int action : actions) {
-            InformationSet new_I = I;
+            InformationSet new_I(I);
             new_I.simulate_sense(action, true_board);
             TicTacToeBoard new_true_board = true_board;
 
@@ -470,7 +470,7 @@ double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& pol
 
 
 void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, int T, std::vector<double>& regret_list) {
-
+    
     double util = 0.0;
     std::vector<int> actions;
     Policy& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
