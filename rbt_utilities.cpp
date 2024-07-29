@@ -121,7 +121,8 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 
 
 void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
-    
+    std::cout << "upgraded_get_histories_given_I start: " << " for infor set: " << I.get_hash() << "..." << std::endl;
+    auto start = std::chrono::system_clock::now();
     if (I.board == "000000000"){
         std::vector<int> init_h = {};
         valid_histories_list.push_back(init_h);
@@ -140,6 +141,12 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
     std::vector<int> h = {};
     NonTerminalHistory current_history(h);
     valid_histories_play(I_1, I_2, true_board, player, current_history, I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "upgraded_get_histories_given_I end: " << std::ctime(&end_time)
+            << "elapsed time: " << elapsed_seconds.count() << "s"
+            << std::endl;
     return;
 }   
 
@@ -423,6 +430,8 @@ double get_counter_factual_utility(InformationSet& I, Policy& policy_obj_x, Poli
 
 void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& starting_histories, 
                                        char initial_player, std::vector<double>& prob_reaching_h_list_all) {
+    std::cout << "get_probability_of_reaching_all_h start: " << " for infor set: " << I.get_hash() << "..." << std::endl;
+    auto start = std::chrono::system_clock::now();
     for (std::vector<int> h : starting_histories) {
         NonTerminalHistory h_object(h);
 
@@ -440,11 +449,20 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
             prob_reaching_h_list_all.push_back(1.0);
         }
     }
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "get_probability_of_reaching_all_h end: " << std::ctime(&end_time)
+            << "elapsed time: " << elapsed_seconds.count() << "s"
+            << std::endl;
 }
 
 
 double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& policy_obj_x, Policy& policy_obj_o, 
                                       std::vector<std::vector<int>>& starting_histories, std::vector<double>& prob_reaching_h_list) {
+    
+    std::cout << "calc_util_a_given_I_and_action start: " << " for infor set: " << I.get_hash() << "..." << std::endl;
+    auto start = std::chrono::system_clock::now();
     double util_a = 0.0;
     Policy& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> old_prob_distribution(13);
@@ -462,6 +480,13 @@ double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& pol
         prob_distrubution[i] = old_prob_distribution[i];
     }
 
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "calc_util_a_given_I_and_action end: " << std::ctime(&end_time)
+            << "elapsed time: " << elapsed_seconds.count() << "s"
+            << std::endl;
+    
     return util_a;
 }
 
