@@ -261,6 +261,7 @@ std::string InformationSet::get_hash() {
 }
 
 void InformationSet::get_actions(std::vector<int> &actions) {
+    std::cerr << "getactions" << this->move_flag << std::endl;
     if (this->move_flag) {
         this->get_valid_moves(actions);
     } else {
@@ -350,10 +351,15 @@ void InformationSet::get_played_actions(std::vector<int> &actions) {
 }
 
 void InformationSet::get_useful_senses(std::vector<int> &actions) {
+    std::cerr << "1" << std::endl;
     for (auto &sense : sense_square_dict) {
+        std::cerr << "2" << std::endl;
         for (int i = 0; i < 4; i++) {
+            std::cerr << "3" << std::endl;
             if (this->board[sense.second[i]] == '-') {
+                std::cerr << "4" << std::endl;
                 actions.push_back(sense.first);
+                std::cerr << "5" << std::endl;
                 break;
             }
         }
