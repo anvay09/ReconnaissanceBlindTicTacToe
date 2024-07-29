@@ -439,8 +439,6 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
 double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& policy_obj_x, Policy& policy_obj_o, 
                                       std::vector<std::vector<int>>& starting_histories, std::vector<double>& prob_reaching_h_list) {
     
-    std::cout << "calc_util_a_given_I_and_action start: " << " for infor set: " << I.get_hash() << "..." << std::endl;
-    auto start = std::chrono::system_clock::now();
     double util_a = 0.0;
     Policy& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> old_prob_distribution(13);
@@ -457,13 +455,6 @@ double calc_util_a_given_I_and_action(InformationSet& I, int action, Policy& pol
     for (int i = 0; i < 13; i++) {
         prob_distrubution[i] = old_prob_distribution[i];
     }
-
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "calc_util_a_given_I_and_action end: " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
     
     return util_a;
 }
