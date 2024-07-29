@@ -181,7 +181,7 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash) :
     this->move_flag = move_flag;
     this->hash = hash;
     this->board = this->get_board_from_hash();
-    std::cerr << "Infor set: " << hash << "size of dictionary: " << sense_square_dict.size() << std::endl;
+    this->sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
 }
 
 std::string InformationSet::get_board_from_hash() {
@@ -228,7 +228,7 @@ std::string InformationSet::get_board_from_hash() {
                     i++;
                 }
                 else if (observation) { // update board for 4 squares based on observation
-                    for (int square: sense_square_dict[curr_sense_move]) {
+                    for (int square: this->sense_square_dict[curr_sense_move]) {
                         new_board[square] = this->hash[i++];
                     }
                 }
@@ -243,6 +243,7 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash, s
     this->move_flag = move_flag;
     this->hash = hash;
     this->board = board;
+    this->sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
 }
 
 bool InformationSet::operator==(const InformationSet &other) {
@@ -351,7 +352,7 @@ void InformationSet::get_played_actions(std::vector<int> &actions) {
 }
 
 void InformationSet::get_useful_senses(std::vector<int> &actions) {
-    for (auto &sense : sense_square_dict) {
+    for (auto &sense : this->sense_square_dict) {
         for (int i = 0; i < 4; i++) {
             if (this->board[sense.second[i]] == '-') {
                 actions.push_back(sense.first);
@@ -365,7 +366,7 @@ void InformationSet::simulate_sense(int action, TicTacToeBoard& true_board) {
     this->reset_zeros();
     std::string observation = "----";
     int count = 0;
-    for (int square : sense_square_dict[action]) {
+    for (int square : this->sense_square_dict[action]) {
         this->board[square] = true_board[square];
         observation[count] = true_board[square];
         count++;

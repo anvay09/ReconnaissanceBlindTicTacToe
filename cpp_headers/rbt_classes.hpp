@@ -19,7 +19,6 @@
 
 static std::string EMPTY_BOARD = "000000000";
 static std::string EMPTY_HASH = "";
-static std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
 static std::unordered_map<int, std::string> sense_square_mapping = {{9, "0"}, {10, "1"}, {11, "2"}, {12, "3"}};
 class Policy;
 
@@ -47,6 +46,7 @@ public:
     char player;
     bool move_flag;
     std::string hash;
+    std::unordered_map<int, std::vector<int> > sense_square_dict;
     InformationSet();
     InformationSet(char player, bool move_flag, std::string& hash, std::string& board);
     InformationSet(char player, bool move_flag, std::string& hash = EMPTY_HASH);
