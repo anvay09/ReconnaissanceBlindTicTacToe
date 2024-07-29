@@ -29,13 +29,9 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
         #pragma omp parallel for num_threads(number_threads) shared(regret_list)
         for (long int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
-            std::cerr << "Info set start" << I_hash << std::endl;
             bool move_flag = get_move_flag(I_hash, player);
-            std::cerr << "Info set start 2 " << I_hash << std::endl;
             InformationSet I(player, move_flag, I_hash);
-            std::cerr << "Info set start 3 " << I_hash << std::endl;
             calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, regret_list[i]);
-            std::cerr << "Info set end" << I_hash << std::endl;
         }
 
         auto end = std::chrono::system_clock::now();
