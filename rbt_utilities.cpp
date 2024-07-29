@@ -13,10 +13,6 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
     InformationSet& I = player == 'x' ? I_1 : I_2;
     std::vector<int> actions;
 
-    std::string hash_25 = "";
-    std::cerr << "25" << std::endl;
-    InformationSet I_25('o', false, hash_25);
-
     if (player == 'x') {
         if (end_I.player == 'x'){
             actions.push_back(played_actions[current_action_index++]);
@@ -129,20 +125,14 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
     InformationSet I_1('x', true, hash_1);
     InformationSet I_2('o', false, hash_2);
     TicTacToeBoard true_board = TicTacToeBoard(board);
-    std::cerr << "1" << std::endl;
-    InformationSet I_3('o', false, hash_2);
     char player = 'x';
     std::vector<int> played_actions;
     I.get_played_actions(played_actions);
-    std::cerr << "2" << std::endl;
-    InformationSet I_4('o', false, hash_2);
     int current_action_index = 0;
 
     std::vector<int> h = {};
     NonTerminalHistory current_history(h);
     valid_histories_play(I_1, I_2, true_board, player, current_history, I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
-    std::cerr << "3" << std::endl;
-    InformationSet I_5('o', false, hash_2);
     return;
 }   
 
@@ -433,10 +423,8 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
             std::string board = "000000000";
             std::string hash_1 = "";
             std::string hash_2 = "";
-            std::cerr << "11" << std::endl;
             InformationSet I_1('x', true, hash_1);
             InformationSet I_2('o', false, hash_2);
-            std::cerr << "12" << std::endl;
             TicTacToeBoard true_board = TicTacToeBoard(board);
             double probability_reaching_h = get_prob_h_given_policy_wrapper(I_1, I_2, true_board, 'x', h[0], policy_obj_x, policy_obj_o, 1.0, h_object, I, initial_player);
             prob_reaching_h_list_all.push_back(probability_reaching_h);
