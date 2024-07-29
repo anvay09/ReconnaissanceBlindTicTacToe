@@ -40,7 +40,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 
             char winner;
             if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
-                InformationSet new_I(I);
+                InformationSet new_I = I;
                 new_I.update_move(action, player);
                 new_I.reset_zeros();
 
@@ -75,7 +75,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
     }
     else {
         for (int action : actions) {
-            InformationSet new_I(I);
+            InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
             TicTacToeBoard new_true_board = true_board;
 
@@ -164,7 +164,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
             
             char winner;
             if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
-                InformationSet new_I(I);
+                InformationSet new_I = I;
                 new_I.update_move(action, player);
                 new_I.reset_zeros();
                 
@@ -186,7 +186,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
         }
     } else {
         for (int action : actions) {
-            InformationSet new_I(I);
+            InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
             
             double probability_new = probability * policy_obj.policy_dict[I.get_hash()][action];
@@ -232,7 +232,7 @@ double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, T
 
             char winner;
             if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
-                InformationSet new_I(I);
+                InformationSet new_I = I;
                 new_I.update_move(action, player);
                 new_I.reset_zeros();
 
@@ -266,7 +266,7 @@ double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, T
     }
     else {
         for (int action : actions) {
-            InformationSet new_I(I);
+            InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
 
             double probability_new = probability * policy_obj.policy_dict[I.get_hash()][action];
@@ -334,7 +334,7 @@ double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacT
 
             char winner;
             if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
-                InformationSet new_I(I);
+                InformationSet new_I = I;
                 new_I.update_move(next_action, player);
                 new_I.reset_zeros();
 
@@ -348,7 +348,7 @@ double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacT
         }
     }
     else {
-        InformationSet new_I(I);
+        InformationSet new_I = I;
         new_I.simulate_sense(next_action, true_board);
         TicTacToeBoard new_true_board = true_board;
 
@@ -429,8 +429,10 @@ void get_probability_of_reaching_all_h(InformationSet& I, Policy& policy_obj_x, 
             std::string board = "000000000";
             std::string hash_1 = "";
             std::string hash_2 = "";
+            std::cerr << "11" << std::endl;
             InformationSet I_1('x', true, hash_1);
             InformationSet I_2('o', false, hash_2);
+            std::cerr << "12" << std::endl;
             TicTacToeBoard true_board = TicTacToeBoard(board);
             double probability_reaching_h = get_prob_h_given_policy_wrapper(I_1, I_2, true_board, 'x', h[0], policy_obj_x, policy_obj_o, 1.0, h_object, I, initial_player);
             prob_reaching_h_list_all.push_back(probability_reaching_h);
