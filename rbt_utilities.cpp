@@ -125,14 +125,20 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
     InformationSet I_1('x', true, hash_1);
     InformationSet I_2('o', false, hash_2);
     TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::cerr << "1" << std::endl;
+    InformationSet I_3('o', false, hash_2);
     char player = 'x';
     std::vector<int> played_actions;
     I.get_played_actions(played_actions);
+    std::cerr << "2" << std::endl;
+    InformationSet I_4('o', false, hash_2);
     int current_action_index = 0;
 
     std::vector<int> h = {};
     NonTerminalHistory current_history(h);
     valid_histories_play(I_1, I_2, true_board, player, current_history, I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
+    std::cerr << "3" << std::endl;
+    InformationSet I_5('o', false, hash_2);
     return;
 }   
 
