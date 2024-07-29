@@ -356,6 +356,7 @@ void InformationSet::get_useful_senses(std::vector<int> &actions) {
         std::cerr << "2" << std::endl;
         for (int i = 0; i < 4; i++) {
             std::cerr << "3" << std::endl;
+            std::cerr << "size:" << this->board.size() << " sense.sceond" << sense.second[i] << std::endl;
             if (this->board[sense.second[i]] == '-') {
                 std::cerr << "4" << std::endl;
                 actions.push_back(sense.first);
