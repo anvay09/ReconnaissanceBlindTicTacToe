@@ -10,26 +10,31 @@ char toggle_player(char player) {
 
 void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, History& current_history, InformationSet& end_I, 
                           std::vector<int>& played_actions, int current_action_index, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
-    
+    std::cerr << "valid_histories_play 1: " << " for infor set: " << I_1.get_hash() << "..." << std::endl;
     InformationSet& I = player == 'x' ? I_1 : I_2;
     std::vector<int> actions;
 
     if (player == 'x') {
         if (end_I.player == 'x'){
+            std::cerr << "valid_histories_play 2: " << " for infor set: " << I_1.get_hash() << "..." << std::endl;
             actions.push_back(played_actions[current_action_index++]);
         }
         else {
+            std::cerr << "valid_histories_play 3: " << " for infor set: " << I_1.get_hash() << "..." << std::endl;
             I.get_actions_given_policy(actions, policy_obj_x);
         }
         
     } else {
         if (end_I.player == 'o'){
+            std::cerr << "valid_histories_play 4: " << " for infor set: " << I_1.get_hash() << "..." << std::endl;
             actions.push_back(played_actions[current_action_index++]);
         }
         else {
+            std::cerr << "valid_histories_play 5: " << " for infor set: " << I_1.get_hash() << "..." << std::endl;
             I.get_actions_given_policy(actions, policy_obj_o);
         }
     }
+    std::cerr << "valid_histories_play 6: " << " for infor set: " << I_1.get_hash() << "..." << std::endl;
 
     if (I.move_flag){
         for (int action : actions) {
@@ -115,7 +120,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 
 
 void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
-    std::cerr << "upgraded_get_histories_given_I start: " << " for infor set: " << I.get_hash() << "..." << std::endl;
+    std::cerr << "upgraded_get_histories_given_I 1: " << " for infor set: " << I.get_hash() << "..." << std::endl;
     auto start = std::chrono::system_clock::now();
     if (I.board == "000000000"){
         std::vector<int> init_h = {};
@@ -130,7 +135,9 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
     TicTacToeBoard true_board = TicTacToeBoard(board);
     char player = 'x';
     std::vector<int> played_actions;
+    std::cerr << "upgraded_get_histories_given_I 2: " << " for infor set: " << I.get_hash() << "..." << std::endl;
     I.get_played_actions(played_actions);
+    std::cerr << "upgraded_get_histories_given_I 3: " << " for infor set: " << I.get_hash() << "..." << std::endl;
     int current_action_index = 0;
 
     std::vector<int> h = {};
