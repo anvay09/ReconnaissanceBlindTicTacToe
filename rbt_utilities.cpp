@@ -47,7 +47,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 
             char winner;
             if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
-                InformationSet new_I(I);
+                InformationSet new_I = I;
                 new_I.update_move(action, player);
                 new_I.reset_zeros();
 
@@ -82,7 +82,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
     }
     else {
         for (int action : actions) {
-            InformationSet new_I(I);
+            InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
             TicTacToeBoard new_true_board = true_board;
 
