@@ -115,7 +115,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 
 
 void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
-    std::cout << "upgraded_get_histories_given_I start: " << " for infor set: " << I.get_hash() << "..." << std::endl;
+    std::cerr << "upgraded_get_histories_given_I start: " << " for infor set: " << I.get_hash() << "..." << std::endl;
     auto start = std::chrono::system_clock::now();
     if (I.board == "000000000"){
         std::vector<int> init_h = {};
@@ -139,10 +139,10 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "upgraded_get_histories_given_I end: " << std::ctime(&end_time)
+    std::cerr << "upgraded_get_histories_given_I end: " << std::ctime(&end_time)
             << "elapsed time: " << elapsed_seconds.count() << "s"
             << std::endl;
-    std::cout << "Number of valid histories: " << valid_histories_list.size() << std::endl;
+    std::cerr << "Number of valid histories: " << valid_histories_list.size() << std::endl;
     return;
 }   
 
@@ -503,7 +503,9 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         util_a_list.push_back(0.0);
     }
 
+    std::cerr << "get_actions start: " << I.get_hash() << std::endl;
     I.get_actions(actions);
+    std::cerr << "get_actions end: " << I.get_hash() << std::endl;
     upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o, starting_histories);
     get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player, prob_reaching_h_list);
     
@@ -515,13 +517,13 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         else {
             util_a = calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_a, starting_histories, prob_reaching_h_list);
         }
-        std::cout << "Util_a for action start: " << action << " is: " << util_a << std::endl;
+        std::cerr << "Util_a for action start: " << action << " is: " << util_a << std::endl;
         util += util_a * policy_obj.policy_dict[I.get_hash()][action];
         util_a_list[action] = util_a;
-        std::cout << "Util a for action end: " << action << " is: " << util_a << std::endl;
+        std::cerr << "Util a for action end: " << action << " is: " << util_a << std::endl;
     }
     
-    std::cout << "regret update for information set start: " << I.get_hash() << std::endl;
+    std::cerr << "regret update for information set start: " << I.get_hash() << std::endl;
     for (int action : actions) {
         double regret_T = 0.0;
         if (T == 0) {
@@ -533,7 +535,7 @@ void calc_cfr_policy_given_I(InformationSet& I, Policy& policy_obj_x, Policy& po
         regret_T = regret_T > 0.0 ? regret_T : 0.0;
         regret_list[action] = regret_T;
     }
-    std::cout << "regret ipdate for information set end: " << I.get_hash() << std::endl;
+    std::cerr << "regret ipdate for information set end: " << I.get_hash() << std::endl;
 }
 
 
