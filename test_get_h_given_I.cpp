@@ -224,7 +224,7 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
     std::vector<int> played_actions;
     I.get_played_actions(played_actions);
     std::vector<std::vector<bool>> forbidden_move_masks;
-    get_forbidden_move_masks_for_other_player(I, forbidden_move_masks);
+    get_forbidden_move_masks_for_other_player(I, forbidden_move_masks, played_actions);
     int current_action_index = 0;
 
     std::vector<int> h = {};
