@@ -163,8 +163,8 @@ void get_forbidden_move_masks_for_other_player(InformationSet& I, std::vector<st
                     for (int square: sense_square_dict[other_player_sense_moves[other_player_move_index]]) {
                         if (I.hash[i] == 'o'){
                             known_moves_at_each_stage[other_player_move_index][square] = true;
-                            observation_list[other_player_move_index] += I.hash[i];
                         }
+                        observation_list[other_player_move_index] += I.hash[i];
                         i++;
                     }
                 }
