@@ -20,6 +20,19 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                         actions.push_back(action);
                     }
                 }
+                if (actions.size() == 0) {
+                    std::cout << "No actions found" << std::endl;
+                    std::cout << "Temp actions: ";
+                    for (int action : temp_actions) {
+                        std::cout << action << " ";
+                    }
+                    std::cout << std::endl;
+                    std::cout << "Allowed move masks: ";
+                    for (int i = 0; i < 9; i++) {
+                        std::cout << allowed_move_masks[other_player_turn_index][i] << " ";
+                    }
+                    std::cout << std::endl;
+                }
                 other_player_turn_index++;
             }
             else {
@@ -39,6 +52,19 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                     if (allowed_move_masks[other_player_turn_index][action]) {
                         actions.push_back(action);
                     }
+                }
+                if (actions.size() == 0) {
+                    std::cout << "No actions found" << std::endl;
+                    std::cout << "Temp actions: ";
+                    for (int action : temp_actions) {
+                        std::cout << action << " ";
+                    }
+                    std::cout << std::endl;
+                    std::cout << "Allowed move masks: ";
+                    for (int i = 0; i < 9; i++) {
+                        std::cout << allowed_move_masks[other_player_turn_index][i] << " ";
+                    }
+                    std::cout << std::endl;
                 }
                 other_player_turn_index++;
             }
