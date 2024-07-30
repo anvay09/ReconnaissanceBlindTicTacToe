@@ -164,6 +164,7 @@ void get_forbidden_move_masks_for_other_player(InformationSet& I, std::vector<st
                             known_moves_at_each_stage[other_player_move_index][square] = true;
                         }
                         observation_list[other_player_move_index][square] = I.hash[i];
+                        i++;
                     }
                 }
         }
