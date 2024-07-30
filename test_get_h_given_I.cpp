@@ -107,7 +107,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 }
 
 
-void get_forbidden_move_masks_for_other_player(InformationSet& I, std::vector<std::vector<bool>>& forbidden_move_masks){
+void get_forbidden_move_masks_for_other_player(InformationSet& I, std::vector<std::vector<bool>>& forbidden_move_masks, std::vector<int>& played_actions){
     std::vector<std::vector<bool>> known_moves_at_each_stage;
     std::vector<int> other_player_sense_moves;
     std::vector<std::string> observation_list;
@@ -172,6 +172,10 @@ void get_forbidden_move_masks_for_other_player(InformationSet& I, std::vector<st
     }
 
     std::vector<bool> mask(9, true);
+    for (int i = 0; i < played_actions.size(); i++) {
+        mask[played_actions[i]] = false;
+    }
+
     for (int i = other_player_sense_moves.size() - 1; i >= 0; i--) {
         int num_known_moves = 0;
         for (int j = 0; j < 9; j++) {
@@ -186,7 +190,7 @@ void get_forbidden_move_masks_for_other_player(InformationSet& I, std::vector<st
         else {
             std::vector<int> sense_index_list = sense_square_dict[other_player_sense_moves[i]];
             for (int s = 0; s < 4; s++) {
-                if (observation_list[i][s] == 'x' || observation_list[i][s] == '0') {
+                if (observation_list[i][s] == '0') {
                     mask[sense_index_list[s]] = false;
                 }
             }
