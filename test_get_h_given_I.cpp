@@ -14,6 +14,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
         }
         else {
             if (I.move_flag) {
+                std::cout << "Player x, move" << std::endl;
                 std::vector<int> temp_actions;
                 I.get_actions_given_policy(temp_actions, policy_obj_x);
                 for (int action : temp_actions) {
@@ -37,6 +38,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                 other_player_turn_index++;
             }
             else {
+                std::cout << "Player x, sense" << std::endl;
                 I.get_actions_given_policy(actions, policy_obj_x);
             }
         }
@@ -47,6 +49,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
         }
         else {
             if (I.move_flag) {
+                std::cout << "Player o, move" << std::endl;
                 std::vector<int> temp_actions;
                 I.get_actions_given_policy(temp_actions, policy_obj_x);
                 for (int action : temp_actions) {
@@ -70,6 +73,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                 other_player_turn_index++;
             }
             else {
+                std::cout << "Player o, sense" << std::endl;
                 I.get_actions_given_policy(actions, policy_obj_x);
             }
         }
