@@ -173,12 +173,25 @@ void get_forbidden_move_masks_for_other_player(InformationSet& I, std::vector<st
 
     std::vector<bool> mask(9, true);
     for (int i = other_player_sense_moves.size() - 1; i >= 0; i--) {
-        std::vector<int> sense_index_list = sense_square_dict[other_player_sense_moves[i]];
-        for (int s = 0; s < 4; s++) {
-            if (observation_list[i][s] == 'x' || observation_list[i][s] == '0') {
-                mask[sense_index_list[s]] = false;
+        int num_known_moves = 0;
+        for (int j = 0; j < 9; j++) {
+            if (known_moves_at_each_stage[i][j]) {
+                num_known_moves++;
             }
         }
+
+        if (num_known_moves == i + 1){
+            mask = known_moves_at_each_stage[i];
+        }
+        else {
+            std::vector<int> sense_index_list = sense_square_dict[other_player_sense_moves[i]];
+            for (int s = 0; s < 4; s++) {
+                if (observation_list[i][s] == 'x' || observation_list[i][s] == '0') {
+                    mask[sense_index_list[s]] = false;
+                }
+            }
+        }
+
         forbidden_move_masks.insert(forbidden_move_masks.begin(), mask);
     }
 
