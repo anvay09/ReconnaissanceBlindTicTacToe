@@ -122,6 +122,8 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
     char player = 'x';
     std::vector<int> played_actions;
     I.get_played_actions(played_actions);
+    std::vector<std::vector<bool>> forbidden_move_masks;
+    get_forbidden_move_masks_for_other_player(I, forbidden_move_masks);
     int current_action_index = 0;
 
     std::vector<int> h = {};
@@ -129,6 +131,83 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
     valid_histories_play(I_1, I_2, true_board, player, current_history, I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
     return;
 }   
+
+void get_forbidden_move_masks_for_other_player(InformationSet& I, std::vector<std::vector<bool>>& forbidden_move_masks){
+    std::vector<std::vector<bool>> known_moves_at_each_stage;
+    std::vector<int> other_player_sense_moves;
+    std::vector<std::string> observation_list;
+
+    bool move_action = I.player == 'x' ? true : false;
+    bool sense_action = I.player == 'x' ? false : true;
+    bool observation = false;
+    int i = 0;
+    int other_player_move_index = -1;
+    std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
+
+    while (i < I.hash.size()) {
+        switch (I.hash[i]) { 
+            case '|': 
+                if (observation) { 
+                    observation = false;
+                    move_action = true;
+                }
+                else{
+                    observation = true;
+                    sense_action = false;
+                    if (other_player_move_index == -1) {
+                        known_moves_at_each_stage.push_back(std::vector<bool>(9, false));
+                    }
+                    else {
+                        std::vector<bool> prev_known_moves = known_moves_at_each_stage[other_player_move_index];
+                        known_moves_at_each_stage.push_back(prev_known_moves);
+                    }
+                    observation_list.push_back("----");
+                    other_player_move_index++;
+                }
+
+                i++;
+                break;
+
+            case '_': 
+                move_action = false;
+                sense_action = true;
+
+                i++;
+                break;
+
+            default: 
+                if (move_action) {
+                    i++;
+                }
+                else if (sense_action) { 
+                    other_player_sense_moves.push_back(I.hash[i] - '0' + 9);
+                    i++;
+                }
+                else if (observation) { 
+                    for (int square: sense_square_dict[other_player_sense_moves[other_player_move_index]]) {
+                        if (I.hash[i] == 'o'){
+                            known_moves_at_each_stage[other_player_move_index][square] = true;
+                        }
+                        observation_list[other_player_move_index][square] = I.hash[i];
+                    }
+                }
+        }
+    }
+
+    // print 
+    for (int i = 0; i < known_moves_at_each_stage.size(); i++) {
+        std::cout << "Stage " << i << std::endl;
+        for (int j = 0; j < 9; j++) {
+            std::cout << known_moves_at_each_stage[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    for (int i = 0; i < observation_list.size(); i++) {
+        std::cout << "Observation " << i << std::endl;
+        std::cout << observation_list[i] << std::endl;
+    }
+}
 
 int main(){
     std::string policy_file_x = "data/P1_uniform_policy_v2.json";
