@@ -5,7 +5,7 @@
 void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, History& current_history, InformationSet& end_I, std::vector<std::vector<bool>>& allowed_move_masks,
                           std::vector<int>& played_actions, int current_action_index, int other_player_turn_index, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     InformationSet& I = player == 'x' ? I_1 : I_2;
-    std::cout << "Information set: " << I.hash << std::endl;
+    // std::cout << "Information set: " << I.hash << std::endl;
     std::vector<int> actions;
 
     if (player == 'x') {
@@ -14,78 +14,79 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
         }
         else {
             if (I.move_flag) {
-                std::cout << "Player x, move" << std::endl;
-                I.get_actions_given_policy(actions, policy_obj_x);
-                // std::vector<int> temp_actions;
-                // I.get_actions_given_policy(temp_actions, policy_obj_x);
-                // for (int action : temp_actions) {
-                //     if (allowed_move_masks[other_player_turn_index][action]) {
-                //         actions.push_back(action);
-                //     }
-                // }
-                // if (actions.size() == 0) {
-                //     std::cout << "No actions found" << std::endl;
-                //     std::cout << "Temp actions: ";
-                //     for (int action : temp_actions) {
-                //         std::cout << action << " ";
-                //     }
-                //     std::cout << std::endl;
-                //     std::cout << "Allowed move masks: ";
-                //     for (int i = 0; i < 9; i++) {
-                //         std::cout << allowed_move_masks[other_player_turn_index][i] << " ";
-                //     }
-                //     std::cout << std::endl;
-                // }
-                // other_player_turn_index++;
+                // std::cout << "Player x, move" << std::endl;
+                // I.get_actions_given_policy(actions, policy_obj_x);
+                std::vector<int> temp_actions;
+                I.get_actions_given_policy(temp_actions, policy_obj_x);
+                for (int action : temp_actions) {
+                    if (allowed_move_masks[other_player_turn_index][action]) {
+                        actions.push_back(action);
+                    }
+                }
+                if (actions.size() == 0) {
+                    std::cout << "No actions found" << std::endl;
+                    std::cout << "Temp actions: ";
+                    for (int action : temp_actions) {
+                        std::cout << action << " ";
+                    }
+                    std::cout << std::endl;
+                    std::cout << "Allowed move masks: ";
+                    for (int i = 0; i < 9; i++) {
+                        std::cout << allowed_move_masks[other_player_turn_index][i] << " ";
+                    }
+                    std::cout << std::endl;
+                }
+                other_player_turn_index++;
             }
             else {
-                std::cout << "Player x, sense" << std::endl;
+                // std::cout << "Player x, sense" << std::endl;
                 I.get_actions_given_policy(actions, policy_obj_x);
             }
         }
         
-    } else {
+    } 
+    else {
         if (end_I.player == 'o'){
             actions.push_back(played_actions[current_action_index++]);
         }
         else {
             if (I.move_flag) {
-                std::cout << "Player o, move" << std::endl;
-                I.get_actions_given_policy(actions, policy_obj_x);
-                // std::vector<int> temp_actions;
-                // I.get_actions_given_policy(temp_actions, policy_obj_x);
-                // for (int action : temp_actions) {
-                //     if (allowed_move_masks[other_player_turn_index][action]) {
-                //         actions.push_back(action);
-                //     }
-                // }
-                // if (actions.size() == 0) {
-                //     std::cout << "No actions found" << std::endl;
-                //     std::cout << "Temp actions: ";
-                //     for (int action : temp_actions) {
-                //         std::cout << action << " ";
-                //     }
-                //     std::cout << std::endl;
-                //     std::cout << "Allowed move masks: ";
-                //     for (int i = 0; i < 9; i++) {
-                //         std::cout << allowed_move_masks[other_player_turn_index][i] << " ";
-                //     }
-                //     std::cout << std::endl;
-                // }
-                // other_player_turn_index++;
+                // std::cout << "Player o, move" << std::endl;
+                // I.get_actions_given_policy(actions, policy_obj_o);
+                std::vector<int> temp_actions;
+                I.get_actions_given_policy(temp_actions, policy_obj_o);
+                for (int action : temp_actions) {
+                    if (allowed_move_masks[other_player_turn_index][action]) {
+                        actions.push_back(action);
+                    }
+                }
+                if (actions.size() == 0) {
+                    std::cout << "No actions found" << std::endl;
+                    std::cout << "Temp actions: ";
+                    for (int action : temp_actions) {
+                        std::cout << action << " ";
+                    }
+                    std::cout << std::endl;
+                    std::cout << "Allowed move masks: ";
+                    for (int i = 0; i < 9; i++) {
+                        std::cout << allowed_move_masks[other_player_turn_index][i] << " ";
+                    }
+                    std::cout << std::endl;
+                }
+                other_player_turn_index++;
             }
             else {
                 std::cout << "Player o, sense" << std::endl;
-                I.get_actions_given_policy(actions, policy_obj_x);
+                I.get_actions_given_policy(actions, policy_obj_o);
             }
         }
     }
 
-    std::cout << "Actions: ";
-    for (int action : actions) {
-        std::cout << action << " ";
-    }
-    std::cout << std::endl;
+    // std::cout << "Actions: ";
+    // for (int action : actions) {
+    //     std::cout << action << " ";
+    // }
+    // std::cout << std::endl;
 
     if (I.move_flag){
         for (int action : actions) {
