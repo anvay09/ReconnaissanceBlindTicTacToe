@@ -107,31 +107,6 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 }
 
 
-void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
-    if (I.board == "000000000"){
-        std::vector<int> init_h = {};
-        valid_histories_list.push_back(init_h);
-        return;
-    }
-    std::string hash_1 = "";
-    std::string hash_2 = "";
-    std::string board = "000000000";
-    InformationSet I_1('x', true, hash_1);
-    InformationSet I_2('o', false, hash_2);
-    TicTacToeBoard true_board = TicTacToeBoard(board);
-    char player = 'x';
-    std::vector<int> played_actions;
-    I.get_played_actions(played_actions);
-    std::vector<std::vector<bool>> forbidden_move_masks;
-    get_forbidden_move_masks_for_other_player(I, forbidden_move_masks);
-    int current_action_index = 0;
-
-    std::vector<int> h = {};
-    NonTerminalHistory current_history(h);
-    valid_histories_play(I_1, I_2, true_board, player, current_history, I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
-    return;
-}   
-
 void get_forbidden_move_masks_for_other_player(InformationSet& I, std::vector<std::vector<bool>>& forbidden_move_masks){
     std::vector<std::vector<bool>> known_moves_at_each_stage;
     std::vector<int> other_player_sense_moves;
@@ -208,6 +183,34 @@ void get_forbidden_move_masks_for_other_player(InformationSet& I, std::vector<st
         std::cout << observation_list[i] << std::endl;
     }
 }
+
+
+void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
+    if (I.board == "000000000"){
+        std::vector<int> init_h = {};
+        valid_histories_list.push_back(init_h);
+        return;
+    }
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    std::string board = "000000000";
+    InformationSet I_1('x', true, hash_1);
+    InformationSet I_2('o', false, hash_2);
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    char player = 'x';
+    std::vector<int> played_actions;
+    I.get_played_actions(played_actions);
+    std::vector<std::vector<bool>> forbidden_move_masks;
+    get_forbidden_move_masks_for_other_player(I, forbidden_move_masks);
+    int current_action_index = 0;
+
+    std::vector<int> h = {};
+    NonTerminalHistory current_history(h);
+    valid_histories_play(I_1, I_2, true_board, player, current_history, I, played_actions, current_action_index, policy_obj_x, policy_obj_o, valid_histories_list);
+    return;
+}   
+
+
 
 int main(){
     std::string policy_file_x = "data/P1_uniform_policy_v2.json";
