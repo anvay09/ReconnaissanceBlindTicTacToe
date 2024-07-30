@@ -171,18 +171,22 @@ void get_forbidden_move_masks_for_other_player(InformationSet& I, std::vector<st
         }
     }
 
-    // print 
-    for (int i = 0; i < known_moves_at_each_stage.size(); i++) {
-        std::cout << "Stage " << i << std::endl;
-        for (int j = 0; j < 9; j++) {
-            std::cout << known_moves_at_each_stage[i][j] << " ";
+    for (int i = other_player_sense_moves.size() - 1; i >= 0; i--) {
+        std::vector<bool> mask(9, true);
+        std::vector<int> sense_index_list = sense_square_dict[other_player_sense_moves[i]];
+        for (int s = 0; s < 4; s++) {
+            if (observation_list[i][s] == 'x' || observation_list[i][s] == '0') {
+                mask[sense_index_list[s]] = false;
+            }
         }
-        std::cout << std::endl;
+        forbidden_move_masks.insert(forbidden_move_masks.begin(), mask);
     }
 
-    for (int i = 0; i < observation_list.size(); i++) {
-        std::cout << "Observation " << i << std::endl;
-        std::cout << observation_list[i] << std::endl;
+    for (int i = 0; i < forbidden_move_masks.size(); i++) {
+        for (int j = 0; j < 9; j++) {
+            std::cout << forbidden_move_masks[i][j] << " ";
+        }
+        std::cout << std::endl;
     }
 }
 
