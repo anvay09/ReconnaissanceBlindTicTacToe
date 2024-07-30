@@ -74,6 +74,11 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
         }
     }
 
+    for (int action : actions) {
+        std::cout << action << " ";
+    }
+    std::cout << std::endl;
+
     if (I.move_flag){
         for (int action : actions) {
             TicTacToeBoard new_true_board = true_board;
