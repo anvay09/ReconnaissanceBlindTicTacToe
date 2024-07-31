@@ -5,7 +5,7 @@
 void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, History& current_history, InformationSet& end_I, std::vector<std::vector<bool>>& allowed_move_masks,
                           std::vector<int>& played_actions, int current_action_index, int other_player_turn_index, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     InformationSet& I = player == 'x' ? I_1 : I_2;
-    // std::cout << "Information set: " << I.hash << std::endl;
+    std::cout << "1: Information set: " << I.hash << std::endl;
     std::vector<int> actions;
 
     if (player == 'x') {
@@ -74,7 +74,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                     }
                 }
                 // std::cerr << "Actions size: " << actions.size() << std::endl;
-                std::cout << "Information set: " << I.hash << std::endl;
+                std::cout << "2: Information set: " << I.hash << std::endl;
                 std::cout << "Actions: ";
                 for (int action : actions){
                     std::cout << action << " ";
