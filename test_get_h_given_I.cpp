@@ -46,6 +46,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                 std::cerr << "5" << std::endl;
                 std::vector<int> temp_actions;
                 I.get_actions_given_policy(temp_actions, policy_obj_o);
+                std::cerr << "Temp actions size: " << temp_actions.size() << std::endl;
                 for (int action : temp_actions) {
                     if (allowed_move_masks[other_player_turn_index][action]) {
                         actions.push_back(action);
