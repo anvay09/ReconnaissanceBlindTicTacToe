@@ -10,10 +10,14 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 
     if (player == 'x') {
         if (end_I.player == 'x'){
+            std::cerr << "1" << std::endl;
+            std::cerr << "Current action index: " << current_action_index << std::endl;
+            std::cerr << "Played actions size: " << played_actions.size() << std::endl;
             actions.push_back(played_actions[current_action_index++]);
         }
         else {
             if (I.move_flag) {
+                std::cerr << "2" << std::endl;
                 std::vector<int> temp_actions;
                 I.get_actions_given_policy(temp_actions, policy_obj_x);
                 for (int action : temp_actions) {
@@ -24,6 +28,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                 other_player_turn_index++;
             }
             else {
+                std::cerr << "3" << std::endl;
                 I.get_actions_given_policy(actions, policy_obj_x);
             }
         }
@@ -31,10 +36,14 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
     } 
     else {
         if (end_I.player == 'o'){
+            std::cerr << "4" << std::endl;
+            std::cerr << "Current action index: " << current_action_index << std::endl;
+            std::cerr << "Played actions size: " << played_actions.size() << std::endl;
             actions.push_back(played_actions[current_action_index++]);
         }
         else {
             if (I.move_flag) {
+                std::cerr << "5" << std::endl;
                 std::vector<int> temp_actions;
                 I.get_actions_given_policy(temp_actions, policy_obj_o);
                 for (int action : temp_actions) {
@@ -46,6 +55,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                 other_player_turn_index++;
             }
             else {
+                std::cerr << "6" << std::endl;
                 I.get_actions_given_policy(actions, policy_obj_o);
             }
         }
