@@ -74,12 +74,12 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                     }
                 }
                 // std::cerr << "Actions size: " << actions.size() << std::endl;
-                std::cout << "2: Information set: " << I.hash << std::endl;
-                std::cout << "Actions: ";
-                for (int action : actions){
-                    std::cout << action << " ";
-                }
-                std::cout << std::endl;
+                // std::cout << "2: Information set: " << I.hash << std::endl;
+                // std::cout << "Actions: ";
+                // for (int action : actions){
+                //     std::cout << action << " ";
+                // }
+                // std::cout << std::endl;
 
                 other_player_turn_index++;
             }
