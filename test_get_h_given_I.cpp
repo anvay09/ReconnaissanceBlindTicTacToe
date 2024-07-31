@@ -276,32 +276,79 @@ void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Pol
     return;
 }   
 
+
 int main(){
     std::string policy_file_x = "data/P1_uniform_policy_v2.json";
     std::string policy_file_o = "data/P2_uniform_policy_v2.json";
     std::cout << "Loading policies..." << std::endl;
     Policy policy_obj_x('x', policy_file_x);
     Policy policy_obj_o('o', policy_file_o);
+    std::cout << "Policies loaded." << std::endl;
 
-    std::string hash = "0_1|00o0|7_1|00o0|5_1|0oox|8_";
-    InformationSet I('x', false, hash);
+    std::string hash1 = "0_1|00o0|7_1|00o0|5_1|0oox|8_";
+    InformationSet I1('x', false, hash1);
+    std::string hash2 = "3_0|o0x0|5_0|o0xo|1_3|oxo0|8_2|xo0o|";
+    InformationSet I2('x', true, hash2);
+    std::string hash3 = "1_3|0o00|8_0|0x00|3_2|x0o0|7_";
+    InformationSet I3('x', false, hash3);
 
-    // std::vector<std::vector<bool>> allowed_move_masks;
-    // std::vector<int> played_actions;
+    std::string hash4 = "1|0000|6_2|00o0|1_1|ox00|5_2|x0ox|8_";
+    InformationSet I4('o', false, hash4);
+    std::string hash5 = "2|0000|6_3|x00x|0_1|00x0|5_0|o00x|";
+    InformationSet I5('o', true, hash5);
 
-    // I.get_played_actions(played_actions);
-    // get_allowed_move_masks_for_other_player(I, allowed_move_masks, played_actions);
+    std::vector<std::vector<int>> valid_histories_list_1;
+    auto start = std::chrono::system_clock::now();
+    upgraded_get_histories_given_I(I1, policy_obj_x, policy_obj_o, valid_histories_list_1);
+    std::cout << "Number of valid histories for I1: " << valid_histories_list_1.size() << std::endl;
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "finished computation at " << std::ctime(&end_time)
+            << "elapsed time: " << elapsed_seconds.count() << "s"
+            << std::endl;
 
-    std::vector<std::vector<int>> valid_histories_list;
-    std::cout << "Getting valid histories..." << std::endl;
-    upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o, valid_histories_list);
+    std::vector<std::vector<int>> valid_histories_list_2;
+    start = std::chrono::system_clock::now();
+    upgraded_get_histories_given_I(I2, policy_obj_x, policy_obj_o, valid_histories_list_2);
+    std::cout << "Number of valid histories for I2: " << valid_histories_list_2.size() << std::endl;
+    end = std::chrono::system_clock::now();
+    elapsed_seconds = end - start;
+    end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "finished computation at " << std::ctime(&end_time)
+            << "elapsed time: " << elapsed_seconds.count() << "s"
+            << std::endl;
 
-    std::cout << "Number of valid histories: " << valid_histories_list.size() << std::endl;
-    for (int i = 0; i < valid_histories_list.size(); i++) {
-        std::cout << "History " << i << ": ";
-        for (int j = 0; j < valid_histories_list[i].size(); j++) {
-            std::cout << valid_histories_list[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
+    std::vector<std::vector<int>> valid_histories_list_3;
+    start = std::chrono::system_clock::now();
+    upgraded_get_histories_given_I(I3, policy_obj_x, policy_obj_o, valid_histories_list_3);
+    std::cout << "Number of valid histories for I3: " << valid_histories_list_3.size() << std::endl;
+    end = std::chrono::system_clock::now();
+    elapsed_seconds = end - start;
+    end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "finished computation at " << std::ctime(&end_time)
+            << "elapsed time: " << elapsed_seconds.count() << "s"
+            << std::endl;
+
+    std::vector<std::vector<int>> valid_histories_list_4;
+    start = std::chrono::system_clock::now();
+    upgraded_get_histories_given_I(I4, policy_obj_x, policy_obj_o, valid_histories_list_4);
+    std::cout << "Number of valid histories for I4: " << valid_histories_list_4.size() << std::endl;
+    end = std::chrono::system_clock::now();
+    elapsed_seconds = end - start;
+    end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "finished computation at " << std::ctime(&end_time)
+            << "elapsed time: " << elapsed_seconds.count() << "s"
+            << std::endl;
+
+    std::vector<std::vector<int>> valid_histories_list_5;
+    start = std::chrono::system_clock::now();
+    upgraded_get_histories_given_I(I5, policy_obj_x, policy_obj_o, valid_histories_list_5);
+    std::cout << "Number of valid histories for I5: " << valid_histories_list_5.size() << std::endl;
+    end = std::chrono::system_clock::now();
+    elapsed_seconds = end - start;
+    end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "finished computation at " << std::ctime(&end_time)
+            << "elapsed time: " << elapsed_seconds.count() << "s"
+            << std::endl;
 }
