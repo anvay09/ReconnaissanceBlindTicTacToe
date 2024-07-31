@@ -5,6 +5,7 @@
 void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, History& current_history, InformationSet& end_I, std::vector<std::vector<bool>>& allowed_move_masks,
                           std::vector<int>& played_actions, int current_action_index, int other_player_turn_index, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     InformationSet& I = player == 'x' ? I_1 : I_2;
+    std::cout << "Information set: " << I.hash << std::endl;
     std::vector<int> actions;
 
     if (player == 'x') {
@@ -49,6 +50,12 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
             }
         }
     }
+
+    std::cout << "Actions: ";
+    for (int action : actions){
+        std::cout << action << " ";
+    }
+    std::cout << std::endl;
 
     if (I.move_flag){
         for (int action : actions) {
@@ -228,12 +235,12 @@ void get_allowed_move_masks_for_other_player(InformationSet& I, std::vector<std:
         allowed_move_masks.insert(allowed_move_masks.begin(), mask);
     }
 
-    // for (int i = 0; i < allowed_move_masks.size(); i++) {
-    //     for (int j = 0; j < 9; j++) {
-    //         std::cout << allowed_move_masks[i][j] << " ";
-    //     }
-    //     std::cout << std::endl;
-    // }
+    for (int i = 0; i < allowed_move_masks.size(); i++) {
+        for (int j = 0; j < 9; j++) {
+            std::cout << allowed_move_masks[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
 }
 
 
