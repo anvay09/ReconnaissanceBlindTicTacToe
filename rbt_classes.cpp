@@ -270,6 +270,10 @@ void InformationSet::get_actions(std::vector<int> &actions) {
 }
 
 void InformationSet::get_actions_given_policy(std::vector<int>& actions, Policy &policy_obj) {
+    if (policy_obj.policy_dict.find(this->get_hash()) == policy_obj.policy_dict.end()) {
+        std::cout << "KeyError" << std::endl;
+    }
+
     if (this->move_flag) {
         std::vector<double>& prob_dist = policy_obj.policy_dict[this->get_hash()];
         for (int move = 0; move < 9; move++) {
