@@ -5,12 +5,12 @@
 void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, History& current_history, InformationSet& end_I, std::vector<std::vector<bool>>& allowed_move_masks,
                           std::vector<int>& played_actions, int current_action_index, int other_player_turn_index, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     InformationSet& I = player == 'x' ? I_1 : I_2;
-    std::cout << "Information set: " << I.hash << std::endl;
+    // std::cout << "Information set: " << I.hash << std::endl;
     std::vector<int> actions;
 
     if (player == 'x') {
         if (end_I.player == 'x'){
-            std::cerr << "1" << std::endl;
+            // std::cerr << "1" << std::endl;
             // std::cerr << "Current action index: " << current_action_index << std::endl;
             // std::cerr << "Played actions size: " << played_actions.size() << std::endl;
             actions.push_back(played_actions[current_action_index++]);
@@ -21,7 +21,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                     return;
                 }
 
-                std::cerr << "2" << std::endl;
+                // std::cerr << "2" << std::endl;
                 std::vector<int> temp_actions;
                 I.get_actions_given_policy(temp_actions, policy_obj_x);
                 for (int action : temp_actions) {
@@ -32,7 +32,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                 other_player_turn_index++;
             }
             else {
-                std::cerr << "3" << std::endl;
+                // std::cerr << "3" << std::endl;
                 I.get_actions_given_policy(actions, policy_obj_x);
             }
         }
@@ -40,7 +40,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
     } 
     else {
         if (end_I.player == 'o'){
-            std::cerr << "4" << std::endl;
+            // std::cerr << "4" << std::endl;
             // std::cerr << "Current action index: " << current_action_index << std::endl;
             // std::cerr << "Played actions size: " << played_actions.size() << std::endl;
             actions.push_back(played_actions[current_action_index++]);
@@ -51,7 +51,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                     return;
                 }
 
-                std::cerr << "5" << std::endl;
+                // std::cerr << "5" << std::endl;
                 std::vector<int> temp_actions;
                 I.get_actions_given_policy(temp_actions, policy_obj_o);
                 // std::cerr << "Temp actions size: " << temp_actions.size() << std::endl;
@@ -69,7 +69,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
 
                 for (int action : temp_actions) {
                     if (allowed_move_masks[other_player_turn_index][action]) {
-                        std::cerr << "Action in allowed move masks : " << action << std::endl;
+                        // std::cerr << "Action in allowed move masks : " << action << std::endl;
                         actions.push_back(action);
                     }
                 }
@@ -77,7 +77,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                 other_player_turn_index++;
             }
             else {
-                std::cerr << "6" << std::endl;
+                // std::cerr << "6" << std::endl;
                 I.get_actions_given_policy(actions, policy_obj_o);
             }
         }
@@ -130,9 +130,9 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                     }
                 }
             }
-            else {
-                std::cout << "Invalid move" << std::endl;
-            }
+            // else {
+            //     std::cout << "Invalid move" << std::endl;
+            // }
         }
     }
     else {
