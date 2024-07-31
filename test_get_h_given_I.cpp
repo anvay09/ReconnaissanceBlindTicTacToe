@@ -52,6 +52,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                     std::cerr << action << " ";
                 }  
                 std::cerr << std::endl;
+                std::cerr << "Other player turn index: " << other_player_turn_index << std::endl;
                 for (int i = 0; i < 9; i++) {
                     std::cerr << allowed_move_masks[other_player_turn_index][i] << " ";
                 }
