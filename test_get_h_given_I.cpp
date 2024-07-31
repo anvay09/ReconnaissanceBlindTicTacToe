@@ -11,12 +11,16 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
     if (player == 'x') {
         if (end_I.player == 'x'){
             std::cerr << "1" << std::endl;
-            std::cerr << "Current action index: " << current_action_index << std::endl;
-            std::cerr << "Played actions size: " << played_actions.size() << std::endl;
+            // std::cerr << "Current action index: " << current_action_index << std::endl;
+            // std::cerr << "Played actions size: " << played_actions.size() << std::endl;
             actions.push_back(played_actions[current_action_index++]);
         }
         else {
             if (I.move_flag) {
+                if (other_player_turn_index >= allowed_move_masks.size()) {
+                    return;
+                }
+
                 std::cerr << "2" << std::endl;
                 std::vector<int> temp_actions;
                 I.get_actions_given_policy(temp_actions, policy_obj_x);
@@ -37,26 +41,30 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
     else {
         if (end_I.player == 'o'){
             std::cerr << "4" << std::endl;
-            std::cerr << "Current action index: " << current_action_index << std::endl;
-            std::cerr << "Played actions size: " << played_actions.size() << std::endl;
+            // std::cerr << "Current action index: " << current_action_index << std::endl;
+            // std::cerr << "Played actions size: " << played_actions.size() << std::endl;
             actions.push_back(played_actions[current_action_index++]);
         }
         else {
             if (I.move_flag) {
+                if (other_player_turn_index >= allowed_move_masks.size()) {
+                    return;
+                }
+
                 std::cerr << "5" << std::endl;
                 std::vector<int> temp_actions;
                 I.get_actions_given_policy(temp_actions, policy_obj_o);
-                std::cerr << "Temp actions size: " << temp_actions.size() << std::endl;
-                std::cerr << "Actions: ";
-                for (int action : temp_actions){
-                    std::cerr << action << " ";
-                }  
-                std::cerr << std::endl;
-                std::cerr << "Other player turn index: " << other_player_turn_index << std::endl;
-                for (int i = 0; i < 9; i++) {
-                    std::cerr << allowed_move_masks[other_player_turn_index][i] << " ";
-                }
-                std::cerr << std::endl;
+                // std::cerr << "Temp actions size: " << temp_actions.size() << std::endl;
+                // std::cerr << "Actions: ";
+                // for (int action : temp_actions){
+                //     std::cerr << action << " ";
+                // }  
+                // std::cerr << std::endl;
+                // std::cerr << "Other player turn index: " << other_player_turn_index << std::endl;
+                // for (int i = 0; i < 9; i++) {
+                //     std::cerr << allowed_move_masks[other_player_turn_index][i] << " ";
+                // }
+                // std::cerr << std::endl;
 
 
                 for (int action : temp_actions) {
@@ -65,7 +73,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                         actions.push_back(action);
                     }
                 }
-                std::cerr << "Actions size: " << actions.size() << std::endl;
+                // std::cerr << "Actions size: " << actions.size() << std::endl;
                 other_player_turn_index++;
             }
             else {
@@ -75,11 +83,11 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
         }
     }
 
-    std::cout << "Actions: ";
-    for (int action : actions){
-        std::cout << action << " ";
-    }
-    std::cout << std::endl;
+    // std::cout << "Actions: ";
+    // for (int action : actions){
+    //     std::cout << action << " ";
+    // }
+    // std::cout << std::endl;
 
     if (I.move_flag){
         for (int action : actions) {
