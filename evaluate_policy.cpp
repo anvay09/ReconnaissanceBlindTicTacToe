@@ -2,11 +2,11 @@
 
 std::vector<std::tuple<TerminalHistory, double, int>> terminal_histories;
 
-double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, Policy &policy_obj_x, Policy &policy_obj_o, double probability, History& current_history, char initial_player, int save_games) {
+double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player, int save_games) {
     double expected_utility_h = 0;
     
     InformationSet& I = player == 'x' ? I_1 : I_2;
-    Policy& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
+    PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     
     std::vector<int> actions;
     I.get_actions_given_policy(actions, policy_obj);
@@ -16,7 +16,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
             TicTacToeBoard new_true_board = true_board;
             bool success = new_true_board.update_move(action, player);
 
-            double probability_new = probability * policy_obj.policy_dict[I.get_hash()][action];
+            double probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
             History new_history = current_history;
             new_history.history.push_back(action);
                 
@@ -53,7 +53,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
             InformationSet new_I(I);
             new_I.simulate_sense(action, true_board);
             
-            double probability_new = probability * policy_obj.policy_dict[I.get_hash()][action];
+            double probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
             History new_history = current_history;
             new_history.history.push_back(action);
 
@@ -69,7 +69,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
 }
 
 
-double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, Policy &policy_obj_x, Policy &policy_obj_o, double probability, History& current_history, char initial_player, int save_games) {
+double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player, int save_games) {
     double expected_utility_h = 0;
     std::vector<InformationSet> Depth_1_P1_Isets;
     std::vector<InformationSet> Depth_1_P2_Isets;
@@ -79,7 +79,7 @@ double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, T
     std::vector<History> Depth_1_histories;
     
     InformationSet I = player == 'x' ? I_1 : I_2;
-    Policy policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
+    PolicyVec policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
 
     std::vector<int> actions;
     I.get_actions_given_policy(actions, policy_obj);
@@ -89,7 +89,7 @@ double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, T
             TicTacToeBoard new_true_board = true_board;
             bool success = new_true_board.update_move(action, player);
 
-            double probability_new = probability * policy_obj.policy_dict[I.get_hash()][action];
+            double probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
             History new_history = current_history;
             new_history.history.push_back(action);
 
@@ -138,7 +138,7 @@ double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, T
             InformationSet new_I(I);
             new_I.simulate_sense(action, true_board);
 
-            double probability_new = probability * policy_obj.policy_dict[I.get_hash()][action];
+            double probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
             History new_history = current_history;
             new_history.history.push_back(action);
 
@@ -182,8 +182,8 @@ int main(int argc, char** argv) {
     std::string file_path_2 = argv[2];
 
     char player = 'x';
-    Policy policy_obj_x('x', file_path_1);
-    Policy policy_obj_o('o', file_path_2);
+    PolicyVec policy_obj_x('x', file_path_1);
+    PolicyVec policy_obj_o('o', file_path_2);
 
     std::vector<int> h = {};
     TerminalHistory start_history = TerminalHistory(h);

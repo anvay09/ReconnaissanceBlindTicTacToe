@@ -181,6 +181,43 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash) :
     this->move_flag = move_flag;
     this->hash = hash;
     this->board = this->get_board_from_hash();
+    if (player == 'x') {
+        if (P1_hash_to_int_map.find(hash) == P1_hash_to_int_map.end()) {
+            this->index = -1;
+        }
+        else {
+            this->index = P1_hash_to_int_map[hash];
+        }
+    } else {
+        if (P2_hash_to_int_map.find(hash) == P2_hash_to_int_map.end()) {
+            this->index = -1;
+        }
+        else {
+            this->index = P2_hash_to_int_map[hash];
+        }
+    }
+}
+
+InformationSet::InformationSet(char player, bool move_flag, std::string& hash, std::string& board) : TicTacToeBoard() {
+    this->player = player;
+    this->move_flag = move_flag;
+    this->hash = hash;
+    this->board = board;
+    if (player == 'x') {
+        if (P1_hash_to_int_map.find(hash) == P1_hash_to_int_map.end()) {
+            this->index = -1;
+        }
+        else {
+            this->index = P1_hash_to_int_map[hash];
+        }
+    } else {
+        if (P2_hash_to_int_map.find(hash) == P2_hash_to_int_map.end()) {
+            this->index = -1;
+        }
+        else {
+            this->index = P2_hash_to_int_map[hash];
+        }
+    }
 }
 
 std::string InformationSet::get_board_from_hash() {
@@ -191,7 +228,7 @@ std::string InformationSet::get_board_from_hash() {
     bool observation = false;
     int curr_sense_move = -1;
     int i = 0;
-    std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
+    // std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
 
     while (i < this->hash.size()) {
         switch (this->hash[i]) { // change flags at delimiters
@@ -238,13 +275,6 @@ std::string InformationSet::get_board_from_hash() {
     return new_board;
 }
 
-InformationSet::InformationSet(char player, bool move_flag, std::string& hash, std::string& board) : TicTacToeBoard() {
-    this->player = player;
-    this->move_flag = move_flag;
-    this->hash = hash;
-    this->board = board;
-}
-
 bool InformationSet::operator==(const InformationSet &other) {
     return this->hash == other.hash && this->player == other.player && this->move_flag == other.move_flag;
 }
@@ -261,6 +291,10 @@ std::string InformationSet::get_hash() {
     return this->hash;
 }
 
+long int InformationSet::get_index() {
+    return this->index;
+}
+
 void InformationSet::get_actions(std::vector<int> &actions) {
     if (this->move_flag) {
         this->get_valid_moves(actions);
@@ -269,21 +303,25 @@ void InformationSet::get_actions(std::vector<int> &actions) {
     }
 }
 
-void InformationSet::get_actions_given_policy(std::vector<int>& actions, Policy &policy_obj) {
-    if (policy_obj.policy_dict.find(this->get_hash()) == policy_obj.policy_dict.end()) {
-        // std::cout << "KeyError: " << this->get_hash() << " not found in policy dictionary" << std::endl;
+void InformationSet::get_actions_given_policy(std::vector<int>& actions, PolicyVec &policy_obj) {
+    // if (policy_obj.policy_dict.find(this->get_hash()) == policy_obj.policy_dict.end()) {
+    //     // std::cout << "KeyError: " << this->get_hash() << " not found in policy dictionary" << std::endl;
+    //     return;
+    // }
+
+    if (this->index == -1) {
         return;
     }
-
+  
     if (this->move_flag) {
-        std::vector<float>& prob_dist = policy_obj.policy_dict[this->get_hash()];
+        std::vector<float>& prob_dist = policy_obj.policy_dict[this->get_index()];
         for (int move = 0; move < 9; move++) {
             if (prob_dist[move] > 0) {
                 actions.push_back(move);
             }
         }
     } else {
-        std::vector<float>& prob_dist = policy_obj.policy_dict[this->get_hash()];
+        std::vector<float>& prob_dist = policy_obj.policy_dict[this->get_index()];
         for (int sense = 9; sense < 13; sense++) {
             if (prob_dist[sense] > 0) {
                 actions.push_back(sense);
@@ -307,11 +345,6 @@ void InformationSet::get_valid_moves(std::vector<int> &actions) {
 }
 
 void InformationSet::get_played_actions(std::vector<int> &actions) {
-    // for (int i = 0; i < 9; i++) {
-    //     if (this->board[i] == this->player) {
-    //         actions.push_back(i);
-    //     }
-    // }
     bool move_action = this->player == 'x' ? true : false;
     bool sense_action = this->player == 'x' ? false : true;
     bool observation = false;
@@ -356,7 +389,7 @@ void InformationSet::get_played_actions(std::vector<int> &actions) {
 }
 
 void InformationSet::get_useful_senses(std::vector<int> &actions) {
-    std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
+    // std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
     for (auto &sense : sense_square_dict) {
         for (int i = 0; i < 4; i++) {
             if (this->board[sense.second[i]] == '-') {
@@ -371,7 +404,7 @@ void InformationSet::simulate_sense(int action, TicTacToeBoard& true_board) {
     this->reset_zeros();
     std::string observation = "----";
     int count = 0;
-    std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
+    // std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
     for (int square : sense_square_dict[action]) {
         this->board[square] = true_board[square];
         observation[count] = true_board[square];
@@ -601,11 +634,6 @@ Policy Policy::copy() {
     return Policy(this->player, this->policy_dict);
 }
 
-void Policy::load_policy(char player, std::string& file_path) {
-    this->player = player;
-    this->policy_dict = this->read_policy_from_json(file_path, player);
-}
-
 void Policy::update_policy_for_given_information_set(InformationSet& information_set, std::vector<float>& prob_distribution) {
     std::vector<float> prob_dist;
     for (int i = 0; i < prob_distribution.size(); i++) {
@@ -658,4 +686,91 @@ std::unordered_map<std::string, std::vector<float> > Policy::read_policy_from_js
     }
 
     return policy_dict;
+}
+
+
+PolicyVec::PolicyVec() {
+    this->player = '0';
+    this->policy_dict = std::vector< std::vector<float> >();
+}
+
+PolicyVec::PolicyVec(char player, std::string& file_path) {
+    this->player = player;
+    this->policy_dict = this->read_policy_from_json(file_path, player);
+}
+
+PolicyVec::PolicyVec(char player, std::vector< std::vector<float> >& policy_dict) {
+    this->player = player;
+    this->policy_dict = policy_dict;
+}
+
+PolicyVec PolicyVec::copy() {
+    return PolicyVec(this->player, this->policy_dict);
+}
+
+void PolicyVec::update_policy_for_given_information_set(InformationSet& I, std::vector<float>& prob_distribution) {
+    std::vector<float> prob_dist;
+    for (int i = 0; i < prob_distribution.size(); i++) {
+        prob_dist[i] = prob_distribution[i];
+    }
+    this->policy_dict[I.get_index()] = prob_dist;
+}
+
+std::vector< std::vector<float> > PolicyVec::read_policy_from_json(std::string& file_path, char player){
+    long int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
+    std::vector< std::vector<float> > policy_list(policy_size);
+    
+    std::ifstream i(file_path);
+    json policy_obj;
+    i >> policy_obj;
+    
+    for (json::iterator it = policy_obj.begin(); it != policy_obj.end(); ++it) {
+        std::string I_hash = it.key();
+        bool move_flag;
+        if (I_hash.size() != 0){
+            move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
+        }
+        else {
+            move_flag = player == 'x' ? true : false;
+        }
+
+        InformationSet I(player, move_flag, I_hash);
+
+        std::vector <float> probability_distribution(13);
+        // initialise all values to zero
+        for (int i = 0; i < 13; i++) {
+            probability_distribution[i] = 0;
+        }
+
+        if (I_hash.back() == '_') {
+            std::vector<std::string> sense_keys = {"9", "10", "11", "12"};
+            for (int i = 0; i < sense_keys.size(); i++) {
+                probability_distribution[stoi(sense_keys[i])] = policy_obj[I_hash][sense_keys[i]];
+            }
+        }
+        else if (I_hash.back() == '|') {
+            std::vector<std::string> move_keys = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};
+            for (int i = 0; i < move_keys.size(); i++) {
+                probability_distribution[stoi(move_keys[i])] = policy_obj[I_hash][move_keys[i]];
+            }
+        }
+        else {
+            if (player == 'x'){
+                std::vector<std::string> move_keys = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};
+                for (int i = 0; i < move_keys.size(); i++) {
+                    probability_distribution[stoi(move_keys[i])] = policy_obj[I_hash][move_keys[i]];
+                }
+            }
+            else{
+                std::vector<std::string> sense_keys = {"9", "10", "11", "12"};
+                for (int i = 0; i < sense_keys.size(); i++) {
+                    probability_distribution[stoi(sense_keys[i])] = policy_obj[I_hash][sense_keys[i]];
+                }
+            }
+        }
+
+        policy_list[I.get_index()] = probability_distribution;
+    }
+
+    return policy_list;
 }

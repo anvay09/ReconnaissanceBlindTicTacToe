@@ -43,10 +43,13 @@ public:
 class InformationSet : public TicTacToeBoard
 {
 public:
+    static std::unordered_map<std::string, long int > P1_hash_to_int_map;
+    static std::unordered_map<std::string, long int > P2_hash_to_int_map;
+    static std::unordered_map<int, std::vector<int> > sense_square_dict;
     char player;
     bool move_flag;
     std::string hash;
-    std::unordered_map<int, std::vector<int> > sense_square_dict;
+    long int index;
     InformationSet();
     InformationSet(char player, bool move_flag, std::string& hash, std::string& board);
     InformationSet(char player, bool move_flag, std::string& hash = EMPTY_HASH);
@@ -55,9 +58,10 @@ public:
     InformationSet copy();
     std::string get_hash();
     std::string get_board_from_hash();
+    long int get_index();
     void get_states(std::vector<TicTacToeBoard> &states);
     void get_actions(std::vector<int> &actions);
-    void get_actions_given_policy(std::vector<int>& actions, Policy& policy_obj);
+    void get_actions_given_policy(std::vector<int>& actions, PolicyVec& policy_obj);
     void get_valid_moves(std::vector<int> &actions);
     void get_played_actions(std::vector<int> &actions);
     void simulate_sense(int action, TicTacToeBoard& true_board);
@@ -108,7 +112,6 @@ public:
     Policy(char player, std::string& file_path);
     Policy(char player, std::unordered_map<std::string, std::vector<float> >& policy_dict);
     Policy copy();
-    void load_policy(char player, std::string& file_path);
     void update_policy_for_given_information_set(InformationSet& information_set, std::vector<float>& prob_distribution);
     std::unordered_map<std::string, std::vector<float> > read_policy_from_json(std::string& file_path, char player);
 };
@@ -117,5 +120,19 @@ public:
 void split(std::string str, std::string splitBy, std::vector<std::string>& tokens);
 // intersection of two sets
 std::vector<int> intersection(std::vector<int> const& left_vector, std::vector<int> const& right_vector);
+
+
+class PolicyVec
+{
+public:
+    char player;
+    std::vector<std::vector<float> > policy_dict;
+    PolicyVec();
+    PolicyVec(char player, std::string& file_path);
+    PolicyVec(char player, std::vector<std::vector<float> >& policy_dict);
+    PolicyVec copy();
+    void update_policy_for_given_information_set(InformationSet& I, std::vector<float>& prob_distribution);
+    std::vector<std::vector<float> > read_policy_from_json(std::string& file_path, char player);
+};
 
 #endif // RBT_CLASSES_HPP_
