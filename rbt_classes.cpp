@@ -276,14 +276,14 @@ void InformationSet::get_actions_given_policy(std::vector<int>& actions, Policy 
     }
 
     if (this->move_flag) {
-        std::vector<double>& prob_dist = policy_obj.policy_dict[this->get_hash()];
+        std::vector<float>& prob_dist = policy_obj.policy_dict[this->get_hash()];
         for (int move = 0; move < 9; move++) {
             if (prob_dist[move] > 0) {
                 actions.push_back(move);
             }
         }
     } else {
-        std::vector<double>& prob_dist = policy_obj.policy_dict[this->get_hash()];
+        std::vector<float>& prob_dist = policy_obj.policy_dict[this->get_hash()];
         for (int sense = 9; sense < 13; sense++) {
             if (prob_dist[sense] > 0) {
                 actions.push_back(sense);
@@ -532,7 +532,7 @@ void History::get_information_sets(InformationSet &I_1, InformationSet &I_2) {
     }
 }
 
-TerminalHistory::TerminalHistory(std::vector<int>& history, std::vector<double> reward) : History(history) {
+TerminalHistory::TerminalHistory(std::vector<int>& history, std::vector<float> reward) : History(history) {
     if (reward.empty()) {
         this->reward = {0.0, 0.0};
     } else {
@@ -584,7 +584,7 @@ NonTerminalHistory NonTerminalHistory::copy() {
 
 Policy::Policy() {
     this->player = '0';
-    this->policy_dict = std::unordered_map<std::string, std::vector<double> >();
+    this->policy_dict = std::unordered_map<std::string, std::vector<float> >();
 }
 
 Policy::Policy(char player, std::string& file_path) {
@@ -592,7 +592,7 @@ Policy::Policy(char player, std::string& file_path) {
     this->policy_dict = this->read_policy_from_json(file_path, player);
 }
 
-Policy::Policy(char player, std::unordered_map<std::string, std::vector<double> >& policy_dict) {
+Policy::Policy(char player, std::unordered_map<std::string, std::vector<float> >& policy_dict) {
     this->player = player;
     this->policy_dict = policy_dict;
 }
@@ -606,22 +606,22 @@ void Policy::load_policy(char player, std::string& file_path) {
     this->policy_dict = this->read_policy_from_json(file_path, player);
 }
 
-void Policy::update_policy_for_given_information_set(InformationSet& information_set, std::vector<double>& prob_distribution) {
-    std::vector<double> prob_dist;
+void Policy::update_policy_for_given_information_set(InformationSet& information_set, std::vector<float>& prob_distribution) {
+    std::vector<float> prob_dist;
     for (int i = 0; i < prob_distribution.size(); i++) {
         prob_dist[i] = prob_distribution[i];
     }
     this->policy_dict[information_set.get_hash()] = prob_dist;
 }
 
-std::unordered_map<std::string, std::vector<double> > Policy::read_policy_from_json(std::string& file_path, char player){
+std::unordered_map<std::string, std::vector<float> > Policy::read_policy_from_json(std::string& file_path, char player){
     std::ifstream i(file_path);
     json policy_obj;
     i >> policy_obj;
     
     for (json::iterator it = policy_obj.begin(); it != policy_obj.end(); ++it) {
         std::string key = it.key();
-        std::vector <double> probability_distribution(13);
+        std::vector <float> probability_distribution(13);
         // initialise all values to zero
         for (int i = 0; i < 13; i++) {
             probability_distribution[i] = 0;

@@ -22,7 +22,7 @@ bool get_move_flag(std::string I_hash, char player){
 }
 
 //cfr
-void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, Policy& policy_obj_x, Policy& policy_obj_o, char player){
+void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std::vector<float>>& regret_list, Policy& policy_obj_x, Policy& policy_obj_o, char player){
         std::cout << "Starting iteration " << T << " for player " << player << "..." << std::endl;
         auto start = std::chrono::system_clock::now();
 
@@ -37,7 +37,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
         }
 
         auto end = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
+        std::chrono::duration<float> elapsed_seconds = end - start;
         std::time_t end_time = std::chrono::system_clock::to_time_t(end);
         std::cout << "finished computation at " << std::ctime(&end_time)
                 << "elapsed time: " << elapsed_seconds.count() << "s"
@@ -51,8 +51,8 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
             std::string I_hash = information_sets[i];
             bool move_flag = get_move_flag(I_hash, player);
             InformationSet I(player, move_flag, I_hash);
-            std::vector<double>& regret_vector = regret_list[i];
-            double total_regret = 0.0;
+            std::vector<float>& regret_vector = regret_list[i];
+            float total_regret = 0.0;
             std::vector<int> actions;
             I.get_actions(actions);
 
@@ -61,7 +61,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
             }
 
             Policy& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
-            std::vector<double>& prob_dist = policy_obj.policy_dict[I_hash];
+            std::vector<float>& prob_dist = policy_obj.policy_dict[I_hash];
             if (total_regret > 0) {
                 for (int action : actions) {
                     prob_dist[action] = regret_vector[action] / total_regret;
@@ -69,7 +69,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
             }
             else {
                 for (int action : actions) {
-                    prob_dist[action] = 1.0 / double(actions.size());
+                    prob_dist[action] = 1.0 / float(actions.size());
                 }
             }
         }
@@ -84,7 +84,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
 
 }
 
-void initialize_start(std::string policy_file, std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list,  std::vector<double>& prob_reaching_list, Policy& policy_obj, Policy& avg_policy_obj, std::unordered_map<std::string, std::vector<double>>& avg_policy_numerator, std::unordered_map<std::string, double>& avg_policy_denominator, char player) {
+void initialize_start(std::string policy_file, std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<float>>& regret_list,  std::vector<float>& prob_reaching_list, Policy& policy_obj, Policy& avg_policy_obj, std::unordered_map<std::string, std::vector<float>>& avg_policy_numerator, std::unordered_map<std::string, float>& avg_policy_denominator, char player) {
     std::cout << "initialize_start for player " << player << std::endl;
     auto start = std::chrono::system_clock::now();
     policy_obj = Policy(player, policy_file);
@@ -97,7 +97,7 @@ void initialize_start(std::string policy_file, std::string information_set_file,
     while (std::getline(f_is, line_is)) {
         avg_policy_denominator[line_is] = 0.0;
         information_sets.push_back(line_is);
-        std::vector<double> regret_vector;
+        std::vector<float> regret_vector;
         for (int i = 0; i < 13; i++) {
             regret_vector.push_back(0.0);
         }
@@ -106,14 +106,14 @@ void initialize_start(std::string policy_file, std::string information_set_file,
     }
     f_is.close();
     auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::chrono::duration<float> elapsed_seconds = end - start;
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
     std::cout << "finished computation at " << std::ctime(&end_time)
             << "elapsed time: " << elapsed_seconds.count() << "s"
             << std::endl;
 }
 
-void initialize_continue(std::string policy_file, std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, std::unordered_map<std::string, std::vector<double>>& regret_map, std::vector<double>& prob_reaching_list, Policy& policy_obj, Policy& avg_policy_obj, std::unordered_map<std::string, std::vector<double>>& avg_policy_numerator, std::unordered_map<std::string, double>& avg_policy_denominator, char player) {
+void initialize_continue(std::string policy_file, std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<float>>& regret_list, std::unordered_map<std::string, std::vector<float>>& regret_map, std::vector<float>& prob_reaching_list, Policy& policy_obj, Policy& avg_policy_obj, std::unordered_map<std::string, std::vector<float>>& avg_policy_numerator, std::unordered_map<std::string, float>& avg_policy_denominator, char player) {
     policy_obj = Policy(player, policy_file);
     avg_policy_obj = policy_obj;
     avg_policy_numerator = policy_obj.policy_dict;
@@ -124,7 +124,7 @@ void initialize_continue(std::string policy_file, std::string information_set_fi
     while (std::getline(f_is, line_is)) {
         avg_policy_denominator[line_is] = 0.0;
         information_sets.push_back(line_is);
-        std::vector<double> regret_vector;
+        std::vector<float> regret_vector;
         for (int i = 0; i < 13; i++) {
             regret_vector.push_back(regret_map[line_is][i]); // maybe can be merged with initialize_start
         }
@@ -134,7 +134,7 @@ void initialize_continue(std::string policy_file, std::string information_set_fi
     f_is.close();
 }
 
-void save_map_json(std::string output_file, std::unordered_map<std::string, std::vector<double>>& map){
+void save_map_json(std::string output_file, std::unordered_map<std::string, std::vector<float>>& map){
     std::ofstream f_out;
     f_out.open(output_file, std::ios::trunc);
     json jx;
@@ -148,12 +148,12 @@ void save_map_json(std::string output_file, std::unordered_map<std::string, std:
 }
 
 
-void save_output(std::string output_policy_file, std::string output_regret_file, char player, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, Policy& policy_obj) {
-    std::unordered_map<std::string, std::vector<double> > regret_map;
+void save_output(std::string output_policy_file, std::string output_regret_file, char player, std::vector<std::string>& information_sets, std::vector<std::vector<float>>& regret_list, Policy& policy_obj) {
+    std::unordered_map<std::string, std::vector<float> > regret_map;
     std::cout << "Saving regrets for player " << player << "..." << std::endl;
     for (int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
-        std::vector<double>& regret_vector = regret_list[i];
+        std::vector<float>& regret_vector = regret_list[i];
         regret_map[I_hash] = regret_vector;
     }
     save_map_json(output_regret_file, regret_map);
@@ -305,10 +305,10 @@ void upgraded_get_histories_given_I_prob(InformationSet& I, Policy& policy_obj_x
     return;
 }   
 
-double get_prob_h_given_policy_prob(InformationSet& I_1, InformationSet& I_2, 
+float get_prob_h_given_policy_prob(InformationSet& I_1, InformationSet& I_2, 
                                TicTacToeBoard& true_board, char player, 
                                int next_action, Policy& policy_obj_x, 
-                               Policy& policy_obj_o, double probability, 
+                               Policy& policy_obj_o, float probability, 
                                History history_obj, char initial_player){
 
     InformationSet& I = player == 'x' ? I_1 : I_2;
@@ -365,10 +365,10 @@ double get_prob_h_given_policy_prob(InformationSet& I_1, InformationSet& I_2,
 }
 
 
-double get_prob_h_given_policy_wrapper_prob(InformationSet& I_1, InformationSet& I_2, 
+float get_prob_h_given_policy_wrapper_prob(InformationSet& I_1, InformationSet& I_2, 
                                        TicTacToeBoard& true_board, char player, 
                                        int next_action, Policy& policy_obj_x, 
-                                       Policy& policy_obj_o, double probability,
+                                       Policy& policy_obj_o, float probability,
                                        History history_obj, InformationSet& curr_I_1, char initial_player){
     
     if (curr_I_1.board == "000000000"){
@@ -382,11 +382,11 @@ double get_prob_h_given_policy_wrapper_prob(InformationSet& I_1, InformationSet&
 
 void get_probability_of_reaching_all_h_prob(InformationSet &I, Policy& policy_obj_x,
                                        Policy& policy_obj_o, std::vector<std::vector<int>>& starting_histories,
-                                       char initial_player, std::vector<double>& prob_reaching_h_list_all) {
+                                       char initial_player, std::vector<float>& prob_reaching_h_list_all) {
 
     for (std::vector<int> history: starting_histories) {
         NonTerminalHistory h_object = NonTerminalHistory(history);
-        double prob_reaching_h;
+        float prob_reaching_h;
 
         if (I.board == "000000000") {
             prob_reaching_h = 1.0;
@@ -409,22 +409,22 @@ void get_probability_of_reaching_all_h_prob(InformationSet &I, Policy& policy_ob
 }
 
 
-double get_probability_of_reaching_I_prob(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, char initial_player) {
+float get_probability_of_reaching_I_prob(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, char initial_player) {
     std::vector<std::vector<int>> starting_histories;
-    std::vector<double> prob_reaching_h_list_all;
-    double prob_reaching = 0.0;
+    std::vector<float> prob_reaching_h_list_all;
+    float prob_reaching = 0.0;
 
     upgraded_get_histories_given_I_prob(I, policy_obj_x, policy_obj_o, starting_histories);
     get_probability_of_reaching_all_h_prob(I, policy_obj_x, policy_obj_o, starting_histories, initial_player, prob_reaching_h_list_all);
 
-    for (double prob_reaching_h: prob_reaching_h_list_all) {
+    for (float prob_reaching_h: prob_reaching_h_list_all) {
         prob_reaching += prob_reaching_h;
     }
 
     return prob_reaching;
 }
 
-void get_prob_reaching(std::vector<std::string>& information_sets, std::vector<double>& prob_reaching_list, char player,  Policy& policy_obj_x, Policy& policy_obj_o){
+void get_prob_reaching(std::vector<std::string>& information_sets, std::vector<float>& prob_reaching_list, char player,  Policy& policy_obj_x, Policy& policy_obj_o){
     #pragma omp parallel for num_threads(number_threads) shared(policy_obj_x, policy_obj_o, prob_reaching_list)
     for (long int i = 0; i < information_sets.size(); i++) {
         prob_reaching_list[i] = 0.0;
@@ -438,7 +438,7 @@ void get_prob_reaching(std::vector<std::string>& information_sets, std::vector<d
 //prob
 
 //avg
-void calc_average_terms(char player, std::vector<std::string>& information_sets, Policy& policy_obj, std::vector<double>& prob_reaching_list, std::unordered_map<std::string, std::vector<double>>& avg_policy_numerator, std::unordered_map<std::string, double>& avg_policy_denominator){
+void calc_average_terms(char player, std::vector<std::string>& information_sets, Policy& policy_obj, std::vector<float>& prob_reaching_list, std::unordered_map<std::string, std::vector<float>>& avg_policy_numerator, std::unordered_map<std::string, float>& avg_policy_denominator){
     #pragma omp parallel for num_threads(number_threads) shared(avg_policy_numerator, avg_policy_denominator, policy_obj, prob_reaching_list)
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
@@ -448,14 +448,14 @@ void calc_average_terms(char player, std::vector<std::string>& information_sets,
         std::vector<int> actions;
         I.get_actions(actions);
         for (int action: actions) {
-            std::vector<double>& policy = policy_obj.policy_dict[I_hash];
+            std::vector<float>& policy = policy_obj.policy_dict[I_hash];
             avg_policy_numerator[I_hash][action] += prob_reaching_list[i] * policy[action];
             avg_policy_denominator[I_hash] += prob_reaching_list[i] * policy[action];
         }
     }
 }
 
-void calc_average_policy(std::vector<std::string>& information_sets, Policy& avg_policy_obj, std::unordered_map<std::string, std::vector<double>> avg_policy_numerator, std::unordered_map<std::string, double> avg_policy_denominator, char player){
+void calc_average_policy(std::vector<std::string>& information_sets, Policy& avg_policy_obj, std::unordered_map<std::string, std::vector<float>> avg_policy_numerator, std::unordered_map<std::string, float> avg_policy_denominator, char player){
     #pragma omp parallel for num_threads(number_threads) shared(avg_policy_obj, avg_policy_numerator, avg_policy_denominator)
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
@@ -465,7 +465,7 @@ void calc_average_policy(std::vector<std::string>& information_sets, Policy& avg
         std::vector<int> actions;
         I.get_actions(actions);
         for (int action: actions) {
-            std::vector<double>& policy = avg_policy_obj.policy_dict[I_hash];
+            std::vector<float>& policy = avg_policy_obj.policy_dict[I_hash];
             policy[action] = avg_policy_denominator[I_hash] > 0 ? avg_policy_numerator[I_hash][action] / avg_policy_denominator[I_hash] : 0;
         }
     }
@@ -490,16 +490,16 @@ int main(int argc, char* argv[])  {
     Policy policy_obj_o;
     Policy avg_policy_obj_x;
     Policy avg_policy_obj_o;
-    std::unordered_map<std::string, std::vector<double>> avg_policy_numerator_x;
-    std::unordered_map<std::string, std::vector<double>> avg_policy_numerator_o;
-    std::unordered_map<std::string, double> avg_policy_denominator_x;
-    std::unordered_map<std::string, double> avg_policy_denominator_o;
+    std::unordered_map<std::string, std::vector<float>> avg_policy_numerator_x;
+    std::unordered_map<std::string, std::vector<float>> avg_policy_numerator_o;
+    std::unordered_map<std::string, float> avg_policy_denominator_x;
+    std::unordered_map<std::string, float> avg_policy_denominator_o;
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
-    std::vector<std::vector<double>> regret_list_x;
-    std::vector<std::vector<double>> regret_list_o;
-    std::vector<double> prob_reaching_list_x;
-    std::vector<double> prob_reaching_list_o;
+    std::vector<std::vector<float>> regret_list_x;
+    std::vector<std::vector<float>> regret_list_o;
+    std::vector<float> prob_reaching_list_x;
+    std::vector<float> prob_reaching_list_o;
 
     if (start_iter == 1) {
         initialize_start(policy_file_x, P1_information_sets_file, P1_information_sets, regret_list_x, prob_reaching_list_x, policy_obj_x, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
@@ -509,8 +509,8 @@ int main(int argc, char* argv[])  {
     else {
         std::string prev_regret_file_x = base_path + "/regret/P1_iteration_" + std::to_string(start_iter-1) + "_regret_cpp.json";
         std::string prev_regret_file_o = base_path + "/regret/P2_iteration_" + std::to_string(start_iter-1) + "_regret_cpp.json";
-        std::unordered_map<std::string, std::vector<double> > regret_map_x;
-        std::unordered_map<std::string, std::vector<double> > regret_map_o;
+        std::unordered_map<std::string, std::vector<float> > regret_map_x;
+        std::unordered_map<std::string, std::vector<float> > regret_map_o;
         regret_map_x = get_prev_regrets(prev_regret_file_x, 'x');
         regret_map_o = get_prev_regrets(prev_regret_file_o, 'o');
         initialize_continue(policy_file_x, P1_information_sets_file, P1_information_sets, regret_list_x, regret_map_x, prob_reaching_list_x, policy_obj_x, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
@@ -526,7 +526,7 @@ int main(int argc, char* argv[])  {
 
 
     for (int T = start_iter; T <= end_iter; T++) {
-        // double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
+        // float expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
         // std::cout << "Expected utility: " << expected_utility << std::endl; 
         run_cfr(T, P1_information_sets, regret_list_x, policy_obj_x, policy_obj_o, 'x');
         run_cfr(T, P2_information_sets, regret_list_o, policy_obj_x, policy_obj_o, 'o');
