@@ -24,7 +24,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
         #pragma omp parallel for num_threads(number_threads) shared(regret_list, policy_obj_x, policy_obj_o)
         for (long int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
-            std::cout << "Starting iteration " << " for infoset " << i << " ,hash: " << I_hash << std::endl;
+            std::cout << "Starting iteration " << " for infoset " << i << ", hash: " << I_hash << std::endl;
             // auto start_in = std::chrono::system_clock::now();
 
             bool move_flag = get_move_flag(I_hash, player);
@@ -156,7 +156,7 @@ void save_map_json(std::string output_file, std::vector<std::vector<float>>& map
 void save_output(std::string output_policy_file, std::string output_regret_file, char player, std::vector<std::string>& information_sets, std::vector<std::vector<float>>& regret_list, PolicyVec& policy_obj) {
     std::vector<std::vector<float> > regret_map;
     std::cout << "Saving regrets for player " << player << "..." << std::endl;
-    for (int i = 0; i < information_sets.size(); i++) {
+    for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
         std::vector<float>& regret_vector = regret_list[i];
         regret_map.push_back(regret_vector);
