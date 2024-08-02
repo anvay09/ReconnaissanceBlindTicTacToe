@@ -184,9 +184,7 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash) :
     this->move_flag = move_flag;
     this->hash = hash;
     this->board = this->get_board_from_hash();
-    std::cout << "Number of keys in P1_hash_to_int_map: " << P1_hash_to_int_map.size() << std::endl;
-    std::cout << "Number of keys in P2_hash_to_int_map: " << P2_hash_to_int_map.size() << std::endl;
-
+    
     if (player == 'x') {
         if (P1_hash_to_int_map.find(hash) == P1_hash_to_int_map.end()) {
             this->index = -1;
@@ -209,9 +207,7 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash, s
     this->move_flag = move_flag;
     this->hash = hash;
     this->board = board;
-    std::cout << "Number of keys in P1_hash_to_int_map: " << P1_hash_to_int_map.size() << std::endl;
-    std::cout << "Number of keys in P2_hash_to_int_map: " << P2_hash_to_int_map.size() << std::endl;
-
+    
     if (player == 'x') {
         if (P1_hash_to_int_map.find(hash) == P1_hash_to_int_map.end()) {
             this->index = -1;
@@ -323,7 +319,7 @@ void InformationSet::get_actions_given_policy(std::vector<int>& actions, PolicyV
         return;
     }
     else {
-        std::cout << "Index: " << this->get_index() << std::endl;
+        std::cout << "Index: " << this->get_index() << " for hash: " << this->get_hash() << std::endl;
         if (this->move_flag) {
             std::vector<float>& prob_dist = policy_obj.policy_dict[this->get_index()];
             for (int move = 0; move < 9; move++) {
