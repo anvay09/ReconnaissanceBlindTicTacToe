@@ -60,11 +60,11 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
         }
     }
 
-    std::cout << "Actions: ";
-    for (int action : actions){
-        std::cout << action << " ";
-    }
-    std::cout << std::endl;
+    // std::cout << "Actions: ";
+    // for (int action : actions){
+    //     std::cout << action << " ";
+    // }
+    // std::cout << std::endl;
 
     if (I.move_flag){
         for (int action : actions) {
@@ -79,7 +79,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                 InformationSet new_I = I;
                 new_I.update_move(action, player);
                 new_I.reset_zeros();
-                std::cout << "New Information set after M, player " << player << ": " << new_I.hash << std::endl;   
+                // std::cout << "New Information set after M, player " << player << ": " << new_I.hash << std::endl;   
 
                 if (player == 'x') {
                     if (end_I.player == 'x') {
@@ -114,7 +114,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
         for (int action : actions) {
             InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
-            std::cout << "New Information set after S, player " << player << ": " << new_I.hash << std::endl;
+            // std::cout << "New Information set after S, player " << player << ": " << new_I.hash << std::endl;
             TicTacToeBoard new_true_board = true_board;
 
             History new_history = current_history;
@@ -314,24 +314,24 @@ int main(){
 
     std::string hash1 = "0_1|00o0|7_1|00o0|5_1|0oox|8_";
     InformationSet I1('x', false, hash1);
-    std::cout << "Index assigned to I1: " << I1.get_index() << std::endl;
+    // std::cout << "Index assigned to I1: " << I1.get_index() << std::endl;
 
     std::string hash2 = "3_0|o0x0|5_0|o0xo|1_3|oxo0|8_2|xo0o|";
     InformationSet I2('x', true, hash2);
-    std::cout << "Index assigned to I2: " << I2.get_index() << std::endl;
+    // std::cout << "Index assigned to I2: " << I2.get_index() << std::endl;
 
     std::string hash3 = "1_3|0o00|8_0|0x00|3_2|x0o0|7_";
     InformationSet I3('x', false, hash3);
-    std::cout << "Index assigned to I3: " << I3.get_index() << std::endl;
+    // std::cout << "Index assigned to I3: " << I3.get_index() << std::endl;
 
     std::string hash4 = "1|0000|6_2|00o0|1_1|ox00|5_2|x0ox|8_";
     InformationSet I4('o', false, hash4);
-    std::cout << "Index assigned to I4: " << I4.get_index() << std::endl;
+    // std::cout << "Index assigned to I4: " << I4.get_index() << std::endl;
 
     std::string hash5 = "2|0000|6_3|x00x|0_1|00x0|5_0|o00x|";
     InformationSet I5('o', true, hash5);
-    std::cout << "Index assigned to I5: " << I5.get_index() << std::endl;
-    
+    // std::cout << "Index assigned to I5: " << I5.get_index() << std::endl;
+
     std::vector<std::vector<int>> valid_histories_list_1;
     auto start = std::chrono::system_clock::now();
     upgraded_get_histories_given_I(I1, policy_obj_x, policy_obj_o, valid_histories_list_1);

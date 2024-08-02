@@ -323,11 +323,11 @@ void InformationSet::get_actions_given_policy(std::vector<int>& actions, PolicyV
     // }
 
     if (this->index == -1) {
-        std::cout << "KeyError: " << this->get_hash() << " not found in policy dictionary" << std::endl;
+        // std::cout << "KeyError: " << this->get_hash() << " not found in policy dictionary" << std::endl;
         return;
     }
     else {
-        std::cout << "Index: " << this->get_index() << " for hash: " << this->get_hash() << std::endl;
+        // std::cout << "Index: " << this->get_index() << " for hash: " << this->get_hash() << std::endl;
         if (this->move_flag) {
             std::vector<float>& prob_dist = policy_obj.policy_dict[this->get_index()];
             for (int move = 0; move < 9; move++) {
@@ -343,12 +343,6 @@ void InformationSet::get_actions_given_policy(std::vector<int>& actions, PolicyV
                 }
             }
         }
-
-        std::cout << "Get actions given policy: ";
-        for (int action: actions) {
-            std::cout << action << " ";
-        }
-        std::cout << std::endl;
     }
 }
 
