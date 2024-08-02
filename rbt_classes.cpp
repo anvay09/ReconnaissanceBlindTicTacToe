@@ -313,28 +313,30 @@ void InformationSet::get_actions_given_policy(std::vector<int>& actions, PolicyV
         std::cout << "KeyError: " << this->get_hash() << " not found in policy dictionary" << std::endl;
         return;
     }
-  
-    if (this->move_flag) {
-        std::vector<float>& prob_dist = policy_obj.policy_dict[this->get_index()];
-        for (int move = 0; move < 9; move++) {
-            if (prob_dist[move] > 0) {
-                actions.push_back(move);
+    else {
+        std::cout << "Index: " << this->get_index() << std::endl;
+        if (this->move_flag) {
+            std::vector<float>& prob_dist = policy_obj.policy_dict[this->get_index()];
+            for (int move = 0; move < 9; move++) {
+                if (prob_dist[move] > 0) {
+                    actions.push_back(move);
+                }
+            }
+        } else {
+            std::vector<float>& prob_dist = policy_obj.policy_dict[this->get_index()];
+            for (int sense = 9; sense < 13; sense++) {
+                if (prob_dist[sense] > 0) {
+                    actions.push_back(sense);
+                }
             }
         }
-    } else {
-        std::vector<float>& prob_dist = policy_obj.policy_dict[this->get_index()];
-        for (int sense = 9; sense < 13; sense++) {
-            if (prob_dist[sense] > 0) {
-                actions.push_back(sense);
-            }
-        }
-    }
 
-    std::cout << "Get actions given policy: ";
-    for (int action: actions) {
-        std::cout << action << " ";
+        std::cout << "Get actions given policy: ";
+        for (int action: actions) {
+            std::cout << action << " ";
+        }
+        std::cout << std::endl;
     }
-    std::cout << std::endl;
 }
 
 void InformationSet::get_valid_moves(std::vector<int> &actions) {
