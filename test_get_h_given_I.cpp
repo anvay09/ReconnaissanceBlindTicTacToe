@@ -281,6 +281,34 @@ std::unordered_map<std::string, long int > InformationSet::P1_hash_to_int_map = 
 std::unordered_map<std::string, long int > InformationSet::P2_hash_to_int_map = {};
 
 int main(){
+    // read information set file
+
+    std::vector<std::string> P1_information_sets;
+    std::vector<std::string> P2_information_sets;
+    std::string P1_information_sets_file = "data/P1_information_sets_V2.txt";
+    std::string P2_information_sets_file = "data/P2_information_sets_V2.txt";
+
+    std::ifstream P1_f_is(P1_information_sets_file);
+    std::string P1_line_is;
+    while (std::getline(P1_f_is, P1_line_is)) {
+        P1_information_sets.push_back(P1_line_is);
+    }
+    P1_f_is.close();
+
+    std::ifstream P2_f_is(P2_information_sets_file);
+    std::string P2_line_is;
+    while (std::getline(P2_f_is, P2_line_is)) {
+        P2_information_sets.push_back(P2_line_is);
+    }
+    P2_f_is.close();
+
+    for (long int i = 0; i < P1_information_sets.size(); i++) {
+        InformationSet::P1_hash_to_int_map[P1_information_sets[i]] = i;
+    }
+    for (long int i = 0; i < P2_information_sets.size(); i++) {
+        InformationSet::P2_hash_to_int_map[P2_information_sets[i]] = i;
+    }
+
     std::string policy_file_x = "data/P1_uniform_policy_v2.json";
     std::string policy_file_o = "data/P2_uniform_policy_v2.json";
     std::cout << "Loading policies..." << std::endl;
