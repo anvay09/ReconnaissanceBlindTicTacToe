@@ -186,18 +186,18 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash) :
     this->board = this->get_board_from_hash();
     
     if (player == 'x') {
-        if (P1_hash_to_int_map.find(hash) == P1_hash_to_int_map.end()) {
+        if (P1_hash_to_int_map.find(hash) == InformationSet::P1_hash_to_int_map.end()) {
             this->index = -1;
         }
         else {
-            this->index = P1_hash_to_int_map[hash];
+            this->index = InformationSet::P1_hash_to_int_map[hash];
         }
     } else {
-        if (P2_hash_to_int_map.find(hash) == P2_hash_to_int_map.end()) {
+        if (P2_hash_to_int_map.find(hash) == InformationSet::P2_hash_to_int_map.end()) {
             this->index = -1;
         }
         else {
-            this->index = P2_hash_to_int_map[hash];
+            this->index = InformationSet::P2_hash_to_int_map[hash];
         }
     }
 }
@@ -209,20 +209,28 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash, s
     this->board = board;
     
     if (player == 'x') {
-        if (P1_hash_to_int_map.find(hash) == P1_hash_to_int_map.end()) {
+        if (P1_hash_to_int_map.find(hash) == InformationSet::P1_hash_to_int_map.end()) {
             this->index = -1;
         }
         else {
-            this->index = P1_hash_to_int_map[hash];
+            this->index = InformationSet::P1_hash_to_int_map[hash];
         }
     } else {
-        if (P2_hash_to_int_map.find(hash) == P2_hash_to_int_map.end()) {
+        if (P2_hash_to_int_map.find(hash) == InformationSet::P2_hash_to_int_map.end()) {
             this->index = -1;
         }
         else {
-            this->index = P2_hash_to_int_map[hash];
+            this->index = InformationSet::P2_hash_to_int_map[hash];
         }
     }
+}
+
+InformationSet::InformationSet(char player, bool move_flag, std::string& hash, std::string& board, long int index) : TicTacToeBoard() {
+    this->player = player;
+    this->move_flag = move_flag;
+    this->hash = hash;
+    this->board = board;
+    this->index = index;
 }
 
 std::string InformationSet::get_board_from_hash() {
@@ -289,7 +297,7 @@ char InformationSet::other_player() {
 }
 
 InformationSet InformationSet::copy() {
-    return InformationSet(this->player, this->move_flag, this->hash, this->board);
+    return InformationSet(this->player, this->move_flag, this->hash, this->board, this->index);
 }
 
 std::string InformationSet::get_hash() {
@@ -426,6 +434,7 @@ void InformationSet::simulate_sense(int action, TicTacToeBoard& true_board) {
     }
     this->hash = this->hash + sense_square_mapping[action] + "|" + observation + "|";
     this->move_flag = true;
+    this->index = this->player == 'x' ? InformationSet::P1_hash_to_int_map[this->hash] : InformationSet::P2_hash_to_int_map[this->hash];
 }
 
 void InformationSet::reset_zeros(std::string& board) {
@@ -457,6 +466,7 @@ bool InformationSet::update_move(int square, char player) {
         this->board[square] = player;
         this->hash = this->hash + std::to_string(square) + "_";
         this->move_flag = false;
+        this->index = this->player == 'x' ? InformationSet::P1_hash_to_int_map[this->hash] : InformationSet::P2_hash_to_int_map[this->hash];
         return true;
     }
     return false;
