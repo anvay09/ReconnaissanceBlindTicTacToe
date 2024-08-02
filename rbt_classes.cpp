@@ -329,6 +329,12 @@ void InformationSet::get_actions_given_policy(std::vector<int>& actions, PolicyV
             }
         }
     }
+
+    std::cout << "Get actions given policy: ";
+    for (int action: actions) {
+        std::cout << action << " ";
+    }
+    std::cout << std::endl;
 }
 
 void InformationSet::get_valid_moves(std::vector<int> &actions) {
