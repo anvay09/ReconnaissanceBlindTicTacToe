@@ -428,7 +428,24 @@ void InformationSet::simulate_sense(int action, TicTacToeBoard& true_board) {
     }
     this->hash = this->hash + sense_square_mapping[action] + "|" + observation + "|";
     this->move_flag = true;
-    this->index = this->player == 'x' ? InformationSet::P1_hash_to_int_map[this->hash] : InformationSet::P2_hash_to_int_map[this->hash];
+    if (this->player == 'x'){
+        if (InformationSet::P1_hash_to_int_map.find(this->hash) == InformationSet::P1_hash_to_int_map.end()) {
+            this->index = -1;
+            std::cout << "InformationSet::simulate_sense: KeyError: " << this->hash << " not found in P1_hash_to_int_map" << std::endl;
+        }
+        else {
+            this->index = InformationSet::P1_hash_to_int_map[this->hash];
+        }
+    }
+    else {
+        if (InformationSet::P2_hash_to_int_map.find(this->hash) == InformationSet::P2_hash_to_int_map.end()) {
+            this->index = -1;
+            std::cout << "InformationSet::simulate_sense: KeyError: " << this->hash << " not found in P2_hash_to_int_map" << std::endl;
+        }
+        else {
+            this->index = InformationSet::P2_hash_to_int_map[this->hash];
+        }
+    }
 }
 
 void InformationSet::reset_zeros(std::string& board) {
@@ -460,7 +477,25 @@ bool InformationSet::update_move(int square, char player) {
         this->board[square] = player;
         this->hash = this->hash + std::to_string(square) + "_";
         this->move_flag = false;
-        this->index = this->player == 'x' ? InformationSet::P1_hash_to_int_map[this->hash] : InformationSet::P2_hash_to_int_map[this->hash];
+        if (this->player == 'x'){
+            if (InformationSet::P1_hash_to_int_map.find(this->hash) == InformationSet::P1_hash_to_int_map.end()) {
+                this->index = -1;
+                std::cout << "InformationSet::update_move: KeyError: " << this->hash << " not found in P1_hash_to_int_map" << std::endl;
+            }
+            else {
+                this->index = InformationSet::P1_hash_to_int_map[this->hash];
+            }
+        }
+        else {
+            if (InformationSet::P2_hash_to_int_map.find(this->hash) == InformationSet::P2_hash_to_int_map.end()) {
+                this->index = -1;
+                std::cout << "InformationSet::update_move: KeyError: " << this->hash << " not found in P2_hash_to_int_map" << std::endl;
+            }
+            else {
+                this->index = InformationSet::P2_hash_to_int_map[this->hash];
+            }
+        }
+
         return true;
     }
     return false;
