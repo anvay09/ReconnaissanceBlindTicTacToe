@@ -175,7 +175,7 @@ void TicTacToeBoard::print_board() {
     }
 }
 
-std::unordered_map<int, std::vector<int> > InformationSet::sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
+// std::unordered_map<int, std::vector<int> > InformationSet::sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
 std::unordered_map<std::string, long int > InformationSet::P1_hash_to_int_map = {};
 std::unordered_map<std::string, long int > InformationSet::P2_hash_to_int_map = {};
 
@@ -241,7 +241,7 @@ std::string InformationSet::get_board_from_hash() {
     bool observation = false;
     int curr_sense_move = -1;
     int i = 0;
-    // std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
+    std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
 
     while (i < this->hash.size()) {
         switch (this->hash[i]) { // change flags at delimiters
@@ -405,7 +405,7 @@ void InformationSet::get_played_actions(std::vector<int> &actions) {
 }
 
 void InformationSet::get_useful_senses(std::vector<int> &actions) {
-    // std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
+    std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
     for (auto &sense : sense_square_dict) {
         for (int i = 0; i < 4; i++) {
             if (this->board[sense.second[i]] == '-') {
@@ -420,7 +420,7 @@ void InformationSet::simulate_sense(int action, TicTacToeBoard& true_board) {
     this->reset_zeros();
     std::string observation = "----";
     int count = 0;
-    // std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
+    std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
     for (int square : sense_square_dict[action]) {
         this->board[square] = true_board[square];
         observation[count] = true_board[square];

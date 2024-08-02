@@ -46,7 +46,7 @@ class InformationSet : public TicTacToeBoard
 public:
     static std::unordered_map<std::string, long int > P1_hash_to_int_map;
     static std::unordered_map<std::string, long int > P2_hash_to_int_map;
-    static std::unordered_map<int, std::vector<int> > sense_square_dict;
+    // static std::unordered_map<int, std::vector<int> > sense_square_dict;
     char player;
     bool move_flag;
     std::string hash;

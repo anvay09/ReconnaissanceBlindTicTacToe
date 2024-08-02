@@ -637,13 +637,6 @@ void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyV
     std::vector<int> actions;
     PolicyVec& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
 
-    auto end0 = std::chrono::system_clock::now();
-    std::chrono::duration<float> elapsed_seconds = end0 - start;
-    std::time_t end_time = std::chrono::system_clock::to_time_t(end0);
-    std::cout << "Copying policy dict: finished computation at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
-
 
     std::vector<std::vector<int>> starting_histories;
     std::vector<float> prob_reaching_h_list;
@@ -654,31 +647,9 @@ void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyV
     }
 
     I.get_actions(actions);
-
-    auto end1 = std::chrono::system_clock::now();
-    elapsed_seconds = end1 - end0;
-    end_time = std::chrono::system_clock::to_time_t(end1);
-    std::cout << "Get actions: finished computation at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
-
     upgraded_get_histories_given_I(I, policy_obj_x, policy_obj_o, starting_histories);
-
-    auto end2 = std::chrono::system_clock::now();
-    elapsed_seconds = end2 - end1;
-    end_time = std::chrono::system_clock::to_time_t(end2);
-    std::cout << "Get valid histories: finished computation at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
-
     get_probability_of_reaching_all_h(I, policy_obj_x, policy_obj_o, starting_histories, I.player, prob_reaching_h_list);
     
-    auto end3 = std::chrono::system_clock::now();
-    elapsed_seconds = end3 - end2;
-    end_time = std::chrono::system_clock::to_time_t(end3);
-    std::cout << "Get probability of reaching all h: finished computation at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
 
     for (int action : actions) {
         float util_a = 0.0;
@@ -691,13 +662,6 @@ void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyV
         util += util_a * policy_obj.policy_dict[I.get_index()][action];
         util_a_list[action] = util_a;
     }
-    
-    auto end4 = std::chrono::system_clock::now();
-    elapsed_seconds = end4 - end3;
-    end_time = std::chrono::system_clock::to_time_t(end4);
-    std::cout << "Get util_a_list: finished computation at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
 
     for (int action : actions) {
         float regret_T = 0.0;
@@ -710,13 +674,6 @@ void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyV
         regret_T = regret_T > 0.0 ? regret_T : 0.0;
         regret_list[action] = regret_T;
     }
-
-    auto end5 = std::chrono::system_clock::now();
-    elapsed_seconds = end5 - end4;
-    end_time = std::chrono::system_clock::to_time_t(end5);
-    std::cout << "Get regret_list: finished computation at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
 }
 
 
