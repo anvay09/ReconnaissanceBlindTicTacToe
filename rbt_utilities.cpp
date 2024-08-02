@@ -599,6 +599,7 @@ void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyV
     PolicyVec& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
     PolicyVec policy_obj_a;
     policy_obj_a.policy_dict = policy_obj.policy_dict;
+    policy_obj_a.player = I.player;
 
     auto end0 = std::chrono::system_clock::now();
     std::chrono::duration<float> elapsed_seconds = end0 - start;
@@ -607,7 +608,7 @@ void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyV
             << "elapsed time: " << elapsed_seconds.count() << "s"
             << std::endl;
 
-    policy_obj_a.player = I.player;
+
     std::vector<std::vector<int>> starting_histories;
     std::vector<float> prob_reaching_h_list;
     std::vector<float> util_a_list;

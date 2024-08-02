@@ -3,7 +3,7 @@
 // g++-13 -O3 rbt_classes.cpp test_get_h_given_I.cpp -o test_get_h_given_I
 
 void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, History& current_history, InformationSet& end_I, std::vector<std::vector<bool>>& allowed_move_masks,
-                          std::vector<int>& played_actions, int current_action_index, int other_player_turn_index, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
+                          std::vector<int>& played_actions, int current_action_index, int other_player_turn_index, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     InformationSet& I = player == 'x' ? I_1 : I_2;
     std::vector<int> actions;
 
@@ -252,7 +252,7 @@ void get_allowed_move_masks_for_other_player(InformationSet& I, std::vector<std:
 }
 
 
-void upgraded_get_histories_given_I(InformationSet& I, Policy& policy_obj_x, Policy& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
+void upgraded_get_histories_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     if (I.board == "000000000"){
         std::vector<int> init_h = {};
         valid_histories_list.push_back(init_h);
@@ -281,8 +281,8 @@ int main(){
     std::string policy_file_x = "data/P1_uniform_policy_v2.json";
     std::string policy_file_o = "data/P2_uniform_policy_v2.json";
     std::cout << "Loading policies..." << std::endl;
-    Policy policy_obj_x('x', policy_file_x);
-    Policy policy_obj_o('o', policy_file_o);
+    PolicyVec policy_obj_x('x', policy_file_x);
+    PolicyVec policy_obj_o('o', policy_file_o);
     std::cout << "Policies loaded." << std::endl;
 
     std::string hash1 = "0_1|00o0|7_1|00o0|5_1|0oox|8_";
