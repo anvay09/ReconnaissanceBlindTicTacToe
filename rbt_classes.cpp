@@ -310,6 +310,7 @@ void InformationSet::get_actions_given_policy(std::vector<int>& actions, PolicyV
     // }
 
     if (this->index == -1) {
+        std::cout << "KeyError: " << this->get_hash() << " not found in policy dictionary" << std::endl;
         return;
     }
   
