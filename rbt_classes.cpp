@@ -200,7 +200,6 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash) :
             this->index = P2_hash_to_int_map[hash];
         }
     }
-    std::cout << "Index in constructor: " << this->index << " for hash: " << hash << std::endl;
 }
 
 InformationSet::InformationSet(char player, bool move_flag, std::string& hash, std::string& board) : TicTacToeBoard() {
@@ -320,7 +319,7 @@ void InformationSet::get_actions_given_policy(std::vector<int>& actions, PolicyV
         return;
     }
     else {
-        std::cout << "Index: " << this->get_index() << std::endl;
+        std::cout << "Index: " << this->get_index() << " for hash: " << this->get_hash() << std::endl;
         if (this->move_flag) {
             std::vector<float>& prob_dist = policy_obj.policy_dict[this->get_index()];
             for (int move = 0; move < 9; move++) {
