@@ -181,6 +181,9 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash) :
     this->move_flag = move_flag;
     this->hash = hash;
     this->board = this->get_board_from_hash();
+    std::cout << "Number of keys in P1_hash_to_int_map: " << P1_hash_to_int_map.size() << std::endl;
+    std::cout << "Number of keys in P2_hash_to_int_map: " << P2_hash_to_int_map.size() << std::endl;
+
     if (player == 'x') {
         if (P1_hash_to_int_map.find(hash) == P1_hash_to_int_map.end()) {
             this->index = -1;
@@ -203,6 +206,9 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash, s
     this->move_flag = move_flag;
     this->hash = hash;
     this->board = board;
+    std::cout << "Number of keys in P1_hash_to_int_map: " << P1_hash_to_int_map.size() << std::endl;
+    std::cout << "Number of keys in P2_hash_to_int_map: " << P2_hash_to_int_map.size() << std::endl;
+
     if (player == 'x') {
         if (P1_hash_to_int_map.find(hash) == P1_hash_to_int_map.end()) {
             this->index = -1;

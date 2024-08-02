@@ -276,10 +276,6 @@ void upgraded_get_histories_given_I(InformationSet& I, PolicyVec& policy_obj_x, 
     return;
 }   
 
-std::unordered_map<int, std::vector<int> > InformationSet::sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
-std::unordered_map<std::string, long int > InformationSet::P1_hash_to_int_map = {};
-std::unordered_map<std::string, long int > InformationSet::P2_hash_to_int_map = {};
-
 int main(){
     // read information set file
 
@@ -318,16 +314,24 @@ int main(){
 
     std::string hash1 = "0_1|00o0|7_1|00o0|5_1|0oox|8_";
     InformationSet I1('x', false, hash1);
+    std::cout << "Index assigned to I1: " << I1.get_index() << std::endl;
+
     std::string hash2 = "3_0|o0x0|5_0|o0xo|1_3|oxo0|8_2|xo0o|";
     InformationSet I2('x', true, hash2);
+    std::cout << "Index assigned to I2: " << I2.get_index() << std::endl;
+
     std::string hash3 = "1_3|0o00|8_0|0x00|3_2|x0o0|7_";
     InformationSet I3('x', false, hash3);
+    std::cout << "Index assigned to I3: " << I3.get_index() << std::endl;
 
     std::string hash4 = "1|0000|6_2|00o0|1_1|ox00|5_2|x0ox|8_";
     InformationSet I4('o', false, hash4);
+    std::cout << "Index assigned to I4: " << I4.get_index() << std::endl;
+
     std::string hash5 = "2|0000|6_3|x00x|0_1|00x0|5_0|o00x|";
     InformationSet I5('o', true, hash5);
-
+    std::cout << "Index assigned to I5: " << I5.get_index() << std::endl;
+    
     std::vector<std::vector<int>> valid_histories_list_1;
     auto start = std::chrono::system_clock::now();
     upgraded_get_histories_given_I(I1, policy_obj_x, policy_obj_o, valid_histories_list_1);
