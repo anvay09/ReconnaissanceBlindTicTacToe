@@ -175,6 +175,9 @@ void TicTacToeBoard::print_board() {
     }
 }
 
+std::unordered_map<int, std::vector<int> > InformationSet::sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
+std::unordered_map<std::string, long int > InformationSet::P1_hash_to_int_map = {};
+std::unordered_map<std::string, long int > InformationSet::P2_hash_to_int_map = {};
 
 InformationSet::InformationSet(char player, bool move_flag, std::string& hash) : TicTacToeBoard() {
     this->player = player;
