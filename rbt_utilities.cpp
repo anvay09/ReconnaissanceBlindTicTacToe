@@ -329,6 +329,60 @@ float get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBo
     return expected_utility_h;
 }
 
+float get_expected_utility_action_version(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, 
+                            PolicyVec &policy_obj_o, float probability, History& current_history, char initial_player, int action) {
+    float expected_utility_h = 0.0;
+    
+    InformationSet& I = player == 'x' ? I_1 : I_2;
+    PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
+    
+    if (I.move_flag) {
+        TicTacToeBoard new_true_board = true_board;
+        bool success = new_true_board.update_move(action, player);
+
+        float probability_new = probability * 1;
+        History new_history = current_history;
+        new_history.history.push_back(action);
+        
+        char winner;
+        if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
+            InformationSet new_I = I;
+            new_I.update_move(action, player);
+            new_I.reset_zeros();
+            
+            if (player == 'x') {
+                expected_utility_h += get_expected_utility(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player);
+            } else {
+                expected_utility_h += get_expected_utility(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player);
+            }
+        } else {
+            TerminalHistory H_T = TerminalHistory(new_history.history);
+            H_T.set_reward();
+            if (initial_player == 'x'){
+                expected_utility_h += H_T.reward[0] * probability_new;
+            }
+            else{
+                expected_utility_h += H_T.reward[1] * probability_new;
+            }
+        }
+    } 
+    else {
+        InformationSet new_I = I;
+        new_I.simulate_sense(action, true_board);
+        
+        float probability_new = probability * 1;
+        History new_history = current_history;
+        new_history.history.push_back(action);
+
+        if (player == 'x') {
+            expected_utility_h += get_expected_utility(new_I, I_2, true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player);
+        } else {
+            expected_utility_h += get_expected_utility(I_1, new_I, true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player);
+        }
+    }
+
+    return expected_utility_h;
+}
 
 float get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, 
                                      PolicyVec &policy_obj_o, float probability, History& current_history, char initial_player) {
@@ -509,7 +563,7 @@ float get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, 
 }
 
 
-float get_counter_factual_utility(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& starting_histories, std::vector<float>& prob_reaching_h_list) {
+float get_counter_factual_utility(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& starting_histories, std::vector<float>& prob_reaching_h_list, int action) {
     float counter_factual_utility = 0.0;
     int count = 0;
     for (std::vector<int> h : starting_histories) {
@@ -528,7 +582,7 @@ float get_counter_factual_utility(InformationSet& I, PolicyVec& policy_obj_x, Po
         float expected_utility_h;
 
         if (prob_reaching_h_list[count] > 0) {
-            expected_utility_h = get_expected_utility(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1, h_object, I.player);
+            expected_utility_h = get_expected_utility_action_version(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1, h_object, I.player, action);
 
             if (!(curr_I_1.board == "000000000")){
                 probability_reaching_h = prob_reaching_h_list[count];
@@ -571,22 +625,7 @@ float calc_util_a_given_I_and_action(InformationSet& I, int action, PolicyVec& p
                                       std::vector<std::vector<int>>& starting_histories, std::vector<float>& prob_reaching_h_list) {
     
     float util_a = 0.0;
-    PolicyVec& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
-    std::vector<float> old_prob_distribution(13);
-    std::vector<float>& prob_distrubution = policy_obj.policy_dict[I.get_index()];
-
-    for (int i = 0; i < 13; i++) {
-        old_prob_distribution[i] = prob_distrubution[i];
-        prob_distrubution[i] = 0.0;
-    }
-    prob_distrubution[action] = 1.0;
-
-    util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list);
-    
-    for (int i = 0; i < 13; i++) {
-        prob_distrubution[i] = old_prob_distribution[i];
-    }
-    
+    util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list, action);
     return util_a;
 }
 
@@ -597,9 +636,6 @@ void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyV
     float util = 0.0;
     std::vector<int> actions;
     PolicyVec& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
-    PolicyVec policy_obj_a;
-    policy_obj_a.policy_dict = policy_obj.policy_dict;
-    policy_obj_a.player = I.player;
 
     auto end0 = std::chrono::system_clock::now();
     std::chrono::duration<float> elapsed_seconds = end0 - start;
@@ -647,10 +683,10 @@ void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyV
     for (int action : actions) {
         float util_a = 0.0;
         if (I.player == 'x'){
-            util_a = calc_util_a_given_I_and_action(I, action, policy_obj_a, policy_obj_o, starting_histories, prob_reaching_h_list);
+            util_a = calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list);
         }
         else {
-            util_a = calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_a, starting_histories, prob_reaching_h_list);
+            util_a = calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list);
         }
         util += util_a * policy_obj.policy_dict[I.get_index()][action];
         util_a_list[action] = util_a;
