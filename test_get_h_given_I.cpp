@@ -60,11 +60,11 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
         }
     }
 
-    // std::cout << "Actions: ";
-    // for (int action : actions){
-    //     std::cout << action << " ";
-    // }
-    // std::cout << std::endl;
+    std::cout << "Actions: ";
+    for (int action : actions){
+        std::cout << action << " ";
+    }
+    std::cout << std::endl;
 
     if (I.move_flag){
         for (int action : actions) {
@@ -79,7 +79,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                 InformationSet new_I = I;
                 new_I.update_move(action, player);
                 new_I.reset_zeros();
-                // std::cout << "New Information set after M, player " << player << ": " << new_I.hash << std::endl;   
+                std::cout << "New Information set after M, player " << player << ": " << new_I.hash << std::endl;   
 
                 if (player == 'x') {
                     if (end_I.player == 'x') {
@@ -114,7 +114,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
         for (int action : actions) {
             InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
-            // std::cout << "New Information set after S, player " << player << ": " << new_I.hash << std::endl;
+            std::cout << "New Information set after S, player " << player << ": " << new_I.hash << std::endl;
             TicTacToeBoard new_true_board = true_board;
 
             History new_history = current_history;
@@ -243,12 +243,12 @@ void get_allowed_move_masks_for_other_player(InformationSet& I, std::vector<std:
         allowed_move_masks.insert(allowed_move_masks.begin(), mask);
     }
 
-    // for (int i = 0; i < allowed_move_masks.size(); i++) {
-    //     for (int j = 0; j < 9; j++) {
-    //         std::cout << allowed_move_masks[i][j] << " ";
-    //     }
-    //     std::cout << std::endl;
-    // }
+    for (int i = 0; i < allowed_move_masks.size(); i++) {
+        for (int j = 0; j < 9; j++) {
+            std::cout << allowed_move_masks[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
 }
 
 
