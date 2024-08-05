@@ -21,7 +21,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
         std::cout << "Starting iteration " << T << " for player " << player << "..." << std::endl;
         auto start = std::chrono::system_clock::now();
 
-        #pragma omp parallel for num_threads(number_threads) shared(regret_list, policy_obj_x, policy_obj_o)
+        #pragma omp parallel for num_threads(number_threads) shared(regret_list, policy_obj_x, policy_obj_o, information_sets)
         // for (long int i = 0; i < information_sets.size(); i++) {
         for (long int i = 0; i < 100000; i++) {
             std::string I_hash = information_sets[i];
@@ -42,7 +42,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
 
         std::cout << "Updating policy for player " << player << "..." << std::endl;
         start = std::chrono::system_clock::now();
-        #pragma omp parallel for num_threads(number_threads) shared(regret_list, policy_obj_x, policy_obj_o)
+        #pragma omp parallel for num_threads(number_threads) shared(regret_list, policy_obj_x, policy_obj_o, information_sets)
         for (long int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
             bool move_flag = get_move_flag(I_hash, player);
