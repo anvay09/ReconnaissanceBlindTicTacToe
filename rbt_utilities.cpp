@@ -284,7 +284,7 @@ float get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBo
             bool success = new_true_board.update_move(action, player);
 
             if (I.get_index() == -1){
-                std::cout << "KEY ERROR" << std::endl;
+                std::cout << "KEY ERROR: Get exp u" << std::endl;
             }
             float probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
             History new_history = current_history;
@@ -509,7 +509,7 @@ float get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacTo
 
         if (I.player == toggle_player(initial_player)) {
             if (I.get_index() == -1){
-                std::cout << "KEY ERROR" << std::endl;
+                std::cout << "KEY ERROR: Get Prob h" << std::endl;
             }
             probability *= policy_obj.policy_dict[I.get_index()][next_action];
         }
@@ -539,7 +539,7 @@ float get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacTo
 
         if (I.player == toggle_player(initial_player)) {
             if (I.get_index() == -1){
-                std::cout << "KEY ERROR" << std::endl;
+                std::cout << "KEY ERROR: Get Prob h" << std::endl;
             }
             probability *= policy_obj.policy_dict[I.get_index()][next_action];
         }
