@@ -25,7 +25,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
         // for (long int i = 0; i < information_sets.size(); i++) {
         for (long int i = 0; i < 100000; i++) {
             std::string I_hash = information_sets[i];
-            std::cout << "Starting iteration " << T << " for infoset " << I_hash << std::endl;
+            // std::cout << "Starting iteration " << T << " for infoset " << I_hash << std::endl;
 
             bool move_flag = get_move_flag(I_hash, player);
             InformationSet I(player, move_flag, I_hash);
