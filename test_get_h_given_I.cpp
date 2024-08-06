@@ -315,6 +315,12 @@ int main(){
 
     std::string hash1 = "5_3|0x00|1_3|0x00|7_0|ox0o|6_3|oxx0|";
     InformationSet I1('x', true, hash1);
+    std::vector<float>& prob_d = policy_obj_o.policy_dict[I1.get_index()];
+    std::cout << "Policy for I1: ";
+    for (int i = 0; i < prob_d.size(); i++) {
+        std::cout << prob_d[i] << " ";
+    }
+    std::cout << std::endl;
     // std::cout << "Index assigned to I1: " << I1.get_index() << std::endl;
 
     // std::string hash2 = "3_0|o0x0|5_0|o0xo|1_3|oxo0|8_2|xo0o|";
