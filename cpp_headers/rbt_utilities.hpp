@@ -14,7 +14,7 @@ float get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, Ti
 
 float get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o);
 
-float get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, float probability, History history_obj, char initial_player);
+float get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, float probability, History history_obj, char initial_player, InformationSet& end_I);
     
 float get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, float probability, History history_obj, InformationSet& curr_I_1, char initial_player);
     

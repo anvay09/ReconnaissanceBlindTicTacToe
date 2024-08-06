@@ -498,7 +498,7 @@ float get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_ob
 
 
 float get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, 
-                               PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, float probability, History history_obj, char initial_player){
+                               PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, float probability, History history_obj, char initial_player, InformationSet& end_I){
 
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
@@ -509,7 +509,7 @@ float get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacTo
 
         if (I.player == toggle_player(initial_player)) {
             if (I.get_index() == -1){
-                std::cout << "KEY ERROR: Get Prob h" << std::endl;
+                std::cout << "KEY ERROR: Get Prob h, size of history: " << history_obj.history.size() << " Information set: " << end_I.get_hash() << std::endl;
                 for (int z=0; z < history_obj.history.size(); z++){
                     std::cout << history_obj.history[z] << " ";
                 }
@@ -529,10 +529,10 @@ float get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacTo
                 new_I.reset_zeros();
 
                 if (player == 'x') {
-                    probability = get_prob_h_given_policy(new_I, I_2, new_true_board, 'o', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
+                    probability = get_prob_h_given_policy(new_I, I_2, new_true_board, 'o', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player, end_I);
                 }
                 else {
-                    probability = get_prob_h_given_policy(I_1, new_I, new_true_board, 'x', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
+                    probability = get_prob_h_given_policy(I_1, new_I, new_true_board, 'x', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player, end_I);
                 }
             }
         }
@@ -544,7 +544,7 @@ float get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacTo
 
         if (I.player == toggle_player(initial_player)) {
             if (I.get_index() == -1){
-                                std::cout << "KEY ERROR: Get Prob h" << std::endl;
+                std::cout << "KEY ERROR: Get Prob h, size of history: " << history_obj.history.size() << " Information set: " << end_I.get_hash() << std::endl;
                 for (int z=0; z < history_obj.history.size(); z++){
                     std::cout << history_obj.history[z] << " ";
                 }
@@ -558,10 +558,10 @@ float get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacTo
             int new_next_action = history_obj.history[history_obj.track_traversal_index];
 
             if (player == 'x') {
-                probability = get_prob_h_given_policy(new_I, I_2, new_true_board, 'x', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
+                probability = get_prob_h_given_policy(new_I, I_2, new_true_board, 'x', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player, end_I);
             }
             else {
-                probability = get_prob_h_given_policy(I_1, new_I, new_true_board, 'o', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
+                probability = get_prob_h_given_policy(I_1, new_I, new_true_board, 'o', new_next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player, end_I);
             }
         }
     }
@@ -577,7 +577,7 @@ float get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, 
         return 1.0;
     }
     else {
-        return get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player);
+        return get_prob_h_given_policy(I_1, I_2, true_board, player, next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player, curr_I_1);
     }
 }
 
