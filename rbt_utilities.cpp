@@ -656,7 +656,8 @@ void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyV
     std::vector<int> actions;
     PolicyVec& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
 
-
+    std::cout << "Infoset" << I.get_hash() << ", Static hash map size P1" << InformationSet::P1_hash_to_int_map.size() << std::endl;
+    std::cout << "Infoset" << I.get_hash() << ", Static hash map size P2" << InformationSet::P2_hash_to_int_map.size() << std::endl;
     std::vector<std::vector<int>> starting_histories;
     std::vector<float> prob_reaching_h_list;
     std::vector<float> util_a_list;
