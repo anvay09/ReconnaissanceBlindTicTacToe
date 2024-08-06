@@ -162,35 +162,154 @@ void save_output(std::string output_policy_file, std::string output_regret_file,
 //cfr
 
 // prob
-void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2, 
-                          TicTacToeBoard& true_board, char player, 
-                          History& current_history, InformationSet& end_I, 
-                          std::vector<int>& played_actions, PolicyVec& policy_obj_x, 
-                          PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
-    
+void get_allowed_move_masks_for_other_player_prob(InformationSet& I, std::vector<std::vector<bool>>& allowed_move_masks, std::vector<int>& played_actions){
+    std::vector<std::vector<bool>> known_moves_at_each_stage;
+    std::vector<int> other_player_sense_moves;
+    std::vector<std::string> observation_list;
+
+    bool move_action = I.player == 'x' ? true : false;
+    bool sense_action = I.player == 'x' ? false : true;
+    bool observation = false;
+    int i = 0;
+    int other_player_move_index = -1;
+    std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
+
+    while (i < I.hash.size()) {
+        switch (I.hash[i]) { 
+            case '|': 
+                if (observation) { 
+                    observation = false;
+                    move_action = true;
+                }
+                else{
+                    observation = true;
+                    sense_action = false;
+                    if (other_player_move_index == -1) {
+                        known_moves_at_each_stage.push_back(std::vector<bool>(9, false));
+                    }
+                    else {
+                        std::vector<bool> prev_known_moves = known_moves_at_each_stage[other_player_move_index];
+                        known_moves_at_each_stage.push_back(prev_known_moves);
+                    }
+                    observation_list.push_back("");
+                    other_player_move_index++;
+                }
+
+                i++;
+                break;
+
+            case '_': 
+                move_action = false;
+                sense_action = true;
+
+                i++;
+                break;
+
+            default: 
+                if (move_action) {
+                    i++;
+                }
+                else if (sense_action) { 
+                    other_player_sense_moves.push_back(I.hash[i] - '0' + 9);
+                    i++;
+                }
+                else if (observation) { 
+                    
+                    for (int square: sense_square_dict[other_player_sense_moves[other_player_move_index]]) {
+                        if (I.hash[i] == 'o'){
+                            known_moves_at_each_stage[other_player_move_index][square] = true;
+                        }
+                        observation_list[other_player_move_index] += I.hash[i];
+                        i++;
+                    }
+                }
+        }
+    }
+
+    std::vector<bool> mask(9, true);
+    for (int i = 0; i < played_actions.size(); i++) {
+        mask[played_actions[i]] = false;
+    }
+
+    for (int i = other_player_sense_moves.size() - 1; i >= 0; i--) {
+        int num_known_moves = 0;
+        for (int j = 0; j < 9; j++) {
+            if (known_moves_at_each_stage[i][j]) {
+                num_known_moves++;
+            }
+        }
+
+        if (num_known_moves == i + 1){
+            mask = known_moves_at_each_stage[i];
+        }
+        else {
+            std::vector<int> sense_index_list = sense_square_dict[other_player_sense_moves[i]];
+            for (int s = 0; s < 4; s++) {
+                if (observation_list[i][s] == '0') {
+                    mask[sense_index_list[s]] = false;
+                }
+            }
+        }
+
+        allowed_move_masks.insert(allowed_move_masks.begin(), mask);
+    }
+}
+
+void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, History& current_history, InformationSet& end_I, std::vector<std::vector<bool>>& allowed_move_masks,
+                          std::vector<int>& played_actions, int current_action_index, int other_player_turn_index, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     InformationSet& I = player == 'x' ? I_1 : I_2;
     std::vector<int> actions;
 
     if (player == 'x') {
         if (end_I.player == 'x'){
-            I.get_actions_given_policy(actions, policy_obj_x);
-            if (I.move_flag) {
-                actions = intersection(actions, played_actions);
-            }
+            actions.push_back(played_actions[current_action_index++]);
         }
         else {
-            I.get_actions(actions);
+            if (I.move_flag) {
+                if (other_player_turn_index >= allowed_move_masks.size()) {
+                    I.get_actions(actions);
+                }
+                else {
+                    std::vector<int> temp_actions;
+                    I.get_actions(temp_actions);
+                    for (int action : temp_actions) {
+                        if (allowed_move_masks[other_player_turn_index][action]) {
+                            actions.push_back(action);
+                        }
+                    }
+                    other_player_turn_index++;
+                }
+            }
+            else {
+                I.get_actions(actions);
+            }
         }
         
-    } else {
+    } 
+    else {
         if (end_I.player == 'o'){
-            I.get_actions_given_policy(actions, policy_obj_o);
-            if (I.move_flag) {
-                actions = intersection(actions, played_actions);
-            }
+            actions.push_back(played_actions[current_action_index++]);
         }
         else {
-            I.get_actions(actions);
+            if (I.move_flag) {
+                if (other_player_turn_index >= allowed_move_masks.size()) {
+                    I.get_actions(actions);
+                }
+                else {
+                    std::vector<int> temp_actions;
+                    I.get_actions(temp_actions);
+
+                    for (int action : temp_actions) {
+                        if (allowed_move_masks[other_player_turn_index][action]) {
+                            actions.push_back(action);
+                        }
+                    }
+                    other_player_turn_index++;
+                }
+            }
+            else {
+                I.get_actions(actions);
+            }
         }
     }
 
@@ -204,33 +323,33 @@ void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2,
 
             char winner;
             if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
-                InformationSet new_I(I);
+                InformationSet new_I = I;
                 new_I.update_move(action, player);
                 new_I.reset_zeros();
 
                 if (player == 'x') {
                     if (end_I.player == 'x') {
-                        valid_histories_play_prob(new_I, I_2, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                        valid_histories_play_prob(new_I, I_2, new_true_board, 'o', new_history, end_I, allowed_move_masks, played_actions, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
                     }
                     else {
                         if (I_2 == end_I){
                             valid_histories_list.push_back(new_history.history);
                         }
                         else {
-                            valid_histories_play_prob(new_I, I_2, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                            valid_histories_play_prob(new_I, I_2, new_true_board, 'o', new_history, end_I, allowed_move_masks, played_actions, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
                         }
                     }
                 }
                 else {
                     if (end_I.player == 'o') {
-                        valid_histories_play_prob(I_1, new_I, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                        valid_histories_play_prob(I_1, new_I, new_true_board, 'x', new_history, end_I, allowed_move_masks, played_actions, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
                     }
                     else {
                         if (I_1 == end_I){
                             valid_histories_list.push_back(new_history.history);
                         }
                         else {
-                            valid_histories_play_prob(I_1, new_I, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                            valid_histories_play_prob(I_1, new_I, new_true_board, 'x', new_history, end_I, allowed_move_masks, played_actions, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
                         }
                     }
                 }
@@ -239,7 +358,7 @@ void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2,
     }
     else {
         for (int action : actions) {
-            InformationSet new_I(I);
+            InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
             TicTacToeBoard new_true_board = true_board;
 
@@ -249,27 +368,27 @@ void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2,
             if (player == 'x') {
                 if (end_I.player == 'x') {
                     if (!(new_I == end_I)){
-                        valid_histories_play_prob(new_I, I_2, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                        valid_histories_play_prob(new_I, I_2, new_true_board, 'x', new_history, end_I, allowed_move_masks, played_actions, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
                     }
                     else {
                         valid_histories_list.push_back(new_history.history);
                     }
                 }
                 else {
-                    valid_histories_play_prob(new_I, I_2, new_true_board, 'x', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                    valid_histories_play_prob(new_I, I_2, new_true_board, 'x', new_history, end_I, allowed_move_masks, played_actions, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
                 }
             }
             else {
                 if (end_I.player == 'o') {
                     if (!(new_I == end_I)){
-                        valid_histories_play_prob(I_1, new_I, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                        valid_histories_play_prob(I_1, new_I, new_true_board, 'o', new_history, end_I, allowed_move_masks, played_actions, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
                     }
                     else {
                         valid_histories_list.push_back(new_history.history);
                     }
                 }
                 else {
-                    valid_histories_play_prob(I_1, new_I, new_true_board, 'o', new_history, end_I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+                    valid_histories_play_prob(I_1, new_I, new_true_board, 'o', new_history, end_I, allowed_move_masks, played_actions, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
                 }
             }
         }
@@ -277,15 +396,12 @@ void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2,
 }
 
 
-void upgraded_get_histories_given_I_prob(InformationSet& I, PolicyVec& policy_obj_x, 
-                                    PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
-    
+void upgraded_get_histories_given_I_prob(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     if (I.board == "000000000"){
         std::vector<int> init_h = {};
         valid_histories_list.push_back(init_h);
         return;
     }
-
     std::string hash_1 = "";
     std::string hash_2 = "";
     std::string board = "000000000";
@@ -295,18 +411,18 @@ void upgraded_get_histories_given_I_prob(InformationSet& I, PolicyVec& policy_ob
     char player = 'x';
     std::vector<int> played_actions;
     I.get_played_actions(played_actions);
+    std::vector<std::vector<bool>> allowed_move_masks;
+    get_allowed_move_masks_for_other_player_prob(I, allowed_move_masks, played_actions);
 
     std::vector<int> h = {};
     NonTerminalHistory current_history(h);
-    valid_histories_play_prob(I_1, I_2, true_board, player, current_history, I, played_actions, policy_obj_x, policy_obj_o, valid_histories_list);
+    valid_histories_play_prob(I_1, I_2, true_board, player, current_history, I, allowed_move_masks, played_actions, 0, 0, policy_obj_x, policy_obj_o, valid_histories_list);
     return;
-}   
+}
 
-float get_prob_h_given_policy_prob(InformationSet& I_1, InformationSet& I_2, 
-                               TicTacToeBoard& true_board, char player, 
-                               int next_action, PolicyVec& policy_obj_x, 
-                               PolicyVec& policy_obj_o, float probability, 
-                               History history_obj, char initial_player){
+
+float get_prob_h_given_policy_prob(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, 
+                               PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, float probability, History history_obj, char initial_player){
 
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
@@ -316,6 +432,9 @@ float get_prob_h_given_policy_prob(InformationSet& I_1, InformationSet& I_2,
         bool success = new_true_board.update_move(next_action, player);
 
         if (I.player == initial_player) {
+            if (I.get_index() == -1){
+                return 0.0;
+            }
             probability *= policy_obj.policy_dict[I.get_index()][next_action];
         }
         history_obj.track_traversal_index += 1;
@@ -324,7 +443,7 @@ float get_prob_h_given_policy_prob(InformationSet& I_1, InformationSet& I_2,
 
             char winner;
             if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
-                InformationSet new_I(I);
+                InformationSet new_I = I;
                 new_I.update_move(next_action, player);
                 new_I.reset_zeros();
 
@@ -338,11 +457,14 @@ float get_prob_h_given_policy_prob(InformationSet& I_1, InformationSet& I_2,
         }
     }
     else {
-        InformationSet new_I(I);
+        InformationSet new_I = I;
         new_I.simulate_sense(next_action, true_board);
         TicTacToeBoard new_true_board = true_board;
 
         if (I.player == initial_player) {
+            if (I.get_index() == -1){
+                return 0.0;
+            }
             probability *= policy_obj.policy_dict[I.get_index()][next_action];
         }
         history_obj.track_traversal_index += 1;
@@ -361,7 +483,6 @@ float get_prob_h_given_policy_prob(InformationSet& I_1, InformationSet& I_2,
     return probability;
 }
 
-
 float get_prob_h_given_policy_wrapper_prob(InformationSet& I_1, InformationSet& I_2, 
                                        TicTacToeBoard& true_board, char player, 
                                        int next_action, PolicyVec& policy_obj_x, 
@@ -377,34 +498,26 @@ float get_prob_h_given_policy_wrapper_prob(InformationSet& I_1, InformationSet& 
 }
 
 
-void get_probability_of_reaching_all_h_prob(InformationSet &I, PolicyVec& policy_obj_x,
-                                       PolicyVec& policy_obj_o, std::vector<std::vector<int>>& starting_histories,
+void get_probability_of_reaching_all_h_prob(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& starting_histories, 
                                        char initial_player, std::vector<float>& prob_reaching_h_list_all) {
+    for (std::vector<int> h : starting_histories) {
+        NonTerminalHistory h_object(h);
 
-    for (std::vector<int> history: starting_histories) {
-        NonTerminalHistory h_object = NonTerminalHistory(history);
-        float prob_reaching_h;
-
-        if (I.board == "000000000") {
-            prob_reaching_h = 1.0;
-        }
-        else {
+        if (!(I.board == "000000000")) {
             std::string board = "000000000";
             std::string hash_1 = "";
             std::string hash_2 = "";
             InformationSet I_1('x', true, hash_1);
             InformationSet I_2('o', false, hash_2);
             TicTacToeBoard true_board = TicTacToeBoard(board);
-            
-            prob_reaching_h = get_prob_h_given_policy_wrapper_prob(I_1, I_2, true_board, 'x', history[0], policy_obj_x, policy_obj_o, 1.0, h_object, I, initial_player);
+            float probability_reaching_h = get_prob_h_given_policy_wrapper_prob(I_1, I_2, true_board, 'x', h[0], policy_obj_x, policy_obj_o, 1.0, h_object, I, initial_player);
+            prob_reaching_h_list_all.push_back(probability_reaching_h);
         }
-
-        prob_reaching_h_list_all.push_back(prob_reaching_h);
+        else {
+            prob_reaching_h_list_all.push_back(1.0);
+        }
     }
-
-    return;
 }
-
 
 float get_probability_of_reaching_I_prob(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char initial_player) {
     std::vector<std::vector<int>> starting_histories;
