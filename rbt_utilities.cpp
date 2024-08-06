@@ -510,6 +510,7 @@ float get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacTo
         if (I.player == toggle_player(initial_player)) {
             if (I.get_index() == -1){
                 std::cout << "KEY ERROR: Get Prob h, size of history: " << history_obj.history.size() << " Information set: " << end_I.get_hash() << std::endl;
+                std::cout << "Invalid I: " << I.get_hash() << std::endl;
                 for (int z=0; z < history_obj.history.size(); z++){
                     std::cout << history_obj.history[z] << " ";
                 }
