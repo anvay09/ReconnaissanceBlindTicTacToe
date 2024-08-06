@@ -317,21 +317,21 @@ int main(){
     InformationSet I1('x', true, hash1);
     // std::cout << "Index assigned to I1: " << I1.get_index() << std::endl;
 
-    std::string hash2 = "3_0|o0x0|5_0|o0xo|1_3|oxo0|8_2|xo0o|";
-    InformationSet I2('x', true, hash2);
-    // std::cout << "Index assigned to I2: " << I2.get_index() << std::endl;
+    // std::string hash2 = "3_0|o0x0|5_0|o0xo|1_3|oxo0|8_2|xo0o|";
+    // InformationSet I2('x', true, hash2);
+    // // std::cout << "Index assigned to I2: " << I2.get_index() << std::endl;
 
-    std::string hash3 = "1_3|0o00|8_0|0x00|3_2|x0o0|7_";
-    InformationSet I3('x', false, hash3);
-    // std::cout << "Index assigned to I3: " << I3.get_index() << std::endl;
+    // std::string hash3 = "1_3|0o00|8_0|0x00|3_2|x0o0|7_";
+    // InformationSet I3('x', false, hash3);
+    // // std::cout << "Index assigned to I3: " << I3.get_index() << std::endl;
 
-    std::string hash4 = "1|0000|6_2|00o0|1_1|ox00|5_2|x0ox|8_";
-    InformationSet I4('o', false, hash4);
-    // std::cout << "Index assigned to I4: " << I4.get_index() << std::endl;
+    // std::string hash4 = "1|0000|6_2|00o0|1_1|ox00|5_2|x0ox|8_";
+    // InformationSet I4('o', false, hash4);
+    // // std::cout << "Index assigned to I4: " << I4.get_index() << std::endl;
 
-    std::string hash5 = "2|0000|6_3|x00x|0_1|00x0|5_0|o00x|";
-    InformationSet I5('o', true, hash5);
-    // std::cout << "Index assigned to I5: " << I5.get_index() << std::endl;
+    // std::string hash5 = "2|0000|6_3|x00x|0_1|00x0|5_0|o00x|";
+    // InformationSet I5('o', true, hash5);
+    // // std::cout << "Index assigned to I5: " << I5.get_index() << std::endl;
 
     std::vector<std::vector<int>> valid_histories_list_1;
     auto start = std::chrono::system_clock::now();
@@ -344,47 +344,47 @@ int main(){
             << "elapsed time: " << elapsed_seconds.count() << "s"
             << std::endl;
 
-    std::vector<std::vector<int>> valid_histories_list_2;
-    start = std::chrono::system_clock::now();
-    upgraded_get_histories_given_I(I2, policy_obj_x, policy_obj_o, valid_histories_list_2);
-    std::cout << "Number of valid histories for I2: " << valid_histories_list_2.size() << std::endl;
-    end = std::chrono::system_clock::now();
-    elapsed_seconds = end - start;
-    end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "finished computation at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
+    // std::vector<std::vector<int>> valid_histories_list_2;
+    // start = std::chrono::system_clock::now();
+    // upgraded_get_histories_given_I(I2, policy_obj_x, policy_obj_o, valid_histories_list_2);
+    // std::cout << "Number of valid histories for I2: " << valid_histories_list_2.size() << std::endl;
+    // end = std::chrono::system_clock::now();
+    // elapsed_seconds = end - start;
+    // end_time = std::chrono::system_clock::to_time_t(end);
+    // std::cout << "finished computation at " << std::ctime(&end_time)
+    //         << "elapsed time: " << elapsed_seconds.count() << "s"
+    //         << std::endl;
 
-    std::vector<std::vector<int>> valid_histories_list_3;
-    start = std::chrono::system_clock::now();
-    upgraded_get_histories_given_I(I3, policy_obj_x, policy_obj_o, valid_histories_list_3);
-    std::cout << "Number of valid histories for I3: " << valid_histories_list_3.size() << std::endl;
-    end = std::chrono::system_clock::now();
-    elapsed_seconds = end - start;
-    end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "finished computation at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
+    // std::vector<std::vector<int>> valid_histories_list_3;
+    // start = std::chrono::system_clock::now();
+    // upgraded_get_histories_given_I(I3, policy_obj_x, policy_obj_o, valid_histories_list_3);
+    // std::cout << "Number of valid histories for I3: " << valid_histories_list_3.size() << std::endl;
+    // end = std::chrono::system_clock::now();
+    // elapsed_seconds = end - start;
+    // end_time = std::chrono::system_clock::to_time_t(end);
+    // std::cout << "finished computation at " << std::ctime(&end_time)
+    //         << "elapsed time: " << elapsed_seconds.count() << "s"
+    //         << std::endl;
 
-    std::vector<std::vector<int>> valid_histories_list_4;
-    start = std::chrono::system_clock::now();
-    upgraded_get_histories_given_I(I4, policy_obj_x, policy_obj_o, valid_histories_list_4);
-    std::cout << "Number of valid histories for I4: " << valid_histories_list_4.size() << std::endl;
-    end = std::chrono::system_clock::now();
-    elapsed_seconds = end - start;
-    end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "finished computation at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
+    // std::vector<std::vector<int>> valid_histories_list_4;
+    // start = std::chrono::system_clock::now();
+    // upgraded_get_histories_given_I(I4, policy_obj_x, policy_obj_o, valid_histories_list_4);
+    // std::cout << "Number of valid histories for I4: " << valid_histories_list_4.size() << std::endl;
+    // end = std::chrono::system_clock::now();
+    // elapsed_seconds = end - start;
+    // end_time = std::chrono::system_clock::to_time_t(end);
+    // std::cout << "finished computation at " << std::ctime(&end_time)
+    //         << "elapsed time: " << elapsed_seconds.count() << "s"
+    //         << std::endl;
 
-    std::vector<std::vector<int>> valid_histories_list_5;
-    start = std::chrono::system_clock::now();
-    upgraded_get_histories_given_I(I5, policy_obj_x, policy_obj_o, valid_histories_list_5);
-    std::cout << "Number of valid histories for I5: " << valid_histories_list_5.size() << std::endl;
-    end = std::chrono::system_clock::now();
-    elapsed_seconds = end - start;
-    end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "finished computation at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
+    // std::vector<std::vector<int>> valid_histories_list_5;
+    // start = std::chrono::system_clock::now();
+    // upgraded_get_histories_given_I(I5, policy_obj_x, policy_obj_o, valid_histories_list_5);
+    // std::cout << "Number of valid histories for I5: " << valid_histories_list_5.size() << std::endl;
+    // end = std::chrono::system_clock::now();
+    // elapsed_seconds = end - start;
+    // end_time = std::chrono::system_clock::to_time_t(end);
+    // std::cout << "finished computation at " << std::ctime(&end_time)
+    //         << "elapsed time: " << elapsed_seconds.count() << "s"
+    //         << std::endl;
 }
