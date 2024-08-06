@@ -19,7 +19,6 @@
 
 static std::string EMPTY_BOARD = "000000000";
 static std::string EMPTY_HASH = "";
-static std::unordered_map<int, std::string> sense_square_mapping = {{9, "0"}, {10, "1"}, {11, "2"}, {12, "3"}};
 class Policy;
 class PolicyVec;
 

@@ -420,6 +420,7 @@ void InformationSet::simulate_sense(int action, TicTacToeBoard& true_board) {
     this->reset_zeros();
     std::string observation = "----";
     int count = 0;
+    std::unordered_map<int, std::string> sense_square_mapping = {{9, "0"}, {10, "1"}, {11, "2"}, {12, "3"}};
     std::unordered_map<int, std::vector<int> > sense_square_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
     for (int square : sense_square_dict[action]) {
         this->board[square] = true_board[square];
