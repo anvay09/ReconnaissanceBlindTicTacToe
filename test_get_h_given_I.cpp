@@ -6,7 +6,7 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, TicTacToeBoa
                           std::vector<int>& played_actions, int current_action_index, int other_player_turn_index, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     InformationSet& I = player == 'x' ? I_1 : I_2;
     std::vector<int> actions;
-    std::cout << "Information set: " << I.hash << std::endl;
+    std::cout << "Information set: " << I.hash << " ";
 
     if (player == 'x') {
         if (end_I.player == 'x'){
