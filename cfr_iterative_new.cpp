@@ -267,11 +267,11 @@ void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2, TicTacT
         else {
             if (I.move_flag) {
                 if (other_player_turn_index >= allowed_move_masks.size()) {
-                    I.get_actions(actions);
+                    I.get_actions_given_policy(actions, policy_obj_x);
                 }
                 else {
                     std::vector<int> temp_actions;
-                    I.get_actions(temp_actions);
+                    I.get_actions_given_policy(temp_actions, policy_obj_x);
                     for (int action : temp_actions) {
                         if (allowed_move_masks[other_player_turn_index][action]) {
                             actions.push_back(action);
@@ -281,7 +281,7 @@ void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2, TicTacT
                 }
             }
             else {
-                I.get_actions(actions);
+                I.get_actions_given_policy(actions, policy_obj_x);
             }
         }
         
@@ -293,11 +293,11 @@ void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2, TicTacT
         else {
             if (I.move_flag) {
                 if (other_player_turn_index >= allowed_move_masks.size()) {
-                    I.get_actions(actions);
+                    I.get_actions_given_policy(actions, policy_obj_o);
                 }
                 else {
                     std::vector<int> temp_actions;
-                    I.get_actions(temp_actions);
+                    I.get_actions_given_policy(temp_actions, policy_obj_o);
 
                     for (int action : temp_actions) {
                         if (allowed_move_masks[other_player_turn_index][action]) {
@@ -308,7 +308,7 @@ void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2, TicTacT
                 }
             }
             else {
-                I.get_actions(actions);
+                I.get_actions_given_policy(actions, policy_obj_o);
             }
         }
     }
