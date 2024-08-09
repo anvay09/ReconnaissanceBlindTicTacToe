@@ -170,6 +170,35 @@ double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, T
 
 
 int main(int argc, char** argv) {
+    std::string file_path_1 = argv[1];
+    std::string file_path_2 = argv[2];
+    std::vector<std::string> P1_information_sets;
+    std::vector<std::string> P2_information_sets;
+    std::string P1_information_sets_file = "data/P1_information_sets_V2.txt";
+    std::string P2_information_sets_file = "data/P2_information_sets_V2.txt";
+
+    std::ifstream P1_f_is(P1_information_sets_file);
+    std::string P1_line_is;
+    while (std::getline(P1_f_is, P1_line_is)) {
+        P1_information_sets.push_back(P1_line_is);
+    }
+    P1_f_is.close();
+
+    std::ifstream P2_f_is(P2_information_sets_file);
+    std::string P2_line_is;
+    while (std::getline(P2_f_is, P2_line_is)) {
+        P2_information_sets.push_back(P2_line_is);
+    }
+    P2_f_is.close();
+
+    for (long int i = 0; i < P1_information_sets.size(); i++) {
+        InformationSet::P1_hash_to_int_map[P1_information_sets[i]] = i;
+    }
+    for (long int i = 0; i < P2_information_sets.size(); i++) {
+        InformationSet::P2_hash_to_int_map[P2_information_sets[i]] = i;
+    }
+
+
     std::cout.precision(17);
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
@@ -178,12 +207,12 @@ int main(int argc, char** argv) {
     InformationSet I_1 = InformationSet('x', true, board_1);
     InformationSet I_2 = InformationSet('o', false, board_2);
 
-    std::string file_path_1 = argv[1];
-    std::string file_path_2 = argv[2];
-
+    std::cout << "Loading policies..." << std::endl;
     char player = 'x';
     PolicyVec policy_obj_x('x', file_path_1);
     PolicyVec policy_obj_o('o', file_path_2);
+
+    std::cout << "Policies loaded." << std::endl;
 
     std::vector<int> h = {};
     TerminalHistory start_history = TerminalHistory(h);
@@ -193,11 +222,6 @@ int main(int argc, char** argv) {
     
     double expected_utility = get_expected_utility_parallel(I_1, I_2, true_board, player, policy_obj_x, policy_obj_o, 1, start_history, player, 0);
     std::cout << "Expected utility: " << expected_utility << std::endl;
-
-    std::ofstream file;
-    file.open("expected_utility.txt");
-    file << expected_utility;
-    file.close();
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
