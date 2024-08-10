@@ -673,8 +673,8 @@ int main(int argc, char* argv[])  {
 
 
     for (int T = start_iter; T <= end_iter; T++) {
-        // float expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
-        // std::cout << "Expected utility: " << expected_utility << std::endl; 
+        float expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
+        std::cout << "Expected utility: " << expected_utility << std::endl; 
         run_cfr(T, P1_information_sets, regret_list_x, policy_obj_x, policy_obj_o, 'x', base_path);
         run_cfr(T, P2_information_sets, regret_list_o, policy_obj_x, policy_obj_o, 'o', base_path);
         get_prob_reaching(P1_information_sets, prob_reaching_list_x, 'x', policy_obj_x, policy_obj_o);
@@ -696,4 +696,6 @@ int main(int argc, char* argv[])  {
     std::string output_policy_file_x_denom = base_path + "/average" + "/P1_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_denom.json";
     save_output(output_policy_file_x, output_regret_file_x, 'x', P1_information_sets, regret_list_x, avg_policy_obj_x);
     save_output(output_policy_file_o, output_regret_file_o, 'o', P2_information_sets, regret_list_o, avg_policy_obj_o);
+    float expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, avg_policy_obj_o);
+    std::cout << "Expected utility avg: " << expected_utility << std::endl; 
 }
