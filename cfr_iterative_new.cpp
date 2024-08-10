@@ -681,6 +681,14 @@ int main(int argc, char* argv[])  {
     std::string output_policy_file_o = base_path + "/average" + "/P2_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp.json";
     std::string output_regret_file_x = base_path + "/regret/P1_iteration_" + std::to_string(end_iter) + "_regret_cpp.json";
     std::string output_regret_file_o = base_path + "/regret/P2_iteration_" + std::to_string(end_iter) + "_regret_cpp.json";
+    std::string output_policy_file_o_num = base_path + "/average" + "/P2_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_num.json";
+    std::string output_policy_file_o_denom = base_path + "/average" + "/P2_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_denom.json";
+    std::string output_policy_file_x_num = base_path + "/average" + "/P1_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_num.json";
+    std::string output_policy_file_x_denom = base_path + "/average" + "/P1_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_denom.json";
     save_output(output_policy_file_x, output_regret_file_x, 'x', P1_information_sets, regret_list_x, avg_policy_obj_x);
     save_output(output_policy_file_o, output_regret_file_o, 'o', P2_information_sets, regret_list_o, avg_policy_obj_o);
+    std::cout << "Saving avg terms num" << 'x' << "..." << std::endl;
+    save_map_json(output_policy_file_x_num, avg_policy_numerator_x, P1_information_sets);
+    std::cout << "Saving avg terms num" << 'o' << "..." << std::endl;
+    save_map_json(output_policy_file_o_num, avg_policy_numerator_o, P2_information_sets);
 }
