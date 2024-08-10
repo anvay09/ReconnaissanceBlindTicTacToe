@@ -780,6 +780,7 @@ std::vector< std::vector<float> > PolicyVec::read_policy_from_json(std::string& 
     
     for (json::iterator it = policy_obj.begin(); it != policy_obj.end(); ++it) {
         std::string I_hash = it.key();
+        std::cout << I_hash << std::endl;
         bool move_flag;
         if (I_hash.size() != 0){
             move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
