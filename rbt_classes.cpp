@@ -814,7 +814,7 @@ std::vector< std::vector<float> > PolicyVec::read_policy_from_json(std::string& 
                 std::cerr << "I_hash1: " << I_hash << std::endl;
                 std::cerr << "move_keys[i]: " << move_keys[i] << std::endl;
                 std::cerr << "policy_obj[I_hash] size: " << policy_obj[I_hash].size() << std::endl;
-                for (int k = 0; k < 9; i++) {
+                for (int k = 0; k < 9; k++) {
                     std::cerr << policy_obj[I_hash][move_keys[k]] << " ";
                 }
                 std::cerr << std::endl;
