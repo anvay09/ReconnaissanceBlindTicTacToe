@@ -826,6 +826,11 @@ std::vector< std::vector<float> > PolicyVec::read_policy_from_json(std::string& 
                 }
             }
         }
+        std::cerr << "I_hash: " << I_hash << std::endl;
+        for (int i = 0; i < 13; i++) {
+            std::cerr << probability_distribution[i] << " ";
+        }
+        std::cerr << std::endl;
 
         policy_list[I.get_index()] = probability_distribution;
     }
