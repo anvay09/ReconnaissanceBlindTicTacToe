@@ -780,7 +780,6 @@ std::vector< std::vector<float> > PolicyVec::read_policy_from_json(std::string& 
     
     for (json::iterator it = policy_obj.begin(); it != policy_obj.end(); ++it) {
         std::string I_hash = it.key();
-         std::cerr << "I_hash: " << I_hash << std::endl;
         bool move_flag;
         if (I_hash.size() != 0){
             move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
@@ -797,33 +796,19 @@ std::vector< std::vector<float> > PolicyVec::read_policy_from_json(std::string& 
             probability_distribution[i] = 0;
         }
 
-        std::cerr << "I_hash: " << I_hash << std::endl;
-
         if (I_hash.back() == '_') {
             std::vector<std::string> sense_keys = {"9", "10", "11", "12"};
             for (int i = 0; i < sense_keys.size(); i++) {
-                std::cerr << "I_hash1: " << I_hash << std::endl;
-                std::cerr << "sense_keys[i]: " << sense_keys[i] << std::endl;
-                std::cerr << "policy_obj[I_hash] size: " << policy_obj[I_hash].size() << std::endl;
                 probability_distribution[stoi(sense_keys[i])] = policy_obj[I_hash][sense_keys[i]];
             }
         }
         else if (I_hash.back() == '|') {
             std::vector<std::string> move_keys = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};
             for (int i = 0; i < move_keys.size(); i++) {
-                std::cerr << "I_hash1: " << I_hash << std::endl;
-                std::cerr << "move_keys[i]: " << move_keys[i] << std::endl;
-                std::cerr << "policy_obj[I_hash] size: " << policy_obj[I_hash].size() << std::endl;
-                for (int k = 0; k < 9; k++) {
-                    std::cerr << policy_obj[I_hash][move_keys[k]] << " ";
-                }
-                std::cerr << std::endl;
                 probability_distribution[stoi(move_keys[i])] = policy_obj[I_hash][move_keys[i]];
-                std::cerr << "done" << std::endl;
             }
         }
         else {
-            std::cerr << "I_hash1: " << I_hash << std::endl;
             if (player == 'x'){
                 std::vector<std::string> move_keys = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};
                 for (int i = 0; i < move_keys.size(); i++) {
@@ -837,11 +822,6 @@ std::vector< std::vector<float> > PolicyVec::read_policy_from_json(std::string& 
                 }
             }
         }
-        std::cerr << "I_hash: " << I_hash << std::endl;
-        for (int i = 0; i < 13; i++) {
-            std::cerr << probability_distribution[i] << " ";
-        }
-        std::cerr << std::endl;
 
         policy_list[I.get_index()] = probability_distribution;
     }
