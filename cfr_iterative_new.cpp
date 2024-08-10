@@ -17,7 +17,7 @@ bool get_move_flag(std::string I_hash, char player){
 }
 
 //cfr
-void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std::vector<float>>& regret_list, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char player){
+void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std::vector<float>>& regret_list, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char player, std::string base_path){
         std::cout << "Starting iteration " << T << " for player " << player << "..." << std::endl;
         auto start = std::chrono::system_clock::now();
 
@@ -67,6 +67,15 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
                     prob_dist[action] = 1.0 / float(actions.size());
                 }
             }
+        }
+
+        if (player == 'x') {
+            std::string output_policy_file_cfr = base_path + + "/cfr" + "/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
+            save_map_json(output_policy_file_cfr, policy_obj_x.policy_dict, information_sets);
+        }
+        else if (player == 'o') {
+            std::string output_policy_file_cfr = base_path + + "/cfr" + "/P2_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
+            save_map_json(output_policy_file_cfr, policy_obj_o.policy_dict, information_sets);
         }
 
         end = std::chrono::system_clock::now();
@@ -666,8 +675,8 @@ int main(int argc, char* argv[])  {
     for (int T = start_iter; T <= end_iter; T++) {
         // float expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
         // std::cout << "Expected utility: " << expected_utility << std::endl; 
-        run_cfr(T, P1_information_sets, regret_list_x, policy_obj_x, policy_obj_o, 'x');
-        run_cfr(T, P2_information_sets, regret_list_o, policy_obj_x, policy_obj_o, 'o');
+        run_cfr(T, P1_information_sets, regret_list_x, policy_obj_x, policy_obj_o, 'x', base_path);
+        run_cfr(T, P2_information_sets, regret_list_o, policy_obj_x, policy_obj_o, 'o', base_path);
         get_prob_reaching(P1_information_sets, prob_reaching_list_x, 'x', policy_obj_x, policy_obj_o);
         get_prob_reaching(P2_information_sets, prob_reaching_list_o, 'o', policy_obj_x, policy_obj_o);
         calc_average_terms('x', P1_information_sets, policy_obj_x, prob_reaching_list_x, avg_policy_numerator_x, avg_policy_denominator_x);
@@ -687,8 +696,4 @@ int main(int argc, char* argv[])  {
     std::string output_policy_file_x_denom = base_path + "/average" + "/P1_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_denom.json";
     save_output(output_policy_file_x, output_regret_file_x, 'x', P1_information_sets, regret_list_x, avg_policy_obj_x);
     save_output(output_policy_file_o, output_regret_file_o, 'o', P2_information_sets, regret_list_o, avg_policy_obj_o);
-    std::cout << "Saving avg terms num" << 'x' << "..." << std::endl;
-    save_map_json(output_policy_file_x_num, avg_policy_numerator_x, P1_information_sets);
-    std::cout << "Saving avg terms num" << 'o' << "..." << std::endl;
-    save_map_json(output_policy_file_o_num, avg_policy_numerator_o, P2_information_sets);
 }
