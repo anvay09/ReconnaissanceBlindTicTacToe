@@ -16,6 +16,19 @@ bool get_move_flag(std::string I_hash, char player){
     return move_flag;
 }
 
+void save_map_json(std::string output_file, std::vector<std::vector<float>>& map, std::vector<std::string>& information_sets){
+    std::ofstream f_out;
+    f_out.open(output_file, std::ios::trunc);
+    json jx;
+    for (long int j = 0; j < map.size(); j++) {
+        for (int i = 0; i < 13; i++) {
+            jx[information_sets[j]][std::to_string(i)] = map[j][i];
+        }
+    }
+    f_out << jx.dump() << std::endl;
+    f_out.close();
+}
+
 //cfr
 void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std::vector<float>>& regret_list, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char player, std::string base_path){
         std::cout << "Starting iteration " << T << " for player " << player << "..." << std::endl;
@@ -138,19 +151,6 @@ void initialize_continue(std::string policy_file, std::string information_set_fi
         line_number += 1;
     }
     f_is.close();
-}
-
-void save_map_json(std::string output_file, std::vector<std::vector<float>>& map, std::vector<std::string>& information_sets){
-    std::ofstream f_out;
-    f_out.open(output_file, std::ios::trunc);
-    json jx;
-    for (long int j = 0; j < map.size(); j++) {
-        for (int i = 0; i < 13; i++) {
-            jx[information_sets[j]][std::to_string(i)] = map[j][i];
-        }
-    }
-    f_out << jx.dump() << std::endl;
-    f_out.close();
 }
 
 
