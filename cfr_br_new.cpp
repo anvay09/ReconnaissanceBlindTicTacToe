@@ -1,6 +1,6 @@
 // computes the best response against a policy using cfr
 
-// Compile: g++-13 -O3 cfr_br_new.cpp rbt_classes.cpp rbt_utilities.cpp -o cfr_br_new -fopenmp -I /Users/anvay/Downloads/boost_1_84_0
+// Compile: g++-13 -O3 cfr_br_new.cpp rbt_classes.cpp rbt_utilities.cpp -o cfr_br_new -fopenmp
 
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/rbt_utilities.hpp"
@@ -89,8 +89,10 @@ int main(int argc, char* argv[]) {
         information_sets = P2_information_sets;
     }
 
+    std::cout << "Loading policy files..." << std::endl;
     policy_obj_x = PolicyVec('x', P1_policy_file);
     policy_obj_o = PolicyVec('o', P2_policy_file);
+    std::cout << "Policy files loaded." << std::endl;
     float expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
     std::cout << "Expected utility: " << expected_utility << std::endl; 
 

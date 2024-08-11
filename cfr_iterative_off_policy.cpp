@@ -1,4 +1,5 @@
 // Compile: g++-13 -O3 cfr_iterative_new.cpp rbt_classes.cpp rbt_utilities.cpp -o cfr_i -fopenmp -I /Users/anvay/Downloads/boost_1_84_0
+// Expected utility avg: 0.39416214823722839
 
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/rbt_utilities.hpp"
