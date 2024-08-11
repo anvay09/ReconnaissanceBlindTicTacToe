@@ -150,9 +150,25 @@ int main(int argc, char* argv[]) {
 
     for (long int i = 0; i < P1_information_sets.size(); i++) {
         InformationSet::P1_hash_to_int_map[P1_information_sets[i]] = i;
+        
+        if (player == "x") {
+            std::vector<float> regret_vector;
+            for (int i = 0; i < 13; i++) {
+                regret_vector.push_back(0.0);
+            }
+            regret_list.push_back(regret_vector);
+        }
     }
     for (long int i = 0; i < P2_information_sets.size(); i++) {
         InformationSet::P2_hash_to_int_map[P2_information_sets[i]] = i;
+
+        if (player == "o") {
+            std::vector<float> regret_vector;
+            for (int i = 0; i < 13; i++) {
+                regret_vector.push_back(0.0);
+            }
+            regret_list.push_back(regret_vector);
+        }
     }
 
     if (player == "x") {
@@ -183,7 +199,7 @@ int main(int argc, char* argv[]) {
     
     std::ofstream f_out_policy;
     for (int T = 1; T <= num_iterations; T++) {
-        run_cfr(T, information_sets, regret_list, policy_obj_x, policy_obj_o, 'x', "data/best_response");
+        run_cfr(T, information_sets, regret_list, policy_obj_x, policy_obj_o, player[0], "data/best_response");
         float expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
         std::cout << "Expected utility: " << expected_utility << std::endl; 
     }
