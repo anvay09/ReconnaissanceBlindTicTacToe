@@ -586,6 +586,9 @@ void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& 
         for (int action: actions) {
             std::vector<float>& policy = avg_policy_obj.policy_dict[I.get_index()];
             policy[action] = avg_policy_denominator[I.get_index()] > 0 ? avg_policy_numerator[I.get_index()][action] / avg_policy_denominator[I.get_index()] : 0;
+            if (policy[action] == NULL){
+                std::cerr << "NULL Information set: " << I_hash << " action: " << action << std::endl;
+            }
         }
     }
 }
@@ -679,6 +682,15 @@ int main(int argc, char* argv[])  {
         run_cfr(T, P2_information_sets, regret_list_o, policy_obj_x, policy_obj_o, 'o', base_path);
         get_prob_reaching(P1_information_sets, prob_reaching_list_x, 'x', policy_obj_x, policy_obj_o);
         get_prob_reaching(P2_information_sets, prob_reaching_list_o, 'o', policy_obj_x, policy_obj_o);
+        std::ofstream f_out;
+        std::string prob_file_x = base_path + "/prob_reaching" + "/P1_iteration_" + std::to_string(T) + "_prob_reaching_cpp.json";
+        f_out.open(prob_file_x, std::ios::trunc);
+        json jx;
+        for (long int j = 0; j < prob_reaching_list_x.size(); j++) {
+            jx[P1_information_sets[j]] = prob_reaching_list_x[j];
+        }
+        f_out << jx.dump() << std::endl;
+        f_out.close();
         calc_average_terms('x', P1_information_sets, policy_obj_x, prob_reaching_list_x, avg_policy_numerator_x, avg_policy_denominator_x);
         calc_average_terms('o', P2_information_sets, policy_obj_o, prob_reaching_list_o, avg_policy_numerator_o, avg_policy_denominator_o);
     }
