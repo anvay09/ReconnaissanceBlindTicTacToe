@@ -5,6 +5,8 @@
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/rbt_utilities.hpp"
 
+int number_threads = 4;
+
 bool get_move_flag(std::string I_hash, char player){
     bool move_flag;
     if (I_hash.size() != 0){
@@ -122,7 +124,7 @@ int main(int argc, char* argv[]) {
     std::string P1_policy_file = argv[2];
     std::string P2_policy_file = argv[3];
     int num_iterations = std::stoi(argv[4]);
-    int num_threads = std::stoi(argv[5]);
+    number_threads = std::stoi(argv[5]);
 
     std::string policy_name;
 
