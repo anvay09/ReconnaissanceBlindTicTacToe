@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
         auto start = std::chrono::system_clock::now();
 
         #pragma omp parallel for num_threads(num_threads) shared(regret_list, policy_obj_x, policy_obj_o)
-        for (int i = 0; i < information_sets.size(); i++) {
+        for (long int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
             bool move_flag = get_move_flag(I_hash, player[0]);
             InformationSet I(player[0], move_flag, I_hash);
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
 
         std::cout << "Updating policy..." << std::endl;
 
-        for (int i = 0; i < information_sets.size(); i++) {
+        for (long int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
             bool move_flag = get_move_flag(I_hash, player[0]);
             InformationSet I(player[0], move_flag, I_hash);

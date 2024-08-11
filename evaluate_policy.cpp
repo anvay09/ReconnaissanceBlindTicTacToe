@@ -1,6 +1,6 @@
 #include "cpp_headers/rbt_classes.hpp"
 
-// g++-13 -O3 evaluate_policy.cpp rbt_classes.cpp rbt_utilities.cpp -o evaluate_policy -fopenmp
+// g++-13 -O3 evaluate_policy.cpp rbt_classes.cpp -o evaluate_policy -fopenmp
 
 // std::vector<std::tuple<TerminalHistory, float, int>> terminal_histories;
 
