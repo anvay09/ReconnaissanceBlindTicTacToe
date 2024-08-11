@@ -664,12 +664,12 @@ int main(int argc, char* argv[])  {
         initialize_continue(policy_file_o, P2_information_sets_file, P2_information_sets, regret_list_o, regret_map_o, prob_reaching_list_o, policy_obj_o, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o');
     }
 
-    std::cout << "Information set size for player 1: " << P1_information_sets.size() << std::endl;
-    std::cout << "Information set size for player 2: " << P2_information_sets.size() << std::endl;
-    std::cout << "Prob reaching size for player 1: " << prob_reaching_list_x.size() << std::endl;
-    std::cout << "Prob reaching size for player 2: " << prob_reaching_list_o.size() << std::endl;
-    std::cout << "Regret list size for player 1: " << regret_list_x.size() << std::endl;
-    std::cout << "Regret list size for player 2: " << regret_list_o.size() << std::endl;
+    // std::cout << "Information set size for player 1: " << P1_information_sets.size() << std::endl;
+    // std::cout << "Information set size for player 2: " << P2_information_sets.size() << std::endl;
+    // std::cout << "Prob reaching size for player 1: " << prob_reaching_list_x.size() << std::endl;
+    // std::cout << "Prob reaching size for player 2: " << prob_reaching_list_o.size() << std::endl;
+    // std::cout << "Regret list size for player 1: " << regret_list_x.size() << std::endl;
+    // std::cout << "Regret list size for player 2: " << regret_list_o.size() << std::endl;
 
 
     for (int T = start_iter; T <= end_iter; T++) {
