@@ -586,7 +586,7 @@ void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& 
         for (int action: actions) {
             std::vector<float>& policy = avg_policy_obj.policy_dict[I.get_index()];
             policy[action] = avg_policy_denominator[I.get_index()] > 0 ? avg_policy_numerator[I.get_index()][action] / avg_policy_denominator[I.get_index()] : 0;
-            if (policy[action] == NULL){
+            if (policy[action] != policy[action]) {
                 std::cerr << "NULL Information set: " << I_hash << " action: " << action << std::endl;
             }
         }
