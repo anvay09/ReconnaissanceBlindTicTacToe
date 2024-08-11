@@ -16,6 +16,91 @@ bool get_move_flag(std::string I_hash, char player){
     return move_flag;
 }
 
+void save_map_json(std::string output_file, std::vector<std::vector<float>>& map, std::vector<std::string>& information_sets){
+    std::ofstream f_out;
+    f_out.open(output_file, std::ios::trunc);
+    json jx;
+    for (long int j = 0; j < map.size(); j++) {
+        for (int i = 0; i < 13; i++) {
+            jx[information_sets[j]][std::to_string(i)] = map[j][i];
+        }
+    }
+    f_out << jx.dump() << std::endl;
+    f_out.close();
+}
+
+void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std::vector<float>>& regret_list, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char player, std::string base_path){
+        std::cout << "Starting iteration " << T << " for player " << player << "..." << std::endl;
+        auto start = std::chrono::system_clock::now();
+
+        #pragma omp parallel for num_threads(number_threads) shared(regret_list, policy_obj_x, policy_obj_o)
+        for (long int i = 0; i < information_sets.size(); i++) {
+            std::string I_hash = information_sets[i];
+            // std::cout << "Starting iteration " << T << " for infoset " << I_hash << std::endl;
+
+            bool move_flag = get_move_flag(I_hash, player);
+            InformationSet I(player, move_flag, I_hash);
+            calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, regret_list[i]);
+        }
+
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<float> elapsed_seconds = end - start;
+        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+        std::cout << "finished computation at " << std::ctime(&end_time)
+                << "elapsed time: " << elapsed_seconds.count() << "s"
+                << std::endl;
+
+
+        std::cout << "Updating policy for player " << player << "..." << std::endl;
+        start = std::chrono::system_clock::now();
+        #pragma omp parallel for num_threads(number_threads) shared(regret_list, policy_obj_x, policy_obj_o)
+        for (long int i = 0; i < information_sets.size(); i++) {
+            std::string I_hash = information_sets[i];
+            bool move_flag = get_move_flag(I_hash, player);
+            InformationSet I(player, move_flag, I_hash);
+            std::vector<float>& regret_vector = regret_list[i];
+            float total_regret = 0.0;
+            std::vector<int> actions;
+            I.get_actions(actions);
+
+            for (int action : actions) {
+                total_regret += regret_vector[action];
+            }
+
+            PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
+            std::vector<float>& prob_dist = policy_obj.policy_dict[I.get_index()];
+            if (total_regret > 0) {
+                for (int action : actions) {
+                    prob_dist[action] = regret_vector[action] / total_regret;
+                }
+            }
+            else {
+                for (int action : actions) {
+                    prob_dist[action] = 1.0 / float(actions.size());
+                }
+            }
+        }
+
+        if (player == 'x') {
+            std::string output_policy_file_cfr = base_path + + "/cfr" + "/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
+            save_map_json(output_policy_file_cfr, policy_obj_x.policy_dict, information_sets);
+        }
+        else if (player == 'o') {
+            std::string output_policy_file_cfr = base_path + + "/cfr" + "/P2_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
+            save_map_json(output_policy_file_cfr, policy_obj_o.policy_dict, information_sets);
+        }
+
+        end = std::chrono::system_clock::now();
+        elapsed_seconds = end - start;
+        end_time = std::chrono::system_clock::to_time_t(end);
+        std::cout << "finished computation at " << std::ctime(&end_time)
+                << "elapsed time: " << elapsed_seconds.count() << "s"
+                << std::endl;
+
+
+}
+
+
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string P1_information_sets_file = "data/P1_information_sets_V2.txt";
@@ -93,78 +178,16 @@ int main(int argc, char* argv[]) {
     policy_obj_x = PolicyVec('x', P1_policy_file);
     policy_obj_o = PolicyVec('o', P2_policy_file);
     std::cout << "Policy files loaded." << std::endl;
-    float expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
-    std::cout << "Expected utility: " << expected_utility << std::endl; 
-
+    
     std::ofstream f_out_policy;
     for (int T = 1; T <= num_iterations; T++) {
-        std::cout << "Starting iteration " << T << "..." << std::endl;
-        auto start = std::chrono::system_clock::now();
-
-        #pragma omp parallel for num_threads(num_threads) shared(regret_list, policy_obj_x, policy_obj_o)
-        for (long int i = 0; i < information_sets.size(); i++) {
-            std::string I_hash = information_sets[i];
-            bool move_flag = get_move_flag(I_hash, player[0]);
-            InformationSet I(player[0], move_flag, I_hash);
-            
-            calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, regret_list[i]);
-        }
-
-        auto end = std::chrono::system_clock::now();
-        std::chrono::duration<float> elapsed_seconds = end - start;
-        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-    
-        std::cout << "finished computation at " << std::ctime(&end_time)
-                << "elapsed time: " << elapsed_seconds.count() << "s"
-                << std::endl;
-
-        std::cout << "Updating policy..." << std::endl;
-
-        for (long int i = 0; i < information_sets.size(); i++) {
-            std::string I_hash = information_sets[i];
-            bool move_flag = get_move_flag(I_hash, player[0]);
-            InformationSet I(player[0], move_flag, I_hash);
-
-            std::vector<float>& regret_vector = regret_list[i];
-            float total_regret = 0.0;
-            std::vector<int> actions;
-            I.get_actions(actions);
-
-            for (int action : actions) {
-                total_regret += regret_vector[action];
-            }
-            
-            if (player == "x") {
-                std::vector<float>& prob_dist = policy_obj_x.policy_dict[I.get_index()];
-                if (total_regret > 0) {
-                    for (int action : actions) {
-                        prob_dist[action] = regret_vector[action] / total_regret;
-                    }
-                }
-                else {
-                    for (int action : actions) {
-                        prob_dist[action] = 1.0 / float(actions.size());
-                    }
-                }
-            }
-            else {
-                std::vector<float>& prob_dist = policy_obj_o.policy_dict[I.get_index()];
-                if (total_regret > 0) {
-                    for (int action : actions) {
-                        prob_dist[action] = regret_vector[action] / total_regret;
-                    }
-                }
-                else {
-                    for (int action : actions) {
-                        prob_dist[action] = 1.0 / float(actions.size());
-                    }
-                }
-            }
-        }
-
+        run_cfr(T, information_sets, regret_list, policy_obj_x, policy_obj_o, 'x', "data/best_response");
         float expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
         std::cout << "Expected utility: " << expected_utility << std::endl; 
+    }
+
     
+
         // std::string out_policy_file = "data/best_response/iteration_" + std::to_string(T) + "_best_response_against_" + policy_name;
         // f_out_policy.open(out_policy_file, std::ios::trunc);
 
@@ -187,5 +210,4 @@ int main(int argc, char* argv[]) {
         //     f_out_policy << jo.dump() << std::endl;
         // }
         // f_out_policy.close();
-    }
 }
