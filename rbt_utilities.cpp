@@ -268,9 +268,9 @@ void upgraded_get_histories_given_I(InformationSet& I, PolicyVec& policy_obj_x, 
 }   
 
 
-float get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, 
-                            PolicyVec &policy_obj_o, float probability, History& current_history, char initial_player) {
-    float expected_utility_h = 0.0;
+double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, 
+                            PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player) {
+    double expected_utility_h = 0.0;
     
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
@@ -286,7 +286,7 @@ float get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBo
             if (I.get_index() == -1){
                 std::cout << "KEY ERROR: Get exp u" << std::endl;
             }
-            float probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
+            double probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
             History new_history = current_history;
             new_history.history.push_back(action);
             
@@ -317,7 +317,7 @@ float get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBo
             InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
             
-            float probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
+            double probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
             History new_history = current_history;
             new_history.history.push_back(action);
 
@@ -332,9 +332,9 @@ float get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBo
     return expected_utility_h;
 }
 
-float get_expected_utility_action_version(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, 
-                            PolicyVec &policy_obj_o, float probability, History& current_history, char initial_player, int action) {
-    float expected_utility_h = 0.0;
+double get_expected_utility_action_version(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, 
+                            PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player, int action) {
+    double expected_utility_h = 0.0;
     
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
@@ -343,7 +343,7 @@ float get_expected_utility_action_version(InformationSet &I_1, InformationSet &I
         TicTacToeBoard new_true_board = true_board;
         bool success = new_true_board.update_move(action, player);
 
-        float probability_new = probability * 1;
+        double probability_new = probability * 1;
         History new_history = current_history;
         new_history.history.push_back(action);
         
@@ -373,7 +373,7 @@ float get_expected_utility_action_version(InformationSet &I_1, InformationSet &I
         InformationSet new_I = I;
         new_I.simulate_sense(action, true_board);
         
-        float probability_new = probability * 1;
+        double probability_new = probability * 1;
         History new_history = current_history;
         new_history.history.push_back(action);
 
@@ -387,14 +387,14 @@ float get_expected_utility_action_version(InformationSet &I_1, InformationSet &I
     return expected_utility_h;
 }
 
-float get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, 
-                                     PolicyVec &policy_obj_o, float probability, History& current_history, char initial_player) {
-    float expected_utility_h = 0.0;
+double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, 
+                                     PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player) {
+    double expected_utility_h = 0.0;
     std::vector<InformationSet> Depth_1_P1_Isets;
     std::vector<InformationSet> Depth_1_P2_Isets;
     std::vector<TicTacToeBoard> Depth_1_boards;
     std::vector<char> Depth_1_players;
-    std::vector<float> Depth_1_probabilities;
+    std::vector<double> Depth_1_probabilities;
     std::vector<History> Depth_1_histories;
     
     InformationSet I = player == 'x' ? I_1 : I_2;
@@ -408,7 +408,7 @@ float get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, Ti
             TicTacToeBoard new_true_board = true_board;
             bool success = new_true_board.update_move(action, player);
 
-            float probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
+            double probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
             History new_history = current_history;
             new_history.history.push_back(action);
 
@@ -451,7 +451,7 @@ float get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, Ti
             InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
 
-            float probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
+            double probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
             History new_history = current_history;
             new_history.history.push_back(action);
 
@@ -482,7 +482,7 @@ float get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, Ti
 }
 
 
-float get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o){
+double get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o){
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
@@ -492,13 +492,13 @@ float get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_ob
     std::vector<int> h = {};
     TerminalHistory start_history = TerminalHistory(h);
 
-    float expected_utility = get_expected_utility_parallel(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x');
+    double expected_utility = get_expected_utility_parallel(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x');
     return expected_utility;
 }
 
 
-float get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, 
-                               PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, float probability, History history_obj, char initial_player, InformationSet& end_I){
+double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, 
+                               PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, double probability, History history_obj, char initial_player, InformationSet& end_I){
 
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
@@ -572,8 +572,8 @@ float get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, TicTacTo
 }
 
 
-float get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, PolicyVec& policy_obj_x, 
-                                       PolicyVec& policy_obj_o, float probability, History history_obj, InformationSet& curr_I_1, char initial_player){
+double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, char player, int next_action, PolicyVec& policy_obj_x, 
+                                       PolicyVec& policy_obj_o, double probability, History history_obj, InformationSet& curr_I_1, char initial_player){
     
     if (curr_I_1.board == "000000000"){
         return 1.0;
@@ -584,8 +584,8 @@ float get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, 
 }
 
 
-float get_counter_factual_utility(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& starting_histories, std::vector<float>& prob_reaching_h_list, int action) {
-    float counter_factual_utility = 0.0;
+double get_counter_factual_utility(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& starting_histories, std::vector<double>& prob_reaching_h_list, int action) {
+    double counter_factual_utility = 0.0;
     int count = 0;
     for (std::vector<int> h : starting_histories) {
         NonTerminalHistory h_object(h);
@@ -599,8 +599,8 @@ float get_counter_factual_utility(InformationSet& I, PolicyVec& policy_obj_x, Po
         char curr_player = 'x';
         h_object.get_board(true_board, curr_player);
 
-        float probability_reaching_h;
-        float expected_utility_h;
+        double probability_reaching_h;
+        double expected_utility_h;
 
         if (prob_reaching_h_list[count] > 0) {
             expected_utility_h = get_expected_utility_action_version(curr_I_1, curr_I_2, true_board, I.player, policy_obj_x, policy_obj_o, 1, h_object, I.player, action);
@@ -621,7 +621,7 @@ float get_counter_factual_utility(InformationSet& I, PolicyVec& policy_obj_x, Po
 
 
 void get_probability_of_reaching_all_h(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& starting_histories, 
-                                       char initial_player, std::vector<float>& prob_reaching_h_list_all) {
+                                       char initial_player, std::vector<double>& prob_reaching_h_list_all) {
     for (std::vector<int> h : starting_histories) {
         NonTerminalHistory h_object(h);
 
@@ -632,7 +632,7 @@ void get_probability_of_reaching_all_h(InformationSet& I, PolicyVec& policy_obj_
             InformationSet I_1('x', true, hash_1);
             InformationSet I_2('o', false, hash_2);
             TicTacToeBoard true_board = TicTacToeBoard(board);
-            float probability_reaching_h = get_prob_h_given_policy_wrapper(I_1, I_2, true_board, 'x', h[0], policy_obj_x, policy_obj_o, 1.0, h_object, I, initial_player);
+            double probability_reaching_h = get_prob_h_given_policy_wrapper(I_1, I_2, true_board, 'x', h[0], policy_obj_x, policy_obj_o, 1.0, h_object, I, initial_player);
             prob_reaching_h_list_all.push_back(probability_reaching_h);
         }
         else {
@@ -642,26 +642,26 @@ void get_probability_of_reaching_all_h(InformationSet& I, PolicyVec& policy_obj_
 }
 
 
-float calc_util_a_given_I_and_action(InformationSet& I, int action, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, 
-                                      std::vector<std::vector<int>>& starting_histories, std::vector<float>& prob_reaching_h_list) {
+double calc_util_a_given_I_and_action(InformationSet& I, int action, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, 
+                                      std::vector<std::vector<int>>& starting_histories, std::vector<double>& prob_reaching_h_list) {
     
-    float util_a = 0.0;
+    double util_a = 0.0;
     util_a = get_counter_factual_utility(I, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list, action);
     return util_a;
 }
 
 
-void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, int T, std::vector<float>& regret_list) {
+void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, int T, std::vector<double>& regret_list) {
     auto start = std::chrono::system_clock::now();
     
-    float util = 0.0;
+    double util = 0.0;
     std::vector<int> actions;
     PolicyVec& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
 
 
     std::vector<std::vector<int>> starting_histories;
-    std::vector<float> prob_reaching_h_list;
-    std::vector<float> util_a_list;
+    std::vector<double> prob_reaching_h_list;
+    std::vector<double> util_a_list;
     
     for (int i = 0; i < 13; i++) {
         util_a_list.push_back(0.0);
@@ -675,7 +675,7 @@ void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyV
     // std::cout << "Got probs " << I.hash << ", index " << I.get_index() << std::endl;
 
     for (int action : actions) {
-        float util_a = 0.0;
+        double util_a = 0.0;
         if (I.player == 'x'){
             util_a = calc_util_a_given_I_and_action(I, action, policy_obj_x, policy_obj_o, starting_histories, prob_reaching_h_list);
         }
@@ -689,11 +689,11 @@ void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyV
     // std::cout << "Got utils for " << I.hash << ", index " << I.get_index() << std::endl;
 
     for (int action : actions) {
-        float regret_T = 0.0;
+        double regret_T = 0.0;
         if (T == 0) {
             regret_T = util_a_list[action] - util;
         } else {
-            regret_T = (1.0 / float(T)) * ((float(T) - 1.0) * regret_list[action] + util_a_list[action] - util);
+            regret_T = (1.0 / double(T)) * ((double(T) - 1.0) * regret_list[action] + util_a_list[action] - util);
         }
 
         regret_T = regret_T > 0.0 ? regret_T : 0.0;
@@ -708,11 +708,11 @@ void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyV
 }
 
 
-std::vector<std::vector<float> > get_prev_regrets(std::string& file_path, char player){
+std::vector<std::vector<double> > get_prev_regrets(std::string& file_path, char player){
     std::ifstream i(file_path);
     json regret_obj;
     i >> regret_obj;
-    std::vector<std::vector<float> > regret_map;
+    std::vector<std::vector<double> > regret_map;
         
     for (json::iterator it = regret_obj.begin(); it != regret_obj.end(); ++it) {
         std::string I_hash = it.key();
@@ -726,7 +726,7 @@ std::vector<std::vector<float> > get_prev_regrets(std::string& file_path, char p
 
         InformationSet I(player, move_flag, I_hash);
 
-        std::vector <float> probability_distribution(13);
+        std::vector <double> probability_distribution(13);
         // initialise all values to zero
         for (int i = 0; i < 13; i++) {
             probability_distribution[i] = 0.0;

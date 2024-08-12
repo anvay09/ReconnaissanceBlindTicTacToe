@@ -91,8 +91,8 @@ public:
 class TerminalHistory : public History
 {
 public:
-    std::vector<float> reward;
-    TerminalHistory(std::vector<int>& history, std::vector<float> reward = {0.0, 0.0});
+    std::vector<double> reward;
+    TerminalHistory(std::vector<int>& history, std::vector<double> reward = {0.0, 0.0});
     TerminalHistory copy();
     void set_reward();
 };
@@ -108,13 +108,13 @@ class Policy
 {
 public:
     char player;
-    std::unordered_map<std::string, std::vector<float> > policy_dict;
+    std::unordered_map<std::string, std::vector<double> > policy_dict;
     Policy();
     Policy(char player, std::string& file_path);
-    Policy(char player, std::unordered_map<std::string, std::vector<float> >& policy_dict);
+    Policy(char player, std::unordered_map<std::string, std::vector<double> >& policy_dict);
     Policy copy();
-    void update_policy_for_given_information_set(InformationSet& information_set, std::vector<float>& prob_distribution);
-    std::unordered_map<std::string, std::vector<float> > read_policy_from_json(std::string& file_path, char player);
+    void update_policy_for_given_information_set(InformationSet& information_set, std::vector<double>& prob_distribution);
+    std::unordered_map<std::string, std::vector<double> > read_policy_from_json(std::string& file_path, char player);
 };
 
 // similar to python's split method
@@ -127,13 +127,13 @@ class PolicyVec
 {
 public:
     char player;
-    std::vector<std::vector<float> > policy_dict;
+    std::vector<std::vector<double> > policy_dict;
     PolicyVec();
     PolicyVec(char player, std::string& file_path);
-    PolicyVec(char player, std::vector<std::vector<float> >& policy_dict);
+    PolicyVec(char player, std::vector<std::vector<double> >& policy_dict);
     PolicyVec copy();
-    void update_policy_for_given_information_set(InformationSet& I, std::vector<float>& prob_distribution);
-    std::vector<std::vector<float> > read_policy_from_json(std::string& file_path, char player);
+    void update_policy_for_given_information_set(InformationSet& I, std::vector<double>& prob_distribution);
+    std::vector<std::vector<double> > read_policy_from_json(std::string& file_path, char player);
 };
 
 #endif // RBT_CLASSES_HPP_

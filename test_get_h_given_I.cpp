@@ -319,7 +319,7 @@ int main(){
     std::string hash2 = "1|000x|0_1|x00x|2_2|000x|4_2|0oxx|";
     InformationSet I2('o', true, hash2);
 
-    std::vector<float>& prob_d = policy_obj_o.policy_dict[I2.get_index()];
+    std::vector<double>& prob_d = policy_obj_o.policy_dict[I2.get_index()];
     std::cout << "Policy for I2: ";
     for (int i = 0; i < prob_d.size(); i++) {
         std::cout << prob_d[i] << " ";

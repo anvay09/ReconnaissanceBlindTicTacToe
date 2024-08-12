@@ -1,7 +1,7 @@
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/rbt_utilities.hpp"
 
-void save_map_json(std::string output_file, std::vector<std::vector<float>>& map, std::vector<std::string>& information_sets){
+void save_map_json(std::string output_file, std::vector<std::vector<double>>& map, std::vector<std::string>& information_sets){
     std::ofstream f_out;
     f_out.open(output_file, std::ios::trunc);
     json jx;
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
     std::cout << "Policies loaded." << std::endl;
 
     for (long int i = 0; i < policy_obj.policy_dict.size(); i++) {
-        std::vector<float>& prob_dist = policy_obj.policy_dict[i];
+        std::vector<double>& prob_dist = policy_obj.policy_dict[i];
 
         for (int j = 0; j < prob_dist.size(); j++) {
             if (prob_dist[j] < 1e-6) {
@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
             }
         }
 
-        float sum = 0.0;
+        double sum = 0.0;
 
         for (int j = 0; j < prob_dist.size(); j++) {
             sum += prob_dist[j];

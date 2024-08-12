@@ -18,7 +18,7 @@ bool get_move_flag(std::string I_hash, char player){
     return move_flag;
 }
 
-void save_map_json(std::string output_file, std::vector<std::vector<float>>& map, std::vector<std::string>& information_sets){
+void save_map_json(std::string output_file, std::vector<std::vector<double>>& map, std::vector<std::string>& information_sets){
     std::ofstream f_out;
     f_out.open(output_file, std::ios::trunc);
     json jx;
@@ -31,7 +31,7 @@ void save_map_json(std::string output_file, std::vector<std::vector<float>>& map
     f_out.close();
 }
 
-void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std::vector<float>>& regret_list, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char player, std::string base_path){
+void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char player, std::string base_path){
         std::cout << "Starting iteration " << T << " for player " << player << "..." << std::endl;
         auto start = std::chrono::system_clock::now();
 
@@ -46,7 +46,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
         }
 
         auto end = std::chrono::system_clock::now();
-        std::chrono::duration<float> elapsed_seconds = end - start;
+        std::chrono::duration<double> elapsed_seconds = end - start;
         std::time_t end_time = std::chrono::system_clock::to_time_t(end);
         std::cout << "finished computation at " << std::ctime(&end_time)
                 << "elapsed time: " << elapsed_seconds.count() << "s"
@@ -60,8 +60,8 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
             std::string I_hash = information_sets[i];
             bool move_flag = get_move_flag(I_hash, player);
             InformationSet I(player, move_flag, I_hash);
-            std::vector<float>& regret_vector = regret_list[i];
-            float total_regret = 0.0;
+            std::vector<double>& regret_vector = regret_list[i];
+            double total_regret = 0.0;
             std::vector<int> actions;
             I.get_actions(actions);
 
@@ -70,7 +70,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
             }
 
             PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
-            std::vector<float>& prob_dist = policy_obj.policy_dict[I.get_index()];
+            std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
             if (total_regret > 0) {
                 for (int action : actions) {
                     prob_dist[action] = regret_vector[action] / total_regret;
@@ -78,7 +78,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
             }
             else {
                 for (int action : actions) {
-                    prob_dist[action] = 1.0 / float(actions.size());
+                    prob_dist[action] = 1.0 / double(actions.size());
                 }
             }
         }
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
     std::vector<std::string>& information_sets = P1_information_sets;
-    std::vector<std::vector<float>> regret_list;
+    std::vector<std::vector<double>> regret_list;
     std::string line;
     PolicyVec policy_obj_x;
     PolicyVec policy_obj_o;
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
         InformationSet::P1_hash_to_int_map[P1_information_sets[i]] = i;
         
         if (player == "x") {
-            std::vector<float> regret_vector;
+            std::vector<double> regret_vector;
             for (int i = 0; i < 13; i++) {
                 regret_vector.push_back(0.0);
             }
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
         InformationSet::P2_hash_to_int_map[P2_information_sets[i]] = i;
 
         if (player == "o") {
-            std::vector<float> regret_vector;
+            std::vector<double> regret_vector;
             for (int i = 0; i < 13; i++) {
                 regret_vector.push_back(0.0);
             }
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
     std::ofstream f_out_policy;
     for (int T = 1; T <= num_iterations; T++) {
         run_cfr(T, information_sets, regret_list, policy_obj_x, policy_obj_o, player[0], "data/best_response");
-        float expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
+        double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
         std::cout << "Expected utility: " << expected_utility << std::endl; 
     }
 
