@@ -84,14 +84,14 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
             }
         }
 
-        if (player == 'x') {
-            std::string output_policy_file_cfr = base_path + + "/cfr" + "/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
-            save_map_json(output_policy_file_cfr, policy_obj_x.policy_dict, information_sets);
-        }
-        else if (player == 'o') {
-            std::string output_policy_file_cfr = base_path + + "/cfr" + "/P2_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
-            save_map_json(output_policy_file_cfr, policy_obj_o.policy_dict, information_sets);
-        }
+        // if (player == 'x') {
+        //     std::string output_policy_file_cfr = base_path + + "/cfr" + "/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
+        //     save_map_json(output_policy_file_cfr, policy_obj_x.policy_dict, information_sets);
+        // }
+        // else if (player == 'o') {
+        //     std::string output_policy_file_cfr = base_path + + "/cfr" + "/P2_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
+        //     save_map_json(output_policy_file_cfr, policy_obj_o.policy_dict, information_sets);
+        // }
 
         end = std::chrono::system_clock::now();
         elapsed_seconds = end - start;
@@ -103,12 +103,11 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
 
 }
 
-void initialize_start(std::string policy_file, std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list,  std::vector<double>& prob_reaching_list, PolicyVec& policy_obj, PolicyVec& avg_policy_obj, std::vector< std::vector<double>>& avg_policy_numerator, std::vector<double>& avg_policy_denominator, char player) {
+void initialize_start(std::string policy_file, std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list,  std::vector<double>& prob_reaching_list, PolicyVec& policy_obj, PolicyVec& avg_policy_obj, std::vector<double>& avg_policy_denominator, char player) {
     std::cout << "initialize_start for player " << player << std::endl;
     auto start = std::chrono::system_clock::now();
     policy_obj = PolicyVec(player, policy_file);
     avg_policy_obj = policy_obj;
-    avg_policy_numerator = policy_obj.policy_dict;
     
     std::ifstream f_is(information_set_file);
     std::string line_is;
@@ -132,10 +131,9 @@ void initialize_start(std::string policy_file, std::string information_set_file,
             << std::endl;
 }
 
-void initialize_continue(std::string policy_file, std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, std::vector<std::vector<double>>& regret_map, std::vector<double>& prob_reaching_list, PolicyVec& policy_obj, PolicyVec& avg_policy_obj, std::vector<std::vector<double>>& avg_policy_numerator, std::vector<double>& avg_policy_denominator, char player) {
+void initialize_continue(std::string policy_file, std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, std::vector<std::vector<double>>& regret_map, std::vector<double>& prob_reaching_list, PolicyVec& policy_obj, PolicyVec& avg_policy_obj, std::vector<double>& avg_policy_denominator, char player) {
     policy_obj = PolicyVec(player, policy_file);
     avg_policy_obj = policy_obj;
-    avg_policy_numerator = policy_obj.policy_dict;
     
     std::ifstream f_is(information_set_file);
     std::string line_is;
@@ -258,8 +256,8 @@ int main(int argc, char* argv[])  {
     PolicyVec policy_obj_o;
     PolicyVec avg_policy_obj_x;
     PolicyVec avg_policy_obj_o;
-    std::vector<std::vector<double>> avg_policy_numerator_x;
-    std::vector<std::vector<double>> avg_policy_numerator_o;
+    std::vector<std::vector<double>> avg_policy_numerator_x(P1_information_sets.size(), std::vector<double>(13, 0));
+    std::vector<std::vector<double>> avg_policy_numerator_o(P2_information_sets.size(), std::vector<double>(13, 0));
     std::vector<double> avg_policy_denominator_x;
     std::vector<double> avg_policy_denominator_o;
     std::vector<std::vector<double>> regret_list_x;
@@ -268,8 +266,8 @@ int main(int argc, char* argv[])  {
     std::vector<double> prob_reaching_list_o;
 
     if (start_iter == 1) {
-        initialize_start(policy_file_x, P1_information_sets_file, P1_information_sets, regret_list_x, prob_reaching_list_x, policy_obj_x, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
-        initialize_start(policy_file_o, P2_information_sets_file, P2_information_sets, regret_list_o, prob_reaching_list_o, policy_obj_o, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o');
+        initialize_start(policy_file_x, P1_information_sets_file, P1_information_sets, regret_list_x, prob_reaching_list_x, policy_obj_x, avg_policy_obj_x, avg_policy_denominator_x, 'x');
+        initialize_start(policy_file_o, P2_information_sets_file, P2_information_sets, regret_list_o, prob_reaching_list_o, policy_obj_o, avg_policy_obj_o, avg_policy_denominator_o, 'o');
     }
 
     else {
@@ -279,8 +277,8 @@ int main(int argc, char* argv[])  {
         std::vector<std::vector<double> > regret_map_o;
         regret_map_x = get_prev_regrets(prev_regret_file_x, 'x');
         regret_map_o = get_prev_regrets(prev_regret_file_o, 'o');
-        initialize_continue(policy_file_x, P1_information_sets_file, P1_information_sets, regret_list_x, regret_map_x, prob_reaching_list_x, policy_obj_x, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
-        initialize_continue(policy_file_o, P2_information_sets_file, P2_information_sets, regret_list_o, regret_map_o, prob_reaching_list_o, policy_obj_o, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o');
+        initialize_continue(policy_file_x, P1_information_sets_file, P1_information_sets, regret_list_x, regret_map_x, prob_reaching_list_x, policy_obj_x, avg_policy_obj_x, avg_policy_denominator_x, 'x');
+        initialize_continue(policy_file_o, P2_information_sets_file, P2_information_sets, regret_list_o, regret_map_o, prob_reaching_list_o, policy_obj_o, avg_policy_obj_o, avg_policy_denominator_o, 'o');
     }
 
     std::cout << "Information set size for player 1: " << P1_information_sets.size() << std::endl;

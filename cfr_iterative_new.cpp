@@ -52,8 +52,8 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
                 << std::endl;
 
 
-        // std::cout << "Updating policy for player " << player << "..." << std::endl;
-        // start = std::chrono::system_clock::now();
+        std::cout << "Updating policy for player " << player << "..." << std::endl;
+        start = std::chrono::system_clock::now();
         #pragma omp parallel for num_threads(number_threads) shared(regret_list, policy_obj_x, policy_obj_o)
         for (long int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
@@ -91,12 +91,12 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
         //     save_map_json(output_policy_file_cfr, policy_obj_o.policy_dict, information_sets);
         // }
 
-        // end = std::chrono::system_clock::now();
-        // elapsed_seconds = end - start;
-        // end_time = std::chrono::system_clock::to_time_t(end);
-        // std::cout << "finished computation at " << std::ctime(&end_time)
-        //         << "elapsed time: " << elapsed_seconds.count() << "s"
-        //         << std::endl;
+        end = std::chrono::system_clock::now();
+        elapsed_seconds = end - start;
+        end_time = std::chrono::system_clock::to_time_t(end);
+        std::cout << "finished computation at " << std::ctime(&end_time)
+                << "elapsed time: " << elapsed_seconds.count() << "s"
+                << std::endl;
 
 
 }
@@ -572,7 +572,7 @@ void calc_average_terms(char player, std::vector<std::string>& information_sets,
     }
 }
 
-void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& avg_policy_obj, std::vector<std::vector<double>> avg_policy_numerator, std::vector<double> avg_policy_denominator, char player, std::vector<double>& prob_reaching_list, PolicyVec& policy_obj){
+void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& avg_policy_obj, std::vector<std::vector<double>> avg_policy_numerator, std::vector<double> avg_policy_denominator, char player){
     #pragma omp parallel for num_threads(number_threads) shared(avg_policy_obj, avg_policy_numerator, avg_policy_denominator)
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
@@ -580,21 +580,10 @@ void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& 
         InformationSet I(player, move_flag, I_hash);
 
         std::vector<int> actions;
-        if (I.get_index() == -1){
-            std::cerr << "Avg Index -1 Information set: " << I_hash << std::endl;
-        }
-        else {
         I.get_actions(actions);
         for (int action: actions) {
             std::vector<double>& policy = avg_policy_obj.policy_dict[I.get_index()];
             policy[action] = avg_policy_denominator[I.get_index()] > 0 ? avg_policy_numerator[I.get_index()][action] / avg_policy_denominator[I.get_index()] : 0;
-            if (policy[action] > 1) {
-                std::cerr << "Information set: " << I_hash << " action: " << action << std::endl;
-                std::cerr << "Policy: " << policy_obj.policy_dict[I.get_index()][action] << std::endl;
-                std::cerr << "Prob reaching: " << prob_reaching_list[i] << std::endl;
-                std::cerr << "Numerator: " << avg_policy_numerator[I.get_index()][action] << " Denominator: " << avg_policy_denominator[I.get_index()] << std::endl;
-            }
-        }
         }
     }
 }
@@ -688,36 +677,20 @@ int main(int argc, char* argv[])  {
         run_cfr(T, P2_information_sets, regret_list_o, policy_obj_x, policy_obj_o, 'o', base_path);
         get_prob_reaching(P1_information_sets, prob_reaching_list_x, 'x', policy_obj_x, policy_obj_o);
         get_prob_reaching(P2_information_sets, prob_reaching_list_o, 'o', policy_obj_x, policy_obj_o);
-        // std::ofstream f_out;
-        // std::string prob_file_x = base_path + "/prob_reaching" + "/P1_iteration_" + std::to_string(T) + "_prob_reaching_cpp.json";
-        // f_out.open(prob_file_x, std::ios::trunc);
-        // json jx;
-        // for (long int j = 0; j < prob_reaching_list_x.size(); j++) {
-        //     jx[P1_information_sets[j]] = prob_reaching_list_x[j];
-        // }
-        // f_out << jx.dump() << std::endl;
-        // f_out.close();
         calc_average_terms('x', P1_information_sets, policy_obj_x, prob_reaching_list_x, avg_policy_numerator_x, avg_policy_denominator_x);
         calc_average_terms('o', P2_information_sets, policy_obj_o, prob_reaching_list_o, avg_policy_numerator_o, avg_policy_denominator_o);
-        calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x', prob_reaching_list_x, policy_obj_x);
-        calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o', prob_reaching_list_o, policy_obj_o);
-        expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, avg_policy_obj_o);
-        std::cout << "Iteration" << T << " Expected utility avg: " << expected_utility << std::endl;
     }
 
-    // calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
-    // calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o');
 
-    // std::string output_policy_file_x = base_path + "/average" + "/P1_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp.json";
-    // std::string output_policy_file_o = base_path + "/average" + "/P2_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp.json";
-    // std::string output_regret_file_x = base_path + "/regret/P1_iteration_" + std::to_string(end_iter) + "_regret_cpp.json";
-    // std::string output_regret_file_o = base_path + "/regret/P2_iteration_" + std::to_string(end_iter) + "_regret_cpp.json";
-    // std::string output_policy_file_o_num = base_path + "/average" + "/P2_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_num.json";
-    // std::string output_policy_file_o_denom = base_path + "/average" + "/P2_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_denom.json";
-    // std::string output_policy_file_x_num = base_path + "/average" + "/P1_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_num.json";
-    // std::string output_policy_file_x_denom = base_path + "/average" + "/P1_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_denom.json";
-    // save_output(output_policy_file_x, output_regret_file_x, 'x', P1_information_sets, regret_list_x, avg_policy_obj_x);
-    // save_output(output_policy_file_o, output_regret_file_o, 'o', P2_information_sets, regret_list_o, avg_policy_obj_o);
-    // double expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, avg_policy_obj_o);
-    // std::cout << "Expected utility avg: " << expected_utility << std::endl; 
+    calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
+    calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o');
+
+    std::string output_policy_file_x = base_path + "/average" + "/P1_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp.json";
+    std::string output_policy_file_o = base_path + "/average" + "/P2_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp.json";
+    std::string output_regret_file_x = base_path + "/regret/P1_iteration_" + std::to_string(end_iter) + "_regret_cpp.json";
+    std::string output_regret_file_o = base_path + "/regret/P2_iteration_" + std::to_string(end_iter) + "_regret_cpp.json";
+    save_output(output_policy_file_x, output_regret_file_x, 'x', P1_information_sets, regret_list_x, avg_policy_obj_x);
+    save_output(output_policy_file_o, output_regret_file_o, 'o', P2_information_sets, regret_list_o, avg_policy_obj_o);
+    double expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, avg_policy_obj_o);
+    std::cout << "Expected utility avg: " << expected_utility << std::endl; 
 }
