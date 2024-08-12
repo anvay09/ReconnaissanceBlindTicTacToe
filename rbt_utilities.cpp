@@ -693,7 +693,7 @@ void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyV
         if (T == 0) {
             regret_T = util_a_list[action] - util;
         } else {
-            regret_T = (1.0 / double(T)) * ((double(T) - 1.0) * regret_list[action] + util_a_list[action] - util);
+            regret_T = regret_list[action] + util_a_list[action] - util;
         }
 
         regret_T = regret_T > 0.0 ? regret_T : 0.0;

@@ -4,7 +4,8 @@
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/rbt_utilities.hpp"
 
-int number_threads = 4;
+int NUMBER_THREADS = 4;
+int AVERAGE_DELAY = 5;
 
 bool get_move_flag(std::string I_hash, char player){
     bool move_flag;
@@ -35,7 +36,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
         std::cout << "Starting iteration " << T << " for player " << player << "..." << std::endl;
         auto start = std::chrono::system_clock::now();
 
-        #pragma omp parallel for num_threads(number_threads) shared(regret_list, policy_obj_x, policy_obj_o)
+        #pragma omp parallel for num_threads(NUMBER_THREADS) shared(regret_list, policy_obj_x, policy_obj_o)
         for (long int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
             // std::cout << "Starting iteration " << T << " for infoset " << I_hash << std::endl;
@@ -55,7 +56,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
 
         std::cout << "Updating policy for player " << player << "..." << std::endl;
         start = std::chrono::system_clock::now();
-        #pragma omp parallel for num_threads(number_threads) shared(regret_list, policy_obj_x, policy_obj_o)
+        #pragma omp parallel for num_threads(NUMBER_THREADS) shared(regret_list, policy_obj_x, policy_obj_o)
         for (long int i = 0; i < information_sets.size(); i++) {
             std::string I_hash = information_sets[i];
             bool move_flag = get_move_flag(I_hash, player);
@@ -172,8 +173,10 @@ void save_output(std::string output_policy_file, std::string output_regret_file,
 //cfr
 
 //avg
-void calc_average_terms(char player, std::vector<std::string>& information_sets, PolicyVec& policy_obj, std::vector<std::vector<double>>& avg_policy_numerator, std::vector<double>& avg_policy_denominator){
-    #pragma omp parallel for num_threads(number_threads) shared(avg_policy_numerator, avg_policy_denominator, policy_obj)
+void calc_average_terms(char player, std::vector<std::string>& information_sets, PolicyVec& policy_obj, std::vector<std::vector<double>>& avg_policy_numerator, std::vector<double>& avg_policy_denominator, int T){
+    int weight = T > AVERAGE_DELAY ? T - AVERAGE_DELAY : 0;
+
+    #pragma omp parallel for num_threads(NUMBER_THREADS) shared(avg_policy_numerator, avg_policy_denominator, policy_obj)
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
         bool move_flag = get_move_flag(I_hash, player);
@@ -183,14 +186,15 @@ void calc_average_terms(char player, std::vector<std::string>& information_sets,
         I.get_actions(actions);
         for (int action: actions) {
             std::vector<double>& policy = policy_obj.policy_dict[I.get_index()];
-            avg_policy_numerator[I.get_index()][action] += policy[action];
-            avg_policy_denominator[I.get_index()] += policy[action];
+            avg_policy_numerator[I.get_index()][action] += weight * policy[action];
+            avg_policy_denominator[I.get_index()] += weight * policy[action];
         }
+
     }
 }
 
 void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& avg_policy_obj, std::vector<std::vector<double>> avg_policy_numerator, std::vector<double> avg_policy_denominator, char player){
-    #pragma omp parallel for num_threads(number_threads) shared(avg_policy_obj, avg_policy_numerator, avg_policy_denominator)
+    #pragma omp parallel for num_threads(NUMBER_THREADS) shared(avg_policy_obj, avg_policy_numerator, avg_policy_denominator)
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
         bool move_flag = get_move_flag(I_hash, player);
@@ -212,7 +216,7 @@ void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& 
 
 int main(int argc, char* argv[])  {
     std::cout.precision(17);
-    number_threads = std::stoi(argv[1]); //96;
+    NUMBER_THREADS = std::stoi(argv[1]); //96;
     std::string base_path = argv[2]; //"data/Iterative_1";
     int start_iter = std::stoi(argv[3]); //1;
     int end_iter = std::stoi(argv[4]); //1000;
@@ -292,8 +296,8 @@ int main(int argc, char* argv[])  {
         std::cout << "Expected utility: " << expected_utility << std::endl; 
         run_cfr(T, P1_information_sets, regret_list_x, policy_obj_x, policy_obj_o, 'x', base_path);
         run_cfr(T, P2_information_sets, regret_list_o, policy_obj_x, policy_obj_o, 'o', base_path);
-        calc_average_terms('x', P1_information_sets, policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x);
-        calc_average_terms('o', P2_information_sets, policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o);
+        calc_average_terms('x', P1_information_sets, policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, T);
+        calc_average_terms('o', P2_information_sets, policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, T);
     }
 
     calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
