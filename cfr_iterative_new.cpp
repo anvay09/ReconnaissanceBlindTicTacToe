@@ -700,7 +700,7 @@ int main(int argc, char* argv[])  {
         calc_average_terms('o', P2_information_sets, policy_obj_o, prob_reaching_list_o, avg_policy_numerator_o, avg_policy_denominator_o);
         calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
         calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o');
-        float expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, avg_policy_obj_o);
+        expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, avg_policy_obj_o);
         std::cout << "Iteration" << T << " Expected utility avg: " << expected_utility << std::endl;
     }
 
