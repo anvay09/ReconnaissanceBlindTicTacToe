@@ -574,7 +574,7 @@ void calc_average_terms(char player, std::vector<std::string>& information_sets,
     }
 }
 
-void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& avg_policy_obj, std::vector<std::vector<double>> avg_policy_numerator, std::vector<double> avg_policy_denominator, char player){
+void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& avg_policy_obj, std::vector<std::vector<double>> avg_policy_numerator, std::vector<double> avg_policy_denominator, char player, std::vector<double>& prob_reaching_list, PolicyVec& policy_obj){
     #pragma omp parallel for num_threads(number_threads) shared(avg_policy_obj, avg_policy_numerator, avg_policy_denominator)
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
@@ -590,8 +590,11 @@ void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& 
         for (int action: actions) {
             std::vector<double>& policy = avg_policy_obj.policy_dict[I.get_index()];
             policy[action] = avg_policy_denominator[I.get_index()] > 0 ? avg_policy_numerator[I.get_index()][action] / avg_policy_denominator[I.get_index()] : 0;
-            if (policy[action] != policy[action]) {
-                std::cerr << "NULL Information set: " << I_hash << " action: " << action << std::endl;
+            if (policy[action] > 1) {
+                std::cerr << "Information set: " << I_hash << " action: " << action << std::endl;
+                std::cerr << "Policy: " << policy_obj.policy_dict[I.get_index()][action] << std::endl;
+                std::cerr << "Prob reaching: " << prob_reaching_list[i] << std::endl;
+                std::cerr << "Numerator: " << avg_policy_numerator[I.get_index()][action] << " Denominator: " << avg_policy_denominator[I.get_index()] << std::endl;
             }
         }
         }
@@ -698,8 +701,8 @@ int main(int argc, char* argv[])  {
         // f_out.close();
         calc_average_terms('x', P1_information_sets, policy_obj_x, prob_reaching_list_x, avg_policy_numerator_x, avg_policy_denominator_x);
         calc_average_terms('o', P2_information_sets, policy_obj_o, prob_reaching_list_o, avg_policy_numerator_o, avg_policy_denominator_o);
-        calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
-        calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o');
+        calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x', prob_reaching_list_x, policy_obj_x);
+        calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o', prob_reaching_list_o, policy_obj_o);
         expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, avg_policy_obj_o);
         std::cout << "Iteration" << T << " Expected utility avg: " << expected_utility << std::endl;
     }
