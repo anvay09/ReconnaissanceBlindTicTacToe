@@ -16,6 +16,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
     }
     else{
         I.get_actions_given_policy(actions, policy_obj_o);
+        std::cout << "I_2: " << I.get_v1_hash() << " V2 hash: " << I.get_hash() << std::endl;
     }
     
     if (I.move_flag) {
