@@ -16,12 +16,6 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
     }
     else{
         I.get_actions_given_policy(actions, policy_obj_o);
-        // std::cout << "V1 hash: " << I.get_v1_hash() << " V2 hash: " << I.get_hash() << " Actions: " << std::endl;
-        // std::vector<double> policy = policy_obj_o.policy_dict[I.get_v1_hash()];
-        // for (int i = 0; i < policy.size(); i++){
-        //     std::cout << policy[i] << " ";
-        // }
-        // std::cout << std::endl;
     }
     
     if (I.move_flag) {
@@ -257,15 +251,8 @@ int main(int argc, char** argv) {
     char player = 'x';
     PolicyVec policy_obj_x('x', file_path_1);
     // PolicyVec policy_obj_o('o', file_path_2);
-    Policy policy_obj_o;
-    policy_obj_o.load_policy('o', file_path_2);
+    Policy policy_obj_o('o', file_path_2);
     std::cout << policy_obj_o.policy_dict.size() << std::endl;
-    std::string test = "----00-x0m";
-    std::vector<double> test_policy = policy_obj_o.policy_dict[test];
-    for (int i = 0; i < test_policy.size(); i++){
-        std::cout << test_policy[i] << " ";
-    }
-    std::cout << std::endl;
 
     std::cout << "Policies loaded." << std::endl;
     std::cout << "Getting expected utility..." << std::endl;

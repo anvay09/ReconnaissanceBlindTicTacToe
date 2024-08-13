@@ -713,11 +713,6 @@ Policy Policy::copy() {
     return Policy(this->player, this->policy_dict);
 }
 
-void Policy::load_policy(char player, std::string& file_path) {
-    this->player = player;
-    this->policy_dict = this->read_policy_from_json(file_path);
-}
-
 std::unordered_map<std::string, std::vector<double> > Policy::read_policy_from_json(std::string& file_path){
     std::ifstream i(file_path);
     json policy_obj;
@@ -748,6 +743,7 @@ std::unordered_map<std::string, std::vector<double> > Policy::read_policy_from_j
 
     return policy_dict;
 }
+
 
 PolicyVec::PolicyVec() {
     this->player = '0';
