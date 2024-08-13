@@ -58,11 +58,13 @@ public:
     char other_player();
     InformationSet copy();
     std::string get_hash();
+    std::string get_v1_hash();
     std::string get_board_from_hash();
     long int get_index();
     void get_states(std::vector<TicTacToeBoard> &states);
     void get_actions(std::vector<int> &actions);
     void get_actions_given_policy(std::vector<int>& actions, PolicyVec& policy_obj);
+    void get_actions_given_policy(std::vector<int>& actions, Policy& policy_obj);
     void get_valid_moves(std::vector<int> &actions);
     void get_played_actions(std::vector<int> &actions);
     void simulate_sense(int action, TicTacToeBoard& true_board);

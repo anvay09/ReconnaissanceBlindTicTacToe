@@ -304,6 +304,12 @@ std::string InformationSet::get_hash() {
     return this->hash;
 }
 
+std::string InformationSet::get_v1_hash(){
+    std::string v1_hash = this->board;
+    v1_hash += this->move_flag ? "m" : "s";
+    return v1_hash;
+}
+
 long int InformationSet::get_index() {
     return this->index;
 }
@@ -341,6 +347,25 @@ void InformationSet::get_actions_given_policy(std::vector<int>& actions, PolicyV
                 if (prob_dist[sense] > 0) {
                     actions.push_back(sense);
                 }
+            }
+        }
+    }
+}
+
+void InformationSet::get_actions_given_policy(std::vector<int>& actions, Policy& policy_obj){
+    // this->board = this->get_board_from_hash();
+    std::string v1_hash = this->get_v1_hash();
+    std::vector<double> prob_dist = policy_obj.policy_dict[v1_hash];
+    if (this->move_flag) {
+        for (int move = 0; move < 9; move++) {
+            if (prob_dist[move] > 0) {
+                actions.push_back(move);
+            }
+        }
+    } else {
+        for (int sense = 9; sense < 13; sense++) {
+            if (prob_dist[sense] > 0) {
+                actions.push_back(sense);
             }
         }
     }
