@@ -701,7 +701,7 @@ Policy::Policy() {
 
 Policy::Policy(char player, std::string& file_path) {
     this->player = player;
-    this->policy_dict = this->read_policy_from_json(file_path, player);
+    this->policy_dict = this->read_policy_from_json(file_path);
 }
 
 Policy::Policy(char player, std::unordered_map<std::string, std::vector<double> >& policy_dict) {
@@ -721,7 +721,12 @@ void Policy::update_policy_for_given_information_set(InformationSet& information
     this->policy_dict[information_set.get_hash()] = prob_dist;
 }
 
-std::unordered_map<std::string, std::vector<double> > Policy::read_policy_from_json(std::string& file_path, char player){
+void Policy::load_policy(char player, std::string& file_path) {
+    this->player = player;
+    this->policy_dict = this->read_policy_from_json(file_path);
+}
+
+std::unordered_map<std::string, std::vector<double> > Policy::read_policy_from_json(std::string& file_path){
     std::ifstream i(file_path);
     json policy_obj;
     i >> policy_obj;

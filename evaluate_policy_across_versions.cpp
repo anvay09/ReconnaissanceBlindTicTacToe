@@ -256,7 +256,8 @@ int main(int argc, char** argv) {
     char player = 'x';
     PolicyVec policy_obj_x('x', file_path_1);
     // PolicyVec policy_obj_o('o', file_path_2);
-    Policy policy_obj_o('o', file_path_2);
+    Policy policy_obj_o;
+    policy_obj_o.load_policy('o', file_path_2);
 
     std::cout << "Policies loaded." << std::endl;
     std::cout << "Getting expected utility..." << std::endl;
