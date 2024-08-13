@@ -115,7 +115,6 @@ public:
     Policy(char player, std::string& file_path);
     Policy(char player, std::unordered_map<std::string, std::vector<double> >& policy_dict);
     Policy copy();
-    void update_policy_for_given_information_set(InformationSet& information_set, std::vector<double>& prob_distribution);
     void load_policy(char player, std::string& file_path);
     std::unordered_map<std::string, std::vector<double> > read_policy_from_json(std::string& file_path);
 };
@@ -135,7 +134,6 @@ public:
     PolicyVec(char player, std::string& file_path);
     PolicyVec(char player, std::vector<std::vector<double> >& policy_dict);
     PolicyVec copy();
-    void update_policy_for_given_information_set(InformationSet& I, std::vector<double>& prob_distribution);
     std::vector<std::vector<double> > read_policy_from_json(std::string& file_path, char player);
 };
 

@@ -21,7 +21,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
         // for (int i = 0; i < policy.size(); i++){
         //     std::cout << policy[i] << " ";
         // }
-        std::cout << std::endl;
+        // std::cout << std::endl;
     }
     
     if (I.move_flag) {
