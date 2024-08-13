@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
         std::vector<double>& prob_dist = policy_obj.policy_dict[i];
 
         for (int j = 0; j < prob_dist.size(); j++) {
-            if (prob_dist[j] < 1e-6) {
+            if (prob_dist[j] < 1e-5) {
                 prob_dist[j] = 0.0;
             }
         }
