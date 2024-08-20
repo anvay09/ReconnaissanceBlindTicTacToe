@@ -1,5 +1,4 @@
-// Compile: g++-13 -O3 cfr_iterative_off_policy.cpp rbt_classes.cpp rbt_utilities.cpp -o cfr_i -fopenmp 
-// Expected utility avg: 0.39416214823722839
+// Compile: g++-13 -O3 cfr_iterative_new.cpp rbt_classes.cpp rbt_utilities.cpp -o cfr_i -fopenmp -I /Users/anvay/Downloads/boost_1_84_0
 
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/rbt_utilities.hpp"
@@ -33,56 +32,56 @@ void save_map_json(std::string output_file, std::vector<std::vector<double>>& ma
 
 //cfr
 void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char player, std::string base_path){
-        std::cout << "Starting iteration " << T << " for player " << player << "..." << std::endl;
-        auto start = std::chrono::system_clock::now();
+    std::cout << "Starting iteration " << T << " for player " << player << "..." << std::endl;
+    auto start = std::chrono::system_clock::now();
 
-        #pragma omp parallel for num_threads(NUMBER_THREADS) shared(regret_list, policy_obj_x, policy_obj_o)
-        for (long int i = 0; i < information_sets.size(); i++) {
-            std::string I_hash = information_sets[i];
-            // std::cout << "Starting iteration " << T << " for infoset " << I_hash << std::endl;
+    #pragma omp parallel for num_threads(NUMBER_THREADS) shared(regret_list, policy_obj_x, policy_obj_o)
+    for (long int i = 0; i < information_sets.size(); i++) {
+        std::string I_hash = information_sets[i];
+        // std::cout << "Starting iteration " << T << " for infoset " << I_hash << std::endl;
 
-            bool move_flag = get_move_flag(I_hash, player);
-            InformationSet I(player, move_flag, I_hash);
-            calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, regret_list[i]);
+        bool move_flag = get_move_flag(I_hash, player);
+        InformationSet I(player, move_flag, I_hash);
+        calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, regret_list[i]);
+    }
+
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "finished computation at " << std::ctime(&end_time)
+            << "elapsed time: " << elapsed_seconds.count() << "s"
+            << std::endl;
+
+
+    std::cout << "Updating policy for player " << player << "..." << std::endl;
+    start = std::chrono::system_clock::now();
+    #pragma omp parallel for num_threads(NUMBER_THREADS) shared(regret_list, policy_obj_x, policy_obj_o)
+    for (long int i = 0; i < information_sets.size(); i++) {
+        std::string I_hash = information_sets[i];
+        bool move_flag = get_move_flag(I_hash, player);
+        InformationSet I(player, move_flag, I_hash);
+        std::vector<double>& regret_vector = regret_list[i];
+        double total_regret = 0.0;
+        std::vector<int> actions;
+        I.get_actions(actions);
+
+        for (int action : actions) {
+            total_regret += regret_vector[action];
         }
 
-        auto end = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-        std::cout << "finished computation at " << std::ctime(&end_time)
-                << "elapsed time: " << elapsed_seconds.count() << "s"
-                << std::endl;
-
-
-        std::cout << "Updating policy for player " << player << "..." << std::endl;
-        start = std::chrono::system_clock::now();
-        #pragma omp parallel for num_threads(NUMBER_THREADS) shared(regret_list, policy_obj_x, policy_obj_o)
-        for (long int i = 0; i < information_sets.size(); i++) {
-            std::string I_hash = information_sets[i];
-            bool move_flag = get_move_flag(I_hash, player);
-            InformationSet I(player, move_flag, I_hash);
-            std::vector<double>& regret_vector = regret_list[i];
-            double total_regret = 0.0;
-            std::vector<int> actions;
-            I.get_actions(actions);
-
+        PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
+        std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
+        if (total_regret > 0) {
             for (int action : actions) {
-                total_regret += regret_vector[action];
-            }
-
-            PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
-            std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
-            if (total_regret > 0) {
-                for (int action : actions) {
-                    prob_dist[action] = regret_vector[action] / total_regret;
-                }
-            }
-            else {
-                for (int action : actions) {
-                    prob_dist[action] = 1.0 / double(actions.size());
-                }
+                prob_dist[action] = regret_vector[action] / total_regret;
             }
         }
+        else {
+            for (int action : actions) {
+                prob_dist[action] = 1.0 / double(actions.size());
+            }
+        }
+    }
 
         // if (player == 'x') {
         //     std::string output_policy_file_cfr = base_path + + "/cfr" + "/P1_iteration_" + std::to_string(T) + "_cfr_policy_cpp.json";
@@ -93,12 +92,12 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
         //     save_map_json(output_policy_file_cfr, policy_obj_o.policy_dict, information_sets);
         // }
 
-        end = std::chrono::system_clock::now();
-        elapsed_seconds = end - start;
-        end_time = std::chrono::system_clock::to_time_t(end);
-        std::cout << "finished computation at " << std::ctime(&end_time)
-                << "elapsed time: " << elapsed_seconds.count() << "s"
-                << std::endl;
+    end = std::chrono::system_clock::now();
+    elapsed_seconds = end - start;
+    end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "finished computation at " << std::ctime(&end_time)
+            << "elapsed time: " << elapsed_seconds.count() << "s"
+            << std::endl;
 }
 
 void initialize_start(std::string policy_file, std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list,  std::vector<double>& prob_reaching_list, PolicyVec& policy_obj, PolicyVec& avg_policy_obj, std::vector<double>& avg_policy_denominator, char player) {
@@ -168,11 +167,59 @@ void save_output(std::string output_policy_file, std::string output_regret_file,
 
 //cfr
 
-//avg
-void calc_average_terms(char player, std::vector<std::string>& information_sets, PolicyVec& policy_obj, std::vector<std::vector<double>>& avg_policy_numerator, std::vector<double>& avg_policy_denominator, int T){
-    int weight = T > AVERAGE_DELAY ? T - AVERAGE_DELAY : 0;
+// prob
+double get_probability_of_reaching_I_prob(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char initial_player) {
+    double prob_reaching = 1;
+    std::vector<int> actions;
+    I.get_played_actions(actions);
+    int count = 0;
+    int i = 0;
+    std :: cout << "get_probability_of_reaching_I_prob start : I.get_hash().size() " << I.get_hash().size() << std::endl;
+    std :: cout << "I.get_hash() " << I.get_hash() << std::endl;
+    while (i < I.get_hash().size()) {
+        std::string I_hash = I.get_hash().substr(0, i);
+        std::cout << "I_hash " << I_hash << std::endl;
+        bool move_flag = get_move_flag(I_hash, initial_player);
+        InformationSet I_new(initial_player, move_flag, I_hash);
+        if (initial_player == 'x') {
+            prob_reaching *= policy_obj_x.policy_dict[I_new.get_index()][actions[count]];
+            count += 1;
+        }
+        else {
+            prob_reaching *= policy_obj_o.policy_dict[I_new.get_index()][actions[count]];
+            count += 1;
+        }
 
-    #pragma omp parallel for num_threads(NUMBER_THREADS) shared(avg_policy_numerator, avg_policy_denominator, policy_obj)
+        if (move_flag) {
+            i = i + 2;
+        }
+        else {
+            i = i + 7;
+        }
+    }
+    std :: cout << "get_probability_of_reaching_I_prob end : I.get_hash().size() " << I.get_hash().size() << std::endl;
+
+    return prob_reaching;
+}
+
+void get_prob_reaching(std::vector<std::string>& information_sets, std::vector<double>& prob_reaching_list, char player,  PolicyVec& policy_obj_x, PolicyVec& policy_obj_o){
+    #pragma omp parallel for num_threads(NUMBER_THREADS) shared(policy_obj_x, policy_obj_o, prob_reaching_list)
+    for (long int i = 0; i < information_sets.size(); i++) {
+        prob_reaching_list[i] = 0.0;
+        std::string I_hash = information_sets[i];
+        bool move_flag = get_move_flag(I_hash, player);
+        InformationSet I(player, move_flag, I_hash);
+
+        prob_reaching_list[i] = get_probability_of_reaching_I_prob(I, policy_obj_x, policy_obj_o, player);
+    }
+}
+//prob
+
+//avg
+void calc_average_terms(char player, std::vector<std::string>& information_sets, PolicyVec& policy_obj, std::vector<double>& prob_reaching_list, std::vector<std::vector<double>>& avg_policy_numerator, std::vector<double>& avg_policy_denominator, int T){
+    int weight = T > AVERAGE_DELAY ? T - AVERAGE_DELAY : 0;
+    
+    #pragma omp parallel for num_threads(NUMBER_THREADS) shared(avg_policy_numerator, avg_policy_denominator, policy_obj, prob_reaching_list)
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
         bool move_flag = get_move_flag(I_hash, player);
@@ -182,10 +229,9 @@ void calc_average_terms(char player, std::vector<std::string>& information_sets,
         I.get_actions(actions);
         for (int action: actions) {
             std::vector<double>& policy = policy_obj.policy_dict[I.get_index()];
-            avg_policy_numerator[I.get_index()][action] += weight * policy[action];
-            avg_policy_denominator[I.get_index()] += weight * policy[action];
+            avg_policy_numerator[I.get_index()][action] += prob_reaching_list[i] * weight * policy[action];
+            avg_policy_denominator[I.get_index()] += prob_reaching_list[i] * weight * policy[action];
         }
-
     }
 }
 
@@ -278,15 +324,18 @@ int main(int argc, char* argv[])  {
         std::cout << "Expected utility: " << expected_utility << std::endl; 
         run_cfr(T, P1_information_sets, regret_list_x, policy_obj_x, policy_obj_o, 'x', base_path);
         run_cfr(T, P2_information_sets, regret_list_o, policy_obj_x, policy_obj_o, 'o', base_path);
-        calc_average_terms('x', P1_information_sets, policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, T);
-        calc_average_terms('o', P2_information_sets, policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, T);
+        get_prob_reaching(P1_information_sets, prob_reaching_list_x, 'x', policy_obj_x, policy_obj_o);
+        get_prob_reaching(P2_information_sets, prob_reaching_list_o, 'o', policy_obj_x, policy_obj_o);
+        calc_average_terms('x', P1_information_sets, policy_obj_x, prob_reaching_list_x, avg_policy_numerator_x, avg_policy_denominator_x, T);
+        calc_average_terms('o', P2_information_sets, policy_obj_o, prob_reaching_list_o, avg_policy_numerator_o, avg_policy_denominator_o, T);
     }
+
 
     calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
     calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o');
 
-    std::string output_policy_file_x = base_path + "/average" + "/P1_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_simple_average.json";
-    std::string output_policy_file_o = base_path + "/average" + "/P2_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_simple_average.json";
+    std::string output_policy_file_x = base_path + "/average" + "/P1_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_off_policy_avg.json";
+    std::string output_policy_file_o = base_path + "/average" + "/P2_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_off_policy_avg.json";
     std::string output_regret_file_x = base_path + "/regret/P1_iteration_" + std::to_string(end_iter) + "_regret_cpp.json";
     std::string output_regret_file_o = base_path + "/regret/P2_iteration_" + std::to_string(end_iter) + "_regret_cpp.json";
     save_output(output_policy_file_x, output_regret_file_x, 'x', P1_information_sets, regret_list_x, avg_policy_obj_x);
