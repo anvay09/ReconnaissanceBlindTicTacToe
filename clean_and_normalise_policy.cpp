@@ -52,7 +52,7 @@ void save_output(std::string output_policy_file, char player, std::vector<std::s
 int main(int argc, char** argv) {
     std::string file_path = argv[1];
     char player = argv[2][0];
-    bool txt_flag = std::stoi(argv[3]) == 1 ? true : false;
+    // bool txt_flag = std::stoi(argv[3]) == 1 ? true : false;
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
     std::string P1_information_sets_file = "data/P1_information_sets_V2.txt";
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
     }
 
     std::cout << "Loading policies..." << std::endl;
-    PolicyVec policy_obj = PolicyVec(player, file_path, txt_flag);
+    PolicyVec policy_obj = PolicyVec(player, file_path);
     std::cout << "Policies loaded." << std::endl;
 
     for (long int i = 0; i < policy_obj.policy_dict.size(); i++) {

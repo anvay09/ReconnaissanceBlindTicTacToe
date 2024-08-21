@@ -119,9 +119,9 @@ public:
 };
 
 // similar to python's split method
-void split(std::string str, std::string splitBy, std::vector<std::string>& tokens);
+// void split(std::string str, std::string splitBy, std::vector<std::string>& tokens);
 // intersection of two sets
-std::vector<int> intersection(std::vector<int> const& left_vector, std::vector<int> const& right_vector);
+// std::vector<int> intersection(std::vector<int> const& left_vector, std::vector<int> const& right_vector);
 
 
 class PolicyVec
@@ -131,11 +131,11 @@ public:
     std::vector<std::vector<double> > policy_dict;
     PolicyVec();
     PolicyVec(char player, std::string& file_path);
-    PolicyVec(char player, std::string& file_path, bool from_txt);
+    // PolicyVec(char player, std::string& file_path, bool from_txt);
     PolicyVec(char player, std::vector<std::vector<double> >& policy_dict);
     PolicyVec copy();
     std::vector<std::vector<double> > read_policy_from_json(std::string& file_path, char player);
-    std::vector<std::vector<double> > read_policy_from_txt(std::string& file_path, char player);
+    // std::vector<std::vector<double> > read_policy_from_txt(std::string& file_path, char player);
 };
 
 #endif // RBT_CLASSES_HPP_

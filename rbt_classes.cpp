@@ -2,73 +2,25 @@
 #include "cpp_headers/json.hpp"
 using json = nlohmann::json;
 
-void split(std::string str, std::string splitBy, std::vector<std::string>& tokens)
-{
-    /* Store the original string in the array, so we can loop the rest
-     * of the algorithm. */
-    tokens.push_back(str);
+// size_t split(const std::string &txt, std::vector<std::string> &strs, char ch)
+// {
+//     size_t pos = txt.find( ch );
+//     size_t initialPos = 0;
+//     strs.clear();
 
-    // Store the split index in a 'size_t' (unsigned integer) type.
-    size_t splitAt;
-    // Store the size of what we're splicing out.
-    size_t splitLen = splitBy.size();
-    // Create a string for temporarily storing the fragment we're processing.
-    std::string frag;
-    // Loop infinitely - break is internal.
-    while(true)
-    {
-        /* Store the last string in the vector, which is the only logical
-         * candidate for processing. */
-        frag = tokens.back();
-        /* The index where the split is. */
-        splitAt = frag.find(splitBy);
-        // If we didn't find a new split point...
-        if(splitAt == std::string::npos)
-        {
-            // Break the loop and (implicitly) return.
-            break;
-        }
-        /* Put everything from the left side of the split where the string
-         * being processed used to be. */
-        tokens.back() = frag.substr(0, splitAt);
-        /* Push everything from the right side of the split to the next empty
-         * index in the vector. */
-        tokens.push_back(frag.substr(splitAt+splitLen, frag.size()-(splitAt+splitLen)));
-    }
-}
+//     // Decompose statement
+//     while( pos != std::string::npos ) {
+//         strs.push_back( txt.substr( initialPos, pos - initialPos ) );
+//         initialPos = pos + 1;
 
+//         pos = txt.find( ch, initialPos );
+//     }
 
-std::vector<int> intersection(std::vector<int> const& left_vector, std::vector<int> const& right_vector) {
-    auto left = left_vector.begin();
-    auto left_end = left_vector.end();
-    auto right = right_vector.begin();
-    auto right_end = right_vector.end();
+//     // Add the last one
+//     strs.push_back( txt.substr( initialPos, std::min( pos, txt.size() ) - initialPos + 1 ) );
 
-    assert(is_sorted(left, left_end));
-    assert(is_sorted(right, right_end));
-
-    std::vector<int> result;
-
-    while (left != left_end && right != right_end) {
-        if (*left == *right) {
-            result.push_back(*left);
-            ++left;
-            ++right;
-            continue;
-        }
-
-        if (*left < *right) {
-            ++left;
-            continue;
-        }
-
-        assert(*left > *right);
-        ++right;
-    }
-
-    return result;
-}
-
+//     return strs.size();
+// }
 
 TicTacToeBoard::TicTacToeBoard(std::string& board) {
     if (board.empty()) {
@@ -755,15 +707,15 @@ PolicyVec::PolicyVec(char player, std::string& file_path) {
     this->policy_dict = this->read_policy_from_json(file_path, player);
 }
 
-PolicyVec::PolicyVec(char player, std::string& file_path, bool from_txt) {
-    this->player = player;
-    if (from_txt) {
-        this->policy_dict = this->read_policy_from_txt(file_path, player);
-    }
-    else {
-        this->policy_dict = this->read_policy_from_json(file_path, player);
-    }
-}
+// PolicyVec::PolicyVec(char player, std::string& file_path, bool from_txt) {
+//     this->player = player;
+//     if (from_txt) {
+//         this->policy_dict = this->read_policy_from_txt(file_path, player);
+//     }
+//     else {
+//         this->policy_dict = this->read_policy_from_json(file_path, player);
+//     }
+// }
 
 PolicyVec::PolicyVec(char player, std::vector< std::vector<double> >& policy_dict) {
     this->player = player;
@@ -833,59 +785,57 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_json(std::string&
     return policy_list;
 }
 
-std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& file_path, char player){
-    long int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
-    std::vector< std::vector<double> > policy_list(policy_size);
+// std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& file_path, char player){
+//     long int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
+//     std::vector< std::vector<double> > policy_list(policy_size);
 
-    for (long int i = 0; i < policy_size; i++) {
-        std::vector<double> probability_distribution(13);
-        // initialise all values to zero
-        for (int i = 0; i < 13; i++) {
-            probability_distribution[i] = 0.0;
-        }
-        policy_list[i] = probability_distribution;
-    }
+//     for (long int i = 0; i < policy_size; i++) {
+//         std::vector<double> probability_distribution(13);
+//         // initialise all values to zero
+//         for (int i = 0; i < 13; i++) {
+//             probability_distribution[i] = 0.0;
+//         }
+//         policy_list[i] = probability_distribution;
+//     }
     
-    std::ifstream i(file_path);
-    std::string line;
+//     std::ifstream i_file(file_path);
+//     std::string line;
     
-    while (std::getline(i, line)) {
-        std::cout << "Line: " << line << std::endl;
-        int token_idx = 0;
-        std::vector<std::string> tokens;
-        split(line, " ", tokens);
-        std::cout << "Number of tokens: " << tokens.size() << std::endl;
-        for (int j = 0; j < tokens.size(); j++) {
-            std::cout << tokens[j] << " ";
-        }
-        std::cout << std::endl;
-        std::string I_hash = tokens[token_idx++];
-        bool move_flag;
-        if (I_hash.size() != 0){
-            move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
-        }
-        else {
-            move_flag = player == 'x' ? true : false;
-        }
+//     while (std::getline(i_file, line)) {
+//         int token_idx = 0;
+//         std::vector<std::string> tokens;
+//         split(line, tokens, ' ');
+//         for (int i = 0; i < tokens.size(); i++) {
+//             std::cout << tokens[i] << std::endl;
+//             std::cout << "Size: " << tokens[i].size() << std::endl;
+//         }
+        
+//         std::string I_hash = tokens[token_idx++];
+//         bool move_flag;
+//         if (I_hash.size() != 0){
+//             move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
+//         }
+//         else {
+//             move_flag = player == 'x' ? true : false;
+//         }
 
-        InformationSet I(player, move_flag, I_hash);
+//         InformationSet I(player, move_flag, I_hash);
 
-        std::vector <double> probability_distribution(13);
-        // initialise all values to zero
-        for (int i = 0; i < 13; i++) {
-            probability_distribution[i] = 0.0;
-        }
+//         std::vector <double> probability_distribution(13);
+//         // initialise all values to zero
+//         for (int i = 0; i < 13; i++) {
+//             probability_distribution[i] = 0.0;
+//         }
 
-        while (token_idx < tokens.size() - 1) {
-            std::cout << "Token: " << tokens[token_idx] << std::endl;
-            int key = std::stoi(tokens[token_idx++]);
-            std::cout << "Token: " << tokens[token_idx] << std::endl;
-            double value = std::stod(tokens[token_idx++]);
-            probability_distribution[key] = value;
-        }
+//         while (token_idx < tokens.size()-1) {
+//             int key = std::stoi(tokens[token_idx++]);
+//             double value = std::stod(tokens[token_idx++]);
+//             probability_distribution[key] = value;
+//         }
 
-        policy_list[I.get_index()] = probability_distribution;
-    }
+//         policy_list[I.get_index()] = probability_distribution;
+//         std::cout << "Updated policy for index: " << I.get_index() << std::endl;
+//     }
 
-    return policy_list;
-}
+//     return policy_list;
+// }
