@@ -850,6 +850,7 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& 
     std::string line;
     
     while (std::getline(i, line)) {
+        std::cout << "Line: " << line << std::endl;
         int token_idx = 0;
         std::vector<std::string> tokens;
         split(line, " ", tokens);
