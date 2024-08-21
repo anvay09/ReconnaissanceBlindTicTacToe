@@ -2,25 +2,25 @@
 #include "cpp_headers/json.hpp"
 using json = nlohmann::json;
 
-// size_t split(const std::string &txt, std::vector<std::string> &strs, char ch)
-// {
-//     size_t pos = txt.find( ch );
-//     size_t initialPos = 0;
-//     strs.clear();
+size_t split(const std::string &txt, std::vector<std::string> &strs, char ch)
+{
+    size_t pos = txt.find( ch );
+    size_t initialPos = 0;
+    strs.clear();
 
-//     // Decompose statement
-//     while( pos != std::string::npos ) {
-//         strs.push_back( txt.substr( initialPos, pos - initialPos ) );
-//         initialPos = pos + 1;
+    // Decompose statement
+    while( pos != std::string::npos ) {
+        strs.push_back( txt.substr( initialPos, pos - initialPos ) );
+        initialPos = pos + 1;
 
-//         pos = txt.find( ch, initialPos );
-//     }
+        pos = txt.find( ch, initialPos );
+    }
 
-//     // Add the last one
-//     strs.push_back( txt.substr( initialPos, std::min( pos, txt.size() ) - initialPos + 1 ) );
+    // Add the last one
+    strs.push_back( txt.substr( initialPos, std::min( pos, txt.size() ) - initialPos + 1 ) );
 
-//     return strs.size();
-// }
+    return strs.size();
+}
 
 TicTacToeBoard::TicTacToeBoard(std::string& board) {
     if (board.empty()) {
@@ -707,15 +707,15 @@ PolicyVec::PolicyVec(char player, std::string& file_path) {
     this->policy_dict = this->read_policy_from_json(file_path, player);
 }
 
-// PolicyVec::PolicyVec(char player, std::string& file_path, bool from_txt) {
-//     this->player = player;
-//     if (from_txt) {
-//         this->policy_dict = this->read_policy_from_txt(file_path, player);
-//     }
-//     else {
-//         this->policy_dict = this->read_policy_from_json(file_path, player);
-//     }
-// }
+PolicyVec::PolicyVec(char player, std::string& file_path, bool from_txt) {
+    this->player = player;
+    if (from_txt) {
+        this->policy_dict = this->read_policy_from_txt(file_path, player);
+    }
+    else {
+        this->policy_dict = this->read_policy_from_json(file_path, player);
+    }
+}
 
 PolicyVec::PolicyVec(char player, std::vector< std::vector<double> >& policy_dict) {
     this->player = player;
@@ -785,57 +785,52 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_json(std::string&
     return policy_list;
 }
 
-// std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& file_path, char player){
-//     long int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
-//     std::vector< std::vector<double> > policy_list(policy_size);
+std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& file_path, char player){
+    long int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
+    std::vector< std::vector<double> > policy_list(policy_size);
 
-//     for (long int i = 0; i < policy_size; i++) {
-//         std::vector<double> probability_distribution(13);
-//         // initialise all values to zero
-//         for (int i = 0; i < 13; i++) {
-//             probability_distribution[i] = 0.0;
-//         }
-//         policy_list[i] = probability_distribution;
-//     }
+    for (long int i = 0; i < policy_size; i++) {
+        std::vector<double> probability_distribution(13);
+        // initialise all values to zero
+        for (int i = 0; i < 13; i++) {
+            probability_distribution[i] = 0.0;
+        }
+        policy_list[i] = probability_distribution;
+    }
     
-//     std::ifstream i_file(file_path);
-//     std::string line;
+    std::ifstream i_file(file_path);
+    std::string line;
     
-//     while (std::getline(i_file, line)) {
-//         int token_idx = 0;
-//         std::vector<std::string> tokens;
-//         split(line, tokens, ' ');
-//         for (int i = 0; i < tokens.size(); i++) {
-//             std::cout << tokens[i] << std::endl;
-//             std::cout << "Size: " << tokens[i].size() << std::endl;
-//         }
-        
-//         std::string I_hash = tokens[token_idx++];
-//         bool move_flag;
-//         if (I_hash.size() != 0){
-//             move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
-//         }
-//         else {
-//             move_flag = player == 'x' ? true : false;
-//         }
+    while (std::getline(i_file, line)) {
+        int token_idx = 0;
+        std::vector<std::string> tokens;
+        split(line, tokens, ' ');
 
-//         InformationSet I(player, move_flag, I_hash);
+        std::string I_hash = tokens[token_idx++];
+        bool move_flag;
+        if (I_hash.size() != 0){
+            move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
+        }
+        else {
+            move_flag = player == 'x' ? true : false;
+        }
 
-//         std::vector <double> probability_distribution(13);
-//         // initialise all values to zero
-//         for (int i = 0; i < 13; i++) {
-//             probability_distribution[i] = 0.0;
-//         }
+        InformationSet I(player, move_flag, I_hash);
 
-//         while (token_idx < tokens.size()-1) {
-//             int key = std::stoi(tokens[token_idx++]);
-//             double value = std::stod(tokens[token_idx++]);
-//             probability_distribution[key] = value;
-//         }
+        std::vector <double> probability_distribution(13);
+        // initialise all values to zero
+        for (int i = 0; i < 13; i++) {
+            probability_distribution[i] = 0.0;
+        }
 
-//         policy_list[I.get_index()] = probability_distribution;
-//         std::cout << "Updated policy for index: " << I.get_index() << std::endl;
-//     }
+        while (token_idx < tokens.size()-1) {
+            int key = std::stoi(tokens[token_idx++]);
+            double value = std::stod(tokens[token_idx++]);
+            probability_distribution[key] = value;
+        }
 
-//     return policy_list;
-// }
+        policy_list[I.get_index()] = probability_distribution;
+    }
+
+    return policy_list;
+}
