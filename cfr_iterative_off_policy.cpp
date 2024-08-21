@@ -174,11 +174,8 @@ double get_probability_of_reaching_I_prob(InformationSet& I, PolicyVec& policy_o
     I.get_played_actions(actions);
     int count = 0;
     int i = 0;
-    std :: cout << "get_probability_of_reaching_I_prob start : I.get_hash().size() " << I.get_hash().size() << std::endl;
-    std :: cout << "I.get_hash() " << I.get_hash() << std::endl;
     while (i < I.get_hash().size()) {
         std::string I_hash = I.get_hash().substr(0, i);
-        std::cout << "I_hash " << I_hash << std::endl;
         bool move_flag = get_move_flag(I_hash, initial_player);
         InformationSet I_new(initial_player, move_flag, I_hash);
         if (initial_player == 'x') {
@@ -197,8 +194,6 @@ double get_probability_of_reaching_I_prob(InformationSet& I, PolicyVec& policy_o
             i = i + 7;
         }
     }
-    std :: cout << "get_probability_of_reaching_I_prob end : I.get_hash().size() " << I.get_hash().size() << std::endl;
-
     return prob_reaching;
 }
 
