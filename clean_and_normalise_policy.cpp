@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     }
 
     std::cout << "Loading policies..." << std::endl;
-    PolicyVec policy_obj(player, file_path);
+    PolicyVec policy_obj(player, file_path, true);
     std::cout << "Policies loaded." << std::endl;
 
     for (long int i = 0; i < policy_obj.policy_dict.size(); i++) {
@@ -97,5 +97,4 @@ int main(int argc, char** argv) {
     std::cout << "Saving policies..." << std::endl;
     file_path = file_path.substr(0, file_path.find_last_of('.')) + "_normalised.txt";
     save_output(file_path, player, player == 'x' ? P1_information_sets : P2_information_sets, policy_obj);
-
 }

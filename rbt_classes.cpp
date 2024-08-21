@@ -755,6 +755,16 @@ PolicyVec::PolicyVec(char player, std::string& file_path) {
     this->policy_dict = this->read_policy_from_json(file_path, player);
 }
 
+PolicyVec::PolicyVec(char player, std::string& file_path, bool from_txt) {
+    this->player = player;
+    if (from_txt) {
+        this->policy_dict = this->read_policy_from_txt(file_path, player);
+    }
+    else {
+        this->policy_dict = this->read_policy_from_json(file_path, player);
+    }
+}
+
 PolicyVec::PolicyVec(char player, std::vector< std::vector<double> >& policy_dict) {
     this->player = player;
     this->policy_dict = policy_dict;
@@ -787,7 +797,7 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_json(std::string&
         std::vector <double> probability_distribution(13);
         // initialise all values to zero
         for (int i = 0; i < 13; i++) {
-            probability_distribution[i] = 0;
+            probability_distribution[i] = 0.0;
         }
 
         if (I_hash.back() == '_') {
@@ -815,6 +825,46 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_json(std::string&
                     probability_distribution[stoi(sense_keys[i])] = policy_obj[I_hash][sense_keys[i]];
                 }
             }
+        }
+
+        policy_list[I.get_index()] = probability_distribution;
+    }
+
+    return policy_list;
+}
+
+std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& file_path, char player){
+    long int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
+    std::vector< std::vector<double> > policy_list(policy_size);
+    
+    std::ifstream i(file_path);
+    std::string line;
+    
+    while (std::getline(i, line)) {
+        int token_idx = 0;
+        std::vector<std::string> tokens;
+        split(line, " ", tokens);
+        std::string I_hash = tokens[token_idx++];
+        bool move_flag;
+        if (I_hash.size() != 0){
+            move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
+        }
+        else {
+            move_flag = player == 'x' ? true : false;
+        }
+
+        InformationSet I(player, move_flag, I_hash);
+
+        std::vector <double> probability_distribution(13);
+        // initialise all values to zero
+        for (int i = 0; i < 13; i++) {
+            probability_distribution[i] = 0.0;
+        }
+
+        while (token_idx < tokens.size()) {
+            int key = std::stoi(tokens[token_idx++]);
+            double value = std::stod(tokens[token_idx++]);
+            probability_distribution[key] = value;
         }
 
         policy_list[I.get_index()] = probability_distribution;
