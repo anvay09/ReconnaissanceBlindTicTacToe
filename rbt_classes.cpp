@@ -853,10 +853,10 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& 
         int token_idx = 0;
         std::vector<std::string> tokens;
         split(line, " ", tokens);
-        // for (int j = 0; j < tokens.size(); j++) {
-        //     std::cout << tokens[j] << " ";
-        // }
-        // std::cout << std::endl;
+        for (int j = 0; j < tokens.size(); j++) {
+            std::cout << tokens[j] << " ";
+        }
+        std::cout << std::endl;
         std::string I_hash = tokens[token_idx++];
         bool move_flag;
         if (I_hash.size() != 0){
@@ -877,6 +877,7 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& 
         while (token_idx < tokens.size()) {
             std::cout << "Token: " << tokens[token_idx] << std::endl;
             int key = std::stoi(tokens[token_idx++]);
+            std::cout << "Token: " << tokens[token_idx] << std::endl;
             double value = std::stod(tokens[token_idx++]);
             probability_distribution[key] = value;
         }
