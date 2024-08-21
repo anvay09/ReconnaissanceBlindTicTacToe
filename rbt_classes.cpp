@@ -875,7 +875,7 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& 
             probability_distribution[i] = 0.0;
         }
 
-        while (token_idx < tokens.size()) {
+        while (token_idx < tokens.size() - 1) {
             std::cout << "Token: " << tokens[token_idx] << std::endl;
             int key = std::stoi(tokens[token_idx++]);
             std::cout << "Token: " << tokens[token_idx] << std::endl;
