@@ -14,9 +14,25 @@ void save_map_json(std::string output_file, std::vector<std::vector<double>>& ma
     f_out.close();
 }
 
+void save_map_txt(std::string output_file, std::vector<std::vector<double>>& map, std::vector<std::string>& Information_sets){
+    std::ofstream f_out;
+    f_out.open(output_file, std::ios::trunc);
+    for (long int j = 0; j < map.size(); j++) {
+        f_out << Information_sets[j] << " ";
+        for (int i = 0; i < 13; i++) {
+            if (map[j][i] > 0.0){
+                f_out << i << ":" << map[j][i] << " ";
+            }
+        }
+        f_out << std::endl;
+    }
+    f_out.close();
+}
+
 void save_output(std::string output_policy_file, char player, std::vector<std::string>& information_sets, PolicyVec& policy_obj) {
     std::cout << "Saving policy for player " << player << "..." << std::endl;
-    save_map_json(output_policy_file, policy_obj.policy_dict, information_sets);
+    // save_map_json(output_policy_file, policy_obj.policy_dict, information_sets);
+    save_map_txt(output_policy_file, policy_obj.policy_dict, information_sets);
 }
 
 int main(int argc, char** argv) {
@@ -56,7 +72,7 @@ int main(int argc, char** argv) {
         std::vector<double>& prob_dist = policy_obj.policy_dict[i];
 
         for (int j = 0; j < prob_dist.size(); j++) {
-            if (prob_dist[j] < 1e-5) {
+            if (prob_dist[j] < 1e-3) {
                 prob_dist[j] = 0.0;
             }
         }
@@ -67,13 +83,19 @@ int main(int argc, char** argv) {
             sum += prob_dist[j];
         }
 
-        for (int j = 0; j < prob_dist.size(); j++) {
-            prob_dist[j] /= sum;
+        if (sum == 0.0) {
+            continue;
         }
+        else {
+            for (int j = 0; j < prob_dist.size(); j++) {
+                prob_dist[j] /= sum;
+            }
+        }
+        
     }
 
     std::cout << "Saving policies..." << std::endl;
-    file_path = file_path.substr(0, file_path.find_last_of('.')) + "_normalised.json";
+    file_path = file_path.substr(0, file_path.find_last_of('.')) + "_normalised.txt";
     save_output(file_path, player, player == 'x' ? P1_information_sets : P2_information_sets, policy_obj);
 
 }
