@@ -836,6 +836,15 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_json(std::string&
 std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& file_path, char player){
     long int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
     std::vector< std::vector<double> > policy_list(policy_size);
+
+    for (long int i = 0; i < policy_size; i++) {
+        std::vector<double> probability_distribution(13);
+        // initialise all values to zero
+        for (int i = 0; i < 13; i++) {
+            probability_distribution[i] = 0.0;
+        }
+        policy_list[i] = probability_distribution;
+    }
     
     std::ifstream i(file_path);
     std::string line;
