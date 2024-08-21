@@ -18,13 +18,27 @@ void save_map_txt(std::string output_file, std::vector<std::vector<double>>& map
     std::ofstream f_out;
     f_out.open(output_file, std::ios::trunc);
     for (long int j = 0; j < map.size(); j++) {
-        f_out << Information_sets[j] << " ";
+        // if all actions have zero probability, do not save information set
+        bool all_zero = true;
         for (int i = 0; i < 13; i++) {
             if (map[j][i] > 0.0){
-                f_out << i << " " << map[j][i] << " ";
+                all_zero = false;
+                break;
             }
         }
-        f_out << std::endl;
+
+        if (all_zero) {
+            continue;
+        }
+        else {
+            f_out << Information_sets[j] << " ";
+            for (int i = 0; i < 13; i++) {
+                if (map[j][i] > 0.0){
+                    f_out << i << " " << map[j][i] << " ";
+                }
+            }
+            f_out << std::endl;
+        }
     }
     f_out.close();
 }
@@ -65,7 +79,7 @@ int main(int argc, char** argv) {
     }
 
     std::cout << "Loading policies..." << std::endl;
-    PolicyVec policy_obj(player, file_path);
+    PolicyVec policy_obj(player, file_path, true);
     std::cout << "Policies loaded." << std::endl;
 
     for (long int i = 0; i < policy_obj.policy_dict.size(); i++) {
