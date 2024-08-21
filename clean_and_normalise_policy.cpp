@@ -21,7 +21,7 @@ void save_map_txt(std::string output_file, std::vector<std::vector<double>>& map
         f_out << Information_sets[j] << " ";
         for (int i = 0; i < 13; i++) {
             if (map[j][i] > 0.0){
-                f_out << i << ":" << map[j][i] << " ";
+                f_out << i << " " << map[j][i] << " ";
             }
         }
         f_out << std::endl;
@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     }
 
     std::cout << "Loading policies..." << std::endl;
-    PolicyVec policy_obj(player, file_path, true);
+    PolicyVec policy_obj(player, file_path);
     std::cout << "Policies loaded." << std::endl;
 
     for (long int i = 0; i < policy_obj.policy_dict.size(); i++) {
