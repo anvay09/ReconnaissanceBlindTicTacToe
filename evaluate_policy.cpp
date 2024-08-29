@@ -17,9 +17,6 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
             TicTacToeBoard new_true_board = true_board;
             bool success = new_true_board.update_move(action, player);
 
-            if (I.get_index() == -1){
-                std::cout << "KEY ERROR: Get exp u" << std::endl;
-            }
             double probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
             History new_history = current_history;
             new_history.history.push_back(action);
@@ -175,6 +172,322 @@ double get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_o
     double expected_utility = get_expected_utility_parallel(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x');
     return expected_utility;
 }
+
+
+double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, 
+                            PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player) {
+    double expected_utility_h = 0.0;
+    
+    InformationSet& I = player == 'x' ? I_1 : I_2;
+    PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
+    
+    std::vector<int> actions;
+    std::vector<double> Q_values;
+
+    if (player == initial_player) {
+        I.get_actions(actions);
+        for (int action : actions) {
+            Q_values.push_back(0.0);
+        }
+    }
+    else {
+        I.get_actions_given_policy(actions, policy_obj);
+    }
+    
+    if (I.move_flag) {
+        for (int a = 0; a < actions.size(); a++) {
+            TicTacToeBoard new_true_board = true_board;
+            bool success = new_true_board.update_move(actions[a], player);
+
+            double probability_new = 0.0;
+            if (player == initial_player) {
+                probability_new = probability * 1.0;
+            }
+            else {
+                probability_new = probability * policy_obj.policy_dict[I.get_index()][actions[a]];
+            }
+
+            History new_history = current_history;
+            new_history.history.push_back(actions[a]);
+            
+            char winner;
+            if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
+                InformationSet new_I = I;
+                new_I.update_move(actions[a], player);
+                new_I.reset_zeros();
+                
+                if (player == 'x') {
+                    if (player == initial_player) {
+                        Q_values[a] = compute_best_response(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player);
+                    }
+                    else {
+                        expected_utility_h += compute_best_response(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player);
+                    }
+                } else {
+                    if (player == initial_player) {
+                        Q_values[a] = compute_best_response(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player);
+                    }
+                    else {
+                        expected_utility_h += compute_best_response(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player);
+                    }
+                }
+            } else {
+                TerminalHistory H_T = TerminalHistory(new_history.history);
+                H_T.set_reward();
+                if (initial_player == 'x'){
+                    if (player == initial_player) {
+                        Q_values[a] = H_T.reward[0] * probability_new;
+                        expected_utility_h += Q_values[a];
+                    }
+                    else {
+                        expected_utility_h += H_T.reward[0] * probability_new;
+                    }
+                }
+                else{
+                    if (player == initial_player) {
+                        Q_values[a] = H_T.reward[1] * probability_new;
+                        expected_utility_h += Q_values[a];
+                    }
+                    else {
+                        expected_utility_h += H_T.reward[1] * probability_new;
+                    }
+                }
+            }
+        }
+    } else {
+        for (int a = 0; a < actions.size(); a++) {
+            InformationSet new_I = I;
+            new_I.simulate_sense(actions[a], true_board);
+            
+            double probability_new = 0.0;
+            if (player == initial_player) {
+                probability_new = probability * 1.0;
+            }
+            else {
+                probability_new = probability * policy_obj.policy_dict[I.get_index()][actions[a]];
+            }
+            
+            History new_history = current_history;
+            new_history.history.push_back(actions[a]);
+
+            if (player == 'x') {
+                if (player == initial_player) {
+                    Q_values[a] = compute_best_response(new_I, I_2, true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player);
+                }
+                else {
+                    expected_utility_h += compute_best_response(new_I, I_2, true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player);
+                }
+            } else {
+                if (player == initial_player) {
+                    Q_values[a] = compute_best_response(I_1, new_I, true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player);
+                }
+                else {
+                    expected_utility_h += compute_best_response(I_1, new_I, true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player);
+                }
+            }
+        }
+    }
+
+    if (player == initial_player) {
+        double max_Q = 0.0;
+        int best_action = -1;
+
+        for (int a = 0; a < Q_values.size(); a++) {
+            if (Q_values[a] >= max_Q) {
+                max_Q = Q_values[a];
+                best_action = actions[a];
+            }
+        }
+
+        // update policy
+        std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
+        for (int a = 0; a < prob_dist.size(); a++) {
+            if (a == best_action) {
+                prob_dist[a] = 1.0;
+            } else {
+                prob_dist[a] = 0.0;
+            }
+        }
+
+        expected_utility_h = max_Q;
+    }
+
+    return expected_utility_h;
+}
+
+
+double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, 
+                                     PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player) {
+    double expected_utility_h = 0.0;
+    std::vector<InformationSet> Depth_1_P1_Isets;
+    std::vector<InformationSet> Depth_1_P2_Isets;
+    std::vector<TicTacToeBoard> Depth_1_boards;
+    std::vector<char> Depth_1_players;
+    std::vector<double> Depth_1_probabilities;
+    std::vector<History> Depth_1_histories;
+    std::vector<std::vector<int>> Depth_1_actions;
+    std::vector<std::vector<double>> Depth_1_Q_values;
+
+    InformationSet I = player == 'x' ? I_1 : I_2;
+    PolicyVec policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
+
+    std::vector<int> actions;
+    std::vector<double> Q_values;
+
+    if (player == initial_player) {
+        I.get_actions(actions);
+        for (int action : actions) {
+            Q_values.push_back(0.0);
+        }
+    }
+    else {
+        I.get_actions_given_policy(actions, policy_obj);
+    }
+
+    if (I.move_flag) {
+        for (int a = 0; a < actions.size(); a++) {
+            TicTacToeBoard new_true_board = true_board;
+            bool success = new_true_board.update_move(actions[a], player);
+
+            double probability_new = 0.0;
+            if (player == initial_player) {
+                probability_new = probability * 1.0;
+            }
+            else {
+                probability_new = probability * policy_obj.policy_dict[I.get_index()][actions[a]];
+            }
+
+            History new_history = current_history;
+            new_history.history.push_back(actions[a]);
+
+            char winner;
+            if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
+                InformationSet new_I = I;
+                new_I.update_move(actions[a], player);
+                new_I.reset_zeros();
+
+                if (player == 'x') {
+                    Depth_1_P1_Isets.push_back(new_I);
+                    Depth_1_P2_Isets.push_back(I_2);
+                    Depth_1_boards.push_back(new_true_board);
+                    Depth_1_players.push_back('o');
+                    Depth_1_probabilities.push_back(probability_new);
+                    Depth_1_histories.push_back(new_history);
+                    Depth_1_actions.push_back(std::vector<int>());
+                    Depth_1_Q_values.push_back(std::vector<double>());
+                } 
+                else {
+                    Depth_1_P1_Isets.push_back(I_1);
+                    Depth_1_P2_Isets.push_back(new_I);
+                    Depth_1_boards.push_back(new_true_board);
+                    Depth_1_players.push_back('x');
+                    Depth_1_probabilities.push_back(probability_new);
+                    Depth_1_histories.push_back(new_history);
+                    Depth_1_actions.push_back(std::vector<int>());
+                    Depth_1_Q_values.push_back(std::vector<double>());
+                }
+            }
+
+            else {
+                TerminalHistory H_T = TerminalHistory(new_history.history);
+                H_T.set_reward();
+                if (initial_player == 'x'){
+                    if (player == initial_player) {
+                        Q_values[a] = H_T.reward[0] * probability_new;
+                    }
+                    else {
+                        expected_utility_h += H_T.reward[0] * probability_new;
+                    }
+                }
+                else{
+                    if (player == initial_player) {
+                        Q_values[a] = H_T.reward[1] * probability_new;
+                    }
+                    else {
+                        expected_utility_h += H_T.reward[1] * probability_new;
+                    }
+                }
+            }
+        }
+    }
+
+    else {
+        for (int a = 0; a < actions.size(); a++) {
+            InformationSet new_I = I;
+            new_I.simulate_sense(actions[a], true_board);
+
+            double probability_new = 0.0;
+            if (player == initial_player) {
+                probability_new = probability * 1.0;
+            }
+            else {
+                probability_new = probability * policy_obj.policy_dict[I.get_index()][actions[a]];
+            }
+
+            History new_history = current_history;
+            new_history.history.push_back(actions[a]);
+
+            if (player == 'x') {
+                Depth_1_P1_Isets.push_back(new_I);
+                Depth_1_P2_Isets.push_back(I_2);
+                Depth_1_boards.push_back(true_board);
+                Depth_1_players.push_back('x');
+                Depth_1_probabilities.push_back(probability_new);
+                Depth_1_histories.push_back(new_history);
+                Depth_1_actions.push_back(std::vector<int>());
+                Depth_1_Q_values.push_back(std::vector<double>());
+            } 
+            else {
+                Depth_1_P1_Isets.push_back(I_1);
+                Depth_1_P2_Isets.push_back(new_I);
+                Depth_1_boards.push_back(true_board);
+                Depth_1_players.push_back('o');
+                Depth_1_probabilities.push_back(probability_new);
+                Depth_1_histories.push_back(new_history);
+                Depth_1_actions.push_back(std::vector<int>());
+                Depth_1_Q_values.push_back(std::vector<double>());
+            }
+        }
+    }
+
+    # pragma omp parallel for num_threads(96)
+    for (int i = 0; i < Depth_1_P1_Isets.size(); i++) {
+        Depth_1_Q_values[i] = std::vector<double>(Depth_1_actions[i].size(), 0.0);
+        for (int a = 0; a < Depth_1_actions[i].size(); a++) {
+            Depth_1_Q_values[i][a] = compute_best_response(Depth_1_P1_Isets[i], Depth_1_P2_Isets[i], Depth_1_boards[i], Depth_1_players[i], policy_obj_x, policy_obj_o, Depth_1_probabilities[i], Depth_1_histories[i], initial_player);
+        }
+    }
+
+    if (player == initial_player) {
+        for (int i = 0; i < Depth_1_P1_Isets.size(); i++) {
+            double max_Q = 0.0;
+            int best_action = -1;
+
+            for (int a = 0; a < Depth_1_Q_values[i].size(); a++) {
+                if (Depth_1_Q_values[i][a] >= max_Q) {
+                    max_Q = Depth_1_Q_values[i][a];
+                    best_action = Depth_1_actions[i][a];
+                }
+            }
+
+            // update policy
+            std::vector<double>& prob_dist = policy_obj.policy_dict[Depth_1_P1_Isets[i].get_index()];
+            for (int a = 0; a < prob_dist.size(); a++) {
+                if (a == best_action) {
+                    prob_dist[a] = 1.0;
+                } else {
+                    prob_dist[a] = 0.0;
+                }
+            }
+
+            expected_utility_h += max_Q;
+        }
+    }
+
+    return expected_utility_h;
+
+}
+
 
 
 int main(int argc, char** argv) {
