@@ -255,6 +255,7 @@ int main(int argc, char* argv[])  {
     int end_iter = std::stoi(argv[4]); //1000;
     std::string policy_file_x = argv[5]; //"data/P1_uniform_policy.json";
     std::string policy_file_o = argv[6]; //"data/P2_uniform_policy.json";
+    std::string exp_u_file = "data/expected_utility_average.txt";
 
     // read information set file
 
@@ -319,15 +320,34 @@ int main(int argc, char* argv[])  {
         std::cout << "Expected utility: " << expected_utility << std::endl; 
         run_cfr(T, P1_information_sets, regret_list_x, policy_obj_x, policy_obj_o, 'x', base_path);
         run_cfr(T, P2_information_sets, regret_list_o, policy_obj_x, policy_obj_o, 'o', base_path);
+
+        std::cout << "Getting probability of reaching for iteration " << T << "..." << std::endl;
+
         get_prob_reaching(P1_information_sets, prob_reaching_list_x, 'x', policy_obj_x, policy_obj_o);
         get_prob_reaching(P2_information_sets, prob_reaching_list_o, 'o', policy_obj_x, policy_obj_o);
+
+        std::cout << "Calculating average terms for iteration " << T << "..." << std::endl;
+
         calc_average_terms('x', P1_information_sets, policy_obj_x, prob_reaching_list_x, avg_policy_numerator_x, avg_policy_denominator_x, T);
         calc_average_terms('o', P2_information_sets, policy_obj_o, prob_reaching_list_o, avg_policy_numerator_o, avg_policy_denominator_o, T);
+        
+        std::cout << "Calculating average policy for iteration " << T << "..." << std::endl;
+
+        calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
+        calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o');
+
+        std::cout << "Getting expected utility for iteration " << T << "..." << std::endl;
+
+        double expected_utility_avg = get_expected_utility_wrapper(avg_policy_obj_x, avg_policy_obj_o);
+        std::cout << "Expected utility avg: " << expected_utility_avg << std::endl;
+        // save expected utility to file
+        std::ofstream f_out;
+        f_out.open(exp_u_file, std::ios::app);
+        f_out << T << " " << expected_utility_avg << std::endl;
+        f_out.close();
     }
 
 
-    calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
-    calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o');
 
     std::string output_policy_file_x = base_path + "/average" + "/P1_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_off_policy_avg.json";
     std::string output_policy_file_o = base_path + "/average" + "/P2_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp_off_policy_avg.json";
