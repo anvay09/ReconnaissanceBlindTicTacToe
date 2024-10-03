@@ -488,9 +488,23 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
 
 }
 
+double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o){
+    std::string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    InformationSet I_1 = InformationSet('x', true, hash_1);
+    InformationSet I_2 = InformationSet('o', false, hash_2);
+    std::vector<int> h = {};
+    TerminalHistory start_history = TerminalHistory(h);
+
+    double expected_utility = compute_best_response_parallel(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x');
+    return expected_utility;
+}
 
 
-int main(int argc, char** argv) {
+int main(int argc, char* argv[]) {
+    std::cout.precision(17);
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
     std::vector<std::string> P1_information_sets;
@@ -519,8 +533,6 @@ int main(int argc, char** argv) {
         InformationSet::P2_hash_to_int_map[P2_information_sets[i]] = i;
     }
 
-
-    std::cout.precision(17);
     std::cout << "Loading policies..." << std::endl;
     char player = 'x';
     PolicyVec policy_obj_x('x', file_path_1);
@@ -536,9 +548,10 @@ int main(int argc, char** argv) {
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
- 
     std::cout << "finished computation at " << std::ctime(&end_time)
               << "elapsed time: " << elapsed_seconds.count() << "s"
               << std::endl;
+
+    expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o);
     return 0;
 }
