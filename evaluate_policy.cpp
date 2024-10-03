@@ -297,6 +297,9 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
                 max_Q = Q_values[a];
                 best_action = actions[a];
             }
+            if (Q_values[a] < -1.0){
+                std::cout << "Q value: " << Q_values[a] << std::endl;
+            }
         }
 
         // update policy
