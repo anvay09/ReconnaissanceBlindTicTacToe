@@ -552,6 +552,16 @@ int main(int argc, char* argv[]) {
               << "elapsed time: " << elapsed_seconds.count() << "s"
               << std::endl;
 
+    std::cout << "Computing best response..." << std::endl;
+    start = std::chrono::system_clock::now();
     expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o);
+    std::cout << "Expected utility: " << expected_utility << std::endl;
+
+    end = std::chrono::system_clock::now();
+    elapsed_seconds = end-start;
+    end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "finished computation at " << std::ctime(&end_time)
+              << "elapsed time: " << elapsed_seconds.count() << "s"
+              << std::endl;
     return 0;
 }
