@@ -354,7 +354,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
 
             double probability_new = 0.0;
             if (player == initial_player) {
-                probability_new = probability * 1.0;
+                probability_new = probability;
             }
             else {
                 probability_new = probability * policy_obj.policy_dict[I.get_index()][actions[a]];
@@ -376,8 +376,8 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
                     Depth_1_players.push_back('o');
                     Depth_1_probabilities.push_back(probability_new);
                     Depth_1_histories.push_back(new_history);
-                    Depth_1_actions.push_back(std::vector<int>());
-                    Depth_1_Q_values.push_back(std::vector<double>());
+                    Depth_1_actions.push_back(actions);
+                    Depth_1_Q_values.push_back(Q_values);
                 } 
                 else {
                     Depth_1_P1_Isets.push_back(I_1);
@@ -386,8 +386,8 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
                     Depth_1_players.push_back('x');
                     Depth_1_probabilities.push_back(probability_new);
                     Depth_1_histories.push_back(new_history);
-                    Depth_1_actions.push_back(std::vector<int>());
-                    Depth_1_Q_values.push_back(std::vector<double>());
+                    Depth_1_actions.push_back(actions);
+                    Depth_1_Q_values.push_back(Q_values);
                 }
             }
 
@@ -437,8 +437,8 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
                 Depth_1_players.push_back('x');
                 Depth_1_probabilities.push_back(probability_new);
                 Depth_1_histories.push_back(new_history);
-                Depth_1_actions.push_back(std::vector<int>());
-                Depth_1_Q_values.push_back(std::vector<double>());
+                Depth_1_actions.push_back(actions);
+                Depth_1_Q_values.push_back(Q_values);
             } 
             else {
                 Depth_1_P1_Isets.push_back(I_1);
@@ -447,8 +447,8 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
                 Depth_1_players.push_back('o');
                 Depth_1_probabilities.push_back(probability_new);
                 Depth_1_histories.push_back(new_history);
-                Depth_1_actions.push_back(std::vector<int>());
-                Depth_1_Q_values.push_back(std::vector<double>());
+                Depth_1_actions.push_back(actions);
+                Depth_1_Q_values.push_back(Q_values);
             }
         }
     }
@@ -501,7 +501,7 @@ double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_
     std::vector<int> h = {};
     TerminalHistory start_history = TerminalHistory(h);
 
-    double expected_utility = compute_best_response(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x', br);
+    double expected_utility = compute_best_response_parallel(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x', br);
     return expected_utility;
 }
 
