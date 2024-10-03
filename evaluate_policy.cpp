@@ -201,7 +201,7 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
 
             double probability_new = 0.0;
             if (player == initial_player) {
-                probability_new = probability * 1.0;
+                probability_new = probability;
             }
             else {
                 probability_new = probability * policy_obj.policy_dict[I.get_index()][actions[a]];
@@ -261,7 +261,7 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
             
             double probability_new = 0.0;
             if (player == initial_player) {
-                probability_new = probability * 1.0;
+                probability_new = probability;
             }
             else {
                 probability_new = probability * policy_obj.policy_dict[I.get_index()][actions[a]];
@@ -289,7 +289,7 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
     }
 
     if (player == initial_player) {
-        double max_Q = 0.0;
+        double max_Q = -std::numeric_limits<double>::infinity();
         int best_action = -1;
 
         for (int a = 0; a < Q_values.size(); a++) {
@@ -460,7 +460,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
 
     if (player == initial_player) {
         for (int i = 0; i < Depth_1_P1_Isets.size(); i++) {
-            double max_Q = 0.0;
+            double max_Q = -std::numeric_limits<double>::infinity();
             int best_action = -1;
 
             for (int a = 0; a < Depth_1_Q_values[i].size(); a++) {
