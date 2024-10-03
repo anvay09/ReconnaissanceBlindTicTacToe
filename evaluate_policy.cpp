@@ -290,7 +290,7 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
 
     if (player == initial_player) {
         double max_Q = -1.0;
-        int best_action = -1;
+        int best_action = 0;
 
         for (int a = 0; a < Q_values.size(); a++) {
             if (Q_values[a] >= max_Q) {
@@ -461,7 +461,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
     if (player == initial_player) {
         for (int i = 0; i < Depth_1_P1_Isets.size(); i++) {
             double max_Q = -1.0;
-            int best_action = -1;
+            int best_action = 0;
 
             for (int a = 0; a < Depth_1_Q_values[i].size(); a++) {
                 if (Depth_1_Q_values[i][a] >= max_Q) {
