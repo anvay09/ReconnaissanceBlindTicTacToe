@@ -557,11 +557,11 @@ int main(int argc, char* argv[]) {
               << std::endl;
 
     std::cout << "Copying policy..." << std::endl;
-    PolicyVec br = policy_obj_o;
+    PolicyVec br = policy_obj_x;
 
     std::cout << "Computing best response..." << std::endl;
     start = std::chrono::system_clock::now();
-    expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o, br, 'o');
+    expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o, br, 'x');
     std::cout << "Expected utility: " << expected_utility << std::endl;
 
     end = std::chrono::system_clock::now();
@@ -573,7 +573,7 @@ int main(int argc, char* argv[]) {
 
     // find max of each information set
     std::cout << "Editing Policy..." << std::endl;
-    for (long int i = 0; i < P2_information_sets.size(); i++) {
+    for (long int i = 0; i < P1_information_sets.size(); i++) {
         std::vector<double>& prob_dist = br.policy_dict[i];
         
         double max_Q = -std::numeric_limits<double>::infinity();
@@ -597,9 +597,9 @@ int main(int argc, char* argv[]) {
         else {
             // equal probability to all actions
             std::vector<int> actions;
-            std::string hash = P2_information_sets[i];
-            bool move_flag = get_move_flag(hash, 'o');
-            InformationSet I = InformationSet('o', move_flag, hash);
+            std::string hash = P1_information_sets[i];
+            bool move_flag = get_move_flag(hash, 'x');
+            InformationSet I = InformationSet('x', move_flag, hash);
             I.get_actions(actions);
 
             for (int i = 0; i < actions.size(); i++) {
@@ -611,7 +611,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Getting expected utility..." << std::endl;
     start = std::chrono::system_clock::now();
-    expected_utility = get_expected_utility_wrapper(policy_obj_x, br);
+    expected_utility = get_expected_utility_wrapper(br, policy_obj_o);
     std::cout << "Expected utility: " << expected_utility << std::endl;
 
     end = std::chrono::system_clock::now();
