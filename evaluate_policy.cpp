@@ -299,7 +299,7 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
         }
     }
 
-    if (player == initial_player) {
+    if (player == br_player) {
         double max_Q = -1.0;
         int best_action = -1;
 
@@ -335,8 +335,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
     std::vector<char> Depth_1_players;
     std::vector<double> Depth_1_probabilities;
     std::vector<History> Depth_1_histories;
-    std::vector<std::vector<int>> Depth_1_actions;
-    std::vector<std::vector<double>> Depth_1_Q_values;
+    std::vector<int> Depth_1_actions;
 
     InformationSet I = player == 'x' ? I_1 : I_2;
     PolicyVec policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
@@ -344,7 +343,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
     std::vector<int> actions;
     std::vector<double> Q_values;
 
-    if (player == initial_player) {
+    if (player == br_player) {
         I.get_actions(actions);
         for (int action : actions) {
             Q_values.push_back(0.0);
@@ -360,7 +359,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
             bool success = new_true_board.update_move(actions[a], player);
 
             double probability_new = 0.0;
-            if (player == initial_player) {
+            if (player == br_player) {
                 probability_new = probability;
             }
             else {
@@ -383,8 +382,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
                     Depth_1_players.push_back('o');
                     Depth_1_probabilities.push_back(probability_new);
                     Depth_1_histories.push_back(new_history);
-                    Depth_1_actions.push_back(actions);
-                    Depth_1_Q_values.push_back(Q_values);
+                    Depth_1_actions.push_back(actions[a]);
                 } 
                 else {
                     Depth_1_P1_Isets.push_back(I_1);
@@ -393,8 +391,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
                     Depth_1_players.push_back('x');
                     Depth_1_probabilities.push_back(probability_new);
                     Depth_1_histories.push_back(new_history);
-                    Depth_1_actions.push_back(actions);
-                    Depth_1_Q_values.push_back(Q_values);
+                    Depth_1_actions.push_back(actions[a]);
                 }
             }
 
@@ -402,7 +399,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
                 TerminalHistory H_T = TerminalHistory(new_history.history);
                 H_T.set_reward();
                 if (initial_player == 'x'){
-                    if (player == initial_player) {
+                    if (player == br_player) {
                         Q_values[a] = H_T.reward[0] * probability_new;
                     }
                     else {
@@ -410,7 +407,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
                     }
                 }
                 else{
-                    if (player == initial_player) {
+                    if (player == br_player) {
                         Q_values[a] = H_T.reward[1] * probability_new;
                     }
                     else {
@@ -427,7 +424,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
             new_I.simulate_sense(actions[a], true_board);
 
             double probability_new = 0.0;
-            if (player == initial_player) {
+            if (player == br_player) {
                 probability_new = probability;
             }
             else {
@@ -444,8 +441,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
                 Depth_1_players.push_back('x');
                 Depth_1_probabilities.push_back(probability_new);
                 Depth_1_histories.push_back(new_history);
-                Depth_1_actions.push_back(actions);
-                Depth_1_Q_values.push_back(Q_values);
+                Depth_1_actions.push_back(actions[a]);
             } 
             else {
                 Depth_1_P1_Isets.push_back(I_1);
@@ -454,44 +450,45 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
                 Depth_1_players.push_back('o');
                 Depth_1_probabilities.push_back(probability_new);
                 Depth_1_histories.push_back(new_history);
-                Depth_1_actions.push_back(actions);
-                Depth_1_Q_values.push_back(Q_values);
+                Depth_1_actions.push_back(actions[a]);
             }
         }
     }
 
     # pragma omp parallel for num_threads(96)
-    for (int i = 0; i < Depth_1_P1_Isets.size(); i++) {
-        expected_utility_h += compute_best_response(Depth_1_P1_Isets[i], Depth_1_P2_Isets[i], Depth_1_boards[i], Depth_1_players[i], policy_obj_x, policy_obj_o, Depth_1_probabilities[i], Depth_1_histories[i], initial_player, br, br_player);
-    }
-
-    if (player == initial_player) {
-        for (int i = 0; i < Depth_1_P1_Isets.size(); i++) {
-            double max_Q = -1.0;
-            int best_action = 0;
-
-            for (int a = 0; a < Depth_1_Q_values[i].size(); a++) {
-                if (Depth_1_Q_values[i][a] >= max_Q) {
-                    max_Q = Depth_1_Q_values[i][a];
-                    best_action = Depth_1_actions[i][a];
-                }
-            }
-
-            if (best_action != -1) {
-                // update policy
-                std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-                for (int a = 0; a < prob_dist.size(); a++) {
-                    if (a == best_action) {
-                        prob_dist[a] += max_Q;
-                    } 
-                }
-            }
-            expected_utility_h += max_Q;
+    for (int a = 0; a < Depth_1_P1_Isets.size(); a++) {
+        if (player == br_player) {
+            Q_values[Depth_1_actions[a]] = compute_best_response(Depth_1_P1_Isets[a], Depth_1_P2_Isets[a], Depth_1_boards[a], Depth_1_players[a], policy_obj_x, policy_obj_o, Depth_1_probabilities[a], Depth_1_histories[a], initial_player, br, br_player);
+        }
+        else {
+            expected_utility_h += compute_best_response(Depth_1_P1_Isets[a], Depth_1_P2_Isets[a], Depth_1_boards[a], Depth_1_players[a], policy_obj_x, policy_obj_o, Depth_1_probabilities[a], Depth_1_histories[a], initial_player, br, br_player);
         }
     }
 
-    return expected_utility_h;
+    if (player == br_player) {
+        double max_Q = -1.0;
+        int best_action = -1;
 
+        for (int a = 0; a < Q_values.size(); a++) {
+            if (Q_values[a] >= max_Q) {
+                max_Q = Q_values[a];
+                best_action = actions[a];
+            }
+        }
+
+        if (best_action != -1) {
+            // update policy
+            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+            for (int a = 0; a < prob_dist.size(); a++) {
+                if (a == best_action) {
+                    prob_dist[a] += max_Q;
+                } 
+            }
+        }
+        expected_utility_h = max_Q;
+    }
+
+    return expected_utility_h;
 }
 
 double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& br, char br_player){
@@ -513,6 +510,7 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
+    // char br_player = argv[3][0];
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
     std::string P1_information_sets_file = "data/P1_information_sets_V2.txt";
