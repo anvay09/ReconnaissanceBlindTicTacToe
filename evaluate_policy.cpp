@@ -621,9 +621,9 @@ int main(int argc, char* argv[]) {
     std::cout << "Getting expected utility..." << std::endl;
     start = std::chrono::system_clock::now();
     expected_utility = get_expected_utility_wrapper(br_x, policy_obj_o);
-    std::cout << "Expected utility: " << expected_utility << std::endl;
+    std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
     expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
-    std::cout << "Expected utility: " << expected_utility << std::endl;
+    std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
 
     end = std::chrono::system_clock::now();
     elapsed_seconds = end-start;
