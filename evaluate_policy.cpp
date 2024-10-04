@@ -186,7 +186,7 @@ double get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_o
 
 
 double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, 
-                            PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player, PolicyVec& br) {
+                            PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player, PolicyVec& br, char br_player) {
     double expected_utility_h = 0.0;
     
     InformationSet& I = player == 'x' ? I_1 : I_2;
@@ -195,7 +195,7 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
     std::vector<int> actions;
     std::vector<double> Q_values;
 
-    if (player == initial_player) {
+    if (player == br_player) {
         I.get_actions(actions);
         for (int action : actions) {
             Q_values.push_back(0.0);
@@ -211,7 +211,7 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
             bool success = new_true_board.update_move(actions[a], player);
 
             double probability_new = 0.0;
-            if (player == initial_player) {
+            if (player == br_player) {
                 probability_new = probability;
             }
             else {
@@ -228,25 +228,25 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
                 new_I.reset_zeros();
                 
                 if (player == 'x') {
-                    if (player == initial_player) {
-                        Q_values[a] = compute_best_response(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br);
+                    if (player == br_player) {
+                        Q_values[a] = compute_best_response(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br, br_player);
                     }
                     else {
-                        expected_utility_h += compute_best_response(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br);
+                        expected_utility_h += compute_best_response(new_I, I_2, new_true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br, br_player);
                     }
                 } else {
-                    if (player == initial_player) {
-                        Q_values[a] = compute_best_response(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br);
+                    if (player == br_player) {
+                        Q_values[a] = compute_best_response(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br, br_player);
                     }
                     else {
-                        expected_utility_h += compute_best_response(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br);
+                        expected_utility_h += compute_best_response(I_1, new_I, new_true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br, br_player);
                     }
                 }
             } else {
                 TerminalHistory H_T = TerminalHistory(new_history.history);
                 H_T.set_reward();
                 if (initial_player == 'x'){
-                    if (player == initial_player) {
+                    if (player == br_player) {
                         Q_values[a] = H_T.reward[0] * probability_new;
                         expected_utility_h += Q_values[a];
                     }
@@ -255,7 +255,7 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
                     }
                 }
                 else{
-                    if (player == initial_player) {
+                    if (player == br_player) {
                         Q_values[a] = H_T.reward[1] * probability_new;
                         expected_utility_h += Q_values[a];
                     }
@@ -271,7 +271,7 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
             new_I.simulate_sense(actions[a], true_board);
             
             double probability_new = 0.0;
-            if (player == initial_player) {
+            if (player == br_player) {
                 probability_new = probability;
             }
             else {
@@ -282,18 +282,18 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
             new_history.history.push_back(actions[a]);
 
             if (player == 'x') {
-                if (player == initial_player) {
-                    Q_values[a] = compute_best_response(new_I, I_2, true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br);
+                if (player == br_player) {
+                    Q_values[a] = compute_best_response(new_I, I_2, true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br, br_player);
                 }
                 else {
-                    expected_utility_h += compute_best_response(new_I, I_2, true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br);
+                    expected_utility_h += compute_best_response(new_I, I_2, true_board, 'x', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br, br_player);
                 }
             } else {
-                if (player == initial_player) {
-                    Q_values[a] = compute_best_response(I_1, new_I, true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br);
+                if (player == br_player) {
+                    Q_values[a] = compute_best_response(I_1, new_I, true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br, br_player);
                 }
                 else {
-                    expected_utility_h += compute_best_response(I_1, new_I, true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br);
+                    expected_utility_h += compute_best_response(I_1, new_I, true_board, 'o', policy_obj_x, policy_obj_o, probability_new, new_history, initial_player, br, br_player);
                 }
             }
         }
@@ -327,7 +327,7 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
 
 
 double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, 
-                                     PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player, PolicyVec& br) {
+                                     PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player, PolicyVec& br, char br_player) {
     double expected_utility_h = 0.0;
     std::vector<InformationSet> Depth_1_P1_Isets;
     std::vector<InformationSet> Depth_1_P2_Isets;
@@ -462,7 +462,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
 
     # pragma omp parallel for num_threads(96)
     for (int i = 0; i < Depth_1_P1_Isets.size(); i++) {
-        expected_utility_h += compute_best_response(Depth_1_P1_Isets[i], Depth_1_P2_Isets[i], Depth_1_boards[i], Depth_1_players[i], policy_obj_x, policy_obj_o, Depth_1_probabilities[i], Depth_1_histories[i], initial_player, br);
+        expected_utility_h += compute_best_response(Depth_1_P1_Isets[i], Depth_1_P2_Isets[i], Depth_1_boards[i], Depth_1_players[i], policy_obj_x, policy_obj_o, Depth_1_probabilities[i], Depth_1_histories[i], initial_player, br, br_player);
     }
 
     if (player == initial_player) {
@@ -477,16 +477,15 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
                 }
             }
 
-            // update policy
-            std::vector<double>& prob_dist = br.policy_dict[Depth_1_P1_Isets[i].get_index()];
-            for (int a = 0; a < prob_dist.size(); a++) {
-                if (a == best_action) {
-                    prob_dist[a] = 1.0;
-                } else {
-                    prob_dist[a] = 0.0;
+            if (best_action != -1) {
+                // update policy
+                std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+                for (int a = 0; a < prob_dist.size(); a++) {
+                    if (a == best_action) {
+                        prob_dist[a] += max_Q;
+                    } 
                 }
             }
-
             expected_utility_h += max_Q;
         }
     }
@@ -495,7 +494,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
 
 }
 
-double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& br){
+double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& br, char br_player){
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
@@ -505,7 +504,7 @@ double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_
     std::vector<int> h = {};
     TerminalHistory start_history = TerminalHistory(h);
 
-    double expected_utility = compute_best_response(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x', br);
+    double expected_utility = compute_best_response(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x', br, br_player);
     return expected_utility;
 }
 
@@ -560,11 +559,11 @@ int main(int argc, char* argv[]) {
               << std::endl;
 
     std::cout << "Copying policy..." << std::endl;
-    PolicyVec br = policy_obj_x;
+    PolicyVec br = policy_obj_o;
 
     std::cout << "Computing best response..." << std::endl;
     start = std::chrono::system_clock::now();
-    expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o, br);
+    expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o, br, 'o');
     std::cout << "Expected utility: " << expected_utility << std::endl;
 
     end = std::chrono::system_clock::now();
@@ -576,7 +575,7 @@ int main(int argc, char* argv[]) {
 
     // find max of each information set
     std::cout << "Editing Policy..." << std::endl;
-    for (long int i = 0; i < P1_information_sets.size(); i++) {
+    for (long int i = 0; i < P2_information_sets.size(); i++) {
         std::vector<double>& prob_dist = br.policy_dict[i];
         
         double max_Q = -std::numeric_limits<double>::infinity();
@@ -600,11 +599,11 @@ int main(int argc, char* argv[]) {
         else {
             // equal probability to all actions
             std::vector<int> actions;
-            std::string hash = P1_information_sets[i];
-            bool move_flag = get_move_flag(hash, 'x');
-            InformationSet I = InformationSet('x', move_flag, hash);
+            std::string hash = P2_information_sets[i];
+            bool move_flag = get_move_flag(hash, 'o');
+            InformationSet I = InformationSet('o', move_flag, hash);
             I.get_actions(actions);
-            
+
             for (int i = 0; i < actions.size(); i++) {
                 prob_dist[i] = 1.0 / actions.size();
             }
@@ -614,7 +613,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Getting expected utility..." << std::endl;
     start = std::chrono::system_clock::now();
-    expected_utility = get_expected_utility_wrapper(br, policy_obj_o);
+    expected_utility = get_expected_utility_wrapper(policy_obj_x, br);
     std::cout << "Expected utility: " << expected_utility << std::endl;
 
     end = std::chrono::system_clock::now();
