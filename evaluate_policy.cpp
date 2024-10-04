@@ -290,28 +290,24 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
 
     if (player == initial_player) {
         double max_Q = -1.0;
-        int best_action = 0;
+        int best_action = -1;
 
         for (int a = 0; a < Q_values.size(); a++) {
             if (Q_values[a] >= max_Q) {
                 max_Q = Q_values[a];
                 best_action = actions[a];
             }
-            if (Q_values[a] < -1.0){
-                std::cout << "Q value: " << Q_values[a] << std::endl;
-            }
         }
 
-        // update policy
-        std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-        for (int a = 0; a < prob_dist.size(); a++) {
-            if (a == best_action) {
-                prob_dist[a] = 1.0;
-            } else {
-                prob_dist[a] = 0.0;
+        if (best_action != -1) {
+            // update policy
+            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+            for (int a = 0; a < prob_dist.size(); a++) {
+                if (a == best_action) {
+                    prob_dist[a] += probability;
+                } 
             }
         }
-
         expected_utility_h = max_Q;
     }
 
@@ -421,7 +417,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
 
             double probability_new = 0.0;
             if (player == initial_player) {
-                probability_new = probability * 1.0;
+                probability_new = probability;
             }
             else {
                 probability_new = probability * policy_obj.policy_dict[I.get_index()][actions[a]];
@@ -455,10 +451,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
 
     # pragma omp parallel for num_threads(96)
     for (int i = 0; i < Depth_1_P1_Isets.size(); i++) {
-        Depth_1_Q_values[i] = std::vector<double>(Depth_1_actions[i].size(), 0.0);
-        for (int a = 0; a < Depth_1_actions[i].size(); a++) {
-            Depth_1_Q_values[i][a] = compute_best_response(Depth_1_P1_Isets[i], Depth_1_P2_Isets[i], Depth_1_boards[i], Depth_1_players[i], policy_obj_x, policy_obj_o, Depth_1_probabilities[i], Depth_1_histories[i], initial_player, br);
-        }
+        expected_utility_h += compute_best_response(Depth_1_P1_Isets[i], Depth_1_P2_Isets[i], Depth_1_boards[i], Depth_1_players[i], policy_obj_x, policy_obj_o, Depth_1_probabilities[i], Depth_1_histories[i], initial_player, br);
     }
 
     if (player == initial_player) {
@@ -501,7 +494,7 @@ double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_
     std::vector<int> h = {};
     TerminalHistory start_history = TerminalHistory(h);
 
-    double expected_utility = compute_best_response_parallel(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x', br);
+    double expected_utility = compute_best_response(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x', br);
     return expected_utility;
 }
 
@@ -570,7 +563,29 @@ int main(int argc, char* argv[]) {
               << "elapsed time: " << elapsed_seconds.count() << "s"
               << std::endl;
 
-    std::cout << "Gettnig expected utility..." << std::endl;
+    // normalize br policy
+    std::cout << "Normalizing policy..." << std::endl;
+    for (long int i = 0; i < P1_information_sets.size(); i++) {
+        std::vector<double>& prob_dist = br.policy_dict[i];
+    
+        double sum = 0.0;
+        for (int j = 0; j < prob_dist.size(); j++) {
+            sum += prob_dist[j];
+        }
+        if (sum == 0.0) {
+            for (int j = 0; j < prob_dist.size(); j++) {
+                prob_dist[j] = 1.0 / prob_dist.size();
+            }
+        }
+        else {
+            for (int j = 0; j < prob_dist.size(); j++) {
+                prob_dist[j] /= sum;
+            }
+        }
+    }
+
+
+    std::cout << "Getting expected utility..." << std::endl;
     start = std::chrono::system_clock::now();
     expected_utility = get_expected_utility_wrapper(br, policy_obj_o);
     std::cout << "Expected utility: " << expected_utility << std::endl;
