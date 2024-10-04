@@ -501,7 +501,7 @@ double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_
     std::vector<int> h = {};
     TerminalHistory start_history = TerminalHistory(h);
 
-    double expected_utility = compute_best_response(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x', br, br_player);
+    double expected_utility = compute_best_response_parallel(I_1, I_2, true_board, 'x', policy_obj_x, policy_obj_o, 1, start_history, 'x', br, br_player);
     return expected_utility;
 }
 
