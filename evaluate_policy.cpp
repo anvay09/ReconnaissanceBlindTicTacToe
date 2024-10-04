@@ -2,6 +2,18 @@
 
 // g++-13 -O3 evaluate_policy.cpp rbt_classes.cpp -o evaluate_policy -fopenmp
 
+bool get_move_flag(std::string I_hash, char player){
+    bool move_flag;
+    if (I_hash.size() != 0){
+        move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
+    }
+    else {
+        move_flag = player == 'x' ? true : false;
+    }
+    return move_flag;
+}
+
+
 void make_pure_strategy(PolicyVec& br, char player, std::vector<std::string>& information_sets){
     std::cout << "Creating pure strategy..." << std::endl;
     for (long int i = 0; i < information_sets.size(); i++) {
@@ -38,18 +50,6 @@ void make_pure_strategy(PolicyVec& br, char player, std::vector<std::string>& in
             }
         }
     }
-}
-
-
-bool get_move_flag(std::string I_hash, char player){
-    bool move_flag;
-    if (I_hash.size() != 0){
-        move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
-    }
-    else {
-        move_flag = player == 'x' ? true : false;
-    }
-    return move_flag;
 }
 
 
