@@ -2,6 +2,45 @@
 
 // g++-13 -O3 evaluate_policy.cpp rbt_classes.cpp -o evaluate_policy -fopenmp
 
+void make_pure_strategy(PolicyVec& br, char player, std::vector<std::string>& information_sets){
+    std::cout << "Creating pure strategy..." << std::endl;
+    for (long int i = 0; i < information_sets.size(); i++) {
+        std::vector<double>& prob_dist = br.policy_dict[i];
+        
+        double max_Q = -std::numeric_limits<double>::infinity();
+        int best_action = -1;
+        for (int a = 0; a < prob_dist.size(); a++) {
+            if (prob_dist[a] >= max_Q) {
+                max_Q = prob_dist[a];
+                best_action = a;
+            }
+        }
+
+        if (best_action != -1) {
+            for (int a = 0; a < prob_dist.size(); a++) {
+                if (a == best_action) {
+                    prob_dist[a] = 1.0;
+                } else {
+                    prob_dist[a] = 0.0;
+                }
+            }
+        }
+        else {
+            // equal probability to all actions
+            std::vector<int> actions;
+            std::string hash = information_sets[i];
+            bool move_flag = get_move_flag(hash, player);
+            InformationSet I = InformationSet(player, move_flag, hash);
+            I.get_actions(actions);
+
+            for (int i = 0; i < actions.size(); i++) {
+                prob_dist[i] = 1.0 / actions.size();
+            }
+        }
+    }
+}
+
+
 bool get_move_flag(std::string I_hash, char player){
     bool move_flag;
     if (I_hash.size() != 0){
@@ -12,6 +51,7 @@ bool get_move_flag(std::string I_hash, char player){
     }
     return move_flag;
 }
+
 
 double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, 
                             PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player) {
@@ -491,6 +531,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
     return expected_utility_h;
 }
 
+
 double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& br, char br_player){
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
@@ -510,7 +551,7 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
-    // char br_player = argv[3][0];
+
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
     std::string P1_information_sets_file = "data/P1_information_sets_V2.txt";
@@ -556,12 +597,15 @@ int main(int argc, char* argv[]) {
               << "elapsed time: " << elapsed_seconds.count() << "s"
               << std::endl;
 
-    std::cout << "Copying policy..." << std::endl;
-    PolicyVec br = policy_obj_x;
+    std::cout << "Copying policies..." << std::endl;
+    PolicyVec br_x = policy_obj_x;
+    PolicyVec br_o = policy_obj_o;
 
     std::cout << "Computing best response..." << std::endl;
     start = std::chrono::system_clock::now();
-    expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o, br, 'x');
+    expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o, br_x, 'x');
+    std::cout << "Expected utility: " << expected_utility << std::endl;
+    expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o, br_o, 'o');
     std::cout << "Expected utility: " << expected_utility << std::endl;
 
     end = std::chrono::system_clock::now();
@@ -571,47 +615,14 @@ int main(int argc, char* argv[]) {
               << "elapsed time: " << elapsed_seconds.count() << "s"
               << std::endl;
 
-    // find max of each information set
-    std::cout << "Editing Policy..." << std::endl;
-    for (long int i = 0; i < P1_information_sets.size(); i++) {
-        std::vector<double>& prob_dist = br.policy_dict[i];
-        
-        double max_Q = -std::numeric_limits<double>::infinity();
-        int best_action = -1;
-        for (int a = 0; a < prob_dist.size(); a++) {
-            if (prob_dist[a] >= max_Q) {
-                max_Q = prob_dist[a];
-                best_action = a;
-            }
-        }
-
-        if (best_action != -1) {
-            for (int a = 0; a < prob_dist.size(); a++) {
-                if (a == best_action) {
-                    prob_dist[a] = 1.0;
-                } else {
-                    prob_dist[a] = 0.0;
-                }
-            }
-        }
-        else {
-            // equal probability to all actions
-            std::vector<int> actions;
-            std::string hash = P1_information_sets[i];
-            bool move_flag = get_move_flag(hash, 'x');
-            InformationSet I = InformationSet('x', move_flag, hash);
-            I.get_actions(actions);
-
-            for (int i = 0; i < actions.size(); i++) {
-                prob_dist[i] = 1.0 / actions.size();
-            }
-        }
-    }
-
+    make_pure_strategy(br_x, 'x', P1_information_sets);
+    make_pure_strategy(br_o, 'o', P2_information_sets);
 
     std::cout << "Getting expected utility..." << std::endl;
     start = std::chrono::system_clock::now();
-    expected_utility = get_expected_utility_wrapper(br, policy_obj_o);
+    expected_utility = get_expected_utility_wrapper(br_x, policy_obj_o);
+    std::cout << "Expected utility: " << expected_utility << std::endl;
+    expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
     std::cout << "Expected utility: " << expected_utility << std::endl;
 
     end = std::chrono::system_clock::now();
