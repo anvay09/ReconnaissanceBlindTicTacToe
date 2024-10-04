@@ -2,6 +2,17 @@
 
 // g++-13 -O3 evaluate_policy.cpp rbt_classes.cpp -o evaluate_policy -fopenmp
 
+bool get_move_flag(std::string I_hash, char player){
+    bool move_flag;
+    if (I_hash.size() != 0){
+        move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
+    }
+    else {
+        move_flag = player == 'x' ? true : false;
+    }
+    return move_flag;
+}
+
 double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, char player, PolicyVec &policy_obj_x, 
                             PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player) {
     double expected_utility_h = 0.0;
@@ -304,7 +315,7 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
             std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
             for (int a = 0; a < prob_dist.size(); a++) {
                 if (a == best_action) {
-                    prob_dist[a] += probability;
+                    prob_dist[a] += max_Q;
                 } 
             }
         }
@@ -563,23 +574,39 @@ int main(int argc, char* argv[]) {
               << "elapsed time: " << elapsed_seconds.count() << "s"
               << std::endl;
 
-    // normalize br policy
-    std::cout << "Normalizing policy..." << std::endl;
+    // find max of each information set
+    std::cout << "Editing Policy..." << std::endl;
     for (long int i = 0; i < P1_information_sets.size(); i++) {
         std::vector<double>& prob_dist = br.policy_dict[i];
-    
-        double sum = 0.0;
-        for (int j = 0; j < prob_dist.size(); j++) {
-            sum += prob_dist[j];
+        
+        double max_Q = -std::numeric_limits<double>::infinity();
+        int best_action = -1;
+        for (int a = 0; a < prob_dist.size(); a++) {
+            if (prob_dist[a] >= max_Q) {
+                max_Q = prob_dist[a];
+                best_action = a;
+            }
         }
-        if (sum == 0.0) {
-            for (int j = 0; j < prob_dist.size(); j++) {
-                prob_dist[j] = 1.0 / prob_dist.size();
+
+        if (best_action != -1) {
+            for (int a = 0; a < prob_dist.size(); a++) {
+                if (a == best_action) {
+                    prob_dist[a] = 1.0;
+                } else {
+                    prob_dist[a] = 0.0;
+                }
             }
         }
         else {
-            for (int j = 0; j < prob_dist.size(); j++) {
-                prob_dist[j] /= sum;
+            // equal probability to all actions
+            std::vector<int> actions;
+            std::string hash = P1_information_sets[i];
+            bool move_flag = get_move_flag(hash, 'x');
+            InformationSet I = InformationSet('x', move_flag, hash);
+            I.get_actions(actions);
+            
+            for (int i = 0; i < actions.size(); i++) {
+                prob_dist[i] = 1.0 / actions.size();
             }
         }
     }
