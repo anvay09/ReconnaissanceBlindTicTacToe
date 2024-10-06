@@ -340,28 +340,50 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
     }
 
     if (player == br_player) {
-        double multiplier = player == 'x' ? 1 : -1;
+        if (player == 'x') {
+            double max_Q = -1.0;
+            int best_action = -1;
 
-        double max_Q = -1.0 * multiplier;
-        int best_action = -1;
-
-        for (int a = 0; a < Q_values.size(); a++) {
-            if (Q_values[a] * multiplier >= max_Q) {
-                max_Q = Q_values[a] * multiplier;
-                best_action = actions[a];
+            for (int a = 0; a < Q_values.size(); a++) {
+                if (Q_values[a] >= max_Q) {
+                    max_Q = Q_values[a];
+                    best_action = actions[a];
+                }
             }
-        }
 
-        if (best_action != -1) {
-            // update policy
-            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-            for (int a = 0; a < prob_dist.size(); a++) {
-                if (a == best_action) {
-                    prob_dist[a] += max_Q * probability;
-                } 
+            if (best_action != -1) {
+                // update policy
+                std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+                for (int a = 0; a < prob_dist.size(); a++) {
+                    if (a == best_action) {
+                        prob_dist[a] += max_Q * probability;
+                    } 
+                }
             }
+            expected_utility_h = max_Q;
         }
-        expected_utility_h = max_Q * multiplier;
+        else {
+            double min_Q = 1.0;
+            int best_action = -1;
+
+            for (int a = 0; a < Q_values.size(); a++) {
+                if (Q_values[a] <= min_Q) {
+                    min_Q = Q_values[a];
+                    best_action = actions[a];
+                }
+            }
+
+            if (best_action != -1) {
+                // update policy
+                std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+                for (int a = 0; a < prob_dist.size(); a++) {
+                    if (a == best_action) {
+                        prob_dist[a] += min_Q * probability;
+                    } 
+                }
+            }
+            expected_utility_h = min_Q;
+        }
     }
 
     return expected_utility_h;
@@ -508,28 +530,50 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
     }
 
     if (player == br_player) {
-        double multiplier = player == 'x' ? 1 : -1;
+        if (player == 'x'){
+            double max_Q = -1.0;
+            int best_action = -1;
 
-        double max_Q = -1.0 * multiplier;
-        int best_action = -1;
-
-        for (int a = 0; a < Q_values.size(); a++) {
-            if (Q_values[a] * multiplier >= max_Q) {
-                max_Q = Q_values[a] * multiplier;
-                best_action = actions[a];
+            for (int a = 0; a < Q_values.size(); a++) {
+                if (Q_values[a] >= max_Q) {
+                    max_Q = Q_values[a];
+                    best_action = actions[a];
+                }
             }
-        }
 
-        if (best_action != -1) {
-            // update policy
-            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-            for (int a = 0; a < prob_dist.size(); a++) {
-                if (a == best_action) {
-                    prob_dist[a] += max_Q * probability;
-                } 
+            if (best_action != -1) {
+                // update policy
+                std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+                for (int a = 0; a < prob_dist.size(); a++) {
+                    if (a == best_action) {
+                        prob_dist[a] += max_Q * probability;
+                    } 
+                }
             }
+            expected_utility_h = max_Q;
         }
-        expected_utility_h = max_Q * multiplier;
+        else {
+            double min_Q = 1.0;
+            int best_action = -1;
+
+            for (int a = 0; a < Q_values.size(); a++) {
+                if (Q_values[a] <= min_Q) {
+                    min_Q = Q_values[a];
+                    best_action = actions[a];
+                }
+            }
+
+            if (best_action != -1) {
+                // update policy
+                std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+                for (int a = 0; a < prob_dist.size(); a++) {
+                    if (a == best_action) {
+                        prob_dist[a] += min_Q * probability;
+                    } 
+                }
+            }
+            expected_utility_h = min_Q;
+        }
     }
 
     return expected_utility_h;
