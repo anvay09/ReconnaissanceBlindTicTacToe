@@ -612,19 +612,19 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
 
     if (I.move_flag) {
         for (int a = 0; a < actions.size(); a++) {
-            std::cout << "Checkpoint 1" << std::endl;
+            // std::cout << "Checkpoint 1" << std::endl;
             for (int t = 0; t < true_board_list.size(); t++) {
                 TicTacToeBoard& true_board = true_board_list[t];
                 History& history = history_list[t];
                 double reach_probability = reach_probability_list[t];
-                std::cout << "Checkpoint 2" << std::endl;
+                // std::cout << "Checkpoint 2" << std::endl;
 
                 TicTacToeBoard new_true_board = true_board;
                 History new_history = history;
                 bool success = new_true_board.update_move(actions[a], I.player);
                 new_history.history.push_back(actions[a]);
 
-                std::cout << "Checkpoint 3" << std::endl;
+                // std::cout << "Checkpoint 3" << std::endl;
 
                 char winner;
                 if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
@@ -632,7 +632,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                     new_I.update_move(actions[a], I.player);
                     new_I.reset_zeros();
 
-                    std::cout << "Checkpoint 4" << std::endl;
+                    // std::cout << "Checkpoint 4" << std::endl;
 
                     // simulate opponent's move
                     InformationSet opponent_I = opponent_I_list[t];
@@ -644,7 +644,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
 
                     opponent_I.get_actions_given_policy(opponent_actions, policy_obj);
 
-                    std::cout << "Checkpoint 5" << std::endl;
+                    // std::cout << "Checkpoint 5" << std::endl;
 
                     // first simulate sense
                     for (int opponent_action : opponent_actions) {
@@ -652,13 +652,13 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                         new_opponent_I.simulate_sense(opponent_action, new_true_board);
                         new_opponent_I.reset_zeros();
 
-                        std::cout << "Checkpoint 6" << std::endl;
+                        // std::cout << "Checkpoint 6" << std::endl;
 
                         post_sense_reach_probability_list.push_back(reach_probability * policy_obj.policy_dict[opponent_I.get_index()][opponent_action]);
                         post_sense_history_list.push_back(new_history);
                         post_sense_opponent_I_list.push_back(new_opponent_I);
 
-                        std::cout << "Checkpoint 7" << std::endl;
+                        // std::cout << "Checkpoint 7" << std::endl;
                     }
                 
                     // then simulate move
@@ -667,14 +667,14 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                     std::vector<double> post_move_reach_probability_list;
                     std::vector<InformationSet> post_move_opponent_I_list;
 
-                    std::cout << "Checkpoint 8" << std::endl;
+                    // std::cout << "Checkpoint 8" << std::endl;
 
                     for (int i = 0; i < post_sense_history_list.size(); i++) {
                         InformationSet post_sense_opponent_I = post_sense_opponent_I_list[i];
                         std::vector<int> post_sense_opponent_actions;
                         post_sense_opponent_I.get_actions_given_policy(post_sense_opponent_actions, policy_obj);
 
-                        std::cout << "Checkpoint 9" << std::endl;
+                        // std::cout << "Checkpoint 9" << std::endl;
 
                         for (int post_sense_opponent_action : post_sense_opponent_actions) {
                             TicTacToeBoard post_move_new_true_board = new_true_board;
@@ -683,21 +683,21 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                             success = post_move_new_true_board.update_move(post_sense_opponent_action, opponent_I.player);
                             post_move_new_history.history.push_back(post_sense_opponent_action);
 
-                            std::cout << "Checkpoint 10" << std::endl;
+                            // std::cout << "Checkpoint 10" << std::endl;
 
                             if (success && !post_move_new_true_board.is_win(winner) && !post_move_new_true_board.is_over()) {
                                 InformationSet post_move_oppoent_I = post_sense_opponent_I;
                                 post_move_oppoent_I.update_move(post_sense_opponent_action, opponent_I.player);
                                 post_move_oppoent_I.reset_zeros();
 
-                                std::cout << "Checkpoint 11" << std::endl;
+                                // std::cout << "Checkpoint 11" << std::endl;
 
                                 post_move_true_board_list.push_back(post_move_new_true_board);
                                 post_move_history_list.push_back(post_move_new_history);
                                 post_move_reach_probability_list.push_back(post_move_reach_probability);
                                 post_move_opponent_I_list.push_back(post_move_oppoent_I);
 
-                                std::cout << "Checkpoint 12" << std::endl;
+                                // std::cout << "Checkpoint 12" << std::endl;
                             }
                             else {
                                 TerminalHistory H_T = TerminalHistory(post_move_new_history.history);
@@ -712,9 +712,9 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                         }
                     }
 
-                    std::cout << "Checkpoint 13" << std::endl;
+                    // std::cout << "Checkpoint 13" << std::endl;
                     Q_values[a] += reach_probability * WALKTREES(new_I, br_player, post_move_true_board_list, post_move_history_list, post_move_reach_probability_list, post_move_opponent_I_list, br, policy_obj);  
-                    std::cout << "Checkpoint 14" << std::endl;  
+                    // std::cout << "Checkpoint 14" << std::endl;  
                 }
                 else {
                     TerminalHistory H_T = TerminalHistory(new_history.history);
@@ -739,7 +739,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 History& history = history_list[t];
                 double reach_probability = reach_probability_list[t];
 
-                std::cout << "Checkpoint 15" << std::endl;
+                // std::cout << "Checkpoint 15" << std::endl;
 
                 InformationSet new_I = I;
                 new_I.simulate_sense(actions[a], true_board);
@@ -751,16 +751,16 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 new_history_list.push_back(new_history);
                 new_I_list.push_back(new_I);
 
-                std::cout << "Checkpoint 16" << std::endl;
+                // std::cout << "Checkpoint 16" << std::endl;
             }
             for (int t = 0; t < new_history_list.size(); t++) {
                 Q_values[a] += reach_probability_list[t] * WALKTREES(new_I_list[t], br_player, true_board_list, new_history_list, reach_probability_list, opponent_I_list, br, policy_obj);
-                std::cout << "Checkpoint 17" << std::endl;
+                // std::cout << "Checkpoint 17" << std::endl;
             }
         }
     }
 
-    std::cout << "Checkpoint 18" << std::endl;
+    // std::cout << "Checkpoint 18" << std::endl;
     
     if (I.player == 'x') {
         double max_Q = -1.0;
@@ -831,7 +831,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
         expected_utility = min_Q;
     }
 
-    std::cout << "Checkpoint 19" << std::endl;
+    // std::cout << "Checkpoint 19" << std::endl;
 
     return expected_utility;
 }
