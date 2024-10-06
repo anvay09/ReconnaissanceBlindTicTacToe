@@ -599,9 +599,9 @@ double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_
 }
 
 
-double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard> true_board_list, std::vector<History> history_list, 
-                 std::vector<double> reach_probability_list, std::vector<InformationSet> opponent_I_list, PolicyVec& br, PolicyVec& policy_obj){
-    std::cout << "Checkpoint 1" << std::endl;
+double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
+                 std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj){
+    std::cout << "Checkpoint 1: " << true_board_list.size() << " " << history_list.size() << " " << reach_probability_list.size() << " " << opponent_I_list.size() << std::endl;
     double expected_utility = 0.0;
 
     std::vector<int> actions;
@@ -611,7 +611,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard> 
         Q_values.push_back(0.0);
     }
 
-    std::cout << "Checkpoint 1.1" << std::endl;
+    std::cout << "Checkpoint 1.1: " << true_board_list.size() << " " << history_list.size() << " " << reach_probability_list.size() << " " << opponent_I_list.size() << std::endl;
 
     if (I.move_flag) {
         for (int a = 0; a < actions.size(); a++) {
