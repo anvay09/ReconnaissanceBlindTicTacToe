@@ -359,7 +359,7 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
                 } 
             }
         }
-        expected_utility_h = max_Q;
+        expected_utility_h = max_Q * probability;
     }
 
     return expected_utility_h;
@@ -525,7 +525,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
                 } 
             }
         }
-        expected_utility_h = max_Q;
+        expected_utility_h = max_Q * probability;
     }
 
     return expected_utility_h;
