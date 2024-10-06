@@ -745,12 +745,14 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 InformationSet new_I = I;
                 new_I.simulate_sense(actions[a], true_board);
                 new_I.reset_zeros();
+                std::cout << new_I.hash << std::endl;
 
                 History new_history = history;
                 new_history.history.push_back(actions[a]);
 
                 new_history_list.push_back(new_history);
                 new_reach_probability_list.push_back(reach_probability * policy_obj.policy_dict[I.get_index()][actions[a]]);
+                std::cout << actions[a] << std::endl;
                 new_I_list.push_back(new_I);
 
                 std::cout << "Checkpoint 16" << std::endl;
