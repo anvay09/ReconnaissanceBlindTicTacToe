@@ -617,7 +617,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
         for (int a = 0; a < actions.size(); a++) {
             std::cout << "Checkpoint 1.2" << std::endl;
             for (int t = 0; t < true_board_list.size(); t++) {
-                std::cout << "Checkpoint 1.3" << std::endl;
+                std::cout << "Checkpoint 1.3: " << true_board_list.size() << " " << history_list.size() << " " << reach_probability_list.size() << " " << opponent_I_list.size() << std::endl;
                 TicTacToeBoard& true_board = true_board_list[t];
                 History& history = history_list[t];
                 double reach_probability = reach_probability_list[t];
