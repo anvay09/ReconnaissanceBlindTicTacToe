@@ -355,11 +355,11 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
             std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
             for (int a = 0; a < prob_dist.size(); a++) {
                 if (a == best_action) {
-                    prob_dist[a] += max_Q;
+                    prob_dist[a] += max_Q * probability;
                 } 
             }
         }
-        expected_utility_h = max_Q * probability;
+        expected_utility_h = max_Q;
     }
 
     return expected_utility_h;
@@ -521,11 +521,11 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
             std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
             for (int a = 0; a < prob_dist.size(); a++) {
                 if (a == best_action) {
-                    prob_dist[a] += max_Q;
+                    prob_dist[a] += max_Q * probability;
                 } 
             }
         }
-        expected_utility_h = max_Q * probability;
+        expected_utility_h = max_Q;
     }
 
     return expected_utility_h;
