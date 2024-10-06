@@ -599,8 +599,8 @@ double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_
 }
 
 
-double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
-                 std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj){
+double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard> true_board_list, std::vector<History> history_list, 
+                 std::vector<double> reach_probability_list, std::vector<InformationSet> opponent_I_list, PolicyVec& br, PolicyVec& policy_obj){
     std::cout << "Checkpoint 1" << std::endl;
     double expected_utility = 0.0;
 
