@@ -743,7 +743,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
 
                 new_history_list.push_back(new_history);
 
-                std::cout << "Checkpoint 6" << std::endl;
+                std::cout << "Checkpoint 6: " << true_board_list.size() << " " << history_list.size() << " " << reach_probability_list.size() << " " << opponent_I_list.size() << std::endl;
                 Q_values[a] += reach_probability * WALKTREES(new_I, br_player, true_board_list, new_history_list, reach_probability_list, opponent_I_list, br, policy_obj);
             }
         }
