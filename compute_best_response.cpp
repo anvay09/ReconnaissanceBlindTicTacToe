@@ -624,9 +624,8 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 
                 TicTacToeBoard new_true_board = true_board;
                 History new_history = history;
-                std::cout << "Checkpoint 1.4" << std::endl;
-
                 bool success = new_true_board.update_move(actions[a], I.player);
+                std::cout << "Checkpoint 1.4" << std::endl;
                 new_history.history.push_back(actions[a]);
 
                 std::cout << "Checkpoint 1.5" << std::endl;
