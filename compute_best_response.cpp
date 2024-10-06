@@ -599,6 +599,238 @@ double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_
 }
 
 
+double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
+                 std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj){
+    double expected_utility = 0.0;
+
+    std::vector<int> actions;
+    std::vector<double> Q_values;
+    I.get_actions(actions);
+    for (int action : actions) {
+        Q_values.push_back(0.0);
+    }
+
+    if (I.move_flag) {
+        for (int a = 0; a < actions.size(); a++) {
+            for (int t = 0; t < true_board_list.size(); t++) {
+                TicTacToeBoard& true_board = true_board_list[t];
+                History& history = history_list[t];
+                double reach_probability = reach_probability_list[t];
+
+                TicTacToeBoard new_true_board = true_board;
+                History new_history = history;
+                bool success = new_true_board.update_move(actions[a], I.player);
+                new_history.history.push_back(actions[a]);
+
+                char winner;
+                if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
+                    InformationSet new_I = I;
+                    new_I.update_move(actions[a], I.player);
+                    new_I.reset_zeros();
+
+                    // simulate opponent's move
+
+                    InformationSet opponent_I = opponent_I_list[t];
+                    std::vector<int> opponent_actions;
+        
+                    std::vector<History> post_sense_history_list;
+                    std::vector<double> post_sense_reach_probability_list;
+                    std::vector<InformationSet> post_sense_opponent_I_list;
+
+                    opponent_I.get_actions_given_policy(opponent_actions, policy_obj);
+
+                    // first simulate sense
+
+                    for (int opponent_action : opponent_actions) {
+                        InformationSet new_opponent_I = opponent_I;
+                        new_opponent_I.simulate_sense(opponent_action, new_true_board);
+                        new_opponent_I.reset_zeros();
+
+                        post_sense_reach_probability_list.push_back(reach_probability * policy_obj.policy_dict[opponent_I.get_index()][opponent_action]);
+                        post_sense_history_list.push_back(new_history);
+                        post_sense_opponent_I_list.push_back(new_opponent_I);
+                    }
+                
+                    // then simulate move
+
+                    std::vector<TicTacToeBoard> post_move_true_board_list;
+                    std::vector<History> post_move_history_list;
+                    std::vector<double> post_move_reach_probability_list;
+                    std::vector<InformationSet> post_move_opponent_I_list;
+
+                    for (int i = 0; i < post_sense_history_list.size(); i++) {
+                        InformationSet post_sense_opponent_I = post_sense_opponent_I_list[i];
+                        std::vector<int> post_sense_opponent_actions;
+                        post_sense_opponent_I.get_actions_given_policy(post_sense_opponent_actions, policy_obj);
+
+                        for (int post_sense_opponent_action : post_sense_opponent_actions) {
+                            TicTacToeBoard post_move_new_true_board = new_true_board;
+                            History post_move_new_history = post_sense_history_list[i];
+                            double post_move_reach_probability = post_sense_reach_probability_list[i] * policy_obj.policy_dict[post_sense_opponent_I.get_index()][post_sense_opponent_action];
+                            success = post_move_new_true_board.update_move(post_sense_opponent_action, opponent_I.player);
+                            post_move_new_history.history.push_back(post_sense_opponent_action);
+
+                            if (success && !post_move_new_true_board.is_win(winner) && !post_move_new_true_board.is_over()) {
+                                InformationSet post_move_oppoent_I = post_sense_opponent_I;
+                                post_move_oppoent_I.update_move(post_sense_opponent_action, opponent_I.player);
+                                post_move_oppoent_I.reset_zeros();
+
+                                post_move_true_board_list.push_back(post_move_new_true_board);
+                                post_move_history_list.push_back(post_move_new_history);
+                                post_move_reach_probability_list.push_back(post_move_reach_probability);
+                                post_move_opponent_I_list.push_back(post_move_oppoent_I);
+                            }
+                            else {
+                                TerminalHistory H_T = TerminalHistory(post_move_new_history.history);
+                                H_T.set_reward();
+                                if (br_player == 'x'){
+                                    Q_values[a] += H_T.reward[0] * post_move_reach_probability * reach_probability;
+                                }
+                                else{
+                                    Q_values[a] += H_T.reward[1] * post_move_reach_probability * reach_probability;
+                                }
+                            }
+                        }
+                    }
+
+                    for (int i = 0; i < post_move_true_board_list.size(); i++) {
+                        Q_values[a] += reach_probability * WALKTREES(new_I, br_player, post_move_true_board_list, post_move_history_list, post_move_reach_probability_list, post_move_opponent_I_list, br, policy_obj);
+                    }
+                }
+                else {
+                    TerminalHistory H_T = TerminalHistory(new_history.history);
+                    H_T.set_reward();
+                    if (br_player == 'x'){
+                        Q_values[a] += H_T.reward[0] * reach_probability;
+                    }
+                    else{
+                        Q_values[a] += H_T.reward[1] * reach_probability;
+                    }
+                }
+            }
+        }
+    }
+    else {
+        for (int a = 0; a < actions.size(); a++) {
+            std::vector<History> new_history_list;
+  
+            for (int t = 0; t < true_board_list.size(); t++) {
+                TicTacToeBoard& true_board = true_board_list[t];
+                History& history = history_list[t];
+                double reach_probability = reach_probability_list[t];
+
+                InformationSet new_I = I;
+                new_I.simulate_sense(actions[a], true_board);
+                new_I.reset_zeros();
+
+                History new_history = history;
+                new_history.history.push_back(actions[a]);
+
+                new_history_list.push_back(new_history);
+
+                Q_values[a] += reach_probability * WALKTREES(new_I, br_player, true_board_list, new_history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+            }
+        }
+    }
+    
+    if (I.player == 'x') {
+        double max_Q = -1.0;
+        int best_action = -1;
+
+        for (int a = 0; a < Q_values.size(); a++) {
+            if (Q_values[a] >= max_Q) {
+                max_Q = Q_values[a];
+                best_action = actions[a];
+            }
+        }
+
+        if (best_action != -1) {
+            // update policy
+            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+            for (int a = 0; a < prob_dist.size(); a++) {
+                if (a == best_action) {
+                    prob_dist[a] = 1.0;
+                } 
+                else {
+                    prob_dist[a] = 0.0;
+                }
+            }
+        }
+        else {
+            // uniform policy
+
+            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+            for (int a = 0; a < actions.size(); a++) {
+                prob_dist[a] = 1.0 / actions.size();
+            }
+        }
+
+        expected_utility = max_Q;
+    }
+    else {
+        double min_Q = 1.0;
+        int best_action = -1;
+
+        for (int a = 0; a < Q_values.size(); a++) {
+            if (Q_values[a] <= min_Q) {
+                min_Q = Q_values[a];
+                best_action = actions[a];
+            }
+        }
+
+        if (best_action != -1) {
+            // update policy
+            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+            for (int a = 0; a < prob_dist.size(); a++) {
+                if (a == best_action) {
+                    prob_dist[a] = 1.0;
+                } 
+                else {
+                    prob_dist[a] = 0.0;
+                }
+            }
+        }
+        else {
+            // uniform policy
+
+            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+            for (int a = 0; a < actions.size(); a++) {
+                prob_dist[a] = 1.0 / actions.size();
+            }
+        }
+        
+        expected_utility = min_Q;
+    }
+
+    return expected_utility;
+}
+
+
+double WALKTREES_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player){
+    std::string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    InformationSet I_1 = InformationSet('x', true, hash_1);
+    InformationSet I_2 = InformationSet('o', false, hash_2);
+    std::vector<int> h = {};
+    TerminalHistory start_history = TerminalHistory(h);
+
+    std::vector<TicTacToeBoard> true_board_list;
+    std::vector<History> history_list;
+    std::vector<double> reach_probability_list;
+    std::vector<InformationSet> opponent_I_list;
+
+    true_board_list.push_back(true_board);
+    history_list.push_back(start_history);
+    reach_probability_list.push_back(1.0);
+    opponent_I_list.push_back(I_2);
+
+    double expected_utility = WALKTREES(I_1, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+    return expected_utility;
+}
+
+
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1];
@@ -651,14 +883,16 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Copying policies..." << std::endl;
     PolicyVec br_x = policy_obj_x;
-    PolicyVec br_o = policy_obj_o;
+    // PolicyVec br_o = policy_obj_o;
 
     std::cout << "Computing best response..." << std::endl;
     start = std::chrono::system_clock::now();
-    expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o, br_x, 'x');
-    std::cout << "Expected utility: " << expected_utility << std::endl;
-    expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o, br_o, 'o');
-    std::cout << "Expected utility: " << expected_utility << std::endl;
+    // expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o, br_x, 'x');
+    // std::cout << "Expected utility: " << expected_utility << std::endl;
+    // expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o, br_o, 'o');
+    // std::cout << "Expected utility: " << expected_utility << std::endl;
+
+    expected_utility = WALKTREES_wrapper(policy_obj_o, br_x, 'x');
 
     end = std::chrono::system_clock::now();
     elapsed_seconds = end-start;
@@ -667,15 +901,15 @@ int main(int argc, char* argv[]) {
               << "elapsed time: " << elapsed_seconds.count() << "s"
               << std::endl;
 
-    make_pure_strategy(br_x, 'x', P1_information_sets);
-    make_pure_strategy(br_o, 'o', P2_information_sets);
+    // make_pure_strategy(br_x, 'x', P1_information_sets);
+    // make_pure_strategy(br_o, 'o', P2_information_sets);
 
     std::cout << "Getting expected utility..." << std::endl;
     start = std::chrono::system_clock::now();
     expected_utility = get_expected_utility_wrapper(br_x, policy_obj_o);
     std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
-    expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
-    std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
+    // expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
+    // std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
 
     end = std::chrono::system_clock::now();
     elapsed_seconds = end-start;
