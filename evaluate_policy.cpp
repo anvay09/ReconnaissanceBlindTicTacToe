@@ -340,12 +340,14 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
     }
 
     if (player == br_player) {
-        double max_Q = -1.0;
+        double multiplier = player == 'x' ? 1 : -1;
+
+        double max_Q = -1.0 * multiplier;
         int best_action = -1;
 
         for (int a = 0; a < Q_values.size(); a++) {
-            if (Q_values[a] >= max_Q) {
-                max_Q = Q_values[a];
+            if (Q_values[a] * multiplier >= max_Q) {
+                max_Q = Q_values[a] * multiplier;
                 best_action = actions[a];
             }
         }
@@ -359,7 +361,7 @@ double compute_best_response(InformationSet &I_1, InformationSet &I_2, TicTacToe
                 } 
             }
         }
-        expected_utility_h = max_Q;
+        expected_utility_h = max_Q * multiplier;
     }
 
     return expected_utility_h;
@@ -506,12 +508,14 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
     }
 
     if (player == br_player) {
-        double max_Q = -1.0;
+        double multiplier = player == 'x' ? 1 : -1;
+
+        double max_Q = -1.0 * multiplier;
         int best_action = -1;
 
         for (int a = 0; a < Q_values.size(); a++) {
-            if (Q_values[a] >= max_Q) {
-                max_Q = Q_values[a];
+            if (Q_values[a] * multiplier >= max_Q) {
+                max_Q = Q_values[a] * multiplier;
                 best_action = actions[a];
             }
         }
@@ -525,7 +529,7 @@ double compute_best_response_parallel(InformationSet &I_1, InformationSet &I_2, 
                 } 
             }
         }
-        expected_utility_h = max_Q;
+        expected_utility_h = max_Q * multiplier;
     }
 
     return expected_utility_h;
