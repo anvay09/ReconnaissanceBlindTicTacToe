@@ -734,7 +734,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
             std::unordered_map<std::string, std::vector<History>> infoset_to_history;
             std::unordered_map<std::string, std::vector<double>> infoset_to_reach_probability;
             std::unordered_map<std::string, std::vector<InformationSet>> infoset_to_opponent_I;
-            std::unordered_set<InformationSet> infoset_set;
+            std::unordered_set<std::string> infoset_set;
 
             for (int t = 0; t < true_board_list.size(); t++) {
                 TicTacToeBoard& true_board = true_board_list[t];
@@ -754,13 +754,15 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 infoset_to_history[new_I.hash].push_back(new_history);
                 infoset_to_reach_probability[new_I.hash].push_back(reach_probability);
                 infoset_to_opponent_I[new_I.hash].push_back(opponent_I_list[t]);
-                infoset_set.insert(new_I);
+                infoset_set.insert(new_I.hash);
 
                 // std::cout << "Checkpoint 16" << std::endl;
             }
             // iterate over infoset_set
             for (int t = 0; t < infoset_set.size(); t++) {
-                InformationSet new_I = *std::next(infoset_set.begin(), t);
+                std::string new_I_hash = *std::next(infoset_set.begin(), t);
+                bool move_flag = get_move_flag(new_I_hash, I.player);
+                InformationSet new_I(I.player, move_flag, new_I_hash);
             
                 // std::cout << "Checkpoint 17" << std::endl;
 
