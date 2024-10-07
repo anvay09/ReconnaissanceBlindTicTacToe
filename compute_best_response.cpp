@@ -935,6 +935,7 @@ int main(int argc, char* argv[]) {
     // std::cout << "Expected utility: " << expected_utility << std::endl;
 
     expected_utility = WALKTREES_wrapper(policy_obj_o, br_x, 'x');
+    std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
 
     end = std::chrono::system_clock::now();
     elapsed_seconds = end-start;
