@@ -603,11 +603,11 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj) {
     double expected_utility = 0.0;
     // std::cout << "Number of histories: " << history_list.size() << std::endl;
-    double sum = 0.0;
-    for (int t = 0; t < true_board_list.size(); t++) {
-        sum += reach_probability_list[t];
-    }
-    std::cout << "Infoset: " << I.hash << " Reach sum: " << sum << " Number of histories: " << history_list.size() << std::endl;
+    // double sum = 0.0;
+    // for (int t = 0; t < true_board_list.size(); t++) {
+    //     sum += reach_probability_list[t];
+    // }
+    // std::cout << "Infoset: " << I.hash << " Reach sum: " << sum << " Number of histories: " << history_list.size() << std::endl;
 
     std::vector<int> actions;
     std::vector<double> Q_values;
@@ -811,6 +811,8 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 best_action = actions[a];
             }
         }
+
+        std::cout << "Infoset: " << I.hash << " Best action: " << best_action << " Max Q: " << max_Q << std::endl;
 
         if (best_action != -1) {
             // update policy
