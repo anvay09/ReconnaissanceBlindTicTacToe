@@ -607,7 +607,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
     std::vector<int> actions;
     std::vector<double> Q_values;
     I.get_actions(actions);
-    for (int action : actions) {
+    for (int i = 0; i < 13; i++) {
         Q_values.push_back(0.0);
     }
 
