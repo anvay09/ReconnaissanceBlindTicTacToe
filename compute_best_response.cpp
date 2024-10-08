@@ -603,6 +603,11 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj) {
     double expected_utility = 0.0;
     // std::cout << "Number of histories: " << history_list.size() << std::endl;
+    double sum = 0.0;
+    for (int t = 0; t < true_board_list.size(); t++) {
+        sum += reach_probability_list[t];
+    }
+    std::cout << "Infoset: " << I.hash << " Reach sum: " << sum << " Number of histories: " << history_list.size() << std::endl;
 
     std::vector<int> actions;
     std::vector<double> Q_values;
@@ -788,7 +793,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 for (int i = 0; i < infoset_to_reach_probability[new_I.hash].size(); i++) {
                     reach_sum += infoset_to_reach_probability[new_I.hash][i];
                 }
-                std::cout << "Infoset: " << new_I_hash << " Reach sum: " << reach_sum << " Number of histories: " << infoset_to_history[new_I.hash].size() << " Number of true boards: " << infoset_to_true_board[new_I.hash].size() << " Number of opponent I: " << infoset_to_opponent_I[new_I.hash].size() << std::endl;
+                // std::cout << "Infoset: " << new_I_hash << " Reach sum: " << reach_sum << " Number of histories: " << infoset_to_history[new_I.hash].size() << " Number of true boards: " << infoset_to_true_board[new_I.hash].size() << " Number of opponent I: " << infoset_to_opponent_I[new_I.hash].size() << std::endl;
                 Q_values[actions[a]] += reach_sum * WALKTREES(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
             }
         }
