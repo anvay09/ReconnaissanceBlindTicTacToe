@@ -708,7 +708,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                             }
                             else {
                                 TerminalHistory H_T = TerminalHistory(depth_3_history.history);
-                                H_T.print_history();
+                                // H_T.print_history();
                                 // std::cout << "Reward: "; 
                             
                                 H_T.set_reward();
@@ -730,7 +730,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 }
                 else {
                     TerminalHistory H_T = TerminalHistory(depth_1_history.history);
-                    H_T.print_history();
+                    // H_T.print_history();
                     // std::cout << "Reward: ";    
 
                     H_T.set_reward();
