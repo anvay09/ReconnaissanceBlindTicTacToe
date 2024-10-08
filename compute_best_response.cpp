@@ -618,6 +618,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 TicTacToeBoard depth_1_true_board = true_board_list[t];
                 History depth_1_history = history_list[t];
                 double depth_1_reach_probability = reach_probability_list[t];
+                InformationSet depth_1_opponent_I = opponent_I_list[t];
                 // std::cout << "Checkpoint 2" << std::endl;
 
                 bool success = depth_1_true_board.update_move(actions[a], I.player);
@@ -634,15 +635,14 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                     // std::cout << "Checkpoint 4" << std::endl;
 
                     // simulate opponent's turn
-                    InformationSet depth_1_opponent_I = opponent_I_list[t];
+                    
                     std::vector<int> depth_1_opponent_actions;
+                    depth_1_opponent_I.get_actions_given_policy(depth_1_opponent_actions, policy_obj);
         
                     std::vector<History> depth_2_history_list;
                     std::vector<double> depth_2_reach_probability_list;
                     std::vector<InformationSet> depth_2_opponent_I_list;
                     std::vector<TicTacToeBoard> depth_2_true_board_list;
-
-                    depth_1_opponent_I.get_actions_given_policy(depth_1_opponent_actions, policy_obj);
 
                     // std::cout << "Checkpoint 5" << std::endl;
 
@@ -651,8 +651,10 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                         InformationSet depth_2_opponent_I = depth_1_opponent_I;
                         depth_2_opponent_I.simulate_sense(opponent_action, depth_1_true_board);
                         depth_2_opponent_I.reset_zeros();
+
                         History depth_2_history = depth_1_history;
                         depth_2_history.history.push_back(opponent_action);
+
                         double depth_2_reach_probability = depth_1_reach_probability * policy_obj.policy_dict[depth_1_opponent_I.get_index()][opponent_action];
                         TicTacToeBoard depth_2_true_board = depth_1_true_board;
 
@@ -706,6 +708,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                             }
                             else {
                                 TerminalHistory H_T = TerminalHistory(depth_3_history.history);
+                                H_T.print_history();
                                 H_T.set_reward();
                                 if (br_player == 'x'){
                                     Q_values[actions[a]] += H_T.reward[0] * depth_3_reach_probability;
@@ -723,6 +726,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 }
                 else {
                     TerminalHistory H_T = TerminalHistory(depth_1_history.history);
+                    H_T.print_history();
                     H_T.set_reward();
                     if (br_player == 'x'){
                         Q_values[actions[a]] += H_T.reward[0] * depth_1_reach_probability;

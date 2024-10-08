@@ -596,6 +596,13 @@ void History::get_information_sets(InformationSet &I_1, InformationSet &I_2) {
     }
 }
 
+void History::print_history() {
+    for (int action : this->history) {
+        std::cout << action << " ";
+    }
+    std::cout << std::endl;
+}
+
 TerminalHistory::TerminalHistory(std::vector<int>& history, std::vector<double> reward) : History(history) {
     if (reward.empty()) {
         this->reward = {0.0, 0.0};
