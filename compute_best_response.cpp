@@ -702,10 +702,10 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                                 TerminalHistory H_T = TerminalHistory(post_move_new_history.history);
                                 H_T.set_reward();
                                 if (br_player == 'x'){
-                                    Q_values[a] += H_T.reward[0] * post_move_reach_probability;
+                                    Q_values[a] += H_T.reward[0] * post_move_reach_probability * reach_probability;
                                 }
                                 else{
-                                    Q_values[a] += H_T.reward[1] * post_move_reach_probability;
+                                    Q_values[a] += H_T.reward[1] * post_move_reach_probability * reach_probability;
                                 }
                             }
                         }
