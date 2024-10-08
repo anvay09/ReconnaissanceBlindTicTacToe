@@ -766,7 +766,12 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
             
                 // std::cout << "Checkpoint 17" << std::endl;
 
-                Q_values[a] += WALKTREES(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
+                double reach_sum = 0.0;
+                for (int i = 0; i < infoset_to_reach_probability[new_I_hash].size(); i++) {
+                    reach_sum += infoset_to_reach_probability[new_I_hash][i];
+                }
+
+                Q_values[a] += reach_sum * WALKTREES(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
             }
         }
     }
