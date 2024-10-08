@@ -702,27 +702,27 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                                 TerminalHistory H_T = TerminalHistory(post_move_new_history.history);
                                 H_T.set_reward();
                                 if (br_player == 'x'){
-                                    Q_values[a] += H_T.reward[0] * post_move_reach_probability * reach_probability;
+                                    Q_values[actions[a]] += H_T.reward[0] * post_move_reach_probability;
                                 }
                                 else{
-                                    Q_values[a] += H_T.reward[1] * post_move_reach_probability * reach_probability;
+                                    Q_values[actions[a]] += H_T.reward[1] * post_move_reach_probability;
                                 }
                             }
                         }
                     }
 
                     // std::cout << "Checkpoint 13" << std::endl;
-                    Q_values[a] += reach_probability * WALKTREES(new_I, br_player, post_move_true_board_list, post_move_history_list, post_move_reach_probability_list, post_move_opponent_I_list, br, policy_obj);  
+                    Q_values[actions[a]] += reach_probability * WALKTREES(new_I, br_player, post_move_true_board_list, post_move_history_list, post_move_reach_probability_list, post_move_opponent_I_list, br, policy_obj);  
                     // std::cout << "Checkpoint 14" << std::endl;  
                 }
                 else {
                     TerminalHistory H_T = TerminalHistory(new_history.history);
                     H_T.set_reward();
                     if (br_player == 'x'){
-                        Q_values[a] += H_T.reward[0] * reach_probability;
+                        Q_values[actions[a]] += H_T.reward[0] * reach_probability;
                     }
                     else{
-                        Q_values[a] += H_T.reward[1] * reach_probability;
+                        Q_values[actions[a]] += H_T.reward[1] * reach_probability;
                     }
                 }
             }
@@ -771,7 +771,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                     reach_sum += infoset_to_reach_probability[new_I_hash][i];
                 }
 
-                Q_values[a] += reach_sum * WALKTREES(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
+                Q_values[actions[a]] += reach_sum * WALKTREES(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
             }
         }
     }
