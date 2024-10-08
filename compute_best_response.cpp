@@ -782,9 +782,9 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
         double max_Q = -1.0;
         int best_action = -1;
 
-        for (int a = 0; a < Q_values.size(); a++) {
-            if (Q_values[a] >= max_Q) {
-                max_Q = Q_values[a];
+        for (int a = 0; a < actions.size(); a++) {
+            if (Q_values[actions[a]] >= max_Q) {
+                max_Q = Q_values[actions[a]];
                 best_action = actions[a];
             }
         }
@@ -792,12 +792,12 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
         if (best_action != -1) {
             // update policy
             std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-            for (int a = 0; a < prob_dist.size(); a++) {
-                if (a == best_action) {
-                    prob_dist[a] = 1.0;
+            for (int k = 0; k < prob_dist.size(); k++) {
+                if (k == best_action) {
+                    prob_dist[k] = 1.0;
                 } 
                 else {
-                    prob_dist[a] = 0.0;
+                    prob_dist[k] = 0.0;
                 }
             }
         }
@@ -816,9 +816,9 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
         double min_Q = 1.0;
         int best_action = -1;
 
-        for (int a = 0; a < Q_values.size(); a++) {
-            if (Q_values[a] <= min_Q) {
-                min_Q = Q_values[a];
+        for (int a = 0; a < actions.size(); a++) {
+            if (Q_values[actions[a]] <= min_Q) {
+                min_Q = Q_values[actions[a]];
                 best_action = actions[a];
             }
         }
@@ -826,12 +826,12 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
         if (best_action != -1) {
             // update policy
             std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-            for (int a = 0; a < prob_dist.size(); a++) {
-                if (a == best_action) {
-                    prob_dist[a] = 1.0;
+            for (int k = 0; k < prob_dist.size(); k++) {
+                if (k == best_action) {
+                    prob_dist[k] = 1.0;
                 } 
                 else {
-                    prob_dist[a] = 0.0;
+                    prob_dist[k] = 0.0;
                 }
             }
         }
