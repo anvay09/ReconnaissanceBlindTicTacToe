@@ -615,18 +615,18 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
         for (int a = 0; a < actions.size(); a++) {
             // std::cout << "Checkpoint 1" << std::endl;
             for (int t = 0; t < true_board_list.size(); t++) {
-                TicTacToeBoard new_true_board = true_board_list[t];
-                History new_history = history_list[t];
-                double reach_probability = reach_probability_list[t];
+                TicTacToeBoard depth_1_true_board = true_board_list[t];
+                History depth_1_history = history_list[t];
+                double depth_1_reach_probability = reach_probability_list[t];
                 // std::cout << "Checkpoint 2" << std::endl;
 
-                bool success = new_true_board.update_move(actions[a], I.player);
-                new_history.history.push_back(actions[a]);
+                bool success = depth_1_true_board.update_move(actions[a], I.player);
+                depth_1_history.history.push_back(actions[a]);
 
                 // std::cout << "Checkpoint 3" << std::endl;
 
                 char winner;
-                if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
+                if (success && !depth_1_true_board.is_win(winner) && !depth_1_true_board.is_over()) {
                     InformationSet new_I = I;
                     new_I.update_move(actions[a], I.player);
                     new_I.reset_zeros();
@@ -634,95 +634,101 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                     // std::cout << "Checkpoint 4" << std::endl;
 
                     // simulate opponent's turn
-                    InformationSet opponent_I = opponent_I_list[t];
-                    std::vector<int> opponent_actions;
+                    InformationSet depth_1_opponent_I = opponent_I_list[t];
+                    std::vector<int> depth_1_opponent_actions;
         
-                    std::vector<History> post_sense_history_list;
-                    std::vector<double> post_sense_reach_probability_list;
-                    std::vector<InformationSet> post_sense_opponent_I_list;
+                    std::vector<History> depth_2_history_list;
+                    std::vector<double> depth_2_reach_probability_list;
+                    std::vector<InformationSet> depth_2_opponent_I_list;
+                    std::vector<TicTacToeBoard> depth_2_true_board_list;
 
-                    opponent_I.get_actions_given_policy(opponent_actions, policy_obj);
+                    depth_1_opponent_I.get_actions_given_policy(depth_1_opponent_actions, policy_obj);
 
                     // std::cout << "Checkpoint 5" << std::endl;
 
                     // first simulate sense
-                    for (int opponent_action : opponent_actions) {
-                        InformationSet new_opponent_I = opponent_I;
-                        new_opponent_I.simulate_sense(opponent_action, new_true_board);
-                        new_opponent_I.reset_zeros();
+                    for (int opponent_action : depth_1_opponent_actions) {
+                        InformationSet depth_2_opponent_I = depth_1_opponent_I;
+                        depth_2_opponent_I.simulate_sense(opponent_action, depth_1_true_board);
+                        depth_2_opponent_I.reset_zeros();
+                        History depth_2_history = depth_1_history;
+                        depth_2_history.history.push_back(opponent_action);
+                        double depth_2_reach_probability = depth_1_reach_probability * policy_obj.policy_dict[depth_1_opponent_I.get_index()][opponent_action];
+                        TicTacToeBoard depth_2_true_board = depth_1_true_board;
 
                         // std::cout << "Checkpoint 6" << std::endl;
 
-                        post_sense_reach_probability_list.push_back(reach_probability * policy_obj.policy_dict[opponent_I.get_index()][opponent_action]);
-                        post_sense_history_list.push_back(new_history);
-                        post_sense_opponent_I_list.push_back(new_opponent_I);
+                        depth_2_reach_probability_list.push_back(depth_2_reach_probability);
+                        depth_2_history_list.push_back(depth_2_history);
+                        depth_2_opponent_I_list.push_back(depth_2_opponent_I);
+                        depth_2_true_board_list.push_back(depth_2_true_board);
 
                         // std::cout << "Checkpoint 7" << std::endl;
                     }
                 
                     // then simulate move
-                    std::vector<TicTacToeBoard> post_move_true_board_list;
-                    std::vector<History> post_move_history_list;
-                    std::vector<double> post_move_reach_probability_list;
-                    std::vector<InformationSet> post_move_opponent_I_list;
+                    std::vector<TicTacToeBoard> depth_3_true_board_list;
+                    std::vector<History> depth_3_history_list;
+                    std::vector<double> depth_3_reach_probability_list;
+                    std::vector<InformationSet> depth_3_opponent_I_list;
 
                     // std::cout << "Checkpoint 8" << std::endl;
 
-                    for (int i = 0; i < post_sense_history_list.size(); i++) {
-                        InformationSet post_sense_opponent_I = post_sense_opponent_I_list[i];
-                        std::vector<int> post_sense_opponent_actions;
-                        post_sense_opponent_I.get_actions_given_policy(post_sense_opponent_actions, policy_obj);
+                    for (int i = 0; i < depth_2_true_board_list.size(); i++) {
+                        InformationSet depth_2_opponent_I = depth_2_opponent_I_list[i];
+                        std::vector<int> depth_2_opponent_actions;
+                        depth_2_opponent_I.get_actions_given_policy(depth_2_opponent_actions, policy_obj);
 
                         // std::cout << "Checkpoint 9" << std::endl;
 
-                        for (int post_sense_opponent_action : post_sense_opponent_actions) {
-                            TicTacToeBoard post_move_new_true_board = new_true_board;
-                            History post_move_new_history = post_sense_history_list[i];
-                            double post_move_reach_probability = post_sense_reach_probability_list[i] * policy_obj.policy_dict[post_sense_opponent_I.get_index()][post_sense_opponent_action];
-                            success = post_move_new_true_board.update_move(post_sense_opponent_action, opponent_I.player);
-                            post_move_new_history.history.push_back(post_sense_opponent_action);
+                        for (int opponent_action : depth_2_opponent_actions) {
+                            TicTacToeBoard depth_3_true_board = depth_2_true_board_list[i];
+                            History depth_3_history = depth_2_history_list[i];
+                            double depth_3_reach_probability = depth_2_reach_probability_list[i] * policy_obj.policy_dict[depth_2_opponent_I_list[i].get_index()][opponent_action];
+                            success = depth_3_true_board.update_move(opponent_action, depth_2_opponent_I_list[i].player);
+                            depth_3_history.history.push_back(opponent_action);
 
                             // std::cout << "Checkpoint 10" << std::endl;
 
-                            if (success && !post_move_new_true_board.is_win(winner) && !post_move_new_true_board.is_over()) {
-                                InformationSet post_move_oppoent_I = post_sense_opponent_I;
-                                post_move_oppoent_I.update_move(post_sense_opponent_action, opponent_I.player);
-                                post_move_oppoent_I.reset_zeros();
+                            if (success && !depth_3_true_board.is_win(winner) && !depth_3_true_board.is_over()) {
+                                InformationSet depth_3_opponent_I = depth_2_opponent_I_list[i];
+                                depth_3_opponent_I.update_move(opponent_action, depth_3_opponent_I.player);
+                                depth_3_opponent_I.reset_zeros();
 
                                 // std::cout << "Checkpoint 11" << std::endl;
 
-                                post_move_true_board_list.push_back(post_move_new_true_board);
-                                post_move_history_list.push_back(post_move_new_history);
-                                post_move_reach_probability_list.push_back(post_move_reach_probability);
-                                post_move_opponent_I_list.push_back(post_move_oppoent_I);
+                                depth_3_true_board_list.push_back(depth_3_true_board);
+                                depth_3_history_list.push_back(depth_3_history);
+                                depth_3_reach_probability_list.push_back(depth_3_reach_probability);
+                                depth_3_opponent_I_list.push_back(depth_3_opponent_I);
 
                                 // std::cout << "Checkpoint 12" << std::endl;
                             }
                             else {
-                                TerminalHistory H_T = TerminalHistory(post_move_new_history.history);
+                                TerminalHistory H_T = TerminalHistory(depth_3_history.history);
                                 H_T.set_reward();
                                 if (br_player == 'x'){
-                                    Q_values[actions[a]] += H_T.reward[0] * post_move_reach_probability;
+                                    Q_values[actions[a]] += H_T.reward[0] * depth_3_reach_probability;
                                 }
                                 else{
-                                    Q_values[actions[a]] += H_T.reward[1] * post_move_reach_probability;
+                                    Q_values[actions[a]] += H_T.reward[1] * depth_3_reach_probability;
                                 }
                             }
                         }
                     }
 
                     // std::cout << "Checkpoint 13" << std::endl;
-                    Q_values[actions[a]] += reach_probability * WALKTREES(new_I, br_player, post_move_true_board_list, post_move_history_list, post_move_reach_probability_list, post_move_opponent_I_list, br, policy_obj);  
+                    Q_values[actions[a]] += depth_1_reach_probability * WALKTREES(new_I, br_player, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj);
                     // std::cout << "Checkpoint 14" << std::endl;  
                 }
                 else {
-                    TerminalHistory H_T = TerminalHistory(new_history.history);
+                    TerminalHistory H_T = TerminalHistory(depth_1_history.history);
                     H_T.set_reward();
                     if (br_player == 'x'){
-                        Q_values[actions[a]] += H_T.reward[0] * reach_probability;
+                        Q_values[actions[a]] += H_T.reward[0] * depth_1_reach_probability;
                     }
                     else{
-                        Q_values[actions[a]] += H_T.reward[1] * reach_probability;
+                        Q_values[actions[a]] += H_T.reward[1] * depth_1_reach_probability;
                     }
                 }
             }
