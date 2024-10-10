@@ -789,16 +789,16 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
             //     Q_values[actions[a]] += reach_sum * WALKTREES(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj, visited);
             // }
 
-            // if (depth_3_history_list.size() > 0) {
-            double reach_sum = 0.0;
-            for (int j = 0; j < depth_3_reach_probability_list.size(); j++) {
-                reach_sum += depth_3_reach_probability_list[j];
+            if (depth_3_history_list.size() > 0) {
+                double reach_sum = 0.0;
+                for (int j = 0; j < depth_3_reach_probability_list.size(); j++) {
+                    reach_sum += depth_3_reach_probability_list[j];
+                }
+                InformationSet new_I = I;
+                new_I.update_move(actions[a], I.player);
+                new_I.reset_zeros();
+                Q_values[actions[a]] += reach_sum * WALKTREES(new_I, br_player, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj, visited);
             }
-            InformationSet new_I = I;
-            new_I.update_move(actions[a], I.player);
-            new_I.reset_zeros();
-            Q_values[actions[a]] += reach_sum * WALKTREES(new_I, br_player, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj, visited);
-            // }
         }
     }
     else {
@@ -838,15 +838,15 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 InformationSet new_I(I.player, move_flag, new_I_hash);
             
                 // std::cout << "Checkpoint 17" << std::endl;
-                // if (infoset_to_history[new_I.hash].size() > 0) {
+                if (infoset_to_history[new_I.hash].size() > 0) {
           
-                double reach_sum = 0.0;
-                for (int i = 0; i < infoset_to_reach_probability[new_I.hash].size(); i++) {
-                    reach_sum += infoset_to_reach_probability[new_I.hash][i];
+                    double reach_sum = 0.0;
+                    for (int i = 0; i < infoset_to_reach_probability[new_I.hash].size(); i++) {
+                        reach_sum += infoset_to_reach_probability[new_I.hash][i];
+                    }
+                    // std::cout << "Infoset: " << new_I_hash << " Reach sum: " << reach_sum << " Number of histories: " << infoset_to_history[new_I.hash].size() << " Number of true boards: " << infoset_to_true_board[new_I.hash].size() << " Number of opponent I: " << infoset_to_opponent_I[new_I.hash].size() << std::endl;
+                    Q_values[actions[a]] += reach_sum * WALKTREES(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj, visited);
                 }
-                // std::cout << "Infoset: " << new_I_hash << " Reach sum: " << reach_sum << " Number of histories: " << infoset_to_history[new_I.hash].size() << " Number of true boards: " << infoset_to_true_board[new_I.hash].size() << " Number of opponent I: " << infoset_to_opponent_I[new_I.hash].size() << std::endl;
-                Q_values[actions[a]] += reach_sum * WALKTREES(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj, visited);
-                // }
             }
         }
     }
@@ -1026,19 +1026,19 @@ int main(int argc, char* argv[]) {
     expected_utility = WALKTREES_wrapper(policy_obj_o, br_x, 'x', visited);
     std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
 
-    // std::vector<int> histogram(10, 0);
-    // for (long int i = 0; i < visited.size(); i++) {
-    //     if (visited[i] < 10) {
-    //         histogram[visited[i]] += 1;
-    //     }
-    //     else {
-    //         histogram[9] += 1;
-    //     }
-    // }
+    std::vector<int> histogram(10, 0);
+    for (long int i = 0; i < visited.size(); i++) {
+        if (visited[i] < 10) {
+            histogram[visited[i]] += 1;
+        }
+        else {
+            histogram[9] += 1;
+        }
+    }
 
-    // for (int i = 0; i < histogram.size(); i++) {
-    //     std::cout << "Number of information sets visited " << i << " times: " << histogram[i] << std::endl;
-    // }
+    for (int i = 0; i < histogram.size(); i++) {
+        std::cout << "Number of information sets visited " << i << " times: " << histogram[i] << std::endl;
+    }
 
     end = std::chrono::system_clock::now();
     elapsed_seconds = end-start;
