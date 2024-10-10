@@ -620,7 +620,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
         for (int a = 0; a < actions.size(); a++) {
             // std::cout << "Checkpoint 1" << std::endl;
             for (int h = 0; h < history_list.size(); h++) {
-                std::cout << "Starting computation for history: " << h << ", action: " << a << ", infoset: " << I.hash << std::endl;
+                std::cout << "Starting computation for history: " << h << ", action: " << actions[a] << ", infoset: " << I.hash << std::endl;
                 TicTacToeBoard depth_1_true_board = true_board_list[h];
                 History depth_1_history = history_list[h];
                 double depth_1_reach_probability = reach_probability_list[h];
