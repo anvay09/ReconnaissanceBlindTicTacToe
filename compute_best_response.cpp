@@ -602,12 +602,6 @@ double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_
 double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj) {    
     double expected_utility = 0.0;
-    // std::cout << "Number of histories: " << history_list.size() << std::endl;
-    // double sum = 0.0;
-    // for (int t = 0; t < true_board_list.size(); t++) {
-    //     sum += reach_probability_list[t];
-    // }
-    // std::cout << "Infoset: " << I.hash << " Reach sum: " << sum << " Number of histories: " << history_list.size() << std::endl;
 
     std::vector<int> actions;
     std::vector<double> Q_values;
@@ -618,17 +612,11 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
 
     if (I.move_flag) {
         for (int a = 0; a < actions.size(); a++) {
-            // std::cout << "Checkpoint 1" << std::endl;
-            // std::unordered_map<std::string, std::vector<TicTacToeBoard>> infoset_to_true_board;
-            // std::unordered_map<std::string, std::vector<History>> infoset_to_history;
-            // std::unordered_map<std::string, std::vector<double>> infoset_to_reach_probability;
-            // std::unordered_map<std::string, std::vector<InformationSet>> infoset_to_opponent_I;
-            // std::unordered_set<std::string> infoset_set;
-
             std::vector<TicTacToeBoard> depth_3_true_board_list;
             std::vector<History> depth_3_history_list;
             std::vector<double> depth_3_reach_probability_list;
             std::vector<InformationSet> depth_3_opponent_I_list;
+            double reach_sum = 0.0;
 
             for (int h = 0; h < history_list.size(); h++) {
                 // std::cout << "Starting computation for history: " << h << ", action: " << actions[a] << ", infoset: " << I.hash << std::endl;
@@ -685,14 +673,6 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
 
                         // std::cout << "Checkpoint 7" << std::endl;
                     }
-                    // std::cout << "Number of depth 2 histories: " << depth_2_history_list.size() << std::endl;
-                    // then simulate move
-                    // std::vector<TicTacToeBoard> depth_3_true_board_list;
-                    // std::vector<History> depth_3_history_list;
-                    // std::vector<double> depth_3_reach_probability_list;
-                    // std::vector<InformationSet> depth_3_opponent_I_list;
-
-                    // std::cout << "Checkpoint 8" << std::endl;
 
                     for (int i = 0; i < depth_2_history_list.size(); i++) {
                         InformationSet depth_2_opponent_I = depth_2_opponent_I_list[i];
@@ -723,14 +703,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                                 depth_3_history_list.push_back(depth_3_history);
                                 depth_3_reach_probability_list.push_back(depth_3_reach_probability);
                                 depth_3_opponent_I_list.push_back(depth_3_opponent_I);
-
-                                // infoset_to_true_board[new_I.hash].push_back(depth_3_true_board);
-                                // infoset_to_history[new_I.hash].push_back(depth_3_history);
-                                // infoset_to_reach_probability[new_I.hash].push_back(depth_3_reach_probability);
-                                // infoset_to_opponent_I[new_I.hash].push_back(depth_3_opponent_I);
-                                // infoset_set.insert(new_I.hash);
-
-                                // std::cout << "Checkpoint 12" << std::endl;
+                                reach_sum += depth_1_reach_probability;
                             }
                             else {
                                 TerminalHistory H_T = TerminalHistory(depth_3_history.history);
@@ -749,11 +722,6 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                             }
                         }
                     }
-
-                    // std::cout << "Number of depth 3 histories: " << depth_3_history_list.size() << std::endl;
-                    // std::cout << "Checkpoint 13" << std::endl;
-                    // Q_values[actions[a]] += depth_1_reach_probability * WALKTREES(new_I, br_player, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj);
-                    // std::cout << "Checkpoint 14" << std::endl;  
                 }
                 else {
                     TerminalHistory H_T = TerminalHistory(depth_1_history.history);
@@ -774,24 +742,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 }
             }
 
-            // std::cout << "Length of infoset_set: " << infoset_set.size() << std::endl;
-            // for (int t = 0; t < infoset_set.size(); t++){
-            //     std::string new_I_hash = *std::next(infoset_set.begin(), t);
-            //     bool move_flag = get_move_flag(new_I_hash, I.player);
-            //     InformationSet new_I(I.player, move_flag, new_I_hash);
-            //     double reach_sum = 0.0;
-            //     for (int j = 0; j < infoset_to_reach_probability[new_I.hash].size(); j++) {
-            //         reach_sum += infoset_to_reach_probability[new_I.hash][j];
-            //     }
-
-            //     Q_values[actions[a]] += reach_sum * WALKTREES(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj, visited);
-            // }
-
             if (depth_3_history_list.size() > 0) {
-                double reach_sum = 0.0;
-                for (int j = 0; j < depth_3_reach_probability_list.size(); j++) {
-                    reach_sum += depth_3_reach_probability_list[j];
-                }
                 InformationSet new_I = I;
                 new_I.update_move(actions[a], I.player);
                 new_I.reset_zeros();
@@ -806,6 +757,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
             std::unordered_map<std::string, std::vector<double>> infoset_to_reach_probability;
             std::unordered_map<std::string, std::vector<InformationSet>> infoset_to_opponent_I;
             std::unordered_set<std::string> infoset_set;
+            double reach_sum = 0.0;
 
             for (int h = 0; h < history_list.size(); h++) {
                 TicTacToeBoard& true_board = true_board_list[h];
@@ -826,6 +778,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 infoset_to_reach_probability[new_I.hash].push_back(reach_probability);
                 infoset_to_opponent_I[new_I.hash].push_back(opponent_I_list[h]);
                 infoset_set.insert(new_I.hash);
+                reach_sum += reach_probability;
 
                 // std::cout << "Checkpoint 16" << std::endl;
             }
@@ -837,11 +790,6 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
             
                 // std::cout << "Checkpoint 17" << std::endl;
                 if (infoset_to_history[new_I.hash].size() > 0) {
-          
-                    double reach_sum = 0.0;
-                    for (int i = 0; i < infoset_to_reach_probability[new_I.hash].size(); i++) {
-                        reach_sum += infoset_to_reach_probability[new_I.hash][i];
-                    }
                     // std::cout << "Infoset: " << new_I_hash << " Reach sum: " << reach_sum << " Number of histories: " << infoset_to_history[new_I.hash].size() << " Number of true boards: " << infoset_to_true_board[new_I.hash].size() << " Number of opponent I: " << infoset_to_opponent_I[new_I.hash].size() << std::endl;
                     Q_values[actions[a]] += reach_sum * WALKTREES(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
                 }
