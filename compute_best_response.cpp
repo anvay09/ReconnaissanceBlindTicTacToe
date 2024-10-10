@@ -617,6 +617,9 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
             std::vector<double> depth_3_reach_probability_list;
             std::vector<InformationSet> depth_3_opponent_I_list;
             double reach_sum = 0.0;
+            for (int h = 0; h < history_list.size(); h++) {
+                reach_sum += reach_probability_list[h];
+            }
 
             for (int h = 0; h < history_list.size(); h++) {
                 // std::cout << "Starting computation for history: " << h << ", action: " << actions[a] << ", infoset: " << I.hash << std::endl;
@@ -703,13 +706,12 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                                 depth_3_history_list.push_back(depth_3_history);
                                 depth_3_reach_probability_list.push_back(depth_3_reach_probability);
                                 depth_3_opponent_I_list.push_back(depth_3_opponent_I);
-                                reach_sum += depth_1_reach_probability;
                             }
                             else {
                                 TerminalHistory H_T = TerminalHistory(depth_3_history.history);
-        
                                 H_T.set_reward();
                                 // std::cout << "Opponent move action led to terminal state with reward: " << H_T.reward[0] << ", " << H_T.reward[1] << std::endl;
+                                reach_sum -= depth_3_reach_probability;
 
                                 if (br_player == 'x'){
                                     Q_values[actions[a]] += H_T.reward[0] * depth_3_reach_probability;
@@ -725,12 +727,10 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 }
                 else {
                     TerminalHistory H_T = TerminalHistory(depth_1_history.history);
-                    // H_T.print_history();
-                    // std::cout << "Reward: ";    
-
                     H_T.set_reward();
-
                     // std::cout << "Player move action led to terminal state with reward: " << H_T.reward[0] << ", " << H_T.reward[1] << std::endl;
+                    reach_sum -= depth_1_reach_probability;
+
                     if (br_player == 'x'){
                         Q_values[actions[a]] += H_T.reward[0] * depth_1_reach_probability;
                         // std::cout << H_T.reward[0] * depth_1_reach_probability << std::endl;
@@ -740,6 +740,8 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                         // std::cout << H_T.reward[1] * depth_1_reach_probability << std::endl;
                     }
                 }
+
+
             }
 
             if (depth_3_history_list.size() > 0) {
