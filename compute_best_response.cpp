@@ -787,10 +787,15 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
 
             //     Q_values[actions[a]] += reach_sum * WALKTREES(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj, visited);
             // }
+
+            double reach_sum = 0.0;
+            for (int j = 0; j < depth_3_reach_probability_list.size(); j++) {
+                reach_sum += depth_3_reach_probability_list[j];
+            }
             InformationSet new_I = I;
             new_I.update_move(actions[a], I.player);
             new_I.reset_zeros();
-            Q_values[actions[a]] += WALKTREES(new_I, br_player, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj, visited);
+            Q_values[actions[a]] += reach_sum * WALKTREES(new_I, br_player, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj, visited);
         }
     }
     else {
