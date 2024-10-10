@@ -619,11 +619,12 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
     if (I.move_flag) {
         for (int a = 0; a < actions.size(); a++) {
             // std::cout << "Checkpoint 1" << std::endl;
-            for (int t = 0; t < true_board_list.size(); t++) {
-                TicTacToeBoard depth_1_true_board = true_board_list[t];
-                History depth_1_history = history_list[t];
-                double depth_1_reach_probability = reach_probability_list[t];
-                InformationSet depth_1_opponent_I = opponent_I_list[t];
+            for (int h = 0; h < history_list.size(); h++) {
+                std::cout << "Starting computation for history: " << h << ", action: " << a << ", infoset: " << I.hash << std::endl;
+                TicTacToeBoard depth_1_true_board = true_board_list[h];
+                History depth_1_history = history_list[h];
+                double depth_1_reach_probability = reach_probability_list[h];
+                InformationSet depth_1_opponent_I = opponent_I_list[h];
                 // std::cout << "Checkpoint 2" << std::endl;
 
                 bool success = depth_1_true_board.update_move(actions[a], I.player);
@@ -643,6 +644,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                     
                     std::vector<int> depth_1_opponent_actions;
                     depth_1_opponent_I.get_actions_given_policy(depth_1_opponent_actions, policy_obj);
+                    std::cout << "Number of sense actions: " << depth_1_opponent_actions.size() << std::endl;
         
                     std::vector<History> depth_2_history_list;
                     std::vector<double> depth_2_reach_probability_list;
@@ -672,7 +674,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
 
                         // std::cout << "Checkpoint 7" << std::endl;
                     }
-                
+                    std::cout << "Number of depth 2 histories: " << depth_2_history_list.size() << std::endl;
                     // then simulate move
                     std::vector<TicTacToeBoard> depth_3_true_board_list;
                     std::vector<History> depth_3_history_list;
@@ -681,10 +683,11 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
 
                     // std::cout << "Checkpoint 8" << std::endl;
 
-                    for (int i = 0; i < depth_2_true_board_list.size(); i++) {
+                    for (int i = 0; i < depth_2_history_list.size(); i++) {
                         InformationSet depth_2_opponent_I = depth_2_opponent_I_list[i];
                         std::vector<int> depth_2_opponent_actions;
                         depth_2_opponent_I.get_actions_given_policy(depth_2_opponent_actions, policy_obj);
+                        std::cout << "Number of move actions: " << depth_2_opponent_actions.size() << std::endl;
 
                         // std::cout << "Checkpoint 9" << std::endl;
 
@@ -692,6 +695,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                             TicTacToeBoard depth_3_true_board = depth_2_true_board_list[i];
                             History depth_3_history = depth_2_history_list[i];
                             double depth_3_reach_probability = depth_2_reach_probability_list[i] * policy_obj.policy_dict[depth_2_opponent_I_list[i].get_index()][opponent_action];
+                            
                             success = depth_3_true_board.update_move(opponent_action, depth_2_opponent_I_list[i].player);
                             depth_3_history.history.push_back(opponent_action);
 
@@ -729,6 +733,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                         }
                     }
 
+                    std::cout << "Number of depth 3 histories: " << depth_3_history_list.size() << std::endl;
                     // std::cout << "Checkpoint 13" << std::endl;
                     Q_values[actions[a]] += depth_1_reach_probability * WALKTREES(new_I, br_player, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj);
                     // std::cout << "Checkpoint 14" << std::endl;  
@@ -759,10 +764,10 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
             std::unordered_map<std::string, std::vector<InformationSet>> infoset_to_opponent_I;
             std::unordered_set<std::string> infoset_set;
 
-            for (int t = 0; t < true_board_list.size(); t++) {
-                TicTacToeBoard& true_board = true_board_list[t];
-                History& history = history_list[t];
-                double reach_probability = reach_probability_list[t];
+            for (int h = 0; h < history_list.size(); h++) {
+                TicTacToeBoard& true_board = true_board_list[h];
+                History& history = history_list[h];
+                double reach_probability = reach_probability_list[h];
 
                 // std::cout << "Checkpoint 15" << std::endl;
 
@@ -776,7 +781,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 infoset_to_true_board[new_I.hash].push_back(true_board);
                 infoset_to_history[new_I.hash].push_back(new_history);
                 infoset_to_reach_probability[new_I.hash].push_back(reach_probability);
-                infoset_to_opponent_I[new_I.hash].push_back(opponent_I_list[t]);
+                infoset_to_opponent_I[new_I.hash].push_back(opponent_I_list[h]);
                 infoset_set.insert(new_I.hash);
 
                 // std::cout << "Checkpoint 16" << std::endl;
@@ -812,7 +817,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
             }
         }
 
-        std::cout << "Infoset: " << I.hash << " Best action: " << best_action << " Max Q: " << max_Q << std::endl;
+        // std::cout << "Infoset: " << I.hash << " Best action: " << best_action << " Max Q: " << max_Q << std::endl;
 
         if (best_action != -1) {
             // update policy
