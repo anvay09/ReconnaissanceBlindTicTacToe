@@ -733,7 +733,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                         }
                     }
 
-                    std::cout << "Number of depth 3 histories: " << depth_3_history_list.size() << std::endl;
+                    // std::cout << "Number of depth 3 histories: " << depth_3_history_list.size() << std::endl;
                     // std::cout << "Checkpoint 13" << std::endl;
                     Q_values[actions[a]] += depth_1_reach_probability * WALKTREES(new_I, br_player, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj);
                     // std::cout << "Checkpoint 14" << std::endl;  
