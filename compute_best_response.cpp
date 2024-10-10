@@ -721,10 +721,10 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
 
                                 // std::cout << "Checkpoint 11" << std::endl;
 
-                                // depth_3_true_board_list.push_back(depth_3_true_board);
-                                // depth_3_history_list.push_back(depth_3_history);
-                                // depth_3_reach_probability_list.push_back(depth_3_reach_probability);
-                                // depth_3_opponent_I_list.push_back(depth_3_opponent_I);
+                                depth_3_true_board_list.push_back(depth_3_true_board);
+                                depth_3_history_list.push_back(depth_3_history);
+                                depth_3_reach_probability_list.push_back(depth_3_reach_probability);
+                                depth_3_opponent_I_list.push_back(depth_3_opponent_I);
 
                                 // infoset_to_true_board[new_I.hash].push_back(depth_3_true_board);
                                 // infoset_to_history[new_I.hash].push_back(depth_3_history);
