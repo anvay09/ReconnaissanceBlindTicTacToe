@@ -620,7 +620,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
         for (int a = 0; a < actions.size(); a++) {
             // std::cout << "Checkpoint 1" << std::endl;
             for (int h = 0; h < history_list.size(); h++) {
-                std::cout << "Starting computation for history: " << h << ", action: " << actions[a] << ", infoset: " << I.hash << std::endl;
+                // std::cout << "Starting computation for history: " << h << ", action: " << actions[a] << ", infoset: " << I.hash << std::endl;
                 TicTacToeBoard depth_1_true_board = true_board_list[h];
                 History depth_1_history = history_list[h];
                 double depth_1_reach_probability = reach_probability_list[h];
@@ -644,7 +644,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                     
                     std::vector<int> depth_1_opponent_actions;
                     depth_1_opponent_I.get_actions_given_policy(depth_1_opponent_actions, policy_obj);
-                    std::cout << "Number of sense actions: " << depth_1_opponent_actions.size() << std::endl;
+                    // std::cout << "Number of sense actions: " << depth_1_opponent_actions.size() << std::endl;
         
                     std::vector<History> depth_2_history_list;
                     std::vector<double> depth_2_reach_probability_list;
@@ -674,7 +674,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
 
                         // std::cout << "Checkpoint 7" << std::endl;
                     }
-                    std::cout << "Number of depth 2 histories: " << depth_2_history_list.size() << std::endl;
+                    // std::cout << "Number of depth 2 histories: " << depth_2_history_list.size() << std::endl;
                     // then simulate move
                     std::vector<TicTacToeBoard> depth_3_true_board_list;
                     std::vector<History> depth_3_history_list;
@@ -687,7 +687,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                         InformationSet depth_2_opponent_I = depth_2_opponent_I_list[i];
                         std::vector<int> depth_2_opponent_actions;
                         depth_2_opponent_I.get_actions_given_policy(depth_2_opponent_actions, policy_obj);
-                        std::cout << "Number of move actions: " << depth_2_opponent_actions.size() << std::endl;
+                        // std::cout << "Number of move actions: " << depth_2_opponent_actions.size() << std::endl;
 
                         // std::cout << "Checkpoint 9" << std::endl;
 
@@ -719,7 +719,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                                 TerminalHistory H_T = TerminalHistory(depth_3_history.history);
         
                                 H_T.set_reward();
-                                std::cout << "Opponent move action led to terminal state with reward: " << H_T.reward[0] << ", " << H_T.reward[1] << std::endl;
+                                // std::cout << "Opponent move action led to terminal state with reward: " << H_T.reward[0] << ", " << H_T.reward[1] << std::endl;
 
                                 if (br_player == 'x'){
                                     Q_values[actions[a]] += H_T.reward[0] * depth_3_reach_probability;
@@ -745,7 +745,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
 
                     H_T.set_reward();
 
-                    std::cout << "Player move action led to terminal state with reward: " << H_T.reward[0] << ", " << H_T.reward[1] << std::endl;
+                    // std::cout << "Player move action led to terminal state with reward: " << H_T.reward[0] << ", " << H_T.reward[1] << std::endl;
                     if (br_player == 'x'){
                         Q_values[actions[a]] += H_T.reward[0] * depth_1_reach_probability;
                         // std::cout << H_T.reward[0] * depth_1_reach_probability << std::endl;
