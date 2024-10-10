@@ -748,7 +748,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 InformationSet new_I = I;
                 new_I.update_move(actions[a], I.player);
                 new_I.reset_zeros();
-                Q_values[actions[a]] += reach_sum * WALKTREES(new_I, br_player, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj);
+                Q_values[actions[a]] += WALKTREES(new_I, br_player, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj);
             }
         }
     }
