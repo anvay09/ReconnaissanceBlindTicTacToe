@@ -607,7 +607,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
     for (int t = 0; t < true_board_list.size(); t++) {
         sum += reach_probability_list[t];
     }
-    std::cout << "Infoset: " << I.hash << " Reach sum: " << sum << " Number of histories: " << history_list.size() << std::endl;
+    // std::cout << "Infoset: " << I.hash << " Reach sum: " << sum << " Number of histories: " << history_list.size() << std::endl;
 
     std::vector<int> actions;
     std::vector<double> Q_values;
