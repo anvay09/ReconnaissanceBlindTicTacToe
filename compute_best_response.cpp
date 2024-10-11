@@ -602,6 +602,10 @@ double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_
 double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj) {    
     double expected_utility = 0.0;
+    double reach_sum = 0.0;
+    for (int h = 0; h < history_list.size(); h++) {
+        reach_sum += reach_probability_list[h];
+    }
 
     std::vector<int> actions;
     std::vector<double> Q_values;
@@ -616,11 +620,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
             std::vector<History> depth_3_history_list;
             std::vector<double> depth_3_reach_probability_list;
             std::vector<InformationSet> depth_3_opponent_I_list;
-            double reach_sum = 0.0;
-            for (int h = 0; h < history_list.size(); h++) {
-                reach_sum += reach_probability_list[h];
-            }
-
+            
             for (int h = 0; h < history_list.size(); h++) {
                 // std::cout << "Starting computation for history: " << h << ", action: " << actions[a] << ", infoset: " << I.hash << std::endl;
                 TicTacToeBoard depth_1_true_board = true_board_list[h];
@@ -748,7 +748,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 InformationSet new_I = I;
                 new_I.update_move(actions[a], I.player);
                 new_I.reset_zeros();
-                Q_values[actions[a]] += WALKTREES(new_I, br_player, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj);
+                Q_values[actions[a]] += reach_sum * WALKTREES(new_I, br_player, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj);
             }
         }
     }
@@ -787,7 +787,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 std::string new_I_hash = *std::next(infoset_set.begin(), t);
                 bool move_flag = get_move_flag(new_I_hash, I.player);
                 InformationSet new_I(I.player, move_flag, new_I_hash);
-                double reach_sum = 0.0;
+                reach_sum = 0.0;
 
                 for (int p = 0; p < infoset_to_history[new_I.hash].size(); p++) {
                     reach_sum += infoset_to_reach_probability[new_I.hash][p];
