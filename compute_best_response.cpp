@@ -598,6 +598,7 @@ double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_
     return expected_utility;
 }
 
+double leaf_sum = 0.0;
 
 double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj) {    
@@ -689,6 +690,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                                 TerminalHistory H_T = TerminalHistory(depth_3_history.history);
                                 H_T.set_reward();
                                 reach_sum -= depth_3_reach_probability;
+                                leaf_sum += depth_3_reach_probability;
 
                                 if (br_player == 'x'){
                                     Q_values[actions[a]] += H_T.reward[0] * depth_3_reach_probability;
@@ -704,6 +706,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                     TerminalHistory H_T = TerminalHistory(depth_1_history.history);
                     H_T.set_reward();
                     reach_sum -= depth_1_reach_probability;
+                    leaf_sum += depth_1_reach_probability;
 
                     if (br_player == 'x'){
                         Q_values[actions[a]] += H_T.reward[0] * depth_1_reach_probability;
@@ -917,30 +920,12 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Computing best response..." << std::endl;
     start = std::chrono::system_clock::now();
-    // expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o, br_x, 'x');
-    // std::cout << "Expected utility: " << expected_utility << std::endl;
-    // expected_utility = compute_best_response_wrapper(policy_obj_x, policy_obj_o, br_o, 'o');
-    // std::cout << "Expected utility: " << expected_utility << std::endl;
-
-    // created visited vector for P1 information sets and initialize to zero
-    // std::vector<int> visited(P1_information_sets.size(), 0);
+    std::cout << "Leaf sum: " << leaf_sum << std::endl;
 
     expected_utility = WALKTREES_wrapper(policy_obj_o, br_x, 'x');
     std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
 
-    // std::vector<int> histogram(10, 0);
-    // for (long int i = 0; i < visited.size(); i++) {
-    //     if (visited[i] < 10) {
-    //         histogram[visited[i]] += 1;
-    //     }
-    //     else {
-    //         histogram[9] += 1;
-    //     }
-    // }
-
-    // for (int i = 0; i < histogram.size(); i++) {
-    //     std::cout << "Number of information sets visited " << i << " times: " << histogram[i] << std::endl;
-    // }
+    std::cout << "Leaf sum: " << leaf_sum << std::endl;
 
     end = std::chrono::system_clock::now();
     elapsed_seconds = end-start;
@@ -949,16 +934,11 @@ int main(int argc, char* argv[]) {
               << "elapsed time: " << elapsed_seconds.count() << "s"
               << std::endl;
 
-    // make_pure_strategy(br_x, 'x', P1_information_sets);
-    // make_pure_strategy(br_o, 'o', P2_information_sets);
-
     std::cout << "Getting expected utility..." << std::endl;
     start = std::chrono::system_clock::now();
     expected_utility = get_expected_utility_wrapper(br_x, policy_obj_o);
     std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
-    // expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
-    // std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
-
+ 
     end = std::chrono::system_clock::now();
     elapsed_seconds = end-start;
     end_time = std::chrono::system_clock::to_time_t(end);
