@@ -598,7 +598,7 @@ double compute_best_response_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_
     return expected_utility;
 }
 
-double leaf_sum = 0.0;
+// double leaf_sum = 0.0;
 
 double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj) {    
@@ -606,6 +606,10 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
     double reach_sum = 0.0;
     for (int h = 0; h < history_list.size(); h++) {
         reach_sum += reach_probability_list[h];
+    }
+
+    for (int h = 0; h < history_list.size(); h++){
+        reach_probability_list[h] /= reach_sum;
     }
 
     std::vector<int> actions;
@@ -690,7 +694,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                                 TerminalHistory H_T = TerminalHistory(depth_3_history.history);
                                 H_T.set_reward();
                                 reach_sum -= depth_3_reach_probability;
-                                leaf_sum += depth_3_reach_probability;
+                                // leaf_sum += depth_3_reach_probability;
 
                                 if (br_player == 'x'){
                                     Q_values[actions[a]] += H_T.reward[0] * depth_3_reach_probability;
@@ -706,7 +710,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                     TerminalHistory H_T = TerminalHistory(depth_1_history.history);
                     H_T.set_reward();
                     reach_sum -= depth_1_reach_probability;
-                    leaf_sum += depth_1_reach_probability;
+                    // leaf_sum += depth_1_reach_probability;
 
                     if (br_player == 'x'){
                         Q_values[actions[a]] += H_T.reward[0] * depth_1_reach_probability;
@@ -920,12 +924,12 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Computing best response..." << std::endl;
     start = std::chrono::system_clock::now();
-    std::cout << "Leaf sum: " << leaf_sum << std::endl;
+    // std::cout << "Leaf sum: " << leaf_sum << std::endl;
 
     expected_utility = WALKTREES_wrapper(policy_obj_o, br_x, 'x');
     std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
 
-    std::cout << "Leaf sum: " << leaf_sum << std::endl;
+    // std::cout << "Leaf sum: " << leaf_sum << std::endl;
 
     end = std::chrono::system_clock::now();
     elapsed_seconds = end-start;
