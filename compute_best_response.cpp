@@ -717,7 +717,7 @@ double WALKTREES_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player) {
         reach_probability_list.push_back(1.0);
         opponent_I_list.push_back(I_2);
 
-        expected_utility = WALKTREES_PARALLEL(I_1, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+        expected_utility = WALKTREES(I_1, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
     } 
     else {
         std::vector<int> actions;
@@ -739,7 +739,7 @@ double WALKTREES_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player) {
             opponent_I_list.push_back(new_I);
         }
 
-        expected_utility = WALKTREES_PARALLEL(I_2, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+        expected_utility = WALKTREES(I_2, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
     }
 
     return expected_utility;
