@@ -384,72 +384,72 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
         }
     }
   
-    if (I.player == 'x') {
-        double max_Q = -1.0;
-        int best_action = -1;
+    // if (I.player == 'x') {
+    double max_Q = -1.0;
+    int best_action = -1;
 
-        for (int a = 0; a < actions.size(); a++) {
-            if (Q_values[actions[a]] >= max_Q) {
-                max_Q = Q_values[actions[a]];
-                best_action = actions[a];
-            }
+    for (int a = 0; a < actions.size(); a++) {
+        if (Q_values[actions[a]] >= max_Q) {
+            max_Q = Q_values[actions[a]];
+            best_action = actions[a];
         }
+    }
 
-        if (best_action != -1) {
-            // update policy
-            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-            for (int k = 0; k < prob_dist.size(); k++) {
-                if (k == best_action) {
-                    prob_dist[k] = 1.0;
-                } 
-                else {
-                    prob_dist[k] = 0.0;
-                }
+    if (best_action != -1) {
+        // update policy
+        std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+        for (int k = 0; k < prob_dist.size(); k++) {
+            if (k == best_action) {
+                prob_dist[k] = 1.0;
+            } 
+            else {
+                prob_dist[k] = 0.0;
             }
         }
-        else {
-            // uniform policy
-            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-            for (int a = 0; a < actions.size(); a++) {
-                prob_dist[a] = 1.0 / actions.size();
-            }
-            max_Q = 0.0;
-        }
-        expected_utility = max_Q;
     }
     else {
-        double min_Q = 1.0;
-        int best_action = -1;
-
+        // uniform policy
+        std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
         for (int a = 0; a < actions.size(); a++) {
-            if (Q_values[actions[a]] <= min_Q) {
-                min_Q = Q_values[actions[a]];
-                best_action = actions[a];
-            }
+            prob_dist[a] = 1.0 / actions.size();
         }
-
-        if (best_action != -1) {
-            // update policy
-            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-            for (int k = 0; k < prob_dist.size(); k++) {
-                if (k == best_action) {
-                    prob_dist[k] = 1.0;
-                } 
-                else {
-                    prob_dist[k] = 0.0;
-                }
-            }
-        }
-        else {
-            // uniform policy
-            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-            for (int a = 0; a < actions.size(); a++) {
-                prob_dist[a] = 1.0 / actions.size();
-            }
-            min_Q = 0.0;
-        }
-        expected_utility = min_Q;
+        max_Q = 0.0;
     }
+    expected_utility = max_Q;
+    // }
+    // else {
+    //     double min_Q = 1.0;
+    //     int best_action = -1;
+
+    //     for (int a = 0; a < actions.size(); a++) {
+    //         if (Q_values[actions[a]] <= min_Q) {
+    //             min_Q = Q_values[actions[a]];
+    //             best_action = actions[a];
+    //         }
+    //     }
+
+    //     if (best_action != -1) {
+    //         // update policy
+    //         std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+    //         for (int k = 0; k < prob_dist.size(); k++) {
+    //             if (k == best_action) {
+    //                 prob_dist[k] = 1.0;
+    //             } 
+    //             else {
+    //                 prob_dist[k] = 0.0;
+    //             }
+    //         }
+    //     }
+    //     else {
+    //         // uniform policy
+    //         std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+    //         for (int a = 0; a < actions.size(); a++) {
+    //             prob_dist[a] = 1.0 / actions.size();
+    //         }
+    //         min_Q = 0.0;
+    //     }
+    //     expected_utility = min_Q;
+    // }
     return expected_utility;
 }
 
