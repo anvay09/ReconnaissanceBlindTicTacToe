@@ -383,8 +383,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
             }
         }
     }
-  
-    // if (I.player == 'x') {
+
     double max_Q = -1.0;
     int best_action = -1;
 
@@ -416,40 +415,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
         max_Q = 0.0;
     }
     expected_utility = max_Q;
-    // }
-    // else {
-    //     double min_Q = 1.0;
-    //     int best_action = -1;
 
-    //     for (int a = 0; a < actions.size(); a++) {
-    //         if (Q_values[actions[a]] <= min_Q) {
-    //             min_Q = Q_values[actions[a]];
-    //             best_action = actions[a];
-    //         }
-    //     }
-
-    //     if (best_action != -1) {
-    //         // update policy
-    //         std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-    //         for (int k = 0; k < prob_dist.size(); k++) {
-    //             if (k == best_action) {
-    //                 prob_dist[k] = 1.0;
-    //             } 
-    //             else {
-    //                 prob_dist[k] = 0.0;
-    //             }
-    //         }
-    //     }
-    //     else {
-    //         // uniform policy
-    //         std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-    //         for (int a = 0; a < actions.size(); a++) {
-    //             prob_dist[a] = 1.0 / actions.size();
-    //         }
-    //         min_Q = 0.0;
-    //     }
-    //     expected_utility = min_Q;
-    // }
     return expected_utility;
 }
 
@@ -624,72 +590,38 @@ double WALKTREES_PARALLEL(InformationSet& I, char br_player, std::vector<TicTacT
         }
     }
   
-    if (I.player == 'x') {
-        double max_Q = -1.0;
-        int best_action = -1;
+    double max_Q = -1.0;
+    int best_action = -1;
 
-        for (int a = 0; a < actions.size(); a++) {
-            if (Q_values[actions[a]] >= max_Q) {
-                max_Q = Q_values[actions[a]];
-                best_action = actions[a];
-            }
+    for (int a = 0; a < actions.size(); a++) {
+        if (Q_values[actions[a]] >= max_Q) {
+            max_Q = Q_values[actions[a]];
+            best_action = actions[a];
         }
+    }
 
-        if (best_action != -1) {
-            // update policy
-            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-            for (int k = 0; k < prob_dist.size(); k++) {
-                if (k == best_action) {
-                    prob_dist[k] = 1.0;
-                } 
-                else {
-                    prob_dist[k] = 0.0;
-                }
+    if (best_action != -1) {
+        // update policy
+        std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+        for (int k = 0; k < prob_dist.size(); k++) {
+            if (k == best_action) {
+                prob_dist[k] = 1.0;
+            } 
+            else {
+                prob_dist[k] = 0.0;
             }
         }
-        else {
-            // uniform policy
-            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-            for (int a = 0; a < actions.size(); a++) {
-                prob_dist[a] = 1.0 / actions.size();
-            }
-            max_Q = 0.0;
-        }
-        expected_utility = max_Q;
     }
     else {
-        double min_Q = 1.0;
-        int best_action = -1;
-
+        // uniform policy
+        std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
         for (int a = 0; a < actions.size(); a++) {
-            if (Q_values[actions[a]] <= min_Q) {
-                min_Q = Q_values[actions[a]];
-                best_action = actions[a];
-            }
+            prob_dist[a] = 1.0 / actions.size();
         }
-
-        if (best_action != -1) {
-            // update policy
-            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-            for (int k = 0; k < prob_dist.size(); k++) {
-                if (k == best_action) {
-                    prob_dist[k] = 1.0;
-                } 
-                else {
-                    prob_dist[k] = 0.0;
-                }
-            }
-        }
-        else {
-            // uniform policy
-            std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-            for (int a = 0; a < actions.size(); a++) {
-                prob_dist[a] = 1.0 / actions.size();
-            }
-            min_Q = 0.0;
-        }
-        expected_utility = min_Q;
+        max_Q = 0.0;
     }
+    expected_utility = max_Q;
+    
     return expected_utility;
 }
 
@@ -717,7 +649,7 @@ double WALKTREES_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player) {
         reach_probability_list.push_back(1.0);
         opponent_I_list.push_back(I_2);
 
-        expected_utility = WALKTREES(I_1, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+        expected_utility = WALKTREES_PARALLEL(I_1, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
     } 
     else {
         std::vector<int> actions;
@@ -739,7 +671,7 @@ double WALKTREES_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player) {
             opponent_I_list.push_back(new_I);
         }
 
-        expected_utility = WALKTREES(I_2, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+        expected_utility = -WALKTREES_PARALLEL(I_2, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
     }
 
     return expected_utility;
