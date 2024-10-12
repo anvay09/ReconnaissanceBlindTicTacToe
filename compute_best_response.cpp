@@ -709,12 +709,39 @@ double WALKTREES_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player) {
     std::vector<double> reach_probability_list;
     std::vector<InformationSet> opponent_I_list;
 
-    true_board_list.push_back(true_board);
-    history_list.push_back(start_history);
-    reach_probability_list.push_back(1.0);
-    opponent_I_list.push_back(I_2);
+    double expected_utility = 0.0;
 
-    double expected_utility = WALKTREES_PARALLEL(I_1, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+    if (br_player == 'x') {
+        true_board_list.push_back(true_board);
+        history_list.push_back(start_history);
+        reach_probability_list.push_back(1.0);
+        opponent_I_list.push_back(I_2);
+
+        expected_utility = WALKTREES_PARALLEL(I_1, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+    } 
+    else {
+        std::vector<int> actions;
+        I_1.get_actions_given_policy(actions, policy_obj);
+
+        for (int a = 0; a < actions.size(); a++){
+            TicTacToeBoard new_true_board = true_board;
+            bool success = new_true_board.update_move(actions[a], I_1.player);
+
+            History new_history = start_history;
+            new_history.history.push_back(actions[a]);
+
+            InformationSet new_I = I_1;
+            new_I.update_move(actions[a], I_1.player);
+
+            true_board_list.push_back(new_true_board);
+            history_list.push_back(new_history);
+            reach_probability_list.push_back(policy_obj.policy_dict[I_1.get_index()][actions[a]]);
+            opponent_I_list.push_back(new_I);
+        }
+
+        expected_utility = WALKTREES_PARALLEL(I_2, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+    }
+
     return expected_utility;
 }
 
@@ -771,16 +798,15 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Copying policies..." << std::endl;
     PolicyVec br_x = policy_obj_x;
-    // PolicyVec br_o = policy_obj_o;
+    PolicyVec br_o = policy_obj_o;
 
     std::cout << "Computing best response..." << std::endl;
     start = std::chrono::system_clock::now();
-    // std::cout << "Leaf sum: " << leaf_sum << std::endl;
 
     expected_utility = WALKTREES_wrapper(policy_obj_o, br_x, 'x');
     std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
-
-    // std::cout << "Leaf sum: " << leaf_sum << std::endl;
+    expected_utility = WALKTREES_wrapper(policy_obj_x, br_o, 'o');
+    std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
 
     end = std::chrono::system_clock::now();
     elapsed_seconds = end-start;
@@ -793,6 +819,8 @@ int main(int argc, char* argv[]) {
     start = std::chrono::system_clock::now();
     expected_utility = get_expected_utility_wrapper(br_x, policy_obj_o);
     std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
+    expected_utility = get_expected_utility_wrapper(br_o, policy_obj_x);
+    std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
  
     end = std::chrono::system_clock::now();
     elapsed_seconds = end-start;
