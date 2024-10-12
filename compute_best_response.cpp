@@ -718,6 +718,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Getting expected utility..." << std::endl;
     auto start = std::chrono::system_clock::now();   
     
+    double exploitability = 0.0;
     double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
     std::cout << "Expected utility: " << expected_utility << std::endl;
 
@@ -736,9 +737,12 @@ int main(int argc, char* argv[]) {
     start = std::chrono::system_clock::now();
 
     expected_utility = WALKTREES_wrapper(policy_obj_o, br_x, 'x');
+    exploitability = expected_utility;
     std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
     expected_utility = WALKTREES_wrapper(policy_obj_x, br_o, 'o');
+    exploitability -= expected_utility;
     std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
+    std::cout << "Exploitability: " << exploitability << std::endl;
 
     end = std::chrono::system_clock::now();
     elapsed_seconds = end-start;
@@ -747,18 +751,5 @@ int main(int argc, char* argv[]) {
               << "elapsed time: " << elapsed_seconds.count() << "s"
               << std::endl;
 
-    std::cout << "Getting expected utility..." << std::endl;
-    start = std::chrono::system_clock::now();
-    expected_utility = get_expected_utility_wrapper(br_x, policy_obj_o);
-    std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
-    expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
-    std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
- 
-    end = std::chrono::system_clock::now();
-    elapsed_seconds = end-start;
-    end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "finished computation at " << std::ctime(&end_time)
-              << "elapsed time: " << elapsed_seconds.count() << "s"
-              << std::endl;
     return 0;
 }
