@@ -612,6 +612,8 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
         reach_probability_list[h] /= reach_sum;
     }
 
+    reach_sum = 1.0;
+
     std::vector<int> actions;
     std::vector<double> Q_values;
     I.get_actions(actions);
