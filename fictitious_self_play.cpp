@@ -672,8 +672,13 @@ void update_average_strategies(PolicyVec& sigma_t, PolicyVec& br, PolicyVec& sig
         std::vector<int> actions;
         I.get_actions(actions);
 
-        double reach_sigma_t = get_reach_of_I(I, sigma_t, player);
         double reach_br = get_reach_of_I(I, br, player);
+
+        if (reach_br == 0.0) {
+            continue;
+        }
+
+        double reach_sigma_t = get_reach_of_I(I, sigma_t, player);
 
         std::vector<double>& prob_dist_sigma_t = sigma_t.policy_dict[I.get_index()];
         std::vector<double>& prob_dist_br = br.policy_dict[I.get_index()];
