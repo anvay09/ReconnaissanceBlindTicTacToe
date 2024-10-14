@@ -1,6 +1,6 @@
 #include "cpp_headers/rbt_classes.hpp"
 
-// g++-13 -O3 evaluate_policy.cpp rbt_classes.cpp -o evaluate_policy -fopenmp
+// g++-13 -O3 fictitious_self_play.cpp rbt_classes.cpp -o fsp -fopenmp
 
 bool get_move_flag(std::string I_hash, char player){
     bool move_flag;
@@ -186,7 +186,7 @@ double get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_o
 }
 
 
-double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
+double compute_best_response(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj) {    
     double expected_utility = 0.0;
 
@@ -299,7 +299,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 InformationSet new_I = I;
                 new_I.update_move(actions[a], I.player);
                 new_I.reset_zeros();
-                Q_values[actions[a]] += WALKTREES(new_I, br_player, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj);
+                Q_values[actions[a]] += compute_best_response(new_I, br_player, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj);
             }
         }
     }
@@ -335,7 +335,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                 InformationSet new_I(I.player, move_flag, new_I_hash);
   
                 if (infoset_to_history[new_I.hash].size() > 0) {
-                    Q_values[actions[a]] += WALKTREES(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
+                    Q_values[actions[a]] += compute_best_response(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
                 }
             }
         }
@@ -377,7 +377,7 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
 }
 
 
-double WALKTREES_PARALLEL(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
+double compute_best_response_parallel(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj) {    
     double expected_utility = 0.0;
 
@@ -503,7 +503,7 @@ double WALKTREES_PARALLEL(InformationSet& I, char br_player, std::vector<TicTacT
                 InformationSet new_I = I;
                 new_I.update_move(actions[a], I.player);
                 new_I.reset_zeros();
-                Q_values[actions[a]] += WALKTREES(new_I, br_player, action_to_true_board_list[actions[a]], action_to_history_list[actions[a]], action_to_reach_probability_list[actions[a]], action_to_opponent_I_list[actions[a]], br, policy_obj);
+                Q_values[actions[a]] += compute_best_response(new_I, br_player, action_to_true_board_list[actions[a]], action_to_history_list[actions[a]], action_to_reach_probability_list[actions[a]], action_to_opponent_I_list[actions[a]], br, policy_obj);
             }
         }
     }
@@ -541,7 +541,7 @@ double WALKTREES_PARALLEL(InformationSet& I, char br_player, std::vector<TicTacT
                 InformationSet new_I(I.player, move_flag, new_I_hash);
   
                 if (infoset_to_history[new_I.hash].size() > 0) {
-                    Q_values[actions[a]] += WALKTREES(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
+                    Q_values[actions[a]] += compute_best_response(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
                 }
             }
         }
@@ -583,7 +583,7 @@ double WALKTREES_PARALLEL(InformationSet& I, char br_player, std::vector<TicTacT
 }
 
 
-double WALKTREES_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player) {
+double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
@@ -606,7 +606,7 @@ double WALKTREES_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player) {
         reach_probability_list.push_back(1.0);
         opponent_I_list.push_back(I_2);
 
-        expected_utility = WALKTREES_PARALLEL(I_1, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+        expected_utility = compute_best_response_parallel(I_1, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
     } 
     else {
         std::vector<int> actions;
@@ -628,10 +628,104 @@ double WALKTREES_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player) {
             opponent_I_list.push_back(new_I);
         }
 
-        expected_utility = -WALKTREES_PARALLEL(I_2, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+        expected_utility = - compute_best_response_parallel(I_2, br_player, true_board_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
     }
 
     return expected_utility;
+}
+
+
+double get_reach_of_I(InformationSet& I, PolicyVec& policy_obj, char player) {
+    double prob_reaching = 1.0;
+    std::vector<int> actions;
+    I.get_played_actions(actions);
+    int count = 0;
+    int i = 0;
+    while (i < I.get_hash().size()) {
+        std::string I_hash = I.get_hash().substr(0, i);
+        bool move_flag = get_move_flag(I_hash, player);
+        InformationSet I_new(player, move_flag, I_hash);
+
+        prob_reaching *= policy_obj.policy_dict[I_new.get_index()][actions[count]];
+        count += 1;
+        
+        if (move_flag) {
+            i = i + 2;
+        }
+        else {
+            i = i + 7;
+        }
+    }
+    return prob_reaching;
+}
+
+
+void update_average_strategies(PolicyVec& sigma_t, PolicyVec& br, PolicyVec& sigma_t_next, int t, char player, std::vector<std::string>& information_sets) {
+    for (long int i = 0; i < information_sets.size(); i++) {
+        std::string I_hash = information_sets[i];
+        bool move_flag = get_move_flag(I_hash, player);
+        InformationSet I(player, move_flag, I_hash);
+        std::vector<int> actions;
+        I.get_actions(actions);
+
+        double reach_sigma_t = get_reach_of_I(I, sigma_t, player);
+        double reach_br = get_reach_of_I(I, br, player);
+
+        std::vector<double> prob_dist_sigma_t = sigma_t.policy_dict[I.get_index()];
+        std::vector<double> prob_dist_br = br.policy_dict[I.get_index()];
+        std::vector<double> prob_dist_sigma_t_next = sigma_t_next.policy_dict[I.get_index()];
+
+        for (int a = 0; a < actions.size(); a++) {
+            double lambda = reach_br / (t * reach_sigma_t + reach_br);
+
+            prob_dist_sigma_t_next[a] = prob_dist_sigma_t[a] + lambda * (prob_dist_br[a] - prob_dist_sigma_t[a]);
+        }
+    }
+}
+
+
+void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets) {
+    PolicyVec sigma_t_next_x = sigma_t_x;
+    PolicyVec sigma_t_next_o = sigma_t_o;
+    PolicyVec br_x = sigma_t_x;
+    PolicyVec br_o = sigma_t_o;
+
+    for (int t = 1; t <= T; t++) {
+        std::cout << "Iteration: " << t << std::endl;
+        double expected_utility = get_expected_utility_wrapper(sigma_t_x, sigma_t_o);
+        std::cout << "Expected utility: " << expected_utility << std::endl;
+
+        // time
+        std::cout << "Computing best responses.." << std::endl;
+        auto start = std::chrono::system_clock::now();
+        double exploitability = 0.0;
+        
+        expected_utility = compute_best_response_wrapper(sigma_t_o, br_x, 'x');
+        std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
+
+        exploitability = expected_utility;
+
+        expected_utility = compute_best_response_wrapper(sigma_t_x, br_o, 'o');
+        std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
+
+        exploitability -= expected_utility;
+
+        std::cout << "Exploitability: " << exploitability << std::endl;
+
+        std::cout << "Updating average strategies..." << std::endl;
+        update_average_strategies(sigma_t_x, br_x, sigma_t_next_x, t, 'x', P1_information_sets);
+        update_average_strategies(sigma_t_o, br_o, sigma_t_next_o, t, 'o', P2_information_sets);
+
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end-start;
+        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+        std::cout << "finished computation at " << std::ctime(&end_time)
+                  << "elapsed time: " << elapsed_seconds.count() << "s"
+                  << std::endl;
+
+        sigma_t_x = sigma_t_next_x;
+        sigma_t_o = sigma_t_next_o;
+    }
 }
 
 
@@ -672,41 +766,10 @@ int main(int argc, char* argv[]) {
     PolicyVec policy_obj_o('o', file_path_2);
     
     std::cout << "Policies loaded." << std::endl;
-    std::cout << "Getting expected utility..." << std::endl;
-    auto start = std::chrono::system_clock::now();   
     
-    double exploitability = 0.0;
-    double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
-    std::cout << "Expected utility: " << expected_utility << std::endl;
+    int T = 100;
 
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end-start;
-    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "finished computation at " << std::ctime(&end_time)
-              << "elapsed time: " << elapsed_seconds.count() << "s"
-              << std::endl;
-
-    std::cout << "Copying policies..." << std::endl;
-    PolicyVec br_x = policy_obj_x;
-    PolicyVec br_o = policy_obj_o;
-
-    std::cout << "Computing best response..." << std::endl;
-    start = std::chrono::system_clock::now();
-
-    expected_utility = WALKTREES_wrapper(policy_obj_o, br_x, 'x');
-    exploitability = expected_utility;
-    std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
-    expected_utility = WALKTREES_wrapper(policy_obj_x, br_o, 'o');
-    exploitability -= expected_utility;
-    std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
-    std::cout << "Exploitability: " << exploitability << std::endl;
-
-    end = std::chrono::system_clock::now();
-    elapsed_seconds = end-start;
-    end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "finished computation at " << std::ctime(&end_time)
-              << "elapsed time: " << elapsed_seconds.count() << "s"
-              << std::endl;
+    XFP(policy_obj_x, policy_obj_o, T, P1_information_sets, P2_information_sets);
 
     return 0;
 }
