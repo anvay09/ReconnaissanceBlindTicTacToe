@@ -647,6 +647,9 @@ double get_reach_of_I(InformationSet& I, PolicyVec& policy_obj, char player) {
         InformationSet I_new(player, move_flag, I_hash);
 
         prob_reaching *= policy_obj.policy_dict[I_new.get_index()][actions[count]];
+        if (prob_reaching == 0.0) {
+            return 0.0;
+        }
         count += 1;
         
         if (move_flag) {
