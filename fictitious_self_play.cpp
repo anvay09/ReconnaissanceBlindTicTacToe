@@ -508,13 +508,14 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
         }
     }
     else {
-        for (int a = 0; a < actions.size(); a++) {
-            std::unordered_map<std::string, std::vector<TicTacToeBoard>> infoset_to_true_board;
-            std::unordered_map<std::string, std::vector<History>> infoset_to_history;
-            std::unordered_map<std::string, std::vector<double>> infoset_to_reach_probability;
-            std::unordered_map<std::string, std::vector<InformationSet>> infoset_to_opponent_I;
-            std::unordered_set<std::string> infoset_set;
+        std::unordered_map<std::string, std::vector<TicTacToeBoard>> infoset_to_true_board;
+        std::unordered_map<std::string, std::vector<History>> infoset_to_history;
+        std::unordered_map<std::string, std::vector<double>> infoset_to_reach_probability;
+        std::unordered_map<std::string, std::vector<InformationSet>> infoset_to_opponent_I;
+        std::unordered_map<std::string, int> infoset_to_action_taken;
+        std::unordered_set<std::string> infoset_set;
 
+        for (int a = 0; a < actions.size(); a++) {
             for (int h = 0; h < history_list.size(); h++) {
                 TicTacToeBoard& true_board = true_board_list[h];
                 History& history = history_list[h];
@@ -531,18 +532,19 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
                 infoset_to_history[new_I.hash].push_back(new_history);
                 infoset_to_reach_probability[new_I.hash].push_back(reach_probability);
                 infoset_to_opponent_I[new_I.hash].push_back(opponent_I_list[h]);
+                infoset_to_action_taken[new_I.hash] = actions[a];
                 infoset_set.insert(new_I.hash);
             }
+        }
+        
+        # pragma omp parallel for num_threads(96)
+        for (int t = 0; t < infoset_set.size(); t++) {
+            std::string new_I_hash = *std::next(infoset_set.begin(), t);
+            bool move_flag = get_move_flag(new_I_hash, I.player);
+            InformationSet new_I(I.player, move_flag, new_I_hash);
 
-            # pragma omp parallel for num_threads(96)
-            for (int t = 0; t < infoset_set.size(); t++) {
-                std::string new_I_hash = *std::next(infoset_set.begin(), t);
-                bool move_flag = get_move_flag(new_I_hash, I.player);
-                InformationSet new_I(I.player, move_flag, new_I_hash);
-  
-                if (infoset_to_history[new_I.hash].size() > 0) {
-                    Q_values[actions[a]] += compute_best_response(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
-                }
+            if (infoset_to_history[new_I.hash].size() > 0) {
+                Q_values[infoset_to_action_taken[new_I.hash]] += compute_best_response(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
             }
         }
     }
