@@ -672,9 +672,9 @@ void update_average_strategies(PolicyVec& sigma_t, PolicyVec& br, PolicyVec& sig
         double reach_sigma_t = get_reach_of_I(I, sigma_t, player);
         double reach_br = get_reach_of_I(I, br, player);
 
-        std::vector<double> prob_dist_sigma_t = sigma_t.policy_dict[I.get_index()];
-        std::vector<double> prob_dist_br = br.policy_dict[I.get_index()];
-        std::vector<double> prob_dist_sigma_t_next = sigma_t_next.policy_dict[I.get_index()];
+        std::vector<double>& prob_dist_sigma_t = sigma_t.policy_dict[I.get_index()];
+        std::vector<double>& prob_dist_br = br.policy_dict[I.get_index()];
+        std::vector<double>& prob_dist_sigma_t_next = sigma_t_next.policy_dict[I.get_index()];
 
         for (int a = 0; a < actions.size(); a++) {
             double lambda = reach_br / (t * reach_sigma_t + reach_br);
@@ -704,10 +704,24 @@ void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::str
         expected_utility = compute_best_response_wrapper(sigma_t_o, br_x, 'x');
         std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
 
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end-start;
+        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+        std::cout << "finished computation at " << std::ctime(&end_time)
+                  << "elapsed time: " << elapsed_seconds.count() << "s"
+                  << std::endl;
+
         exploitability = expected_utility;
 
         expected_utility = compute_best_response_wrapper(sigma_t_x, br_o, 'o');
         std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
+
+        end = std::chrono::system_clock::now();
+        elapsed_seconds = end-start;
+        end_time = std::chrono::system_clock::to_time_t(end);
+        std::cout << "finished computation at " << std::ctime(&end_time)
+                  << "elapsed time: " << elapsed_seconds.count() << "s"
+                  << std::endl;
 
         exploitability -= expected_utility;
 
@@ -717,9 +731,9 @@ void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::str
         update_average_strategies(sigma_t_x, br_x, sigma_t_next_x, t, 'x', P1_information_sets);
         update_average_strategies(sigma_t_o, br_o, sigma_t_next_o, t, 'o', P2_information_sets);
 
-        auto end = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end-start;
-        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+        end = std::chrono::system_clock::now();
+        elapsed_seconds = end-start;
+        end_time = std::chrono::system_clock::to_time_t(end);
         std::cout << "finished computation at " << std::ctime(&end_time)
                   << "elapsed time: " << elapsed_seconds.count() << "s"
                   << std::endl;
