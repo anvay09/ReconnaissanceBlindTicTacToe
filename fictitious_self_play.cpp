@@ -661,6 +661,7 @@ double get_reach_of_I(InformationSet& I, PolicyVec& policy_obj, char player) {
 
 
 void update_average_strategies(PolicyVec& sigma_t, PolicyVec& br, PolicyVec& sigma_t_next, int t, char player, std::vector<std::string>& information_sets) {
+    # pragma omp parallel num_threads(96)
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
         bool move_flag = get_move_flag(I_hash, player);
