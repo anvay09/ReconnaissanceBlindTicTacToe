@@ -758,6 +758,7 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
+    int num_iterations = std::stoi(argv[3]);
 
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
@@ -792,9 +793,7 @@ int main(int argc, char* argv[]) {
     
     std::cout << "Policies loaded." << std::endl;
     
-    int T = 100;
-
-    XFP(policy_obj_x, policy_obj_o, T, P1_information_sets, P2_information_sets);
+    XFP(policy_obj_x, policy_obj_o, num_iterations, P1_information_sets, P2_information_sets);
 
     return 0;
 }
