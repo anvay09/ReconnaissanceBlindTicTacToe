@@ -698,22 +698,22 @@ void update_average_strategies(PolicyVec& sigma_t, PolicyVec& br, PolicyVec& sig
 void update_average_strategies_recursive(InformationSet& I, char player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
                                          double reach_probability_sigma_t, double reach_probability_br, std::vector<InformationSet>& opponent_I_list, 
                                          PolicyVec& br, PolicyVec& sigma_t, PolicyVec& sigma_t_next, int t) {
-    // std::cout << "Checkpoint 1" << std::endl;
-    // std::cout << "Information set: " << I.get_hash() << std::endl;
-    
+    std::cout << "Checkpoint 1" << std::endl;
+    std::cout << "Information set: " << I.get_hash() << std::endl;
+
     std::vector<int> all_actions;
     I.get_actions(all_actions);
     std::vector<double>& prob_dist_sigma_t = sigma_t.policy_dict[I.get_index()];
     std::vector<double>& prob_dist_br = br.policy_dict[I.get_index()];
     std::vector<double>& prob_dist_sigma_t_next = sigma_t_next.policy_dict[I.get_index()];
 
-    // std::cout << "Reach probability sigma_t: " << reach_probability_sigma_t << std::endl;
-    // std::cout << "Reach probability br: " << reach_probability_br << std::endl;
+    std::cout << "Reach probability sigma_t: " << reach_probability_sigma_t << std::endl;
+    std::cout << "Reach probability br: " << reach_probability_br << std::endl;
     
-    // std::cout << "Size of all actions: " << all_actions.size() << std::endl;
-    // std::cout << "Size of prob_dist_sigma_t: " << prob_dist_sigma_t.size() << std::endl;
-    // std::cout << "Size of prob_dist_br: " << prob_dist_br.size() << std::endl;
-    // std::cout << "Size of prob_dist_sigma_t_next: " << prob_dist_sigma_t_next.size() << std::endl;
+    std::cout << "Size of all actions: " << all_actions.size() << std::endl;
+    std::cout << "Size of prob_dist_sigma_t: " << prob_dist_sigma_t.size() << std::endl;
+    std::cout << "Size of prob_dist_br: " << prob_dist_br.size() << std::endl;
+    std::cout << "Size of prob_dist_sigma_t_next: " << prob_dist_sigma_t_next.size() << std::endl;
 
     for (int a = 0; a < all_actions.size(); a++) {
         double lambda = reach_probability_br / (t * reach_probability_sigma_t + reach_probability_br);
@@ -867,6 +867,10 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
                 InformationSet new_I(I.player, move_flag, new_I_hash);
   
                 if (infoset_to_history[new_I.hash].size() > 0) {
+                    std::cout << "Size of prob_dist_sigma_t: " << br.policy_dict[new_I.get_index()].size() << std::endl;
+                    std::cout << "Size of prob_dist_br: " << sigma_t.policy_dict[new_I.get_index()].size() << std::endl;
+                    std::cout << "Size of prob_dist_sigma_t_next: " << sigma_t_next.policy_dict[new_I.get_index()].size() << std::endl;
+
                     update_average_strategies_recursive(new_I, player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], depth_1_reach_probability_sigma_t, depth_1_reach_probability_br, infoset_to_opponent_I[new_I.hash], br, sigma_t, sigma_t_next, t);
                 }
             }
