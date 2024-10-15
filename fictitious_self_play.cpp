@@ -1020,7 +1020,7 @@ void update_average_strategies_recursive_wrapper(PolicyVec& br, PolicyVec& sigma
         history_list.push_back(start_history);
         opponent_I_list.push_back(I_2);
 
-        update_average_strategies_recursive_parallel(I_1, player, true_board_list, history_list, 1.0, 1.0, opponent_I_list, br, sigma_t, sigma_t_next, t);
+        update_average_strategies_recursive(I_1, player, true_board_list, history_list, 1.0, 1.0, opponent_I_list, br, sigma_t, sigma_t_next, t);
     } 
     else {
         std::vector<int> actions;
@@ -1041,7 +1041,7 @@ void update_average_strategies_recursive_wrapper(PolicyVec& br, PolicyVec& sigma
             opponent_I_list.push_back(new_I);
         }
 
-        update_average_strategies_recursive_parallel(I_2, player, true_board_list, history_list, 1.0, 1.0, opponent_I_list, br, sigma_t, sigma_t_next, t);
+        update_average_strategies_recursive(I_2, player, true_board_list, history_list, 1.0, 1.0, opponent_I_list, br, sigma_t, sigma_t_next, t);
     }
 
     return;
@@ -1142,7 +1142,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "Loading policies..." << std::endl;
-    char player = 'x';
+
     PolicyVec policy_obj_x('x', file_path_1);
     PolicyVec policy_obj_o('o', file_path_2);
     
