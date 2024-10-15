@@ -705,23 +705,21 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
     std::vector<double>& prob_dist_sigma_t = sigma_t.policy_dict[I.get_index()];
     std::vector<double>& prob_dist_br = br.policy_dict[I.get_index()];
     std::vector<double>& prob_dist_sigma_t_next = sigma_t_next.policy_dict[I.get_index()];
-    std::cout << "Reach probability sigma_t: " << reach_probability_sigma_t << std::endl;
-    std::cout << "Reach probability br: " << reach_probability_br << std::endl;
+    // std::cout << "Reach probability sigma_t: " << reach_probability_sigma_t << std::endl;
+    // std::cout << "Reach probability br: " << reach_probability_br << std::endl;
+    
+    std::cout << "Size of all actions: " << all_actions.size() << std::endl;
+    std::cout << "Size of prob_dist_sigma_t: " << prob_dist_sigma_t.size() << std::endl;
+    std::cout << "Size of prob_dist_br: " << prob_dist_br.size() << std::endl;
+    std::cout << "Size of prob_dist_sigma_t_next: " << prob_dist_sigma_t_next.size() << std::endl;
 
     for (int a = 0; a < all_actions.size(); a++) {
         double lambda = reach_probability_br / (t * reach_probability_sigma_t + reach_probability_br);
-        std::cout << "Action: " << all_actions[a] << std::endl;
-        std::cout << "Lambda: " << lambda << std::endl;
-        std::cout << "Length of prob dist sigma_t: " << prob_dist_sigma_t.size() << std::endl;
-        std::cout << "Length of prob dist br: " << prob_dist_br.size() << std::endl;
-        std::cout << "Length of prob dist sigma_t_next: " << prob_dist_sigma_t_next.size() << std::endl;
 
         prob_dist_sigma_t_next[all_actions[a]] = prob_dist_sigma_t[all_actions[a]] + lambda * (prob_dist_br[all_actions[a]] - prob_dist_sigma_t[all_actions[a]]);
-
-        std::cout << "Prob dist sigma_t: " << prob_dist_sigma_t[all_actions[a]] << std::endl;
     }
 
-    std::cout << "Checkpoint 2" << std::endl;
+    // std::cout << "Checkpoint 2" << std::endl;
 
     // std::cout << "Information set: " << I.get_hash() << std::endl;
     // std::cout << "Reach probability sigma_t: " << reach_probability_sigma_t << std::endl;
@@ -739,7 +737,7 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
             double depth_1_reach_probability_br = reach_probability_br * br.policy_dict[I.get_index()][actions[a]];
             double depth_1_reach_probability_sigma_t = reach_probability_sigma_t * sigma_t.policy_dict[I.get_index()][actions[a]];
 
-            std::cout << "Checkpoint 3" << std::endl;
+            // std::cout << "Checkpoint 3" << std::endl;
 
             // std::cout << "Br action probability: " << br.policy_dict[I.get_index()][actions[a]] << std::endl;
             // std::cout << "Sigma_t action probability: " << sigma_t.policy_dict[I.get_index()][actions[a]] << std::endl;
@@ -766,7 +764,7 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
                     std::vector<InformationSet> depth_2_opponent_I_list;
                     std::vector<TicTacToeBoard> depth_2_true_board_list;
 
-                    std::cout << "Checkpoint 4" << std::endl;
+                    // std::cout << "Checkpoint 4" << std::endl;
                     // first simulate sense
                     for (int opponent_action : depth_1_opponent_actions) {
                         InformationSet depth_2_opponent_I = depth_1_opponent_I;
@@ -783,7 +781,7 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
                         depth_2_true_board_list.push_back(depth_2_true_board);
                     }
 
-                    std::cout << "Checkpoint 5" << std::endl;
+                    // std::cout << "Checkpoint 5" << std::endl;
 
                     for (int i = 0; i < depth_2_history_list.size(); i++) {
                         InformationSet depth_2_opponent_I = depth_2_opponent_I_list[i];
@@ -809,13 +807,13 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
                         }
                     }
 
-                    std::cout << "Checkpoint 6" << std::endl;
+                    // std::cout << "Checkpoint 6" << std::endl;
                 }
 
-                std::cout << "Checkpoint 7" << std::endl;
+                // std::cout << "Checkpoint 7" << std::endl;
             }
 
-            std::cout << "Checkpoint 8" << std::endl;
+            // std::cout << "Checkpoint 8" << std::endl;
 
             if (depth_3_history_list.size() > 0) {
                 InformationSet new_I = I;
@@ -825,7 +823,7 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
                 update_average_strategies_recursive(new_I, player, depth_3_true_board_list, depth_3_history_list, depth_1_reach_probability_sigma_t, depth_1_reach_probability_br, depth_3_opponent_I_list, br, sigma_t, sigma_t_next, t);
             }
 
-            std::cout << "Checkpoint 9" << std::endl;
+            // std::cout << "Checkpoint 9" << std::endl;
         }
     }
     else {
@@ -837,7 +835,7 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
             double depth_1_reach_probability_br = reach_probability_br * br.policy_dict[I.get_index()][actions[a]];
             double depth_1_reach_probability_sigma_t = reach_probability_sigma_t * sigma_t.policy_dict[I.get_index()][actions[a]];
 
-            std::cout << "Checkpoint 10" << std::endl;
+            // std::cout << "Checkpoint 10" << std::endl;
 
             // std::cout << "Br action probability: " << br.policy_dict[I.get_index()][actions[a]] << std::endl;
             // std::cout << "Sigma_t action probability: " << sigma_t.policy_dict[I.get_index()][actions[a]] << std::endl;
@@ -859,7 +857,7 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
                 infoset_set.insert(new_I.hash);
             }
 
-            std::cout << "Checkpoint 11" << std::endl;
+            // std::cout << "Checkpoint 11" << std::endl;
 
             for (int t = 0; t < infoset_set.size(); t++) {
                 std::string new_I_hash = *std::next(infoset_set.begin(), t);
@@ -871,7 +869,7 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
                 }
             }
 
-            std::cout << "Checkpoint 12" << std::endl;
+            // std::cout << "Checkpoint 12" << std::endl;
         }
     }
 
@@ -1092,27 +1090,25 @@ void update_average_strategies_recursive_wrapper(PolicyVec& br, PolicyVec& sigma
 
 
 void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets) {
+    // for (long int i = 0; i < P1_information_sets.size(); i++) {
+    //     std::vector<double>& prob_dist = sigma_t_x.policy_dict[i];
+    //     if (prob_dist.size() == 0) {
+    //         std::cout << "Sigma_t_x information set: " << P1_information_sets[i] << " has size 0" << std::endl;
+    //         for (int j = 0; j < 0; j++) {
+    //             prob_dist.push_back(0.0);
+    //         }
+    //     }
+    // }
 
-
-    for (long int i = 0; i < P1_information_sets.size(); i++) {
-        std::vector<double>& prob_dist = sigma_t_x.policy_dict[i];
-        if (prob_dist.size() == 0) {
-            std::cout << "Sigma_t_x information set: " << P1_information_sets[i] << " has size 0" << std::endl;
-            for (int j = 0; j < 0; j++) {
-                prob_dist.push_back(0.0);
-            }
-        }
-    }
-
-    for (long int i = 0; i < P2_information_sets.size(); i++) {
-        std::vector<double>& prob_dist = sigma_t_o.policy_dict[i];
-        if (prob_dist.size() == 0) {
-            std::cout << "Sigma_t_o information set: " << P2_information_sets[i] << " has size 0" << std::endl;
-            for (int j = 0; j < 0; j++) {
-                prob_dist.push_back(0.0);
-            }
-        }
-    }
+    // for (long int i = 0; i < P2_information_sets.size(); i++) {
+    //     std::vector<double>& prob_dist = sigma_t_o.policy_dict[i];
+    //     if (prob_dist.size() == 0) {
+    //         std::cout << "Sigma_t_o information set: " << P2_information_sets[i] << " has size 0" << std::endl;
+    //         for (int j = 0; j < 0; j++) {
+    //             prob_dist.push_back(0.0);
+    //         }
+    //     }
+    // }
 
     PolicyVec sigma_t_next_x = sigma_t_x;
     PolicyVec sigma_t_next_o = sigma_t_o;
