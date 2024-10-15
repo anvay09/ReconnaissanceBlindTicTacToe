@@ -689,9 +689,150 @@ void update_average_strategies(PolicyVec& sigma_t, PolicyVec& br, PolicyVec& sig
         for (int a = 0; a < actions.size(); a++) {
             double lambda = reach_br / (t * reach_sigma_t + reach_br);
 
-            prob_dist_sigma_t_next[a] = prob_dist_sigma_t[a] + lambda * (prob_dist_br[a] - prob_dist_sigma_t[a]);
+            prob_dist_sigma_t_next[actions[a]] = prob_dist_sigma_t[actions[a]] + lambda * (prob_dist_br[actions[a]] - prob_dist_sigma_t[actions[a]]);
         }
     }
+}
+
+
+void update_average_strategies_recursive(InformationSet& I, char player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
+                                         double reach_probability_sigma_t, double reach_probability_br, std::vector<InformationSet>& opponent_I_list, 
+                                         PolicyVec& br, PolicyVec& sigma_t, PolicyVec& sigma_t_next, int t) {
+    std::vector<int> all_actions;
+    I.get_actions(all_actions);
+    std::vector<double>& prob_dist_sigma_t = sigma_t.policy_dict[I.get_index()];
+    std::vector<double>& prob_dist_br = br.policy_dict[I.get_index()];
+    std::vector<double>& prob_dist_sigma_t_next = sigma_t_next.policy_dict[I.get_index()];
+
+    for (int a = 0; a < all_actions.size(); a++) {
+        double lambda = reach_probability_br / (t * reach_probability_sigma_t + reach_probability_br);
+
+        prob_dist_sigma_t_next[all_actions[a]] = prob_dist_sigma_t[all_actions[a]] + lambda * (prob_dist_br[all_actions[a]] - prob_dist_sigma_t[all_actions[a]]);
+    }
+
+    std::vector<int> actions;
+    I.get_actions_given_policy(actions, br);
+
+    if (I.move_flag) {
+        for (int a = 0; a < actions.size(); a++) {
+            std::vector<TicTacToeBoard> depth_3_true_board_list;
+            std::vector<History> depth_3_history_list;
+            std::vector<InformationSet> depth_3_opponent_I_list;
+
+            double depth_1_reach_probability_br = reach_probability_br * br.policy_dict[I.get_index()][actions[a]];
+            double depth_1_reach_probability_sigma_t = reach_probability_sigma_t * sigma_t.policy_dict[I.get_index()][actions[a]];
+            
+            for (int h = 0; h < history_list.size(); h++) {
+                TicTacToeBoard depth_1_true_board = true_board_list[h];
+                History depth_1_history = history_list[h];
+                InformationSet depth_1_opponent_I = opponent_I_list[h];
+
+                bool success = depth_1_true_board.update_move(actions[a], I.player);
+                depth_1_history.history.push_back(actions[a]);
+
+                char winner;
+                if (success && !depth_1_true_board.is_win(winner) && !depth_1_true_board.is_over()) {
+                    InformationSet new_I = I;
+                    new_I.update_move(actions[a], I.player);
+                    new_I.reset_zeros();
+                    
+                    // simulate opponent's turn
+                    
+                    std::vector<int> depth_1_opponent_actions;
+                    depth_1_opponent_I.get_actions(depth_1_opponent_actions);
+                    std::vector<History> depth_2_history_list;
+                    std::vector<InformationSet> depth_2_opponent_I_list;
+                    std::vector<TicTacToeBoard> depth_2_true_board_list;
+
+                    // first simulate sense
+                    for (int opponent_action : depth_1_opponent_actions) {
+                        InformationSet depth_2_opponent_I = depth_1_opponent_I;
+                        depth_2_opponent_I.simulate_sense(opponent_action, depth_1_true_board);
+                        depth_2_opponent_I.reset_zeros();
+
+                        History depth_2_history = depth_1_history;
+                        depth_2_history.history.push_back(opponent_action);
+
+                        TicTacToeBoard depth_2_true_board = depth_1_true_board;
+
+                        depth_2_history_list.push_back(depth_2_history);
+                        depth_2_opponent_I_list.push_back(depth_2_opponent_I);
+                        depth_2_true_board_list.push_back(depth_2_true_board);
+                    }
+
+                    for (int i = 0; i < depth_2_history_list.size(); i++) {
+                        InformationSet depth_2_opponent_I = depth_2_opponent_I_list[i];
+                        std::vector<int> depth_2_opponent_actions;
+                        depth_2_opponent_I.get_actions(depth_2_opponent_actions);
+
+                        for (int opponent_action : depth_2_opponent_actions) {
+                            TicTacToeBoard depth_3_true_board = depth_2_true_board_list[i];
+                            History depth_3_history = depth_2_history_list[i];
+
+                            success = depth_3_true_board.update_move(opponent_action, depth_2_opponent_I_list[i].player);
+                            depth_3_history.history.push_back(opponent_action);
+
+                            if (success && !depth_3_true_board.is_win(winner) && !depth_3_true_board.is_over()) {
+                                InformationSet depth_3_opponent_I = depth_2_opponent_I_list[i];
+                                depth_3_opponent_I.update_move(opponent_action, depth_3_opponent_I.player);
+                                depth_3_opponent_I.reset_zeros();
+
+                                depth_3_true_board_list.push_back(depth_3_true_board);
+                                depth_3_history_list.push_back(depth_3_history);
+                                depth_3_opponent_I_list.push_back(depth_3_opponent_I);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (depth_3_history_list.size() > 0) {
+                InformationSet new_I = I;
+                new_I.update_move(actions[a], I.player);
+                new_I.reset_zeros();
+
+                update_average_strategies_recursive(new_I, player, depth_3_true_board_list, depth_3_history_list, depth_1_reach_probability_sigma_t, depth_1_reach_probability_br, depth_3_opponent_I_list, br, sigma_t, sigma_t_next, t);
+            }
+        }
+    }
+    else {
+        for (int a = 0; a < actions.size(); a++) {
+            std::unordered_map<std::string, std::vector<TicTacToeBoard>> infoset_to_true_board;
+            std::unordered_map<std::string, std::vector<History>> infoset_to_history;
+            std::unordered_map<std::string, std::vector<InformationSet>> infoset_to_opponent_I;
+            std::unordered_set<std::string> infoset_set;
+            double reach_probability_br = reach_probability_br * br.policy_dict[I.get_index()][actions[a]];
+            double reach_probability_sigma_t = reach_probability_sigma_t * sigma_t.policy_dict[I.get_index()][actions[a]];
+
+            for (int h = 0; h < history_list.size(); h++) {
+                TicTacToeBoard& true_board = true_board_list[h];
+                History& history = history_list[h];
+
+                InformationSet new_I = I;
+                new_I.simulate_sense(actions[a], true_board);
+                new_I.reset_zeros();
+
+                History new_history = history;
+                new_history.history.push_back(actions[a]);
+
+                infoset_to_true_board[new_I.hash].push_back(true_board);
+                infoset_to_history[new_I.hash].push_back(new_history);
+                infoset_to_opponent_I[new_I.hash].push_back(opponent_I_list[h]);
+                infoset_set.insert(new_I.hash);
+            }
+            for (int t = 0; t < infoset_set.size(); t++) {
+                std::string new_I_hash = *std::next(infoset_set.begin(), t);
+                bool move_flag = get_move_flag(new_I_hash, I.player);
+                InformationSet new_I(I.player, move_flag, new_I_hash);
+  
+                if (infoset_to_history[new_I.hash].size() > 0) {
+                    update_average_strategies_recursive(new_I, player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], reach_probability_sigma_t, reach_probability_br, infoset_to_opponent_I[new_I.hash], br, sigma_t, sigma_t_next, t);
+                }
+            }
+        }
+    }
+
+    return;
 }
 
 
