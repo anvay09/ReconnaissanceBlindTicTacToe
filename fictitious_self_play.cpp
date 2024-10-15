@@ -699,11 +699,14 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
                                          double reach_probability_sigma_t, double reach_probability_br, std::vector<InformationSet>& opponent_I_list, 
                                          PolicyVec& br, PolicyVec& sigma_t, PolicyVec& sigma_t_next, int t) {
     std::cout << "Checkpoint 1" << std::endl;
+    std::cout << "Information set: " << I.get_hash() << std::endl;
     std::vector<int> all_actions;
     I.get_actions(all_actions);
     std::vector<double>& prob_dist_sigma_t = sigma_t.policy_dict[I.get_index()];
     std::vector<double>& prob_dist_br = br.policy_dict[I.get_index()];
     std::vector<double>& prob_dist_sigma_t_next = sigma_t_next.policy_dict[I.get_index()];
+    std::cout << "Reach probability sigma_t: " << reach_probability_sigma_t << std::endl;
+    std::cout << "Reach probability br: " << reach_probability_br << std::endl;
 
     for (int a = 0; a < all_actions.size(); a++) {
         double lambda = reach_probability_br / (t * reach_probability_sigma_t + reach_probability_br);
