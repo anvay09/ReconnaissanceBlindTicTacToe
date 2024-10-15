@@ -811,6 +811,9 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
             double reach_probability_br = reach_probability_br * br.policy_dict[I.get_index()][actions[a]];
             double reach_probability_sigma_t = reach_probability_sigma_t * sigma_t.policy_dict[I.get_index()][actions[a]];
 
+            std::cout << "Br action probability: " << br.policy_dict[I.get_index()][actions[a]] << std::endl;
+            std::cout << "Sigma_t action probability: " << sigma_t.policy_dict[I.get_index()][actions[a]] << std::endl;
+
             for (int h = 0; h < history_list.size(); h++) {
                 TicTacToeBoard& true_board = true_board_list[h];
                 History& history = history_list[h];
