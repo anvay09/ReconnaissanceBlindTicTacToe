@@ -710,6 +710,10 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
         prob_dist_sigma_t_next[all_actions[a]] = prob_dist_sigma_t[all_actions[a]] + lambda * (prob_dist_br[all_actions[a]] - prob_dist_sigma_t[all_actions[a]]);
     }
 
+    std::cout << "Information set: " << I.get_hash() << std::endl;
+    std::cout << "Reach probability sigma_t: " << reach_probability_sigma_t << std::endl;
+    std::cout << "Reach probability br: " << reach_probability_br << std::endl;
+
     std::vector<int> actions;
     I.get_actions_given_policy(actions, br);
 
