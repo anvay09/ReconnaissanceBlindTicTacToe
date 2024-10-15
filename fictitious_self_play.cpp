@@ -712,6 +712,9 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
         double lambda = reach_probability_br / (t * reach_probability_sigma_t + reach_probability_br);
         std::cout << "Action: " << all_actions[a] << std::endl;
         std::cout << "Lambda: " << lambda << std::endl;
+        std::cout << "Length of prob dist sigma_t: " << prob_dist_sigma_t.size() << std::endl;
+        std::cout << "Length of prob dist br: " << prob_dist_br.size() << std::endl;
+        std::cout << "Length of prob dist sigma_t_next: " << prob_dist_sigma_t_next.size() << std::endl;
 
         prob_dist_sigma_t_next[all_actions[a]] = prob_dist_sigma_t[all_actions[a]] + lambda * (prob_dist_br[all_actions[a]] - prob_dist_sigma_t[all_actions[a]]);
 
