@@ -710,9 +710,9 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
         prob_dist_sigma_t_next[all_actions[a]] = prob_dist_sigma_t[all_actions[a]] + lambda * (prob_dist_br[all_actions[a]] - prob_dist_sigma_t[all_actions[a]]);
     }
 
-    // std::cout << "Information set: " << I.get_hash() << std::endl;
-    // std::cout << "Reach probability sigma_t: " << reach_probability_sigma_t << std::endl;
-    // std::cout << "Reach probability br: " << reach_probability_br << std::endl;
+    std::cout << "Information set: " << I.get_hash() << std::endl;
+    std::cout << "Reach probability sigma_t: " << reach_probability_sigma_t << std::endl;
+    std::cout << "Reach probability br: " << reach_probability_br << std::endl;
 
     std::vector<int> actions;
     I.get_actions_given_policy(actions, br);
@@ -726,8 +726,8 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
             double depth_1_reach_probability_br = reach_probability_br * br.policy_dict[I.get_index()][actions[a]];
             double depth_1_reach_probability_sigma_t = reach_probability_sigma_t * sigma_t.policy_dict[I.get_index()][actions[a]];
 
-            // std::cout << "Br action probability: " << br.policy_dict[I.get_index()][actions[a]] << std::endl;
-            // std::cout << "Sigma_t action probability: " << sigma_t.policy_dict[I.get_index()][actions[a]] << std::endl;
+            std::cout << "Br action probability: " << br.policy_dict[I.get_index()][actions[a]] << std::endl;
+            std::cout << "Sigma_t action probability: " << sigma_t.policy_dict[I.get_index()][actions[a]] << std::endl;
             
             for (int h = 0; h < history_list.size(); h++) {
                 TicTacToeBoard depth_1_true_board = true_board_list[h];
@@ -811,8 +811,8 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
             double depth_1_reach_probability_br = reach_probability_br * br.policy_dict[I.get_index()][actions[a]];
             double depth_1_reach_probability_sigma_t = reach_probability_sigma_t * sigma_t.policy_dict[I.get_index()][actions[a]];
 
-            // std::cout << "Br action probability: " << br.policy_dict[I.get_index()][actions[a]] << std::endl;
-            // std::cout << "Sigma_t action probability: " << sigma_t.policy_dict[I.get_index()][actions[a]] << std::endl;
+            std::cout << "Br action probability: " << br.policy_dict[I.get_index()][actions[a]] << std::endl;
+            std::cout << "Sigma_t action probability: " << sigma_t.policy_dict[I.get_index()][actions[a]] << std::endl;
 
             for (int h = 0; h < history_list.size(); h++) {
                 TicTacToeBoard& true_board = true_board_list[h];
@@ -970,8 +970,8 @@ void update_average_strategies_recursive_parallel(InformationSet& I, char player
         std::unordered_set<std::string> infoset_set;
 
         for (int a = 0; a < actions.size(); a++) {
-            double reach_probability_br = reach_probability_br * br.policy_dict[I.get_index()][actions[a]];
-            double reach_probability_sigma_t = reach_probability_sigma_t * sigma_t.policy_dict[I.get_index()][actions[a]];
+            double depth_1_reach_probability_br = reach_probability_br * br.policy_dict[I.get_index()][actions[a]];
+            double depth_1_reach_probability_sigma_t = reach_probability_sigma_t * sigma_t.policy_dict[I.get_index()][actions[a]];
 
             for (int h = 0; h < history_list.size(); h++) {
                 TicTacToeBoard& true_board = true_board_list[h];
@@ -987,8 +987,8 @@ void update_average_strategies_recursive_parallel(InformationSet& I, char player
                 infoset_to_true_board[new_I.hash].push_back(true_board);
                 infoset_to_history[new_I.hash].push_back(new_history);
                 infoset_to_opponent_I[new_I.hash].push_back(opponent_I_list[h]);
-                infoset_to_reach_br[new_I.hash] = reach_probability_br;
-                infoset_to_reach_sigma_t[new_I.hash] = reach_probability_sigma_t;
+                infoset_to_reach_br[new_I.hash] = depth_1_reach_probability_br;
+                infoset_to_reach_sigma_t[new_I.hash] = depth_1_reach_probability_sigma_t;
                 infoset_to_action_taken[new_I.hash] = actions[a];
 
                 infoset_set.insert(new_I.hash);
