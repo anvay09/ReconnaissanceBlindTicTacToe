@@ -698,6 +698,7 @@ void update_average_strategies(PolicyVec& sigma_t, PolicyVec& br, PolicyVec& sig
 void update_average_strategies_recursive(InformationSet& I, char player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
                                          double reach_probability_sigma_t, double reach_probability_br, std::vector<InformationSet>& opponent_I_list, 
                                          PolicyVec& br, PolicyVec& sigma_t, PolicyVec& sigma_t_next, int t) {
+    std::cout << "Checkpoint 1" << std::endl;
     std::vector<int> all_actions;
     I.get_actions(all_actions);
     std::vector<double>& prob_dist_sigma_t = sigma_t.policy_dict[I.get_index()];
@@ -709,6 +710,8 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
 
         prob_dist_sigma_t_next[all_actions[a]] = prob_dist_sigma_t[all_actions[a]] + lambda * (prob_dist_br[all_actions[a]] - prob_dist_sigma_t[all_actions[a]]);
     }
+
+    std::cout << "Checkpoint 2" << std::endl;
 
     // std::cout << "Information set: " << I.get_hash() << std::endl;
     // std::cout << "Reach probability sigma_t: " << reach_probability_sigma_t << std::endl;
@@ -725,6 +728,8 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
 
             double depth_1_reach_probability_br = reach_probability_br * br.policy_dict[I.get_index()][actions[a]];
             double depth_1_reach_probability_sigma_t = reach_probability_sigma_t * sigma_t.policy_dict[I.get_index()][actions[a]];
+
+            std::cout << "Checkpoint 3" << std::endl;
 
             // std::cout << "Br action probability: " << br.policy_dict[I.get_index()][actions[a]] << std::endl;
             // std::cout << "Sigma_t action probability: " << sigma_t.policy_dict[I.get_index()][actions[a]] << std::endl;
@@ -751,6 +756,7 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
                     std::vector<InformationSet> depth_2_opponent_I_list;
                     std::vector<TicTacToeBoard> depth_2_true_board_list;
 
+                    std::cout << "Checkpoint 4" << std::endl;
                     // first simulate sense
                     for (int opponent_action : depth_1_opponent_actions) {
                         InformationSet depth_2_opponent_I = depth_1_opponent_I;
@@ -766,6 +772,8 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
                         depth_2_opponent_I_list.push_back(depth_2_opponent_I);
                         depth_2_true_board_list.push_back(depth_2_true_board);
                     }
+
+                    std::cout << "Checkpoint 5" << std::endl;
 
                     for (int i = 0; i < depth_2_history_list.size(); i++) {
                         InformationSet depth_2_opponent_I = depth_2_opponent_I_list[i];
@@ -790,8 +798,14 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
                             }
                         }
                     }
+
+                    std::cout << "Checkpoint 6" << std::endl;
                 }
+
+                std::cout << "Checkpoint 7" << std::endl;
             }
+
+            std::cout << "Checkpoint 8" << std::endl;
 
             if (depth_3_history_list.size() > 0) {
                 InformationSet new_I = I;
@@ -800,6 +814,8 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
 
                 update_average_strategies_recursive(new_I, player, depth_3_true_board_list, depth_3_history_list, depth_1_reach_probability_sigma_t, depth_1_reach_probability_br, depth_3_opponent_I_list, br, sigma_t, sigma_t_next, t);
             }
+
+            std::cout << "Checkpoint 9" << std::endl;
         }
     }
     else {
@@ -810,6 +826,8 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
             std::unordered_set<std::string> infoset_set;
             double depth_1_reach_probability_br = reach_probability_br * br.policy_dict[I.get_index()][actions[a]];
             double depth_1_reach_probability_sigma_t = reach_probability_sigma_t * sigma_t.policy_dict[I.get_index()][actions[a]];
+
+            std::cout << "Checkpoint 10" << std::endl;
 
             // std::cout << "Br action probability: " << br.policy_dict[I.get_index()][actions[a]] << std::endl;
             // std::cout << "Sigma_t action probability: " << sigma_t.policy_dict[I.get_index()][actions[a]] << std::endl;
@@ -830,6 +848,9 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
                 infoset_to_opponent_I[new_I.hash].push_back(opponent_I_list[h]);
                 infoset_set.insert(new_I.hash);
             }
+
+            std::cout << "Checkpoint 11" << std::endl;
+
             for (int t = 0; t < infoset_set.size(); t++) {
                 std::string new_I_hash = *std::next(infoset_set.begin(), t);
                 bool move_flag = get_move_flag(new_I_hash, I.player);
@@ -839,6 +860,8 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
                     update_average_strategies_recursive(new_I, player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], depth_1_reach_probability_sigma_t, depth_1_reach_probability_br, infoset_to_opponent_I[new_I.hash], br, sigma_t, sigma_t_next, t);
                 }
             }
+
+            std::cout << "Checkpoint 12" << std::endl;
         }
     }
 
