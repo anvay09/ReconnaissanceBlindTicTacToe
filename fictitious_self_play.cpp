@@ -836,6 +836,218 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
 }
 
 
+void update_average_strategies_recursive_parallel(InformationSet& I, char player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
+                                                  double reach_probability_sigma_t, double reach_probability_br, std::vector<InformationSet>& opponent_I_list, 
+                                                  PolicyVec& br, PolicyVec& sigma_t, PolicyVec& sigma_t_next, int t){
+    std::vector<int> all_actions;
+    I.get_actions(all_actions);
+    std::vector<double>& prob_dist_sigma_t = sigma_t.policy_dict[I.get_index()];
+    std::vector<double>& prob_dist_br = br.policy_dict[I.get_index()];
+    std::vector<double>& prob_dist_sigma_t_next = sigma_t_next.policy_dict[I.get_index()];
+
+    for (int a = 0; a < all_actions.size(); a++) {
+        double lambda = reach_probability_br / (t * reach_probability_sigma_t + reach_probability_br);
+
+        prob_dist_sigma_t_next[all_actions[a]] = prob_dist_sigma_t[all_actions[a]] + lambda * (prob_dist_br[all_actions[a]] - prob_dist_sigma_t[all_actions[a]]);
+    }
+
+    std::vector<int> actions;
+    I.get_actions_given_policy(actions, br);
+
+    if (I.move_flag) {
+        std::unordered_map<int, std::vector<TicTacToeBoard>> action_to_true_board_list;
+        std::unordered_map<int, std::vector<History>> action_to_history_list;
+        std::unordered_map<int, double> action_to_reach_probability_br;
+        std::unordered_map<int, double> action_to_reach_probability_sigma_t;
+        std::unordered_map<int, std::vector<InformationSet>> action_to_opponent_I_list; 
+
+        for (int a = 0; a < actions.size(); a++) {
+            std::vector<TicTacToeBoard> depth_3_true_board_list;
+            std::vector<History> depth_3_history_list;
+            std::vector<InformationSet> depth_3_opponent_I_list;
+
+            double depth_1_reach_probability_br = reach_probability_br * br.policy_dict[I.get_index()][actions[a]];
+            double depth_1_reach_probability_sigma_t = reach_probability_sigma_t * sigma_t.policy_dict[I.get_index()][actions[a]];
+            
+            for (int h = 0; h < history_list.size(); h++) {
+                TicTacToeBoard depth_1_true_board = true_board_list[h];
+                History depth_1_history = history_list[h];
+                InformationSet depth_1_opponent_I = opponent_I_list[h];
+
+                bool success = depth_1_true_board.update_move(actions[a], I.player);
+                depth_1_history.history.push_back(actions[a]);
+
+                char winner;
+                if (success && !depth_1_true_board.is_win(winner) && !depth_1_true_board.is_over()) {
+                    InformationSet new_I = I;
+                    new_I.update_move(actions[a], I.player);
+                    new_I.reset_zeros();
+                    
+                    // simulate opponent's turn
+                    
+                    std::vector<int> depth_1_opponent_actions;
+                    depth_1_opponent_I.get_actions(depth_1_opponent_actions);
+                    std::vector<History> depth_2_history_list;
+                    std::vector<InformationSet> depth_2_opponent_I_list;
+                    std::vector<TicTacToeBoard> depth_2_true_board_list;
+
+                    // first simulate sense
+                    for (int opponent_action : depth_1_opponent_actions) {
+                        InformationSet depth_2_opponent_I = depth_1_opponent_I;
+                        depth_2_opponent_I.simulate_sense(opponent_action, depth_1_true_board);
+                        depth_2_opponent_I.reset_zeros();
+
+                        History depth_2_history = depth_1_history;
+                        depth_2_history.history.push_back(opponent_action);
+
+                        TicTacToeBoard depth_2_true_board = depth_1_true_board;
+
+                        depth_2_history_list.push_back(depth_2_history);
+                        depth_2_opponent_I_list.push_back(depth_2_opponent_I);
+                        depth_2_true_board_list.push_back(depth_2_true_board);
+                    }
+
+                    for (int i = 0; i < depth_2_history_list.size(); i++) {
+                        InformationSet depth_2_opponent_I = depth_2_opponent_I_list[i];
+                        std::vector<int> depth_2_opponent_actions;
+                        depth_2_opponent_I.get_actions(depth_2_opponent_actions);
+
+                        for (int opponent_action : depth_2_opponent_actions) {
+                            TicTacToeBoard depth_3_true_board = depth_2_true_board_list[i];
+                            History depth_3_history = depth_2_history_list[i];
+
+                            success = depth_3_true_board.update_move(opponent_action, depth_2_opponent_I_list[i].player);
+                            depth_3_history.history.push_back(opponent_action);
+
+                            if (success && !depth_3_true_board.is_win(winner) && !depth_3_true_board.is_over()) {
+                                InformationSet depth_3_opponent_I = depth_2_opponent_I_list[i];
+                                depth_3_opponent_I.update_move(opponent_action, depth_3_opponent_I.player);
+                                depth_3_opponent_I.reset_zeros();
+
+                                depth_3_true_board_list.push_back(depth_3_true_board);
+                                depth_3_history_list.push_back(depth_3_history);
+                                depth_3_opponent_I_list.push_back(depth_3_opponent_I);
+                            }
+                        }
+                    }
+                }
+            }
+
+            action_to_true_board_list[actions[a]] = depth_3_true_board_list;
+            action_to_history_list[actions[a]] = depth_3_history_list;
+            action_to_reach_probability_br[actions[a]] = depth_1_reach_probability_br;
+            action_to_reach_probability_sigma_t[actions[a]] = depth_1_reach_probability_sigma_t;
+            action_to_opponent_I_list[actions[a]] = depth_3_opponent_I_list;
+        }
+
+        # pragma omp parallel for num_threads(96)
+        for (int a = 0; a < actions.size(); a++) {
+            if (action_to_history_list[actions[a]].size() > 0) {
+                InformationSet new_I = I;
+                new_I.update_move(actions[a], I.player);
+                new_I.reset_zeros();
+                update_average_strategies_recursive(new_I, player, action_to_true_board_list[actions[a]], action_to_history_list[actions[a]], action_to_reach_probability_sigma_t[actions[a]], action_to_reach_probability_br[actions[a]], action_to_opponent_I_list[actions[a]], br, sigma_t, sigma_t_next, t);
+            }
+        }
+    }
+    else {
+        std::unordered_map<std::string, std::vector<TicTacToeBoard>> infoset_to_true_board;
+        std::unordered_map<std::string, std::vector<History>> infoset_to_history;
+        std::unordered_map<std::string, std::vector<InformationSet>> infoset_to_opponent_I;
+        std::unordered_map<std::string, double> infoset_to_reach_br;
+        std::unordered_map<std::string, double> infoset_to_reach_sigma_t;
+        std::unordered_map<std::string, int> infoset_to_action_taken;
+        std::unordered_set<std::string> infoset_set;
+
+        for (int a = 0; a < actions.size(); a++) {
+            double reach_probability_br = reach_probability_br * br.policy_dict[I.get_index()][actions[a]];
+            double reach_probability_sigma_t = reach_probability_sigma_t * sigma_t.policy_dict[I.get_index()][actions[a]];
+
+            for (int h = 0; h < history_list.size(); h++) {
+                TicTacToeBoard& true_board = true_board_list[h];
+                History& history = history_list[h];
+
+                InformationSet new_I = I;
+                new_I.simulate_sense(actions[a], true_board);
+                new_I.reset_zeros();
+
+                History new_history = history;
+                new_history.history.push_back(actions[a]);
+
+                infoset_to_true_board[new_I.hash].push_back(true_board);
+                infoset_to_history[new_I.hash].push_back(new_history);
+                infoset_to_opponent_I[new_I.hash].push_back(opponent_I_list[h]);
+                infoset_to_reach_br[new_I.hash] = reach_probability_br;
+                infoset_to_reach_sigma_t[new_I.hash] = reach_probability_sigma_t;
+                infoset_to_action_taken[new_I.hash] = actions[a];
+
+                infoset_set.insert(new_I.hash);
+            }
+        }
+
+        # pragma omp parallel for num_threads(96)
+        for (int t = 0; t < infoset_set.size(); t++) {
+            std::string new_I_hash = *std::next(infoset_set.begin(), t);
+            bool move_flag = get_move_flag(new_I_hash, I.player);
+            InformationSet new_I(I.player, move_flag, new_I_hash);
+  
+            if (infoset_to_history[new_I.hash].size() > 0) {
+                update_average_strategies_recursive(new_I, player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_sigma_t[new_I.hash], infoset_to_reach_br[new_I.hash], infoset_to_opponent_I[new_I.hash], br, sigma_t, sigma_t_next, t);
+            }
+        }
+    }
+
+    return;
+}
+
+            
+void update_average_strategies_recursive_wrapper(PolicyVec& br, PolicyVec& sigma_t, PolicyVec& sigma_t_next, char player, int t) {
+    std::string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    InformationSet I_1 = InformationSet('x', true, hash_1);
+    InformationSet I_2 = InformationSet('o', false, hash_2);
+    std::vector<int> h = {};
+    TerminalHistory start_history = TerminalHistory(h);
+
+    std::vector<TicTacToeBoard> true_board_list;
+    std::vector<History> history_list;
+    std::vector<InformationSet> opponent_I_list;
+
+    if (player == 'x') {
+        true_board_list.push_back(true_board);
+        history_list.push_back(start_history);
+        opponent_I_list.push_back(I_2);
+
+        update_average_strategies_recursive_parallel(I_1, player, true_board_list, history_list, 1.0, 1.0, opponent_I_list, br, sigma_t, sigma_t_next, t);
+    } 
+    else {
+        std::vector<int> actions;
+        I_1.get_actions_given_policy(actions, br);
+
+        for (int a = 0; a < actions.size(); a++){
+            TicTacToeBoard new_true_board = true_board;
+            bool success = new_true_board.update_move(actions[a], I_1.player);
+
+            History new_history = start_history;
+            new_history.history.push_back(actions[a]);
+
+            InformationSet new_I = I_1;
+            new_I.update_move(actions[a], I_1.player);
+
+            true_board_list.push_back(new_true_board);
+            history_list.push_back(new_history);
+            opponent_I_list.push_back(new_I);
+        }
+
+        update_average_strategies_recursive_parallel(I_2, player, true_board_list, history_list, 1.0, 1.0, opponent_I_list, br, sigma_t, sigma_t_next, t);
+    }
+
+    return;
+}
+
+
 void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets) {
     PolicyVec sigma_t_next_x = sigma_t_x;
     PolicyVec sigma_t_next_o = sigma_t_o;
@@ -879,9 +1091,11 @@ void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::str
         std::cout << "Exploitability: " << exploitability << std::endl;
 
         std::cout << "Updating average strategies..." << std::endl;
-        update_average_strategies(sigma_t_x, br_x, sigma_t_next_x, t, 'x', P1_information_sets);
-        update_average_strategies(sigma_t_o, br_o, sigma_t_next_o, t, 'o', P2_information_sets);
-
+        // update_average_strategies(sigma_t_x, br_x, sigma_t_next_x, t, 'x', P1_information_sets);
+        // update_average_strategies(sigma_t_o, br_o, sigma_t_next_o, t, 'o', P2_information_sets);
+        update_average_strategies_recursive_wrapper(br_x, sigma_t_x, sigma_t_next_x, 'x', t);
+        update_average_strategies_recursive_wrapper(br_o, sigma_t_o, sigma_t_next_o, 'o', t);
+        
         end = std::chrono::system_clock::now();
         elapsed_seconds = end-start;
         end_time = std::chrono::system_clock::to_time_t(end);
