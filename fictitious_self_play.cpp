@@ -867,6 +867,7 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
                 InformationSet new_I(I.player, move_flag, new_I_hash);
   
                 if (infoset_to_history[new_I.hash].size() > 0) {
+                    std::cout << "Index of new_I: " << new_I.get_index() << std::endl;
                     std::cout << "Size of prob_dist_sigma_t: " << br.policy_dict[new_I.get_index()].size() << std::endl;
                     std::cout << "Size of prob_dist_br: " << sigma_t.policy_dict[new_I.get_index()].size() << std::endl;
                     std::cout << "Size of prob_dist_sigma_t_next: " << sigma_t_next.policy_dict[new_I.get_index()].size() << std::endl;
