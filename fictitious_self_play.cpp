@@ -709,6 +709,12 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
     std::vector<int> actions;
     I.get_actions_given_policy(actions, br);
 
+    std::cout << "Infoset: " << I.get_hash() << ", Actions: ";
+    for (int a : actions) {
+        std::cout << a << " ";
+    }
+    std::cout << "Reach probability: " << reach_probability_br << ", Lambda: " << lambda << ", Reach sigma_t: " << reach_probability_sigma_t << std::endl;
+
     if (I.move_flag) {
         for (int a = 0; a < actions.size(); a++) {
             std::vector<TicTacToeBoard> depth_3_true_board_list;
@@ -1085,11 +1091,11 @@ void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::str
 
         std::cout << "Updating average strategies..." << std::endl;
 
-        update_average_strategies(sigma_t_x, br_x, sigma_t_next_x, t, 'x', P1_information_sets);
-        update_average_strategies(sigma_t_o, br_o, sigma_t_next_o, t, 'o', P2_information_sets);
+        // update_average_strategies(sigma_t_x, br_x, sigma_t_next_x, t, 'x', P1_information_sets);
+        // update_average_strategies(sigma_t_o, br_o, sigma_t_next_o, t, 'o', P2_information_sets);
 
-        // update_average_strategies_recursive_wrapper(br_x, sigma_t_x, sigma_t_next_x, 'x', t);
-        // update_average_strategies_recursive_wrapper(br_o, sigma_t_o, sigma_t_next_o, 'o', t);
+        update_average_strategies_recursive_wrapper(br_x, sigma_t_x, sigma_t_next_x, 'x', t);
+        update_average_strategies_recursive_wrapper(br_o, sigma_t_o, sigma_t_next_o, 'o', t);
         
         end = std::chrono::system_clock::now();
         elapsed_seconds = end-start;
