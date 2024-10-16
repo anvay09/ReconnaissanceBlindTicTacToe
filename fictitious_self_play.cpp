@@ -365,7 +365,7 @@ double compute_best_response(InformationSet& I, char br_player, std::vector<TicT
         // uniform policy
         std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
         for (int a = 0; a < actions.size(); a++) {
-            prob_dist[a] = 1.0 / actions.size();
+            prob_dist[actions[a]] = 1.0 / actions.size();
         }
         max_Q = 0.0;
     }
@@ -571,7 +571,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
         // uniform policy
         std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
         for (int a = 0; a < actions.size(); a++) {
-            prob_dist[a] = 1.0 / actions.size();
+            prob_dist[actions[a]] = 1.0 / actions.size();
         }
         max_Q = 0.0;
     }
@@ -709,11 +709,11 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
     std::vector<int> actions;
     I.get_actions_given_policy(actions, br);
 
-    std::cout << "Infoset: " << I.get_hash() << ", Actions: ";
-    for (int a : actions) {
-        std::cout << a << " ";
-    }
-    std::cout << "Reach probability: " << reach_probability_br << ", Lambda: " << lambda << ", Reach sigma_t: " << reach_probability_sigma_t << std::endl;
+    // std::cout << "Infoset: " << I.get_hash() << ", Actions: ";
+    // for (int a : actions) {
+    //     std::cout << a << " ";
+    // }
+    // std::cout << "Reach probability: " << reach_probability_br << ", Lambda: " << lambda << ", Reach sigma_t: " << reach_probability_sigma_t << std::endl;
 
     if (I.move_flag) {
         for (int a = 0; a < actions.size(); a++) {
