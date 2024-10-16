@@ -707,12 +707,6 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
     }
 
     std::vector<int> actions;
-    // I.get_actions_given_policy(actions, br);
-    // std::cout << "Infoset: " << I.get_hash() << " Actions: ";
-    // for (int a : actions) {
-    //     std::cout << a << " ";
-    // }
-    // std::cout << "Reach probability: " << reach_probability_br << " Lambda: " << lambda << " Reach probability sigma_t: " << reach_probability_sigma_t << std::endl;
 
     if (I.move_flag) {
         for (int a = 0; a < actions.size(); a++) {
@@ -1021,7 +1015,7 @@ void update_average_strategies_recursive_wrapper(PolicyVec& br, PolicyVec& sigma
     } 
     else {
         std::vector<int> actions;
-        I_1.get_actions_given_policy(actions, br);
+        I_1.get_actions(actions);
 
         for (int a = 0; a < actions.size(); a++){
             TicTacToeBoard new_true_board = true_board;
@@ -1075,13 +1069,6 @@ void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::str
 
         expected_utility = compute_best_response_wrapper(sigma_t_x, br_o, 'o');
         std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
-        std::string test_hash = "";
-        InformationSet test_I = InformationSet('o', false, test_hash);
-        std::vector<double> prob_dist = br_o.policy_dict[test_I.get_index()];
-        for (int i = 0; i < prob_dist.size(); i++) {
-            std::cout << prob_dist[i] << " ";
-        }
-        std::cout << std::endl;
 
         end = std::chrono::system_clock::now();
         elapsed_seconds = end-start;
