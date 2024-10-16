@@ -349,28 +349,17 @@ double compute_best_response(InformationSet& I, char br_player, std::vector<TicT
         }
     }
 
-    if (best_action != -1) {
-        // update policy
-        std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-        for (int k = 0; k < prob_dist.size(); k++) {
-            if (k == best_action) {
-                prob_dist[k] = 1.0;
-            } 
-            else {
-                prob_dist[k] = 0.0;
-            }
+    std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+    for (int k = 0; k < prob_dist.size(); k++) {
+        if (k == best_action) {
+            prob_dist[k] = 1.0;
+        } 
+        else {
+            prob_dist[k] = 0.0;
         }
     }
-    else {
-        // uniform policy
-        std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-        for (int a = 0; a < actions.size(); a++) {
-            prob_dist[actions[a]] = 1.0 / actions.size();
-        }
-        max_Q = 0.0;
-    }
+    
     expected_utility = max_Q;
-
     return expected_utility;
 }
 
@@ -555,28 +544,17 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
         }
     }
 
-    if (best_action != -1) {
-        // update policy
-        std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-        for (int k = 0; k < prob_dist.size(); k++) {
-            if (k == best_action) {
-                prob_dist[k] = 1.0;
-            } 
-            else {
-                prob_dist[k] = 0.0;
-            }
+    std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+    for (int k = 0; k < prob_dist.size(); k++) {
+        if (k == best_action) {
+            prob_dist[k] = 1.0;
+        } 
+        else {
+            prob_dist[k] = 0.0;
         }
     }
-    else {
-        // uniform policy
-        std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-        for (int a = 0; a < actions.size(); a++) {
-            prob_dist[actions[a]] = 1.0 / actions.size();
-        }
-        max_Q = 0.0;
-    }
+
     expected_utility = max_Q;
-    
     return expected_utility;
 }
 
