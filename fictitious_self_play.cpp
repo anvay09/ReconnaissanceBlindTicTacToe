@@ -707,6 +707,7 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
     }
 
     std::vector<int> actions;
+    I.get_actions_given_policy(actions, br);
 
     if (I.move_flag) {
         for (int a = 0; a < actions.size(); a++) {
