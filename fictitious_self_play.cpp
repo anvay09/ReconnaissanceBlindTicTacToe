@@ -682,9 +682,9 @@ void update_average_strategies(PolicyVec& sigma_t, PolicyVec& br, PolicyVec& sig
         std::vector<double>& prob_dist_br = br.policy_dict[I.get_index()];
         std::vector<double>& prob_dist_sigma_t_next = sigma_t_next.policy_dict[I.get_index()];
 
-        for (int a = 0; a < actions.size(); a++) {
-            double lambda = reach_br / (t * reach_sigma_t + reach_br);
+        double lambda = reach_br / (t * reach_sigma_t + reach_br);
 
+        for (int a = 0; a < actions.size(); a++) {
             prob_dist_sigma_t_next[actions[a]] = prob_dist_sigma_t[actions[a]] + lambda * (prob_dist_br[actions[a]] - prob_dist_sigma_t[actions[a]]);
         }
     }
@@ -700,14 +700,19 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
     std::vector<double>& prob_dist_br = br.policy_dict[I.get_index()];
     std::vector<double>& prob_dist_sigma_t_next = sigma_t_next.policy_dict[I.get_index()];
 
-    for (int a = 0; a < all_actions.size(); a++) {
-        double lambda = reach_probability_br / (t * reach_probability_sigma_t + reach_probability_br);
+    double lambda = reach_probability_br / (t * reach_probability_sigma_t + reach_probability_br);
 
+    for (int a = 0; a < all_actions.size(); a++) {
         prob_dist_sigma_t_next[all_actions[a]] = prob_dist_sigma_t[all_actions[a]] + lambda * (prob_dist_br[all_actions[a]] - prob_dist_sigma_t[all_actions[a]]);
     }
 
     std::vector<int> actions;
     I.get_actions_given_policy(actions, br);
+    std::cout << "Infoset: " << I.get_hash() << " Actions: ";
+    for (int a : actions) {
+        std::cout << a << " ";
+    }
+    std::cout << "Reach probability: " << reach_probability_br << " Lambda: " << lambda << " Reach probability sigma_t: " << reach_probability_sigma_t << std::endl;
 
     if (I.move_flag) {
         for (int a = 0; a < actions.size(); a++) {
@@ -1012,7 +1017,7 @@ void update_average_strategies_recursive_wrapper(PolicyVec& br, PolicyVec& sigma
         history_list.push_back(start_history);
         opponent_I_list.push_back(I_2);
 
-        update_average_strategies_recursive_parallel(I_1, player, true_board_list, history_list, 1.0, 1.0, opponent_I_list, br, sigma_t, sigma_t_next, t);
+        update_average_strategies_recursive(I_1, player, true_board_list, history_list, 1.0, 1.0, opponent_I_list, br, sigma_t, sigma_t_next, t);
     } 
     else {
         std::vector<int> actions;
@@ -1033,7 +1038,7 @@ void update_average_strategies_recursive_wrapper(PolicyVec& br, PolicyVec& sigma
             opponent_I_list.push_back(new_I);
         }
 
-        update_average_strategies_recursive_parallel(I_2, player, true_board_list, history_list, 1.0, 1.0, opponent_I_list, br, sigma_t, sigma_t_next, t);
+        update_average_strategies_recursive(I_2, player, true_board_list, history_list, 1.0, 1.0, opponent_I_list, br, sigma_t, sigma_t_next, t);
     }
 
     return;
