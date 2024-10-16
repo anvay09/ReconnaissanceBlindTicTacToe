@@ -1026,6 +1026,7 @@ void update_average_strategies_recursive_wrapper(PolicyVec& br, PolicyVec& sigma
 
             InformationSet new_I = I_1;
             new_I.update_move(actions[a], I_1.player);
+            new_I.reset_zeros();
 
             true_board_list.push_back(new_true_board);
             history_list.push_back(new_history);
