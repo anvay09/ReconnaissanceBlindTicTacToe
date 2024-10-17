@@ -231,7 +231,6 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
                     for (int opponent_action : depth_1_opponent_actions) {
                         InformationSet depth_2_opponent_I = depth_1_opponent_I;
                         depth_2_opponent_I.simulate_sense(opponent_action, depth_1_true_board);
-                        depth_2_opponent_I.reset_zeros();
 
                         History depth_2_history = depth_1_history;
                         depth_2_history.history.push_back(opponent_action);
@@ -318,7 +317,6 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
 
                 InformationSet new_I = I;
                 new_I.simulate_sense(actions[a], true_board);
-                new_I.reset_zeros();
 
                 History new_history = history;
                 new_history.history.push_back(actions[a]);
@@ -351,26 +349,17 @@ double WALKTREES(InformationSet& I, char br_player, std::vector<TicTacToeBoard>&
         }
     }
 
-    if (best_action != -1) {
-        // update policy
-        std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-        for (int k = 0; k < prob_dist.size(); k++) {
-            if (k == best_action) {
-                prob_dist[k] = 1.0;
-            } 
-            else {
-                prob_dist[k] = 0.0;
-            }
+
+    std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+    for (int k = 0; k < prob_dist.size(); k++) {
+        if (k == best_action) {
+            prob_dist[k] = 1.0;
+        } 
+        else {
+            prob_dist[k] = 0.0;
         }
     }
-    else {
-        // uniform policy
-        std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-        for (int a = 0; a < actions.size(); a++) {
-            prob_dist[a] = 1.0 / actions.size();
-        }
-        max_Q = 0.0;
-    }
+
     expected_utility = max_Q;
 
     return expected_utility;
@@ -427,7 +416,6 @@ double WALKTREES_PARALLEL(InformationSet& I, char br_player, std::vector<TicTacT
                     for (int opponent_action : depth_1_opponent_actions) {
                         InformationSet depth_2_opponent_I = depth_1_opponent_I;
                         depth_2_opponent_I.simulate_sense(opponent_action, depth_1_true_board);
-                        depth_2_opponent_I.reset_zeros();
 
                         History depth_2_history = depth_1_history;
                         depth_2_history.history.push_back(opponent_action);
@@ -523,7 +511,6 @@ double WALKTREES_PARALLEL(InformationSet& I, char br_player, std::vector<TicTacT
 
                 InformationSet new_I = I;
                 new_I.simulate_sense(actions[a], true_board);
-                new_I.reset_zeros();
 
                 History new_history = history;
                 new_history.history.push_back(actions[a]);
@@ -559,28 +546,17 @@ double WALKTREES_PARALLEL(InformationSet& I, char br_player, std::vector<TicTacT
         }
     }
 
-    if (best_action != -1) {
-        // update policy
-        std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-        for (int k = 0; k < prob_dist.size(); k++) {
-            if (k == best_action) {
-                prob_dist[k] = 1.0;
-            } 
-            else {
-                prob_dist[k] = 0.0;
-            }
+    std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+    for (int k = 0; k < prob_dist.size(); k++) {
+        if (k == best_action) {
+            prob_dist[k] = 1.0;
+        } 
+        else {
+            prob_dist[k] = 0.0;
         }
     }
-    else {
-        // uniform policy
-        std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-        for (int a = 0; a < actions.size(); a++) {
-            prob_dist[a] = 1.0 / actions.size();
-        }
-        max_Q = 0.0;
-    }
+
     expected_utility = max_Q;
-    
     return expected_utility;
 }
 
@@ -623,6 +599,7 @@ double WALKTREES_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player) {
 
             InformationSet new_I = I_1;
             new_I.update_move(actions[a], I_1.player);
+            new_I.reset_zeros();
 
             true_board_list.push_back(new_true_board);
             history_list.push_back(new_history);
@@ -709,6 +686,52 @@ int main(int argc, char* argv[]) {
     std::cout << "finished computation at " << std::ctime(&end_time)
               << "elapsed time: " << elapsed_seconds.count() << "s"
               << std::endl;
+
+    for (long int i = 0; i < P1_information_sets.size(); i++) {
+        std::vector<double>& prob_dist = br_x.policy_dict[i];
+
+        // check if all zeros, else print
+        bool all_zeros = true;
+        for (int j = 0; j < prob_dist.size(); j++) {
+            if (prob_dist[j] != 0.0) {
+                all_zeros = false;
+                break;
+            }
+        }
+
+        if (!all_zeros) {
+            std::cout << P1_information_sets[i];
+            for (int j = 0; j < prob_dist.size(); j++) {
+                if (prob_dist[j] != 0.0) {
+                    std::cout << j << ": " << prob_dist[j] << "";
+                }
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    for (long int i = 0; i < P2_information_sets.size(); i++) {
+        std::vector<double>& prob_dist = br_o.policy_dict[i];
+
+        // check if all zeros, else print
+        bool all_zeros = true;
+        for (int j = 0; j < prob_dist.size(); j++) {
+            if (prob_dist[j] != 0.0) {
+                all_zeros = false;
+                break;
+            }
+        }
+
+        if (!all_zeros) {
+            std::cout << P2_information_sets[i];
+            for (int j = 0; j < prob_dist.size(); j++) {
+                if (prob_dist[j] != 0.0) {
+                    std::cout << j << ": " << prob_dist[j] << "";
+                }
+            }
+            std::cout << std::endl;
+        }
+    }
 
     return 0;
 }
