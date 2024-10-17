@@ -1027,10 +1027,10 @@ void update_average_strategies_recursive_wrapper(PolicyVec& br, PolicyVec& sigma
 
 
 void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets) {
-    PolicyVec sigma_t_next_x('x');
-    PolicyVec sigma_t_next_o('o');
-    PolicyVec br_x('x');
-    PolicyVec br_o('o');
+    PolicyVec sigma_t_next_x('x', P1_information_sets);
+    PolicyVec sigma_t_next_o('o', P2_information_sets);
+    PolicyVec br_x('x', P1_information_sets);
+    PolicyVec br_o('o', P2_information_sets);
 
     for (int t = 1; t <= T; t++) {
         std::cout << "Iteration: " << t << std::endl;

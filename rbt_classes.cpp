@@ -709,12 +709,29 @@ PolicyVec::PolicyVec() {
     this->policy_dict = std::vector< std::vector<double> >();
 }
 
-PolicyVec::PolicyVec(char player) {
+PolicyVec::PolicyVec(char player, std::vector<std::string> & information_sets) {
     this->player = player;
 
-    long int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
-    for (long int i = 0; i < policy_size; i++) {
+    for (long int i = 0; i < information_sets.size(); i++) {
+        std::string I_hash = information_sets[i];
+        bool move_flag;
+
+        if (I_hash.size() != 0){
+            move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
+        }
+        else {
+            move_flag = player == 'x' ? true : false;
+        }
+
+        InformationSet I(player, move_flag, I_hash);
+        std::vector<int> actions;
+        I.get_actions(actions);
+
         std::vector<double> probability_distribution(13, 0.0);
+
+        if (actions.size() > 0) {
+            probability_distribution[actions[0]] = 1.0;
+        }
 
         this->policy_dict.push_back(probability_distribution);
     }
