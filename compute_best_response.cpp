@@ -700,10 +700,10 @@ int main(int argc, char* argv[]) {
         }
 
         if (!all_zeros) {
-            std::cout << P1_information_sets[i];
+            std::cout << P1_information_sets[i] << " ";
             for (int j = 0; j < prob_dist.size(); j++) {
                 if (prob_dist[j] != 0.0) {
-                    std::cout << j << ": " << prob_dist[j] << "";
+                    std::cout << j << ": " << prob_dist[j] << " ";
                 }
             }
             std::cout << std::endl;
