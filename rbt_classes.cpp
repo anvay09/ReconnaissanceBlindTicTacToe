@@ -730,10 +730,14 @@ PolicyVec::PolicyVec(char player, std::vector<std::string> & information_sets) {
 
         std::vector<double> probability_distribution(13, 0.0);
 
-        for (int action : actions) {
-            probability_distribution[action] = 1.0 / actions.size();
-        }
+        // for (int action : actions) {
+        //     probability_distribution[action] = 1.0 / actions.size();
+        // }
 
+        if (actions.size() > 0) {
+            probability_distribution[actions[actions.size() - 1]] = 1.0;
+        }
+      
         policy_list[I.get_index()] = probability_distribution;
     }
 
