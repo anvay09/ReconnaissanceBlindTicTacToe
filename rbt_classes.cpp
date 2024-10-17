@@ -709,6 +709,17 @@ PolicyVec::PolicyVec() {
     this->policy_dict = std::vector< std::vector<double> >();
 }
 
+PolicyVec::PolicyVec(char player) {
+    this->player = player;
+
+    long int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
+    for (long int i = 0; i < policy_size; i++) {
+        std::vector<double> probability_distribution(13, 0.0);
+
+        this->policy_dict.push_back(probability_distribution);
+    }
+}
+
 PolicyVec::PolicyVec(char player, std::string& file_path) {
     this->player = player;
     this->policy_dict = this->read_policy_from_json(file_path, player);

@@ -618,8 +618,6 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
-    std::string uniform_policy_path_1 = "data/P1_uniform_policy_v2.json";
-    std::string uniform_policy_path_2 = "data/P2_uniform_policy_v2.json";
 
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
@@ -651,8 +649,8 @@ int main(int argc, char* argv[]) {
     char player = 'x';
     PolicyVec policy_obj_x('x', file_path_1);
     PolicyVec policy_obj_o('o', file_path_2);
-    PolicyVec br_x('x', uniform_policy_path_1);
-    PolicyVec br_o('o', uniform_policy_path_2);
+    PolicyVec br_x('x');
+    PolicyVec br_o('o');
     
     std::cout << "Policies loaded." << std::endl;
     std::cout << "Getting expected utility..." << std::endl;
@@ -686,52 +684,6 @@ int main(int argc, char* argv[]) {
     std::cout << "finished computation at " << std::ctime(&end_time)
               << "elapsed time: " << elapsed_seconds.count() << "s"
               << std::endl;
-
-    for (long int i = 0; i < P1_information_sets.size(); i++) {
-        std::vector<double>& prob_dist = br_x.policy_dict[i];
-
-        // check if all zeros, else print
-        bool all_zeros = true;
-        for (int j = 0; j < prob_dist.size(); j++) {
-            if (prob_dist[j] != 0.0) {
-                all_zeros = false;
-                break;
-            }
-        }
-
-        if (!all_zeros) {
-            std::cout << P1_information_sets[i] << " ";
-            for (int j = 0; j < prob_dist.size(); j++) {
-                if (prob_dist[j] != 0.0) {
-                    std::cout << j << ": " << prob_dist[j] << " ";
-                }
-            }
-            std::cout << std::endl;
-        }
-    }
-
-    for (long int i = 0; i < P2_information_sets.size(); i++) {
-        std::vector<double>& prob_dist = br_o.policy_dict[i];
-
-        // check if all zeros, else print
-        bool all_zeros = true;
-        for (int j = 0; j < prob_dist.size(); j++) {
-            if (prob_dist[j] != 0.0) {
-                all_zeros = false;
-                break;
-            }
-        }
-
-        if (!all_zeros) {
-            std::cout << P2_information_sets[i];
-            for (int j = 0; j < prob_dist.size(); j++) {
-                if (prob_dist[j] != 0.0) {
-                    std::cout << j << ": " << prob_dist[j] << "";
-                }
-            }
-            std::cout << std::endl;
-        }
-    }
 
     return 0;
 }
