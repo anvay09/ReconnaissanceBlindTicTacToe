@@ -711,6 +711,7 @@ PolicyVec::PolicyVec() {
 
 PolicyVec::PolicyVec(char player, std::vector<std::string> & information_sets) {
     this->player = player;
+    std::vector< std::vector<double> > policy_list(information_sets.size());
 
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
@@ -733,8 +734,10 @@ PolicyVec::PolicyVec(char player, std::vector<std::string> & information_sets) {
             probability_distribution[actions[0]] = 1.0;
         }
 
-        this->policy_dict.push_back(probability_distribution);
+        policy_list[I.get_index()] = probability_distribution;
     }
+
+    this->policy_dict = policy_list;
 }
 
 PolicyVec::PolicyVec(char player, std::string& file_path) {
