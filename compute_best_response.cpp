@@ -544,14 +544,112 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             }
         }
         
-        # pragma omp parallel for num_threads(96)
+        std::unordered_map<std::string, std::vector<TicTacToeBoard>> depth_2_infoset_to_true_board;
+        std::unordered_map<std::string, std::vector<History>> depth_2_infoset_to_history;
+        std::unordered_map<std::string, std::vector<double>> depth_2_infoset_to_reach_probability;
+        std::unordered_map<std::string, std::vector<InformationSet>> depth_2_infoset_to_opponent_I;
+        std::unordered_map<std::string, int> depth_2_infoset_to_first_action_taken;
+        std::unordered_map<std::string, int> depth_2_infoset_to_second_action_taken;
+        std::unordered_set<std::string> depth_2_infoset_set;
+
+        std::vector<std::vector<double>> depth_2_Q_values;
+        std::vector<std::vector<int>> depth_2_actions;
+
+        for (int i = 0; i < 13; i++) {
+            std::vector<double> Q_value_vector;
+            std::vector<int> action_vector;
+
+            for (int j = 0; j < 13; j++) {
+                Q_value_vector.push_back(0.0);
+            }
+
+            depth_2_Q_values.push_back(Q_value_vector);
+            depth_2_actions.push_back(action_vector);
+        }
+
         for (int t = 0; t < infoset_set.size(); t++) {
             std::string new_I_hash = *std::next(infoset_set.begin(), t);
             bool move_flag = get_move_flag(new_I_hash, I.player);
             InformationSet new_I(I.player, move_flag, new_I_hash);
 
             if (infoset_to_history[new_I.hash].size() > 0) {
-                Q_values[infoset_to_action_taken[new_I.hash]] += compute_best_response(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
+                int a_val = infoset_to_action_taken[new_I.hash];
+                new_I.get_actions(depth_2_actions[a_val]);
+
+                for (int b = 0; b < depth_2_actions[a_val].size(); b++) {
+                    std::vector<TicTacToeBoard> depth_4_true_board_list;
+                    std::vector<History> depth_4_history_list;
+                    std::vector<double> depth_4_reach_probability_list;
+                    std::vector<InformationSet> depth_4_opponent_I_list;
+
+                    for (int h = 0; h < infoset_to_history[new_I.hash].size(); h++) {
+                        TicTacToeBoard& depth_2_true_board = infoset_to_true_board[new_I.hash][h];
+                        History& depth_2_history = infoset_to_history[new_I.hash][h];
+                        double depth_2_reach_probability = infoset_to_reach_probability[new_I.hash][h];
+                        InformationSet depth_2_opponent_I = infoset_to_opponent_I[new_I.hash][h];
+
+                        bool success = depth_2_true_board.update_move(depth_2_actions[a_val][b], new_I.player);
+                        depth_2_history.history.push_back(depth_2_actions[a_val][b]);
+
+                        char winner;
+                        if (success && !depth_2_true_board.is_win(winner) && !depth_2_true_board.is_over()) {
+                            InformationSet depth_3_I = new_I;
+                            depth_3_I.update_move(depth_2_actions[a_val][b], new_I.player);
+                            depth_3_I.reset_zeros();
+
+                            simulate_opponent_turn(depth_2_true_board, depth_2_history, depth_2_reach_probability, depth_2_opponent_I, policy_obj, depth_4_true_board_list, depth_4_history_list, depth_4_reach_probability_list, depth_4_opponent_I_list, depth_2_Q_values[a_val], br_player, depth_2_actions[a_val][b]);
+                        }
+                        else {
+                            TerminalHistory H_T = TerminalHistory(depth_2_history.history);
+                            H_T.set_reward();
+
+                            if (br_player == 'x'){
+                                depth_2_Q_values[a_val][depth_2_actions[a_val][b]] += H_T.reward[0] * depth_2_reach_probability;
+                            }
+                            else{
+                                depth_2_Q_values[a_val][depth_2_actions[a_val][b]] += H_T.reward[1] * depth_2_reach_probability;
+                            }
+                        }
+                    }
+
+                    InformationSet depth_3_I = new_I;
+                    depth_3_I.update_move(depth_2_actions[a_val][b], new_I.player);
+                    depth_3_I.reset_zeros();
+
+                    depth_2_infoset_to_true_board[depth_3_I.hash] = depth_4_true_board_list;
+                    depth_2_infoset_to_history[depth_3_I.hash] = depth_4_history_list;
+                    depth_2_infoset_to_reach_probability[depth_3_I.hash] = depth_4_reach_probability_list;
+                    depth_2_infoset_to_opponent_I[depth_3_I.hash] = depth_4_opponent_I_list;
+                    depth_2_infoset_to_first_action_taken[depth_3_I.hash] = a_val;
+                    depth_2_infoset_to_second_action_taken[depth_3_I.hash] = depth_2_actions[a_val][b];
+
+                    depth_2_infoset_set.insert(depth_3_I.hash);
+                }
+            }
+        }
+
+        # pragma omp parallel for num_threads(96)
+        for (int t = 0; t < depth_2_infoset_set.size(); t++) {
+            std::string new_I_hash = *std::next(depth_2_infoset_set.begin(), t);
+            bool move_flag = get_move_flag(new_I_hash, I.player);
+            InformationSet new_I(I.player, move_flag, new_I_hash);
+
+            int a_val = depth_2_infoset_to_first_action_taken[new_I.hash];
+            int b_val = depth_2_infoset_to_second_action_taken[new_I.hash];
+
+            if (depth_2_infoset_to_history[new_I.hash].size() > 0) {
+                depth_2_Q_values[a_val][b_val] += compute_best_response(new_I, br_player, depth_2_infoset_to_true_board[new_I.hash], depth_2_infoset_to_history[new_I.hash], depth_2_infoset_to_reach_probability[new_I.hash], depth_2_infoset_to_opponent_I[new_I.hash], br, policy_obj);
+            }
+        }
+
+        # pragma omp parallel for num_threads(96)
+        for (int a = 0; a < actions.size(); a++) {
+            InformationSet new_I = I;
+            new_I.update_move(actions[a], I.player);
+            new_I.reset_zeros();
+
+            if (infoset_to_history[new_I.hash].size() > 0) {
+                Q_values[actions[a]] = get_max_Q_value_and_update_policy(depth_2_Q_values[actions[a]], depth_2_actions[actions[a]], br, new_I);
             }
         }
     }
