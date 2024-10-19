@@ -280,7 +280,6 @@ double get_max_Q_value_and_update_policy(std::vector<double>& Q_values, std::vec
 
 double compute_best_response(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj) {    
-    std::cout << "Checkpoint 0" << std::endl;
     std::vector<int> actions;
     std::vector<double> Q_values;
     I.get_actions(actions);
@@ -633,6 +632,14 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
 
         std::cout << "Checkpoint 3" << std::endl;
 
+        std::cout << "Length of depth_2_infoset_set: " << depth_2_infoset_set.size() << std::endl;
+        std::cout << "Length of depth_2_infoset_to_first_action_taken: " << depth_2_infoset_to_first_action_taken.size() << std::endl;
+        std::cout << "Length of depth_2_infoset_to_second_action_taken: " << depth_2_infoset_to_second_action_taken.size() << std::endl;
+        std::cout << "Length of depth_2_infoset_to_history: " << depth_2_infoset_to_history.size() << std::endl;
+        std::cout << "Length of depth_2_infoset_to_true_board: " << depth_2_infoset_to_true_board.size() << std::endl;
+        std::cout << "Length of depth_2_infoset_to_reach_probability: " << depth_2_infoset_to_reach_probability.size() << std::endl;
+        std::cout << "Length of depth_2_infoset_to_opponent_I: " << depth_2_infoset_to_opponent_I.size() << std::endl;
+        
         # pragma omp parallel for num_threads(96)
         for (int t = 0; t < depth_2_infoset_set.size(); t++) {
             std::string new_I_hash = *std::next(depth_2_infoset_set.begin(), t);
@@ -642,10 +649,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             int a_val = depth_2_infoset_to_first_action_taken[new_I.hash];
             int b_val = depth_2_infoset_to_second_action_taken[new_I.hash];
 
-            std::cout << "Checkpoint 3.5" << std::endl;
-
             if (depth_2_infoset_to_history[new_I.hash].size() > 0) {
-                std::cout << "Checkpoint 3.6" << std::endl;
                 depth_2_Q_values[a_val][b_val] += compute_best_response(new_I, br_player, depth_2_infoset_to_true_board[new_I.hash], depth_2_infoset_to_history[new_I.hash], depth_2_infoset_to_reach_probability[new_I.hash], depth_2_infoset_to_opponent_I[new_I.hash], br, policy_obj);
             }
         }
