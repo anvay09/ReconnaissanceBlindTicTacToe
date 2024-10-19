@@ -553,7 +553,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
         std::vector<std::vector<double>> depth_2_Q_values;
         std::vector<std::vector<int>> depth_2_actions;
 
-        std::cout << "Checkpoint 1" << std::endl;
+        // std::cout << "Checkpoint 1" << std::endl;
 
         for (int i = 0; i < 13; i++) {
             std::vector<double> Q_value_vector;
@@ -567,7 +567,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             depth_2_actions.push_back(action_vector);
         }
 
-        std::cout << "Checkpoint 2" << std::endl;
+        // std::cout << "Checkpoint 2" << std::endl;
 
         for (int t = 0; t < infoset_set.size(); t++) {
             std::string new_I_hash = *std::next(infoset_set.begin(), t);
@@ -585,8 +585,8 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
                     std::vector<InformationSet> depth_4_opponent_I_list;
 
                     for (int h = 0; h < infoset_to_history[new_I.hash].size(); h++) {
-                        TicTacToeBoard& depth_2_true_board = infoset_to_true_board[new_I.hash][h];
-                        History& depth_2_history = infoset_to_history[new_I.hash][h];
+                        TicTacToeBoard depth_2_true_board = infoset_to_true_board[new_I.hash][h];
+                        History depth_2_history = infoset_to_history[new_I.hash][h];
                         double depth_2_reach_probability = infoset_to_reach_probability[new_I.hash][h];
                         InformationSet depth_2_opponent_I = infoset_to_opponent_I[new_I.hash][h];
 
@@ -630,9 +630,9 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             }
         }
 
-        std::cout << "Checkpoint 3" << std::endl;
+        // std::cout << "Checkpoint 3" << std::endl;
         
-        // # pragma omp parallel for num_threads(96)
+        # pragma omp parallel for num_threads(96)
         for (int t = 0; t < depth_2_infoset_set.size(); t++) {
             std::string new_I_hash = *std::next(depth_2_infoset_set.begin(), t);
             bool move_flag = get_move_flag(new_I_hash, I.player);
@@ -641,42 +641,40 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             int a_val = depth_2_infoset_to_first_action_taken[new_I.hash];
             int b_val = depth_2_infoset_to_second_action_taken[new_I.hash];
 
-            std::cout << "--------------------------------------------------------" << std::endl;
-            std::cout << "Infoset: " << new_I.hash << " A: " << a_val << " B: " << b_val << std::endl;
-            std::cout << "Length of history: " << depth_2_infoset_to_history[new_I.hash].size() << std::endl;
-            std::cout << "Length of true board: " << depth_2_infoset_to_true_board[new_I.hash].size() << std::endl;
-            std::cout << "Length of reach probability: " << depth_2_infoset_to_reach_probability[new_I.hash].size() << std::endl;
-            std::cout << "Length of opponent I: " << depth_2_infoset_to_opponent_I[new_I.hash].size() << std::endl;
+            // std::cout << "--------------------------------------------------------" << std::endl;
+            // std::cout << "Infoset: " << new_I.hash << " A: " << a_val << " B: " << b_val << std::endl;
+            // std::cout << "Length of history: " << depth_2_infoset_to_history[new_I.hash].size() << std::endl;
+            // std::cout << "Length of true board: " << depth_2_infoset_to_true_board[new_I.hash].size() << std::endl;
+            // std::cout << "Length of reach probability: " << depth_2_infoset_to_reach_probability[new_I.hash].size() << std::endl;
+            // std::cout << "Length of opponent I: " << depth_2_infoset_to_opponent_I[new_I.hash].size() << std::endl;
 
-            for (int h = 0; h < depth_2_infoset_to_history[new_I.hash].size(); h++) {
-                std::cout << "History: ";
-                for (int i = 0; i < depth_2_infoset_to_history[new_I.hash][h].history.size(); i++) {
-                    depth_2_infoset_to_history[new_I_hash][h].print_history();
-                }
-                std::cout << std::endl;
-            }
+            // for (int h = 0; h < depth_2_infoset_to_history[new_I.hash].size(); h++) {
+            //     std::cout << "History: ";
+            //     depth_2_infoset_to_history[new_I_hash][h].print_history();
+            //     std::cout << std::endl;
+            // }
 
-            for (int h = 0; h < depth_2_infoset_to_true_board[new_I.hash].size(); h++) {
-                std::cout << "True board: ";
-                std::cout << depth_2_infoset_to_true_board[new_I.hash][h].board << std::endl;
-            }
+            // for (int h = 0; h < depth_2_infoset_to_true_board[new_I.hash].size(); h++) {
+            //     std::cout << "True board: ";
+            //     std::cout << depth_2_infoset_to_true_board[new_I.hash][h].board << std::endl;
+            // }
 
-            for (int h = 0; h < depth_2_infoset_to_reach_probability[new_I.hash].size(); h++) {
-                std::cout << "Reach probability: ";
-                std::cout << depth_2_infoset_to_reach_probability[new_I.hash][h] << std::endl;
-            }
+            // for (int h = 0; h < depth_2_infoset_to_reach_probability[new_I.hash].size(); h++) {
+            //     std::cout << "Reach probability: ";
+            //     std::cout << depth_2_infoset_to_reach_probability[new_I.hash][h] << std::endl;
+            // }
 
-            for (int h = 0; h < depth_2_infoset_to_opponent_I[new_I.hash].size(); h++) {
-                std::cout << "Opponent I: ";
-                std::cout << depth_2_infoset_to_opponent_I[new_I.hash][h].hash << std::endl;
-            }
+            // for (int h = 0; h < depth_2_infoset_to_opponent_I[new_I.hash].size(); h++) {
+            //     std::cout << "Opponent I: ";
+            //     std::cout << depth_2_infoset_to_opponent_I[new_I.hash][h].hash << std::endl;
+            // }
 
-            if (depth_2_infoset_to_history[new_I.hash].size() > 0) {
-                depth_2_Q_values[a_val][b_val] += compute_best_response(new_I, br_player, depth_2_infoset_to_true_board[new_I.hash], depth_2_infoset_to_history[new_I.hash], depth_2_infoset_to_reach_probability[new_I.hash], depth_2_infoset_to_opponent_I[new_I.hash], br, policy_obj);
-            }
+            // if (depth_2_infoset_to_history[new_I.hash].size() > 0) {
+            //     depth_2_Q_values[a_val][b_val] += compute_best_response(new_I, br_player, depth_2_infoset_to_true_board[new_I.hash], depth_2_infoset_to_history[new_I.hash], depth_2_infoset_to_reach_probability[new_I.hash], depth_2_infoset_to_opponent_I[new_I.hash], br, policy_obj);
+            // }
         }
 
-        std::cout << "Checkpoint 4" << std::endl;
+        // std::cout << "Checkpoint 4" << std::endl;
 
 
         # pragma omp parallel for num_threads(96)
@@ -690,7 +688,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             }
         }
 
-        std::cout << "Checkpoint 5" << std::endl;
+        // std::cout << "Checkpoint 5" << std::endl;
     }
   
     return get_max_Q_value_and_update_policy(Q_values, actions, br, I);
