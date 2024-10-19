@@ -551,7 +551,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             }
         }
 
-        # pragma omp parallel for num_threads(96)
+        // # pragma omp parallel for num_threads(96)
         for (int a = 0; a < actions.size(); a++) {
             if (action_to_history_list[actions[a]].size() > 0) {
                 InformationSet new_I = I;
@@ -627,6 +627,8 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
     int best_action = -1;
 
     for (int a = 0; a < actions.size(); a++) {
+        std::cout << "Action: " << actions[a] << " Q: " << Q_values[actions[a]] << std::endl;
+
         if (Q_values[actions[a]] >= max_Q) {
             max_Q = Q_values[actions[a]];
             best_action = actions[a];
