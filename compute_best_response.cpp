@@ -280,8 +280,7 @@ double get_max_Q_value_and_update_policy(std::vector<double>& Q_values, std::vec
 
 double compute_best_response(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj) {    
-    double expected_utility = 0.0;
-
+    std::cout << "Checkpoint 0" << std::endl;
     std::vector<int> actions;
     std::vector<double> Q_values;
     I.get_actions(actions);
@@ -643,7 +642,10 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             int a_val = depth_2_infoset_to_first_action_taken[new_I.hash];
             int b_val = depth_2_infoset_to_second_action_taken[new_I.hash];
 
+            std::cout << "Checkpoint 3.5" << std::endl;
+
             if (depth_2_infoset_to_history[new_I.hash].size() > 0) {
+                std::cout << "Checkpoint 3.6" << std::endl;
                 depth_2_Q_values[a_val][b_val] += compute_best_response(new_I, br_player, depth_2_infoset_to_true_board[new_I.hash], depth_2_infoset_to_history[new_I.hash], depth_2_infoset_to_reach_probability[new_I.hash], depth_2_infoset_to_opponent_I[new_I.hash], br, policy_obj);
             }
         }
