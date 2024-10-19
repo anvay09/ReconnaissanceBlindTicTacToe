@@ -553,7 +553,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             }
         }
 
-        // # pragma omp parallel for num_threads(96)
+        # pragma omp parallel for num_threads(96)
         for (int a = 0; a < actions.size(); a++) {
             if (action_to_history_list[actions[a]].size() > 0) {
                 InformationSet new_I = I;
@@ -762,6 +762,14 @@ int main(int argc, char* argv[]) {
     expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
     exploitability = expected_utility;
     std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
+
+    end = std::chrono::system_clock::now();
+    elapsed_seconds = end-start;
+    end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "finished computation at " << std::ctime(&end_time)
+              << "elapsed time: " << elapsed_seconds.count() << "s"
+              << std::endl;
+
     expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
     exploitability -= expected_utility;
     std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
