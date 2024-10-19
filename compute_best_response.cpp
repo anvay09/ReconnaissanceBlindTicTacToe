@@ -631,16 +631,8 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
         }
 
         std::cout << "Checkpoint 3" << std::endl;
-
-        std::cout << "Length of depth_2_infoset_set: " << depth_2_infoset_set.size() << std::endl;
-        std::cout << "Length of depth_2_infoset_to_first_action_taken: " << depth_2_infoset_to_first_action_taken.size() << std::endl;
-        std::cout << "Length of depth_2_infoset_to_second_action_taken: " << depth_2_infoset_to_second_action_taken.size() << std::endl;
-        std::cout << "Length of depth_2_infoset_to_history: " << depth_2_infoset_to_history.size() << std::endl;
-        std::cout << "Length of depth_2_infoset_to_true_board: " << depth_2_infoset_to_true_board.size() << std::endl;
-        std::cout << "Length of depth_2_infoset_to_reach_probability: " << depth_2_infoset_to_reach_probability.size() << std::endl;
-        std::cout << "Length of depth_2_infoset_to_opponent_I: " << depth_2_infoset_to_opponent_I.size() << std::endl;
         
-        # pragma omp parallel for num_threads(96)
+        // # pragma omp parallel for num_threads(96)
         for (int t = 0; t < depth_2_infoset_set.size(); t++) {
             std::string new_I_hash = *std::next(depth_2_infoset_set.begin(), t);
             bool move_flag = get_move_flag(new_I_hash, I.player);
@@ -649,6 +641,8 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             int a_val = depth_2_infoset_to_first_action_taken[new_I.hash];
             int b_val = depth_2_infoset_to_second_action_taken[new_I.hash];
 
+            std::cout << "Infoset: " << new_I.hash << "A: " << a_val << "B: " << b_val << std::endl;
+        
             if (depth_2_infoset_to_history[new_I.hash].size() > 0) {
                 depth_2_Q_values[a_val][b_val] += compute_best_response(new_I, br_player, depth_2_infoset_to_true_board[new_I.hash], depth_2_infoset_to_history[new_I.hash], depth_2_infoset_to_reach_probability[new_I.hash], depth_2_infoset_to_opponent_I[new_I.hash], br, policy_obj);
             }
