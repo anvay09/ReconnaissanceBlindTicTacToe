@@ -253,6 +253,31 @@ void simulate_opponent_turn(TicTacToeBoard& true_board, History& history, double
 }
 
 
+double get_max_Q_value_and_update_policy(std::vector<double>& Q_values, std::vector<int>& actions, PolicyVec& br, InformationSet& I) {
+    double max_Q = -1.0;
+    int best_action = -1;
+
+    for (int a = 0; a < actions.size(); a++) {
+        if (Q_values[actions[a]] >= max_Q) {
+            max_Q = Q_values[actions[a]];
+            best_action = actions[a];
+        }
+    }
+
+    std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
+    for (int k = 0; k < prob_dist.size(); k++) {
+        if (k == best_action) {
+            prob_dist[k] = 1.0;
+        } 
+        else {
+            prob_dist[k] = 0.0;
+        }
+    }
+
+    return max_Q;
+}
+
+
 double compute_best_response(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj) {    
     double expected_utility = 0.0;
@@ -287,66 +312,7 @@ double compute_best_response(InformationSet& I, char br_player, std::vector<TicT
                     new_I.reset_zeros();
                     // simulate opponent's turn
                     
-                    std::vector<int> depth_1_opponent_actions;
-                    depth_1_opponent_I.get_actions_given_policy(depth_1_opponent_actions, policy_obj);
-                    std::vector<History> depth_2_history_list;
-                    std::vector<double> depth_2_reach_probability_list;
-                    std::vector<InformationSet> depth_2_opponent_I_list;
-                    std::vector<TicTacToeBoard> depth_2_true_board_list;
-
-                    // first simulate sense
-                    for (int opponent_action : depth_1_opponent_actions) {
-                        InformationSet depth_2_opponent_I = depth_1_opponent_I;
-                        depth_2_opponent_I.simulate_sense(opponent_action, depth_1_true_board);
-
-                        History depth_2_history = depth_1_history;
-                        depth_2_history.history.push_back(opponent_action);
-
-                        double depth_2_reach_probability = depth_1_reach_probability * policy_obj.policy_dict[depth_1_opponent_I.get_index()][opponent_action];
-                        TicTacToeBoard depth_2_true_board = depth_1_true_board;
-
-                        depth_2_reach_probability_list.push_back(depth_2_reach_probability);
-                        depth_2_history_list.push_back(depth_2_history);
-                        depth_2_opponent_I_list.push_back(depth_2_opponent_I);
-                        depth_2_true_board_list.push_back(depth_2_true_board);
-                    }
-
-                    for (int i = 0; i < depth_2_history_list.size(); i++) {
-                        InformationSet depth_2_opponent_I = depth_2_opponent_I_list[i];
-                        std::vector<int> depth_2_opponent_actions;
-                        depth_2_opponent_I.get_actions_given_policy(depth_2_opponent_actions, policy_obj);
-
-                        for (int opponent_action : depth_2_opponent_actions) {
-                            TicTacToeBoard depth_3_true_board = depth_2_true_board_list[i];
-                            History depth_3_history = depth_2_history_list[i];
-                            double depth_3_reach_probability = depth_2_reach_probability_list[i] * policy_obj.policy_dict[depth_2_opponent_I_list[i].get_index()][opponent_action];
-                            
-                            success = depth_3_true_board.update_move(opponent_action, depth_2_opponent_I_list[i].player);
-                            depth_3_history.history.push_back(opponent_action);
-
-                            if (success && !depth_3_true_board.is_win(winner) && !depth_3_true_board.is_over()) {
-                                InformationSet depth_3_opponent_I = depth_2_opponent_I_list[i];
-                                depth_3_opponent_I.update_move(opponent_action, depth_3_opponent_I.player);
-                                depth_3_opponent_I.reset_zeros();
-
-                                depth_3_true_board_list.push_back(depth_3_true_board);
-                                depth_3_history_list.push_back(depth_3_history);
-                                depth_3_reach_probability_list.push_back(depth_3_reach_probability);
-                                depth_3_opponent_I_list.push_back(depth_3_opponent_I);
-                            }
-                            else {
-                                TerminalHistory H_T = TerminalHistory(depth_3_history.history);
-                                H_T.set_reward();
-
-                                if (br_player == 'x'){
-                                    Q_values[actions[a]] += H_T.reward[0] * depth_3_reach_probability;
-                                }
-                                else{
-                                    Q_values[actions[a]] += H_T.reward[1] * depth_3_reach_probability;
-                                }
-                            }
-                        }
-                    }
+                    simulate_opponent_turn(depth_1_true_board, depth_1_history, depth_1_reach_probability, depth_1_opponent_I, policy_obj, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, Q_values, br_player, actions[a]);
                 }
                 else {
                     TerminalHistory H_T = TerminalHistory(depth_1_history.history);
@@ -406,35 +372,12 @@ double compute_best_response(InformationSet& I, char br_player, std::vector<TicT
         }
     }
 
-    double max_Q = -1.0;
-    int best_action = -1;
-
-    for (int a = 0; a < actions.size(); a++) {
-        if (Q_values[actions[a]] >= max_Q) {
-            max_Q = Q_values[actions[a]];
-            best_action = actions[a];
-        }
-    }
-
-    std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-    for (int k = 0; k < prob_dist.size(); k++) {
-        if (k == best_action) {
-            prob_dist[k] = 1.0;
-        } 
-        else {
-            prob_dist[k] = 0.0;
-        }
-    }
-    
-    expected_utility = max_Q;
-    return expected_utility;
+    return get_max_Q_value_and_update_policy(Q_values, actions, br, I);
 }
 
 
 double compute_best_response_parallel(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj) {    
-    double expected_utility = 0.0;
-
     std::vector<int> actions;
     std::vector<double> Q_values;
     I.get_actions(actions);
@@ -468,7 +411,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
                     InformationSet new_I = I;
                     new_I.update_move(actions[a], I.player);
                     new_I.reset_zeros();
-                    
+
                     // simulate opponent's turn     
                     simulate_opponent_turn(depth_1_true_board, depth_1_history, depth_1_reach_probability, depth_1_opponent_I, policy_obj, depth_3_true_board_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, Q_values, br_player, actions[a]);
                 }
@@ -568,27 +511,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
                 new_I.update_move(actions[a], I.player);
                 new_I.reset_zeros();
 
-                double max_Q = -1.0;
-                int best_action = -1;
-
-                for (int b = 0; b < depth_4_actions[actions[a]].size(); b++) {
-                    if (depth_4_Q_values[actions[a]][depth_4_actions[actions[a]][b]] >= max_Q) {
-                        max_Q = depth_4_Q_values[actions[a]][depth_4_actions[actions[a]][b]];
-                        best_action = depth_4_actions[actions[a]][b];
-                    }
-                }
-
-                std::vector<double>& prob_dist = br.policy_dict[new_I.get_index()];
-                for (int k = 0; k < prob_dist.size(); k++) {
-                    if (k == best_action) {
-                        prob_dist[k] = 1.0;
-                    } 
-                    else {
-                        prob_dist[k] = 0.0;
-                    }
-                }
-
-                Q_values[actions[a]] = max_Q;
+                Q_values[actions[a]] = get_max_Q_value_and_update_policy(depth_4_Q_values[actions[a]], depth_4_actions[actions[a]], br, new_I);
             }
         }
     }
@@ -633,28 +556,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
         }
     }
   
-    double max_Q = -1.0;
-    int best_action = -1;
-
-    for (int a = 0; a < actions.size(); a++) {
-        if (Q_values[actions[a]] >= max_Q) {
-            max_Q = Q_values[actions[a]];
-            best_action = actions[a];
-        }
-    }
-
-    std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
-    for (int k = 0; k < prob_dist.size(); k++) {
-        if (k == best_action) {
-            prob_dist[k] = 1.0;
-        } 
-        else {
-            prob_dist[k] = 0.0;
-        }
-    }
-
-    expected_utility = max_Q;
-    return expected_utility;
+    return get_max_Q_value_and_update_policy(Q_values, actions, br, I);
 }
 
 
