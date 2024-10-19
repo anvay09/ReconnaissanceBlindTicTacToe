@@ -641,8 +641,13 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             int a_val = depth_2_infoset_to_first_action_taken[new_I.hash];
             int b_val = depth_2_infoset_to_second_action_taken[new_I.hash];
 
-            std::cout << "Infoset: " << new_I.hash << "A: " << a_val << "B: " << b_val << std::endl;
-        
+            std::cout << "Infoset: " << new_I.hash << " A: " << a_val << " B: " << b_val << std::endl;
+
+            std::cout << "Length of history: " << depth_2_infoset_to_history[new_I.hash].size() << std::endl;
+            std::cout << "Length of true board: " << depth_2_infoset_to_true_board[new_I.hash].size() << std::endl;
+            std::cout << "Length of reach probability: " << depth_2_infoset_to_reach_probability[new_I.hash].size() << std::endl;
+            std::cout << "Length of opponent I: " << depth_2_infoset_to_opponent_I[new_I.hash].size() << std::endl;
+
             if (depth_2_infoset_to_history[new_I.hash].size() > 0) {
                 depth_2_Q_values[a_val][b_val] += compute_best_response(new_I, br_player, depth_2_infoset_to_true_board[new_I.hash], depth_2_infoset_to_history[new_I.hash], depth_2_infoset_to_reach_probability[new_I.hash], depth_2_infoset_to_opponent_I[new_I.hash], br, policy_obj);
             }
