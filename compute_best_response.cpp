@@ -634,7 +634,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
 
         // std::cout << "Checkpoint 3" << std::endl;
         
-        # pragma omp parallel for num_threads(96)
+        // # pragma omp parallel for num_threads(96)
         for (int t = 0; t < depth_2_infoset_set.size(); t++) {
             std::string new_I_hash = *std::next(depth_2_infoset_set.begin(), t);
             bool move_flag = get_move_flag(new_I_hash, I.player);
@@ -673,6 +673,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
 
             if (depth_2_infoset_to_history[new_I.hash].size() > 0) {
                 depth_2_Q_values[a_val][b_val] += compute_best_response(new_I, br_player, depth_2_infoset_to_true_board[new_I.hash], depth_2_infoset_to_history[new_I.hash], depth_2_infoset_to_reach_probability[new_I.hash], depth_2_infoset_to_opponent_I[new_I.hash], br, policy_obj);
+                std::cout << "Q value: " << depth_2_Q_values[a_val][b_val] << std::endl;
             }
         }
 
