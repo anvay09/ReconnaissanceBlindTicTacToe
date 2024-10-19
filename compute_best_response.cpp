@@ -532,6 +532,8 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
                         infoset_to_opponent_I[depth_4_I.hash].push_back(action_to_opponent_I_list[actions[a]][h]);
                         infoset_to_first_action_taken[depth_4_I.hash] = actions[a];
                         infoset_to_second_action_taken[depth_4_I.hash] = depth_4_actions[actions[a]][b];
+
+                        infoset_set.insert(depth_4_I.hash);
                     }
                 }
             }
@@ -562,8 +564,6 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
                 int best_action = -1;
 
                 for (int b = 0; b < depth_4_actions[actions[a]].size(); b++) {
-                    std::cout << depth_4_Q_values[actions[a]][depth_4_actions[actions[a]][b]] << std::endl;
-                    
                     if (depth_4_Q_values[actions[a]][depth_4_actions[actions[a]][b]] >= max_Q) {
                         max_Q = depth_4_Q_values[actions[a]][depth_4_actions[actions[a]][b]];
                         best_action = depth_4_actions[actions[a]][b];
