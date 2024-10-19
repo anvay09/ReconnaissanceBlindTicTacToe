@@ -555,6 +555,8 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
         std::vector<std::vector<double>> depth_2_Q_values;
         std::vector<std::vector<int>> depth_2_actions;
 
+        std::cout << "Checkpoint 1" << std::endl;
+
         for (int i = 0; i < 13; i++) {
             std::vector<double> Q_value_vector;
             std::vector<int> action_vector;
@@ -566,6 +568,8 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             depth_2_Q_values.push_back(Q_value_vector);
             depth_2_actions.push_back(action_vector);
         }
+
+        std::cout << "Checkpoint 2" << std::endl;
 
         for (int t = 0; t < infoset_set.size(); t++) {
             std::string new_I_hash = *std::next(infoset_set.begin(), t);
@@ -628,6 +632,8 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             }
         }
 
+        std::cout << "Checkpoint 3" << std::endl;
+
         # pragma omp parallel for num_threads(96)
         for (int t = 0; t < depth_2_infoset_set.size(); t++) {
             std::string new_I_hash = *std::next(depth_2_infoset_set.begin(), t);
@@ -642,6 +648,9 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             }
         }
 
+        std::cout << "Checkpoint 4" << std::endl;
+
+
         # pragma omp parallel for num_threads(96)
         for (int a = 0; a < actions.size(); a++) {
             InformationSet new_I = I;
@@ -652,6 +661,8 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
                 Q_values[actions[a]] = get_max_Q_value_and_update_policy(depth_2_Q_values[actions[a]], depth_2_actions[actions[a]], br, new_I);
             }
         }
+
+        std::cout << "Checkpoint 5" << std::endl;
     }
   
     return get_max_Q_value_and_update_policy(Q_values, actions, br, I);
