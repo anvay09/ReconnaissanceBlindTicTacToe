@@ -483,13 +483,104 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             action_to_opponent_I_list[actions[a]] = depth_3_opponent_I_list;
         }
 
+        std::unordered_map<std::string, std::vector<TicTacToeBoard>> infoset_to_true_board;
+        std::unordered_map<std::string, std::vector<History>> infoset_to_history;
+        std::unordered_map<std::string, std::vector<double>> infoset_to_reach_probability;
+        std::unordered_map<std::string, std::vector<InformationSet>> infoset_to_opponent_I;
+        std::unordered_map<std::string, int> infoset_to_first_action_taken;
+        std::unordered_map<std::string, int> infoset_to_second_action_taken;
+        std::unordered_set<std::string> infoset_set;
+
+        std::vector<std::vector<double>> depth_4_Q_values;
+        std::vector<std::vector<int>> depth_4_actions;
+
+        for (int i = 0; i < 13; i++) {
+            std::vector<double> Q_value_vector;
+            std::vector<int> action_vector;
+
+            for (int j = 0; j < 13; j++) {
+                Q_value_vector.push_back(0.0);
+            }
+
+            depth_4_Q_values.push_back(Q_value_vector);
+            depth_4_actions.push_back(action_vector);
+        }
+
+        for (int a = 0; a < actions.size(); a++) {
+            if (action_to_history_list[actions[a]].size() > 0) {
+                InformationSet new_I = I;
+                new_I.update_move(actions[a], I.player);
+                new_I.reset_zeros();
+    
+                new_I.get_actions(depth_4_actions[actions[a]]);
+
+                for (int b = 0; b < depth_4_actions[actions[a]].size(); b++) {
+                    for (int h = 0; h < action_to_history_list[actions[a]].size(); h++) {
+                        TicTacToeBoard& true_board = action_to_true_board_list[actions[a]][h];
+                        History& history = action_to_history_list[actions[a]][h];
+                        double reach_probability = action_to_reach_probability_list[actions[a]][h];
+
+                        InformationSet depth_4_I = new_I;
+                        depth_4_I.simulate_sense(depth_4_actions[actions[a]][b], true_board);
+
+                        History depth_4_history = history;
+                        depth_4_history.history.push_back(depth_4_actions[actions[a]][b]);
+
+                        infoset_to_true_board[depth_4_I.hash].push_back(true_board);
+                        infoset_to_history[depth_4_I.hash].push_back(depth_4_history);
+                        infoset_to_reach_probability[depth_4_I.hash].push_back(reach_probability);
+                        infoset_to_opponent_I[depth_4_I.hash].push_back(action_to_opponent_I_list[actions[a]][h]);
+                        infoset_to_first_action_taken[depth_4_I.hash] = actions[a];
+                        infoset_to_second_action_taken[depth_4_I.hash] = depth_4_actions[actions[a]][b];
+
+                        infoset_set.insert(depth_4_I.hash);
+                    }
+                }
+            }
+        }
+
+        # pragma omp parallel for num_threads(96)
+        for (int t = 0; t < infoset_set.size(); t++) {
+            std::string new_I_hash = *std::next(infoset_set.begin(), t);
+            bool move_flag = get_move_flag(new_I_hash, I.player);
+            InformationSet new_I(I.player, move_flag, new_I_hash);
+
+            int a_val = infoset_to_first_action_taken[new_I.hash];
+            int b_val = infoset_to_second_action_taken[new_I.hash];
+
+            if (infoset_to_history[new_I.hash].size() > 0) {
+                depth_4_Q_values[a_val][b_val] += compute_best_response(new_I, br_player, infoset_to_true_board[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
+            }
+        }
+
         # pragma omp parallel for num_threads(96)
         for (int a = 0; a < actions.size(); a++) {
             if (action_to_history_list[actions[a]].size() > 0) {
                 InformationSet new_I = I;
                 new_I.update_move(actions[a], I.player);
                 new_I.reset_zeros();
-                Q_values[actions[a]] += compute_best_response(new_I, br_player, action_to_true_board_list[actions[a]], action_to_history_list[actions[a]], action_to_reach_probability_list[actions[a]], action_to_opponent_I_list[actions[a]], br, policy_obj);
+
+                double max_Q = -1.0;
+                int best_action = -1;
+
+                for (int b = 0; b < depth_4_actions[actions[a]].size(); b++) {
+                    if (depth_4_Q_values[actions[a]][depth_4_actions[actions[a]][b]] >= max_Q) {
+                        max_Q = depth_4_Q_values[actions[a]][depth_4_actions[actions[a]][b]];
+                        best_action = depth_4_actions[actions[a]][b];
+                    }
+                }
+
+                std::vector<double>& prob_dist = br.policy_dict[new_I.get_index()];
+                for (int k = 0; k < prob_dist.size(); k++) {
+                    if (k == best_action) {
+                        prob_dist[k] = 1.0;
+                    } 
+                    else {
+                        prob_dist[k] = 0.0;
+                    }
+                }
+
+                Q_values[actions[a]] = max_Q;
             }
         }
     }
@@ -687,12 +778,6 @@ void update_average_strategies_recursive(InformationSet& I, char player, std::ve
 
     std::vector<int> actions;
     I.get_actions_given_policy(actions, br);
-
-    // std::cout << "Infoset: " << I.get_hash() << ", Actions: ";
-    // for (int a : actions) {
-    //     std::cout << a << " ";
-    // }
-    // std::cout << "Reach probability: " << reach_probability_br << ", Lambda: " << lambda << ", Reach sigma_t: " << reach_probability_sigma_t << std::endl;
 
     if (I.move_flag) {
         for (int a = 0; a < actions.size(); a++) {
