@@ -562,6 +562,8 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
                 int best_action = -1;
 
                 for (int b = 0; b < depth_4_actions[actions[a]].size(); b++) {
+                    std::cout << depth_4_Q_values[actions[a]][depth_4_actions[actions[a]][b]] << std::endl;
+                    
                     if (depth_4_Q_values[actions[a]][depth_4_actions[actions[a]][b]] >= max_Q) {
                         max_Q = depth_4_Q_values[actions[a]][depth_4_actions[actions[a]][b]];
                         best_action = depth_4_actions[actions[a]][b];
@@ -627,8 +629,6 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
     int best_action = -1;
 
     for (int a = 0; a < actions.size(); a++) {
-        std::cout << "Action: " << actions[a] << " Q: " << Q_values[actions[a]] << std::endl;
-
         if (Q_values[actions[a]] >= max_Q) {
             max_Q = Q_values[actions[a]];
             best_action = actions[a];
