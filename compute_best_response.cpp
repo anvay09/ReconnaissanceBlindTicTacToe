@@ -659,7 +659,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
 
             if (infoset_to_history[new_I.hash].size() > 0) {
                 int a_val = infoset_to_action_taken[new_I.hash];
-                Q_values[actions[a_val]] += get_max_Q_value_and_update_policy(depth_2_Q_values[new_I.hash], depth_2_actions[a_val], br, new_I);
+                Q_values[a_val] += get_max_Q_value_and_update_policy(depth_2_Q_values[new_I.hash], depth_2_actions[a_val], br, new_I);
             }
         }
 
