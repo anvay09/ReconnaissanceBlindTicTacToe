@@ -645,7 +645,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             }
         }
 
-        # pragma omp parallel for num_threads(96)
+        // # pragma omp parallel for num_threads(96)
         for (int t = 0; t < infoset_set.size(); t++) {
             std::string new_I_hash = *std::next(infoset_set.begin(), t);
             bool move_flag = get_move_flag(new_I_hash, I.player);
@@ -1206,8 +1206,10 @@ void AFP(PolicyVec& x_bar_t, PolicyVec& y_bar_t, int T, std::vector<std::string>
 
         // std::cout << "Updating average strategies..." << std::endl;
 
-        update_average_strategies_unweighted(br_x, x_bar_t, x_bar_t_intermediate, t, 'x', P1_information_sets);
-        update_average_strategies_unweighted(br_o, y_bar_t, y_bar_t_intermediate, t, 'o', P2_information_sets);
+        update_average_strategies_recursive_wrapper(br_x, x_bar_t, x_bar_t_intermediate, 'x', t);
+        update_average_strategies_recursive_wrapper(br_o, y_bar_t, y_bar_t_intermediate, 'o', t);
+        // update_average_strategies_unweighted(br_x, x_bar_t, x_bar_t_intermediate, t, 'x', P1_information_sets);
+        // update_average_strategies_unweighted(br_o, y_bar_t, y_bar_t_intermediate, t, 'o', P2_information_sets);
 
         // std::cout << "Computing best responses..." << std::endl;
 
@@ -1225,8 +1227,10 @@ void AFP(PolicyVec& x_bar_t, PolicyVec& y_bar_t, int T, std::vector<std::string>
         
         // std::cout << "Updating average strategies..." << std::endl;
 
-        update_average_strategies_unweighted(br_x, x_bar_t, x_bar_t_next, t, 'x', P1_information_sets);
-        update_average_strategies_unweighted(br_o, y_bar_t, y_bar_t_next, t, 'o', P2_information_sets);
+        update_average_strategies_recursive_wrapper(br_x, x_bar_t, x_bar_t_next, 'x', t);
+        update_average_strategies_recursive_wrapper(br_o, y_bar_t, y_bar_t_next, 'o', t);
+        // update_average_strategies_unweighted(br_x, x_bar_t, x_bar_t_next, t, 'x', P1_information_sets);
+        // update_average_strategies_unweighted(br_o, y_bar_t, y_bar_t_next, t, 'o', P2_information_sets);
 
         x_bar_t = x_bar_t_next;
         y_bar_t = y_bar_t_next;
