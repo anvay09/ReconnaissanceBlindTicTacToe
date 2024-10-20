@@ -1136,7 +1136,7 @@ void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::str
         std::cout << "Expected utility: " << expected_utility << std::endl;
 
         // time
-        std::cout << "Computing best responses.." << std::endl;
+        std::cout << "Computing best responses..." << std::endl;
         auto start = std::chrono::system_clock::now();
         double exploitability = 0.0;
         
@@ -1184,9 +1184,71 @@ void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::str
 }
 
 
-// void AFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets) {
+void AFP(PolicyVec& x_bar_t, PolicyVec& y_bar_t, int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets) {
+    PolicyVec x_bar_t_next('x', P1_information_sets);
+    PolicyVec y_bar_t_next('o', P2_information_sets);
+    PolicyVec x_bar_t_intermediate('x', P1_information_sets);
+    PolicyVec y_bar_t_intermediate('o', P2_information_sets);
+    PolicyVec br_x('x', P1_information_sets);
+    PolicyVec br_o('o', P2_information_sets);
 
-// }
+    for (int t = 1; t <= T; t++) {
+        std::cout << "Iteration: " << t << std::endl;
+        double expected_utility = get_expected_utility_wrapper(x_bar_t, y_bar_t);
+        std::cout << "Expected utility: " << expected_utility << std::endl;
+
+        // time
+        std::cout << "Computing best responses..." << std::endl;
+        auto start = std::chrono::system_clock::now();
+        double exploitability = 0.0;
+        
+        expected_utility = compute_best_response_wrapper(y_bar_t, br_x, 'x');
+        std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
+
+        exploitability = expected_utility;
+
+        expected_utility = compute_best_response_wrapper(x_bar_t, br_o, 'o');
+        std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
+
+        exploitability -= expected_utility;
+
+        std::cout << "Exploitability: " << exploitability << std::endl;
+
+        std::cout << "Updating average strategies..." << std::endl;
+
+        update_average_strategies_recursive_wrapper(br_x, x_bar_t, x_bar_t_intermediate, 'x', t);
+        update_average_strategies_recursive_wrapper(br_o, y_bar_t, y_bar_t_intermediate, 'o', t);
+
+        std::cout << "Computing best responses..." << std::endl;
+
+        expected_utility = compute_best_response_wrapper(y_bar_t_intermediate, br_x, 'x');
+        std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
+
+        exploitability = expected_utility;
+
+        expected_utility = compute_best_response_wrapper(x_bar_t_intermediate, br_o, 'o');
+        std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
+
+        exploitability -= expected_utility;
+
+        std::cout << "Exploitability: " << exploitability << std::endl;
+        
+        std::cout << "Updating average strategies..." << std::endl;
+
+        update_average_strategies_recursive_wrapper(br_x, x_bar_t_intermediate, x_bar_t_next, 'x', t);
+        update_average_strategies_recursive_wrapper(br_o, y_bar_t_intermediate, y_bar_t_next, 'o', t);
+
+        x_bar_t = x_bar_t_next;
+        y_bar_t = y_bar_t_next;
+
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end-start;
+        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+        std::cout << "finished computation at " << std::ctime(&end_time)
+                  << "elapsed time: " << elapsed_seconds.count() << "s"
+                  << std::endl;
+    }
+}
 
 
 int main(int argc, char* argv[]) {
