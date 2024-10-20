@@ -770,7 +770,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Computing best response..." << std::endl;
     start = std::chrono::system_clock::now();
 
-    for (int i = 0; i < 20; i++){
+    for (int i = 0; i < 50; i++){
         PolicyVec br_x('x', P1_information_sets);
         PolicyVec br_o('o', P2_information_sets);
     
