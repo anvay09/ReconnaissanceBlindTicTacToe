@@ -767,7 +767,6 @@ int main(int argc, char* argv[]) {
               << std::endl;
 
     std::cout << "Computing best response..." << std::endl;
-    start = std::chrono::system_clock::now();
 
     for (int i = 0; i < 50; i++){
         PolicyVec br_x('x', P1_information_sets);
@@ -777,12 +776,19 @@ int main(int argc, char* argv[]) {
         exploitability = expected_utility;
         std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
 
-
+        start = std::chrono::system_clock::now();
 
         expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
         exploitability -= expected_utility;
         std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
         std::cout << "Exploitability: " << exploitability << std::endl;
+
+        end = std::chrono::system_clock::now();
+        elapsed_seconds = end-start;
+        end_time = std::chrono::system_clock::to_time_t(end);
+        std::cout << "finished computation at " << std::ctime(&end_time)
+                << "elapsed time: " << elapsed_seconds.count() << "s"
+                << std::endl;
     }
 
     // end = std::chrono::system_clock::now();
