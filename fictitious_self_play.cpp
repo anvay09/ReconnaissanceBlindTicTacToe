@@ -1235,8 +1235,8 @@ void AFP(PolicyVec& x_bar_t, PolicyVec& y_bar_t, int T, std::vector<std::string>
         
         std::cout << "Updating average strategies..." << std::endl;
 
-        update_average_strategies_recursive_wrapper(br_x, x_bar_t_intermediate, x_bar_t_next, 'x', t);
-        update_average_strategies_recursive_wrapper(br_o, y_bar_t_intermediate, y_bar_t_next, 'o', t);
+        update_average_strategies_recursive_wrapper(br_x, x_bar_t, x_bar_t_next, 'x', t);
+        update_average_strategies_recursive_wrapper(br_o, y_bar_t, y_bar_t_next, 'o', t);
 
         x_bar_t = x_bar_t_next;
         y_bar_t = y_bar_t_next;
