@@ -1290,7 +1290,7 @@ int main(int argc, char* argv[]) {
     
     std::cout << "Policies loaded." << std::endl;
     
-    XFP(policy_obj_x, policy_obj_o, num_iterations, P1_information_sets, P2_information_sets);
+    AFP(policy_obj_x, policy_obj_o, num_iterations, P1_information_sets, P2_information_sets);
 
     return 0;
 }
