@@ -744,7 +744,7 @@ double get_reach_of_I(InformationSet& I, PolicyVec& policy_obj, char player) {
 }
 
 
-void update_average_strategies(PolicyVec& sigma_t, PolicyVec& br, PolicyVec& sigma_t_next, int t, char player, std::vector<std::string>& information_sets) {
+void update_average_strategies_unweighted(PolicyVec& br, PolicyVec& sigma_t, PolicyVec& sigma_t_next, int t, char player, std::vector<std::string>& information_sets) {
     # pragma omp parallel num_threads(96)
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
@@ -753,22 +753,12 @@ void update_average_strategies(PolicyVec& sigma_t, PolicyVec& br, PolicyVec& sig
         std::vector<int> actions;
         I.get_actions(actions);
 
-        double reach_br = get_reach_of_I(I, br, player);
-
-        if (reach_br == 0.0) {
-            continue;
-        }
-
-        double reach_sigma_t = get_reach_of_I(I, sigma_t, player);
-
         std::vector<double>& prob_dist_sigma_t = sigma_t.policy_dict[I.get_index()];
         std::vector<double>& prob_dist_br = br.policy_dict[I.get_index()];
         std::vector<double>& prob_dist_sigma_t_next = sigma_t_next.policy_dict[I.get_index()];
 
-        double lambda = reach_br / (t * reach_sigma_t + reach_br);
-
         for (int a = 0; a < actions.size(); a++) {
-            prob_dist_sigma_t_next[actions[a]] = prob_dist_sigma_t[actions[a]] + lambda * (prob_dist_br[actions[a]] - prob_dist_sigma_t[actions[a]]);
+            prob_dist_sigma_t_next[actions[a]] = (t * prob_dist_sigma_t[actions[a]] + prob_dist_br[actions[a]]) / (t + 1);
         }
     }
 }
@@ -1198,7 +1188,7 @@ void AFP(PolicyVec& x_bar_t, PolicyVec& y_bar_t, int T, std::vector<std::string>
         std::cout << "Expected utility: " << expected_utility << std::endl;
 
         // time
-        std::cout << "Computing best responses..." << std::endl;
+        // std::cout << "Computing best responses..." << std::endl;
         auto start = std::chrono::system_clock::now();
         double exploitability = 0.0;
         
@@ -1214,29 +1204,29 @@ void AFP(PolicyVec& x_bar_t, PolicyVec& y_bar_t, int T, std::vector<std::string>
 
         std::cout << "Exploitability: " << exploitability << std::endl;
 
-        std::cout << "Updating average strategies..." << std::endl;
+        // std::cout << "Updating average strategies..." << std::endl;
 
-        update_average_strategies_recursive_wrapper(br_x, x_bar_t, x_bar_t_intermediate, 'x', t);
-        update_average_strategies_recursive_wrapper(br_o, y_bar_t, y_bar_t_intermediate, 'o', t);
+        update_average_strategies_unweighted(br_x, x_bar_t, x_bar_t_intermediate, t, 'x', P1_information_sets);
+        update_average_strategies_unweighted(br_o, y_bar_t, y_bar_t_intermediate, t, 'o', P2_information_sets);
 
-        std::cout << "Computing best responses..." << std::endl;
+        // std::cout << "Computing best responses..." << std::endl;
 
         expected_utility = compute_best_response_wrapper(y_bar_t_intermediate, br_x, 'x');
-        std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
+        // std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
 
-        exploitability = expected_utility;
+        // exploitability = expected_utility;
 
         expected_utility = compute_best_response_wrapper(x_bar_t_intermediate, br_o, 'o');
-        std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
+        // std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
 
-        exploitability -= expected_utility;
+        // exploitability -= expected_utility;
 
-        std::cout << "Exploitability: " << exploitability << std::endl;
+        // std::cout << "Exploitability: " << exploitability << std::endl;
         
-        std::cout << "Updating average strategies..." << std::endl;
+        // std::cout << "Updating average strategies..." << std::endl;
 
-        update_average_strategies_recursive_wrapper(br_x, x_bar_t, x_bar_t_next, 'x', t);
-        update_average_strategies_recursive_wrapper(br_o, y_bar_t, y_bar_t_next, 'o', t);
+        update_average_strategies_unweighted(br_x, x_bar_t, x_bar_t_next, t, 'x', P1_information_sets);
+        update_average_strategies_unweighted(br_o, y_bar_t, y_bar_t_next, t, 'o', P2_information_sets);
 
         x_bar_t = x_bar_t_next;
         y_bar_t = y_bar_t_next;
