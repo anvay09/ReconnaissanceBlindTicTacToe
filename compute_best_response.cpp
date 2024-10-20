@@ -801,7 +801,7 @@ int main(int argc, char* argv[]) {
               << "elapsed time: " << elapsed_seconds.count() << "s"
               << std::endl;
 
-    expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
+    expected_utility = get_expected_utility_wrapper(policy_obj_o, br_x);
     std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
 
     expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
