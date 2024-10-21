@@ -645,7 +645,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
             }
         }
 
-        // # pragma omp parallel for num_threads(96)
+
         for (int t = 0; t < infoset_set.size(); t++) {
             std::string new_I_hash = *std::next(infoset_set.begin(), t);
             bool move_flag = get_move_flag(new_I_hash, I.player);

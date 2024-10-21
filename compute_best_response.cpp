@@ -768,41 +768,32 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Computing best response..." << std::endl;
 
-    for (int i = 0; i < 50; i++){
-        PolicyVec br_x('x', P1_information_sets);
-        PolicyVec br_o('o', P2_information_sets);
-    
-        expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
-        exploitability = expected_utility;
-        std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
+    PolicyVec br_x('x', P1_information_sets);
+    PolicyVec br_o('o', P2_information_sets);
 
-        start = std::chrono::system_clock::now();
+    expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
+    exploitability = expected_utility;
+    std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
 
-        expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
-        exploitability -= expected_utility;
-        std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
-        std::cout << "Exploitability: " << exploitability << std::endl;
+    start = std::chrono::system_clock::now();
 
-        end = std::chrono::system_clock::now();
-        elapsed_seconds = end-start;
-        end_time = std::chrono::system_clock::to_time_t(end);
-        std::cout << "finished computation at " << std::ctime(&end_time)
-                << "elapsed time: " << elapsed_seconds.count() << "s"
-                << std::endl;
-    }
+    expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
+    exploitability -= expected_utility;
+    std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
+    std::cout << "Exploitability: " << exploitability << std::endl;
 
-    // end = std::chrono::system_clock::now();
-    // elapsed_seconds = end-start;
-    // end_time = std::chrono::system_clock::to_time_t(end);
-    // std::cout << "finished computation at " << std::ctime(&end_time)
-    //           << "elapsed time: " << elapsed_seconds.count() << "s"
-    //           << std::endl;
+    end = std::chrono::system_clock::now();
+    elapsed_seconds = end-start;
+    end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "finished computation at " << std::ctime(&end_time)
+              << "elapsed time: " << elapsed_seconds.count() << "s"
+              << std::endl;
 
-    // expected_utility = get_expected_utility_wrapper(br_x, policy_obj_o);
-    // std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
+    expected_utility = get_expected_utility_wrapper(br_x, policy_obj_o);
+    std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
 
-    // expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
-    // std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
+    expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
+    std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
 
     return 0;
 }
