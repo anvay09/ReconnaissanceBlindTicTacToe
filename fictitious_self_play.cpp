@@ -1117,13 +1117,14 @@ void update_average_strategies_recursive_wrapper(PolicyVec& br, PolicyVec& sigma
 void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, PolicyVec& start_x, PolicyVec& start_o) {
     PolicyVec br_x = start_x;
     PolicyVec br_o = start_o;
+    PolicyVec sigma_t_next_x = start_x;
+    PolicyVec sigma_t_next_o = start_o;
 
     for (int t = 1; t <= T; t++) {
         std::cout << "Iteration: " << t << std::endl;
         double expected_utility = get_expected_utility_wrapper(sigma_t_x, sigma_t_o);
         std::cout << "Expected utility: " << expected_utility << std::endl;
 
-        // time
         std::cout << "Computing best responses..." << std::endl;
         auto start = std::chrono::system_clock::now();
         double exploitability = 0.0;
@@ -1155,9 +1156,6 @@ void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::str
         std::cout << "Exploitability: " << exploitability << std::endl;
 
         std::cout << "Updating average strategies..." << std::endl;
-
-        PolicyVec sigma_t_next_x = start_x;
-        PolicyVec sigma_t_next_o = start_o;
 
         update_average_strategies_recursive_wrapper(br_x, sigma_t_x, sigma_t_next_x, 'x', t);
         update_average_strategies_recursive_wrapper(br_o, sigma_t_o, sigma_t_next_o, 'o', t);
