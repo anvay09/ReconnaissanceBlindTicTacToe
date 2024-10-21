@@ -1114,11 +1114,9 @@ void update_average_strategies_recursive_wrapper(PolicyVec& br, PolicyVec& sigma
 }
 
 
-void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets) {
-    PolicyVec sigma_t_next_x('x', P1_information_sets);
-    PolicyVec sigma_t_next_o('o', P2_information_sets);
-    PolicyVec br_x('x', P1_information_sets);
-    PolicyVec br_o('o', P2_information_sets);
+void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, PolicyVec& start_x, PolicyVec& start_o) {
+    PolicyVec br_x = start_x;
+    PolicyVec br_o = start_o;
 
     for (int t = 1; t <= T; t++) {
         std::cout << "Iteration: " << t << std::endl;
@@ -1158,6 +1156,9 @@ void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::str
 
         std::cout << "Updating average strategies..." << std::endl;
 
+        PolicyVec sigma_t_next_x = start_x;
+        PolicyVec sigma_t_next_o = start_o;
+
         update_average_strategies_recursive_wrapper(br_x, sigma_t_x, sigma_t_next_x, 'x', t);
         update_average_strategies_recursive_wrapper(br_o, sigma_t_o, sigma_t_next_o, 'o', t);
         
@@ -1174,21 +1175,15 @@ void XFP(PolicyVec& sigma_t_x, PolicyVec& sigma_t_o, int T, std::vector<std::str
 }
 
 
-void AFP(PolicyVec& x_bar_t, PolicyVec& y_bar_t, int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets) {
-    PolicyVec x_bar_t_next('x', P1_information_sets);
-    PolicyVec y_bar_t_next('o', P2_information_sets);
-    PolicyVec x_bar_t_intermediate('x', P1_information_sets);
-    PolicyVec y_bar_t_intermediate('o', P2_information_sets);
-    PolicyVec br_x('x', P1_information_sets);
-    PolicyVec br_o('o', P2_information_sets);
+void AFP(PolicyVec& x_bar_t, PolicyVec& y_bar_t, int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, PolicyVec& start_x, PolicyVec& start_o) {
+    PolicyVec br_x = start_x;
+    PolicyVec br_o = start_o;
 
     for (int t = 1; t <= T; t++) {
         std::cout << "Iteration: " << t << std::endl;
         double expected_utility = get_expected_utility_wrapper(x_bar_t, y_bar_t);
         std::cout << "Expected utility: " << expected_utility << std::endl;
 
-        // time
-        // std::cout << "Computing best responses..." << std::endl;
         auto start = std::chrono::system_clock::now();
         double exploitability = 0.0;
         
@@ -1204,33 +1199,20 @@ void AFP(PolicyVec& x_bar_t, PolicyVec& y_bar_t, int T, std::vector<std::string>
 
         std::cout << "Exploitability: " << exploitability << std::endl;
 
-        // std::cout << "Updating average strategies..." << std::endl;
+        PolicyVec x_bar_t_intermediate = start_x;
+        PolicyVec y_bar_t_intermediate = start_o;
 
         update_average_strategies_recursive_wrapper(br_x, x_bar_t, x_bar_t_intermediate, 'x', t);
         update_average_strategies_recursive_wrapper(br_o, y_bar_t, y_bar_t_intermediate, 'o', t);
-        // update_average_strategies_unweighted(br_x, x_bar_t, x_bar_t_intermediate, t, 'x', P1_information_sets);
-        // update_average_strategies_unweighted(br_o, y_bar_t, y_bar_t_intermediate, t, 'o', P2_information_sets);
-
-        // std::cout << "Computing best responses..." << std::endl;
 
         expected_utility = compute_best_response_wrapper(y_bar_t_intermediate, br_x, 'x');
-        // std::cout << "Expected utility of best response against P2: " << expected_utility << std::endl;
-
-        // exploitability = expected_utility;
-
         expected_utility = compute_best_response_wrapper(x_bar_t_intermediate, br_o, 'o');
-        // std::cout << "Expected utility of best response against P1: " << expected_utility << std::endl;
 
-        // exploitability -= expected_utility;
-
-        // std::cout << "Exploitability: " << exploitability << std::endl;
-        
-        // std::cout << "Updating average strategies..." << std::endl;
+        PolicyVec x_bar_t_next = start_x;
+        PolicyVec y_bar_t_next = start_o;
 
         update_average_strategies_recursive_wrapper(br_x, x_bar_t, x_bar_t_next, 'x', t);
         update_average_strategies_recursive_wrapper(br_o, y_bar_t, y_bar_t_next, 'o', t);
-        // update_average_strategies_unweighted(br_x, x_bar_t, x_bar_t_next, t, 'x', P1_information_sets);
-        // update_average_strategies_unweighted(br_o, y_bar_t, y_bar_t_next, t, 'o', P2_information_sets);
 
         x_bar_t = x_bar_t_next;
         y_bar_t = y_bar_t_next;
@@ -1249,7 +1231,8 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
-    int num_iterations = std::stoi(argv[3]);
+    std::string algorithm = argv[3];
+    int num_iterations = std::stoi(argv[4]);
 
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
@@ -1281,10 +1264,19 @@ int main(int argc, char* argv[]) {
 
     PolicyVec policy_obj_x('x', file_path_1);
     PolicyVec policy_obj_o('o', file_path_2);
+    PolicyVec det_x('x', P1_information_sets);
+    PolicyVec det_o('o', P2_information_sets);
     
     std::cout << "Policies loaded." << std::endl;
     
-    AFP(policy_obj_x, policy_obj_o, num_iterations, P1_information_sets, P2_information_sets);
+    if (algorithm == "XFP") {
+        std::cout << "Running Extensive Form Full Width Fictitious Play..." << std::endl;
+        XFP(policy_obj_x, policy_obj_o, num_iterations, P1_information_sets, P2_information_sets, det_x, det_o);
+    }
+    else if (algorithm == "AFP") {
+        std::cout << "Running Anticipatory Fictitious Play..." << std::endl;
+        AFP(policy_obj_x, policy_obj_o, num_iterations, P1_information_sets, P2_information_sets, det_x, det_o);
+    }
 
     return 0;
 }
