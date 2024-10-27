@@ -18,26 +18,24 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
     int action = sampleIndex(prob_dist);
 
     if (I.move_flag) {
-        TicTacToeBoard new_true_board = true_board;
-        bool success = new_true_board.update_move(action, player);
+        bool success = true_board.update_move(action, player);
 
         double probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
-        History new_history = current_history;
-        new_history.history.push_back(action);
+        current_history.history.push_back(action);
 
         char winner;
-        if (success && !new_true_board.is_win(winner) && !new_true_board.is_over()) {
+        if (success && !true_board.is_win(winner) && !true_board.is_over()) {
             InformationSet new_I = I;
             new_I.update_move(action, player);
             new_I.reset_zeros();
 
             if (player == 'x') {
-                return sample_terminal_history(new_I, I_2, new_true_board, policy_obj_x, policy_obj_o, new_history, 'o', probability_new);
+                return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability_new);
             } else {
-                return sample_terminal_history(I_1, new_I, new_true_board, policy_obj_x, policy_obj_o, new_history, 'x', probability_new);
+                return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability_new);
             }
         } else {
-            TerminalHistory H_T = TerminalHistory(new_history.history);
+            TerminalHistory H_T = TerminalHistory(current_history.history);
             return probability_new;
         }
     }
@@ -46,13 +44,12 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         new_I.simulate_sense(action, true_board);
 
         double probability_new = probability * policy_obj.policy_dict[I.get_index()][action];
-        History new_history = current_history;
-        new_history.history.push_back(action);
+        current_history.history.push_back(action);
 
         if (player == 'x') {
-            return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, new_history, 'x', probability_new);
+            return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability_new);
         } else {
-            return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, new_history, 'o', probability_new);
+            return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability_new);
         }
     }
 }
