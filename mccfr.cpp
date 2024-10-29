@@ -39,7 +39,10 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
     if (I.move_flag) {
         bool success = true_board.update_move(action, player);
 
-        double probability_new = probability * prob_dist[action];
+        if (player == update_player) { // update the probability only if the player is the one we are updating
+            probability = probability * prob_dist[action];
+        }
+
         current_history.history.push_back(action);
 
         char winner;
@@ -49,28 +52,30 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             new_I.reset_zeros();
 
             if (player == 'x') {
-                return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability_new, reward, update_player);
+                return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player);
             } else {
-                return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability_new, reward, update_player);
+                return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
             H_T.set_reward();
             reward = (double) H_T.reward[0];
-            return probability_new;
+            return probability;
         }
     }
     else {
         InformationSet new_I = I;
         new_I.simulate_sense(action, true_board);
-
-        double probability_new = probability * prob_dist[action];
+        
+        if (player == update_player) { // update the probability only if the player is the one we are updating
+            probability = probability * prob_dist[action];
+        }
         current_history.history.push_back(action);
 
         if (player == 'x') {
-            return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability_new, reward, update_player);
+            return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player);
         } else {
-            return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability_new, reward, update_player);
+            return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player);
         }
     }
 }
