@@ -130,11 +130,25 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
                 reach_prob = played_action_prob * compute_regrets_along_history(I_1, I, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'o');
             }
         }
+
+        double regret_sum = 0.0;
+
         for (int i = 0; i < actions.size(); i++) {
             if (actions[i] == action) {
                 regret_I[actions[i]] += (reward * reach_prob * (1 - played_action_prob)) / (q_z * played_action_prob);
             } else {
                 regret_I[actions[i]] += -reward * reach_prob / q_z;
+            }
+
+            regret_sum += regret_I[actions[i]] > 0 ? regret_I[actions[i]] : 0;
+        }
+
+        // regret matching
+        for (int i = 0; i < actions.size(); i++) {
+            if (regret_sum > 0) {
+                br_prob_dist[actions[i]] = regret_I[actions[i]] > 0 ? regret_I[actions[i]] / regret_sum : 0.0;
+            } else {
+                br_prob_dist[actions[i]] = 1.0 / actions.size();
             }
         }
 
