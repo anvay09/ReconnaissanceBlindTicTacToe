@@ -92,6 +92,79 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
 }
 
 
+double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& best_response, char br_player, 
+                                     std::vector<std::vector<double>>& regret_list, History& current_history, double q_z, double reward, int traversal_index, char current_player) {
+    if (traversal_index == current_history.history.size()) {
+        return 1.0;
+    }
+
+    InformationSet& I = current_player == 'x' ? I_1 : I_2;
+    int action = current_history.history[traversal_index];
+    traversal_index += 1;
+
+    if (current_player == br_player){
+        std::vector<int> actions;
+        I.get_actions(actions);
+        std::vector<double>& br_prob_dist = best_response.policy_dict[I.get_index()];
+        std::vector<double>& regret_I = regret_list[I.get_index()];
+        double played_action_prob = br_prob_dist[action];
+        double reach_prob = 0.0;
+
+        if (I.move_flag) {
+            true_board.update_move(action, current_player);
+            I.update_move(action, current_player);
+            I.reset_zeros();
+
+            if (current_player == 'x') {
+                reach_prob = played_action_prob * compute_regrets_along_history(I, I_2, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'o');
+            } else {
+                reach_prob = played_action_prob * compute_regrets_along_history(I_1, I, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'x');
+            }
+        }
+        else {
+            I.simulate_sense(action, true_board);
+
+            if (current_player == 'x') {
+                reach_prob = played_action_prob * compute_regrets_along_history(I, I_2, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'x');
+            } else {
+                reach_prob = played_action_prob * compute_regrets_along_history(I_1, I, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'o');
+            }
+        }
+        for (int i = 0; i < actions.size(); i++) {
+            if (actions[i] == action) {
+                regret_I[actions[i]] += (reward * reach_prob * (1 - played_action_prob)) / (q_z * played_action_prob);
+            } else {
+                regret_I[actions[i]] += -reward * reach_prob / q_z;
+            }
+        }
+
+        return reach_prob;
+    }
+    else {
+        if (I.move_flag) {
+            true_board.update_move(action, current_player);
+            I.update_move(action, current_player);
+            I.reset_zeros();
+
+            if (current_player == 'x') {
+                return compute_regrets_along_history(I, I_2, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'o');
+            } else {
+                return compute_regrets_along_history(I_1, I, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'x');
+            }
+        }
+        else {
+            I.simulate_sense(action, true_board);
+
+            if (current_player == 'x') {
+                return compute_regrets_along_history(I, I_2, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'x');
+            } else {
+                return compute_regrets_along_history(I_1, I, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'o');
+            }
+        }
+    }
+}
+
+
 void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best_response, char br_player, int T, std::vector<std::string>& information_sets) {
     std::vector<std::vector<double>> regret_list;
     for (long int i = 0; i < information_sets.size(); i++) {
@@ -118,9 +191,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
         InformationSet I_1 = InformationSet('x', true, hash_1);
         InformationSet I_2 = InformationSet('o', false, hash_2);
 
-
-        // TO - DO
-        
+        compute_regrets_along_history(I_1, I_2, true_board, best_response, br_player, regret_list, start_history, q_z, reward, 0, 'x');        
     }
 }
 
