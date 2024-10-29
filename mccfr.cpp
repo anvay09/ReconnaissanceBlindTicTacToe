@@ -804,7 +804,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Policies loaded." << std::endl;
 
-    double expected_utility = compute_best_response_wrapper(br_x, policy_obj_o, 'x');
+    double expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
     std::cout << "Expected utility of the best response: " << expected_utility << std::endl;
     mccfr_outcome_sampling_best_response(policy_obj_o, policy_obj_x, 'x', num_iterations, P1_information_sets);
 }
