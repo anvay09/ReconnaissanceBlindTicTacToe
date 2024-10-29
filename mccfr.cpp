@@ -19,7 +19,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
     if (player == update_player) { // explore with a small epsilon
         std::vector<int> actions;
         I.get_actions(actions);
-        double eps = 0.01;
+        double eps = 0.1;
         double sum = 1.0;
 
         for (int i = 0; i < actions.size(); i++) {
