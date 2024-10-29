@@ -552,7 +552,7 @@ int sampleIndex(const std::vector<double>& probabilities) {
 }
 
 
-double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, char player, double probability, double& reward, char update_player) {
+double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, char player, double probability, double& reward, char update_player, double eps) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
@@ -560,7 +560,6 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
     if (player == update_player) { // explore with a small epsilon
         std::vector<int> actions;
         I.get_actions(actions);
-        double eps = 0.05;
         double sum = 1.0;
 
         for (int i = 0; i < actions.size(); i++) {
@@ -593,9 +592,9 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             new_I.reset_zeros();
 
             if (player == 'x') {
-                return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player);
+                return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player, eps);
             } else {
-                return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player);
+                return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player, eps);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
@@ -614,22 +613,22 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         current_history.history.push_back(action);
 
         if (player == 'x') {
-            return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player);
+            return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player, eps);
         } else {
-            return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player);
+            return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player, eps);
         }
     }
 }
 
 
-double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, double& reward, char update_player) {
+double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, double& reward, char update_player, double eps) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
     std::string hash_2 = "";
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
-    return sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', 1.0, reward, update_player);
+    return sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', 1.0, reward, update_player, eps);
 }
 
 
@@ -720,7 +719,7 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
 }
 
 
-void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best_response, char br_player, int T, std::vector<std::string>& information_sets) {
+void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best_response, char br_player, int T, std::vector<std::string>& information_sets, double eps) {
     std::vector<std::vector<double>> regret_list;
     for (long int i = 0; i < information_sets.size(); i++) {
         regret_list.push_back(std::vector<double>(13, 0.0));
@@ -733,9 +732,9 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
         double reward = 0;
 
         if (br_player == 'x') {
-            q_z = sample_terminal_history_wrapper(best_response, policy_obj, start_history, reward, br_player);
+            q_z = sample_terminal_history_wrapper(best_response, policy_obj, start_history, reward, br_player, eps);
         } else {
-            q_z = sample_terminal_history_wrapper(policy_obj, best_response, start_history, reward, br_player);
+            q_z = sample_terminal_history_wrapper(policy_obj, best_response, start_history, reward, br_player, eps);
         }
 
         // traverse history and update regrets
@@ -748,7 +747,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
 
         compute_regrets_along_history(I_1, I_2, true_board, best_response, br_player, regret_list, start_history, q_z, reward, 0, 'x');        
 
-        if (t % 1000 == 0) {
+        if (t % 10000 == 0) {
             double expected_utility = 0.0;
 
             if (br_player == 'x'){
@@ -806,5 +805,19 @@ int main(int argc, char* argv[]) {
 
     double expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
     std::cout << "Expected utility of the best response: " << expected_utility << std::endl;
-    mccfr_outcome_sampling_best_response(policy_obj_o, policy_obj_x, 'x', num_iterations, P1_information_sets);
+
+
+    char continue_exp = 'y';
+    while (continue_exp == 'y') {
+        double eps = 0.0;
+        std::cout << "Enter the epsilon value: ";
+        std::cin >> eps;
+
+        PolicyVec curr_br = policy_obj_x;
+        mccfr_outcome_sampling_best_response(policy_obj_o, curr_br, 'x', num_iterations, P1_information_sets, eps);
+
+        std::cout << "Continue experiments? (y/n): ";
+        std::cin >> continue_exp;
+    }
+    
 }
