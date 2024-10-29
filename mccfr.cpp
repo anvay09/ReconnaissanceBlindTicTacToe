@@ -186,6 +186,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
     }
 
     for (int t = 0; t < T; t++) {
+        std::cout << "Starting iteration " << t << std::endl;
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
@@ -206,6 +207,19 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
         InformationSet I_2 = InformationSet('o', false, hash_2);
 
         compute_regrets_along_history(I_1, I_2, true_board, best_response, br_player, regret_list, start_history, q_z, reward, 0, 'x');        
+
+        if (t % 10 == 0) {
+            double expected_utility = 0.0;
+
+            if (br_player == 'x'){
+                expected_utility = get_expected_utility_wrapper(best_response, policy_obj);
+            }
+            else {
+                expected_utility = get_expected_utility_wrapper(policy_obj, best_response);
+            }
+
+            std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
+        }
     }
 }
 
@@ -248,4 +262,6 @@ int main(int argc, char* argv[]) {
     PolicyVec policy_obj_o('o', file_path_2);
 
     std::cout << "Policies loaded." << std::endl;
+
+    mccfr_outcome_sampling_best_response(policy_obj_o, policy_obj_x, 'x', num_iterations, P1_information_sets);
 }
