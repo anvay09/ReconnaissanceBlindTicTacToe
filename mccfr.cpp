@@ -208,7 +208,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
 
         compute_regrets_along_history(I_1, I_2, true_board, best_response, br_player, regret_list, start_history, q_z, reward, 0, 'x');        
 
-        if (t % 100 == 0) {
+        if (t % 1000 == 0) {
             double expected_utility = 0.0;
 
             if (br_player == 'x'){
