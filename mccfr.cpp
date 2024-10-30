@@ -632,8 +632,8 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
 }
 
 
-double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& best_response, char br_player, 
-                                     std::vector<std::vector<double>>& regret_list, History& current_history, double q_z, double reward, int traversal_index, char current_player) {
+double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& best_response, PolicyVec& cumulative_strategy, char br_player, int t,
+                                     std::vector<std::vector<double>>& regret_list, std::vector<int>& markers, History& current_history, double q_z, double reward, int traversal_index, char current_player) {
     if (traversal_index == current_history.history.size()) {
         return 1.0;
     }
@@ -646,28 +646,31 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
         std::vector<int> actions;
         I.get_actions(actions);
         std::vector<double>& br_prob_dist = best_response.policy_dict[I.get_index()];
+        std::vector<double>& cumulative_prob_table = cumulative_strategy.policy_dict[I.get_index()];
         std::vector<double>& regret_I = regret_list[I.get_index()];
         double played_action_prob = br_prob_dist[action];
         double reach_prob = 0.0;
 
         if (I.move_flag) {
             true_board.update_move(action, current_player);
-            I.update_move(action, current_player);
-            I.reset_zeros();
+            InformationSet new_I = I;
+            new_I.update_move(action, current_player);
+            new_I.reset_zeros();
 
             if (current_player == 'x') {
-                reach_prob = played_action_prob * compute_regrets_along_history(I, I_2, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'o');
+                reach_prob = played_action_prob * compute_regrets_along_history(new_I, I_2, true_board, best_response, cumulative_strategy, br_player, t, regret_list, markers, current_history, q_z, reward, traversal_index, 'o');
             } else {
-                reach_prob = played_action_prob * compute_regrets_along_history(I_1, I, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'x');
+                reach_prob = played_action_prob * compute_regrets_along_history(I_1, new_I, true_board, best_response, cumulative_strategy, br_player, t, regret_list, markers, current_history, q_z, reward, traversal_index, 'x');
             }
         }
         else {
-            I.simulate_sense(action, true_board);
+            InformationSet new_I = I;
+            new_I.simulate_sense(action, true_board);
 
             if (current_player == 'x') {
-                reach_prob = played_action_prob * compute_regrets_along_history(I, I_2, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'x');
+                reach_prob = played_action_prob * compute_regrets_along_history(new_I, I_2, true_board, best_response, cumulative_strategy, br_player, t, regret_list, markers, current_history, q_z, reward, traversal_index, 'x');
             } else {
-                reach_prob = played_action_prob * compute_regrets_along_history(I_1, I, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'o');
+                reach_prob = played_action_prob * compute_regrets_along_history(I_1, new_I, true_board, best_response, cumulative_strategy, br_player, t, regret_list, markers, current_history, q_z, reward, traversal_index, 'o');
             }
         }
 
@@ -680,9 +683,11 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
                 regret_I[actions[i]] += -reward * reach_prob / q_z;
             }
 
+            cumulative_prob_table[actions[i]] += (t - markers[I.get_index()]) * br_prob_dist[actions[i]] * q_z / reach_prob;
             regret_sum += regret_I[actions[i]] > 0 ? regret_I[actions[i]] : 0;
         }
 
+        markers[I.get_index()] = t;
         // regret matching
         for (int i = 0; i < actions.size(); i++) {
             if (regret_sum > 0) {
@@ -701,18 +706,18 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
             I.reset_zeros();
 
             if (current_player == 'x') {
-                return compute_regrets_along_history(I, I_2, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'o');
+                return compute_regrets_along_history(I, I_2, true_board, best_response, cumulative_strategy, br_player, t, regret_list, markers, current_history, q_z, reward, traversal_index, 'o');
             } else {
-                return compute_regrets_along_history(I_1, I, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'x');
+                return compute_regrets_along_history(I_1, I, true_board, best_response, cumulative_strategy, br_player, t, regret_list, markers, current_history, q_z, reward, traversal_index, 'x');
             }
         }
         else {
             I.simulate_sense(action, true_board);
 
             if (current_player == 'x') {
-                return compute_regrets_along_history(I, I_2, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'x');
+                return compute_regrets_along_history(I, I_2, true_board, best_response, cumulative_strategy, br_player, t, regret_list, markers, current_history, q_z, reward, traversal_index, 'x');
             } else {
-                return compute_regrets_along_history(I_1, I, true_board, best_response, br_player, regret_list, current_history, q_z, reward, traversal_index, 'o');
+                return compute_regrets_along_history(I_1, I, true_board, best_response, cumulative_strategy, br_player, t, regret_list, markers, current_history, q_z, reward, traversal_index, 'o');
             }
         }
     }
@@ -721,8 +726,16 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
 
 void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best_response, char br_player, int T, std::vector<std::string>& information_sets, double eps) {
     std::vector<std::vector<double>> regret_list;
+    std::vector<int> markers;
+    PolicyVec cumulative_strategy;
+    cumulative_strategy.player = br_player;
+    
     for (long int i = 0; i < information_sets.size(); i++) {
         regret_list.push_back(std::vector<double>(13, 0.0));
+
+        std::vector<double> probability_dist(13, 0.0);
+        cumulative_strategy.policy_dict.push_back(probability_dist);
+        markers.push_back(0);
     }
 
     for (int t = 0; t < T; t++) {
@@ -745,9 +758,9 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
         InformationSet I_1 = InformationSet('x', true, hash_1);
         InformationSet I_2 = InformationSet('o', false, hash_2);
 
-        compute_regrets_along_history(I_1, I_2, true_board, best_response, br_player, regret_list, start_history, q_z, reward, 0, 'x');        
+        compute_regrets_along_history(I_1, I_2, true_board, best_response, cumulative_strategy, br_player, t, regret_list, markers, start_history, q_z, reward, 0, 'x');        
 
-        if (t % 10000 == 0) {
+        if (t % 1000 == 0) {
             double expected_utility = 0.0;
 
             if (br_player == 'x'){
@@ -758,6 +771,32 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
             }
 
             std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
+
+            PolicyVec average_strategy = cumulative_strategy;
+            // normalize the cumulative strategy
+            for (long int i = 0; i < information_sets.size(); i++) {
+                std::vector<double>& cumulative_prob_table = average_strategy.policy_dict[i];
+                double sum = 0.0;
+
+                for (int j = 0; j < 13; j++) {
+                    sum += cumulative_prob_table[j];
+                }
+
+                if (sum > 0) {
+                    for (int j = 0; j < 13; j++) {
+                        cumulative_prob_table[j] /= sum;
+                    }
+                }
+            }
+
+            if (br_player == 'x'){
+                expected_utility = get_expected_utility_wrapper(average_strategy, policy_obj);
+            }
+            else {
+                expected_utility = get_expected_utility_wrapper(policy_obj, average_strategy);
+            }
+
+            std::cout << "Expected utility after averaging: " << expected_utility << std::endl;
         }
     }
 }
