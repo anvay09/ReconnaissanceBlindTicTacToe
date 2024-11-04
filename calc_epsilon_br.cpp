@@ -2,6 +2,13 @@
 #include "cpp_headers/rbt_utilities.hpp"
 #include <random>
 
+void pretty_print(std::chrono::time_point<std::chrono::system_clock> start, std::chrono::time_point<std::chrono::system_clock> end, std::string msg, int flag) {
+    if (flag) {
+    std::chrono::duration<double> elapsed_seconds = end-start;
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "finished " << msg << " in " << elapsed_seconds.count() << "s" << std::endl;
+    }
+}
 
 int sampleIndex(const std::vector<double>& probabilities) {
     std::random_device rd;
@@ -94,7 +101,8 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
 }
 
 
-void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& uniform_strategy_x, PolicyVec& uniform_strategy_o, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, char player, int T, int update_step_size) {
+void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& uniform_strategy_x, PolicyVec& uniform_strategy_o, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, char player, int T, int update_step_size, int log_flag) {
+    auto start = std::chrono::system_clock::now();
     PolicyVec player_strategy = player == 'x' ? uniform_strategy_x : uniform_strategy_o;
     PolicyVec opponent_strategy = player == 'x' ? uniform_strategy_o : uniform_strategy_x;
     PolicyVec opponent_cumulative_sample_count;
@@ -104,19 +112,15 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
     std::vector<std::string> player_information_sets = player == 'x' ? P1_information_sets : P2_information_sets;
     std::vector<std::string> opponent_information_sets = player == 'x' ? P2_information_sets : P1_information_sets;
 
-    
-    // for (long int i = 0; i < player_information_sets.size(); i++) {
-    //     std::vector<double> probability_dist(13, 0.0);
-    //     player_strategy.policy_dict.push_back(probability_dist);
-    // }
-
     for (long int i = 0; i < opponent_information_sets.size(); i++) {
         std::vector<double> probability_dist(13, 0.0);
-        // opponent_strategy.policy_dict.push_back(probability_dist);
         opponent_cumulative_sample_count.policy_dict.push_back(probability_dist);
     }
+    auto end = std::chrono::system_clock::now();
+    pretty_print(start, end, "initializing player and opponent strategies", log_flag);
 
     for (int t = 0; t < T; t++) {
+        start = std::chrono::system_clock::now();   
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
@@ -141,15 +145,24 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
         }
         if (t % update_step_size == 0) {
             double expected_utility = 0.0;
+            start = std::chrono::system_clock::now();
             expected_utility = compute_best_response_wrapper(opponent_strategy, player_strategy, player);
+            end = std::chrono::system_clock::now();
+            pretty_print(start, end, "best response computation iteration " + std::to_string(t), log_flag);
+            start = std::chrono::system_clock::now();
             if (player == 'x'){
                 expected_utility = get_expected_utility_wrapper(player_strategy, policy_obj_o);
             }
             else {
                 expected_utility = get_expected_utility_wrapper(policy_obj_x, player_strategy);
             }
+            end = std::chrono::system_clock::now();
             std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
+            pretty_print(start, end, "expected utility computation iteration " + std::to_string(t), log_flag);
+
         }
+        end = std::chrono::system_clock::now();
+        pretty_print(start, end, "iteration " + std::to_string(t), log_flag);
     }
 }
 
@@ -160,6 +173,7 @@ int main(int argc, char* argv[]) {
     std::string file_path_2 = argv[2];
     std::string uniform_file_path_1 = argv[3];
     std::string uniform_file_path_2 = argv[4];
+    int log_flag = std::stoi(argv[4]);
 
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -189,13 +203,15 @@ int main(int argc, char* argv[]) {
 
     // load policies
     std::cout << "Loading policies..." << std::endl;
+    auto start = std::chrono::system_clock::now(); 
     PolicyVec policy_obj_x('x', file_path_1);
     PolicyVec policy_obj_o('o', file_path_2);
     PolicyVec uniform_policy_obj_x('x', uniform_file_path_1);
     PolicyVec uniform_policy_obj_o('o', uniform_file_path_2);
     PolicyVec br_x('x', P1_information_sets);
     PolicyVec br_o('o', P2_information_sets);
-    std::cout << "Policies loaded." << std::endl;
+    auto end = std::chrono::system_clock::now();
+    pretty_print(start, end, "loading policies", log_flag);
 
     // compute epsilon best response
     char continue_exp = 'y';
@@ -212,16 +228,22 @@ int main(int argc, char* argv[]) {
 
         if (player == 'x') {
             // compute expected utility of the best response (i.e., when opponent policy is known)
+            start = std::chrono::system_clock::now();  
             double expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
+            end = std::chrono::system_clock::now();
             std::cout << "Expected utility of the best response x: " << expected_utility << std::endl;
+            pretty_print(start, end, "computing best response x", log_flag);
         }
         else {
             // compute expected utility of the best response (i.e., when opponent policy is known)
+            start = std::chrono::system_clock::now(); 
             double expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
+            end = std::chrono::system_clock::now();
             std::cout << "Expected utility of the best response o: " << expected_utility << std::endl;
+            pretty_print(start, end, "computing best response o", log_flag);
         }
 
-        calc_epsilon_best_response(policy_obj_x, policy_obj_o, uniform_policy_obj_x, uniform_policy_obj_o, P1_information_sets, P2_information_sets, player, num_iterations, update_step_size);
+        calc_epsilon_best_response(policy_obj_x, policy_obj_o, uniform_policy_obj_x, uniform_policy_obj_o, P1_information_sets, P2_information_sets, player, num_iterations, update_step_size, log_flag);
 
         std::cout << "Continue experiments? (y/n): ";
         std::cin >> continue_exp;
