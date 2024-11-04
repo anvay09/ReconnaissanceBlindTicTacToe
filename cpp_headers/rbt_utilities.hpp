@@ -27,3 +27,19 @@ double calc_util_a_given_I_and_action(InformationSet& I, int action, PolicyVec& 
 void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, int T, std::vector<double>& regret_list);
 
 std::vector<std::vector<double> > get_prev_regrets(std::string& file_path, char player);
+
+bool get_move_flag(std::string I_hash, char player);
+
+void simulate_opponent_turn(TicTacToeBoard& true_board, History& history, double reach_probability, InformationSet& opponent_I, PolicyVec& policy_obj,  
+                            std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, std::vector<double>& reach_probability_list,  
+                            std::vector<InformationSet>& opponent_I_list, std::vector<double>& Q_values, char br_player, int played_action);
+
+double get_max_Q_value_and_update_policy(std::vector<double>& Q_values, std::vector<int>& actions, PolicyVec& br, InformationSet& I);
+
+double compute_best_response(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
+                 std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj);
+    
+double compute_best_response_parallel(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
+                 std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj);
+
+double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player);
