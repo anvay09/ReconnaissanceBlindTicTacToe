@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
     std::string file_path_2 = argv[2];
     std::string uniform_file_path_1 = argv[3];
     std::string uniform_file_path_2 = argv[4];
-    int log_flag = std::stoi(argv[4]);
+    int log_flag = std::stoi(argv[5]);
 
     // load information sets
     std::vector<std::string> P1_information_sets;
