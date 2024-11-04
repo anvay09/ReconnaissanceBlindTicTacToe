@@ -141,7 +141,7 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
         }
         if (t % update_step_size == 0) {
             double expected_utility = 0.0;
-            double expected_utility = compute_best_response_wrapper(opponent_strategy, player_strategy, player);
+            expected_utility = compute_best_response_wrapper(opponent_strategy, player_strategy, player);
             if (player == 'x'){
                 expected_utility = get_expected_utility_wrapper(player_strategy, policy_obj_o);
             }
