@@ -1,6 +1,48 @@
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/rbt_utilities.hpp"
 #include <random>
+int NUMBER_THREADS = 4;
+int AVERAGE_DELAY = 5;
+
+//avg
+void calc_average_terms(char player, std::vector<std::string>& information_sets, PolicyVec& policy_obj, std::vector<std::vector<double>>& avg_policy_numerator, std::vector<double>& avg_policy_denominator, int t){
+    //int weight = T > AVERAGE_DELAY ? T - AVERAGE_DELAY : 0;
+    int weight = t;
+
+    #pragma omp parallel for num_threads(NUMBER_THREADS) shared(avg_policy_numerator, avg_policy_denominator, policy_obj)
+    for (long int i = 0; i < information_sets.size(); i++) {
+        std::string I_hash = information_sets[i];
+        bool move_flag = get_move_flag(I_hash, player);
+        InformationSet I(player, move_flag, I_hash);
+
+        std::vector<int> actions;
+        I.get_actions(actions);
+        for (int action: actions) {
+            std::vector<double>& policy = policy_obj.policy_dict[I.get_index()];
+            avg_policy_numerator[I.get_index()][action] += weight * policy[action];
+            avg_policy_denominator[I.get_index()] += weight * policy[action];
+        }
+
+    }
+}
+
+void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& avg_policy_obj, std::vector<std::vector<double>> avg_policy_numerator, std::vector<double> avg_policy_denominator, char player){
+    #pragma omp parallel for num_threads(NUMBER_THREADS) shared(avg_policy_obj, avg_policy_numerator, avg_policy_denominator)
+    for (long int i = 0; i < information_sets.size(); i++) {
+        std::string I_hash = information_sets[i];
+        bool move_flag = get_move_flag(I_hash, player);
+        InformationSet I(player, move_flag, I_hash);
+
+        std::vector<int> actions;
+        I.get_actions(actions);
+        for (int action: actions) {
+            std::vector<double>& policy = avg_policy_obj.policy_dict[I.get_index()];
+            policy[action] = avg_policy_denominator[I.get_index()] > 0 ? avg_policy_numerator[I.get_index()][action] / avg_policy_denominator[I.get_index()] : 0;
+        }
+    }
+}
+//avg
+
 
 void pretty_print(std::chrono::time_point<std::chrono::system_clock> start, std::chrono::time_point<std::chrono::system_clock> end, std::string msg, int flag) {
     if (flag) {
@@ -101,7 +143,7 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
 }
 
 
-void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& uniform_strategy_x, PolicyVec& uniform_strategy_o, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, char player, int T, int update_step_size, int log_flag) {
+void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& uniform_strategy_x, PolicyVec& uniform_strategy_o, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, char player, int T, int update_step_size, int log_flag, int average_flag) {
     auto start = std::chrono::system_clock::now();
     PolicyVec player_strategy = player == 'x' ? uniform_strategy_x : uniform_strategy_o;
     PolicyVec opponent_strategy = player == 'x' ? uniform_strategy_o : uniform_strategy_x;
@@ -111,6 +153,8 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
     opponent_cumulative_sample_count.player = player == 'x' ? 'o' : 'x';
     std::vector<std::string> player_information_sets = player == 'x' ? P1_information_sets : P2_information_sets;
     std::vector<std::string> opponent_information_sets = player == 'x' ? P2_information_sets : P1_information_sets;
+    std::vector<std::vector<double>> avg_player_policy_numerator(player_information_sets.size(), std::vector<double>(13, 0));
+    std::vector<double> avg_player_policy_denominator;
 
     for (long int i = 0; i < opponent_information_sets.size(); i++) {
         std::vector<double> probability_dist(13, 0.0);
@@ -146,9 +190,21 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
         if (t % update_step_size == 0) {
             double expected_utility = 0.0;
             start = std::chrono::system_clock::now();
-            expected_utility = compute_best_response_wrapper(opponent_strategy, player_strategy, player);
+            PolicyVec temp_policy_x(player, player_information_sets);
+            expected_utility = compute_best_response_wrapper(opponent_strategy, temp_policy_x, player);
             end = std::chrono::system_clock::now();
             pretty_print(start, end, "best response computation iteration " + std::to_string(t), log_flag);
+            //averaging
+            start = std::chrono::system_clock::now();
+            if (average_flag) {
+                calc_average_terms(player, player_information_sets, temp_policy_x, avg_player_policy_numerator, avg_player_policy_denominator, t);
+                calc_average_policy(player_information_sets, player_strategy, avg_player_policy_numerator, avg_player_policy_denominator, player);
+            }
+            else {
+                player_strategy = temp_policy_x;
+            }
+            end = std::chrono::system_clock::now();
+            pretty_print(start, end, "average computation iteration " + std::to_string(t), log_flag);
             start = std::chrono::system_clock::now();
             if (player == 'x'){
                 expected_utility = get_expected_utility_wrapper(player_strategy, policy_obj_o);
@@ -175,6 +231,8 @@ int main(int argc, char* argv[]) {
     std::string uniform_file_path_1 = argv[3];
     std::string uniform_file_path_2 = argv[4];
     int log_flag = std::stoi(argv[5]);
+    int average_flag = std::stoi(argv[6]);
+    NUMBER_THREADS = std::stoi(argv[7]); //96;
 
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -244,7 +302,7 @@ int main(int argc, char* argv[]) {
             pretty_print(start, end, "computing best response o", log_flag);
         }
 
-        calc_epsilon_best_response(policy_obj_x, policy_obj_o, uniform_policy_obj_x, uniform_policy_obj_o, P1_information_sets, P2_information_sets, player, num_iterations, update_step_size, log_flag);
+        calc_epsilon_best_response(policy_obj_x, policy_obj_o, uniform_policy_obj_x, uniform_policy_obj_o, P1_information_sets, P2_information_sets, player, num_iterations, update_step_size, log_flag, average_flag);
 
         std::cout << "Continue experiments? (y/n): ";
         std::cin >> continue_exp;
