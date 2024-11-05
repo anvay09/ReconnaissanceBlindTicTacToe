@@ -160,6 +160,9 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
         std::vector<double> probability_dist(13, 0.0);
         opponent_cumulative_sample_count.policy_dict.push_back(probability_dist);
     }
+    for (long int i = 0; i < player_information_sets.size(); i++) {
+        avg_player_policy_denominator.push_back(0.0);
+    }
     auto end = std::chrono::system_clock::now();
     pretty_print(start, end, "initializing player and opponent strategies", log_flag);
 
@@ -190,18 +193,18 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
         if (t % update_step_size == 0) {
             double expected_utility = 0.0;
             start = std::chrono::system_clock::now();
-            PolicyVec temp_policy_x(player, player_information_sets);
-            expected_utility = compute_best_response_wrapper(opponent_strategy, temp_policy_x, player);
+            PolicyVec temp_policy(player, player_information_sets);
+            expected_utility = compute_best_response_wrapper(opponent_strategy, temp_policy, player);
             end = std::chrono::system_clock::now();
             pretty_print(start, end, "best response computation iteration " + std::to_string(t), log_flag);
             //averaging
             start = std::chrono::system_clock::now();
             if (average_flag) {
-                calc_average_terms(player, player_information_sets, temp_policy_x, avg_player_policy_numerator, avg_player_policy_denominator, t);
+                calc_average_terms(player, player_information_sets, temp_policy, avg_player_policy_numerator, avg_player_policy_denominator, t);
                 calc_average_policy(player_information_sets, player_strategy, avg_player_policy_numerator, avg_player_policy_denominator, player);
             }
             else {
-                player_strategy = temp_policy_x;
+                player_strategy = temp_policy;
             }
             end = std::chrono::system_clock::now();
             pretty_print(start, end, "average computation iteration " + std::to_string(t), log_flag);
