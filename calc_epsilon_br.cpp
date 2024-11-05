@@ -93,11 +93,11 @@ void print_histogram(std::vector<long int>& visited_infosets) {
     std::cout << "Histogram of visited information sets: " << std::endl;
 
     for (int i = 0; i < 10; i++) {
-        std::cout << buckets[i] << "\t";
+        std::cout << buckets[i] << "\t\t";
     }
     std::cout << std::endl;
 
-    std::cout << "0\t1\t2-10\t11-100\t101-1000\t1001-10000\t10001-100000\t100001-1000000\t1000001+" << std::endl;
+    std::cout << "0\t\t1\t\t2-10\t\t11-100\t\t101-1k\t\t1k-10k\t\t10k-100k\t\t100k-1M\t\t1M+" << std::endl;
 }
 
 
