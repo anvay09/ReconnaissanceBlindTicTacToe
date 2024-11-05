@@ -146,9 +146,11 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
 void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& uniform_strategy_x, PolicyVec& uniform_strategy_o, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, char player, int T, int update_step_size, int log_flag, int average_flag) {
     auto start = std::chrono::system_clock::now();
     PolicyVec player_strategy = player == 'x' ? uniform_strategy_x : uniform_strategy_o;
+    PolicyVec avg_player_strategy = player == 'x' ? uniform_strategy_x : uniform_strategy_o;
     PolicyVec opponent_strategy = player == 'x' ? uniform_strategy_o : uniform_strategy_x;
     PolicyVec opponent_cumulative_sample_count;
     player_strategy.player = player;
+    avg_player_strategy.player = player;
     opponent_strategy.player = player == 'x' ? 'o' : 'x';
     opponent_cumulative_sample_count.player = player == 'x' ? 'o' : 'x';
     std::vector<std::string> player_information_sets = player == 'x' ? P1_information_sets : P2_information_sets;
@@ -193,30 +195,29 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
         if (t % update_step_size == 0) {
             double expected_utility = 0.0;
             start = std::chrono::system_clock::now();
-            PolicyVec temp_policy(player, player_information_sets);
-            expected_utility = compute_best_response_wrapper(opponent_strategy, temp_policy, player);
+            expected_utility = compute_best_response_wrapper(opponent_strategy, player_strategy, player);
             end = std::chrono::system_clock::now();
             pretty_print(start, end, "best response computation iteration " + std::to_string(t), log_flag);
             //averaging
             start = std::chrono::system_clock::now();
             if (average_flag) {
-                calc_average_terms(player, player_information_sets, temp_policy, avg_player_policy_numerator, avg_player_policy_denominator, t);
-                calc_average_policy(player_information_sets, player_strategy, avg_player_policy_numerator, avg_player_policy_denominator, player);
+                calc_average_terms(player, player_information_sets, player_strategy, avg_player_policy_numerator, avg_player_policy_denominator, t);
+                calc_average_policy(player_information_sets, avg_player_strategy, avg_player_policy_numerator, avg_player_policy_denominator, player);
             }
             else {
-                player_strategy = temp_policy;
+                avg_player_strategy = player_strategy;
             }
             end = std::chrono::system_clock::now();
             pretty_print(start, end, "average computation iteration " + std::to_string(t), log_flag);
             start = std::chrono::system_clock::now();
             if (player == 'x'){
-                expected_utility = get_expected_utility_wrapper(player_strategy, policy_obj_o);
+                expected_utility = get_expected_utility_wrapper(avg_player_strategy, policy_obj_o);
             }
             else {
-                expected_utility = get_expected_utility_wrapper(policy_obj_x, player_strategy);
+                expected_utility = get_expected_utility_wrapper(policy_obj_x, avg_player_strategy);
             }
             end = std::chrono::system_clock::now();
-            std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
+            std::cout << "Expected utility avg after iteration " << t << ": " << expected_utility << std::endl;
             pretty_print(start, end, "expected utility computation iteration " + std::to_string(t), log_flag);
             std::cout << "Epsilon: " << eps << std::endl;
 
