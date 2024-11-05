@@ -43,7 +43,6 @@ void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& 
 }
 //avg
 
-
 void pretty_print(std::chrono::time_point<std::chrono::system_clock> start, std::chrono::time_point<std::chrono::system_clock> end, std::string msg, int flag) {
     if (flag) {
     std::chrono::duration<double> elapsed_seconds = end-start;
@@ -51,6 +50,56 @@ void pretty_print(std::chrono::time_point<std::chrono::system_clock> start, std:
     std::cout << "finished " << msg << " in " << elapsed_seconds.count() << "s" << std::endl;
     }
 }
+
+
+void print_histogram(std::vector<long int>& visited_infosets) {
+    std::vector<long int> buckets(10, 0);
+    // index 0: visited 0 times, index 1: visited 1 times, index 2: visited 2 times, index 3: visited 2-10 times, index 4: visited 11-100 times, index 5: visited 101-1000 times, 
+    //index 6: visited 1001-10000 times, index 7: visited 10001-100000 times, index 8: visited 100001-1000000 times, index 9: visited 1000001+ times
+
+    for (long int i = 0; i < visited_infosets.size(); i++) {
+        if (visited_infosets[i] == 0) {
+            buckets[0] += 1;
+        }
+        else if (visited_infosets[i] == 1) {
+            buckets[1] += 1;
+        }
+        else if (visited_infosets[i] == 2) {
+            buckets[2] += 1;
+        }
+        else if (visited_infosets[i] >= 3 && visited_infosets[i] <= 10) {
+            buckets[3] += 1;
+        }
+        else if (visited_infosets[i] >= 11 && visited_infosets[i] <= 100) {
+            buckets[4] += 1;
+        }
+        else if (visited_infosets[i] >= 101 && visited_infosets[i] <= 1000) {
+            buckets[5] += 1;
+        }
+        else if (visited_infosets[i] >= 1001 && visited_infosets[i] <= 10000) {
+            buckets[6] += 1;
+        }
+        else if (visited_infosets[i] >= 10001 && visited_infosets[i] <= 100000) {
+            buckets[7] += 1;
+        }
+        else if (visited_infosets[i] >= 100001 && visited_infosets[i] <= 1000000) {
+            buckets[8] += 1;
+        }
+        else {
+            buckets[9] += 1;
+        }
+    }
+
+    std::cout << "Histogram of visited information sets: " << std::endl;
+
+    for (int i = 0; i < 10; i++) {
+        std::cout << buckets[i] << "\t";
+    }
+    std::cout << std::endl;
+
+    std::cout << "0\t1\t2-10\t11-100\t101-1000\t1001-10000\t10001-100000\t100001-1000000\t1000001+" << std::endl;
+}
+
 
 int sampleIndex(const std::vector<double>& probabilities) {
     std::random_device rd;
@@ -60,7 +109,9 @@ int sampleIndex(const std::vector<double>& probabilities) {
 }
 
 
-double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, char player, double probability, double& reward, char update_player, PolicyVec& oppo_cumulative_sample_count, PolicyVec& oppo_strategy) {
+double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, 
+                               PolicyVec& policy_obj_o, History& current_history, char player, double probability, double& reward, 
+                               char update_player, PolicyVec& oppo_cumulative_sample_count, PolicyVec& oppo_strategy, std::vector<long int>& visited_infosets) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
@@ -74,13 +125,17 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             probability = probability * prob_dist[action];
         }
         else {
-            oppo_cumulative_sample_count.policy_dict[I.get_index()][action] += 1.0;
+            visited_infosets[I.get_index()] += 1;
+            std::vector<double>& oppo_sample_count = oppo_cumulative_sample_count.policy_dict[I.get_index()];
+            oppo_sample_count[action] += 1.0;
             double sum_infoset_sample_count = 0.0;
             for (int i = 0; i < 13; i++) {
-                sum_infoset_sample_count += oppo_cumulative_sample_count.policy_dict[I.get_index()][i];
+                sum_infoset_sample_count += oppo_sample_count[i];
             }
+
+            std::vector<double>& oppo_prob_dist = oppo_strategy.policy_dict[I.get_index()];
             for (int i = 0; i < 13; i++) {
-                oppo_strategy.policy_dict[I.get_index()][i] = oppo_cumulative_sample_count.policy_dict[I.get_index()][i] / sum_infoset_sample_count;
+                oppo_prob_dist[i] = oppo_sample_count[i] / sum_infoset_sample_count;
             }
         }
 
@@ -93,9 +148,9 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             new_I.reset_zeros();
 
             if (player == 'x') {
-                return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy);
+                return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
             } else {
-                return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy);
+                return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
@@ -112,34 +167,38 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             probability = probability * prob_dist[action];
         }
         else {
-            oppo_cumulative_sample_count.policy_dict[I.get_index()][action] += 1.0;
+            visited_infosets[I.get_index()] += 1;
+            std::vector<double>& oppo_sample_count = oppo_cumulative_sample_count.policy_dict[I.get_index()];
+            oppo_sample_count[action] += 1.0;
             double sum_infoset_sample_count = 0.0;
             for (int i = 0; i < 13; i++) {
-                sum_infoset_sample_count += oppo_cumulative_sample_count.policy_dict[I.get_index()][i];
+                sum_infoset_sample_count += oppo_sample_count[i];
             }
+
+            std::vector<double>& oppo_prob_dist = oppo_strategy.policy_dict[I.get_index()];
             for (int i = 0; i < 13; i++) {
-                oppo_strategy.policy_dict[I.get_index()][i] = oppo_cumulative_sample_count.policy_dict[I.get_index()][i] / sum_infoset_sample_count;
+                oppo_prob_dist[i] = oppo_sample_count[i] / sum_infoset_sample_count;
             }
         }
         current_history.history.push_back(action);
 
         if (player == 'x') {
-            return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy);
+            return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
         } else {
-            return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy);
+            return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
         }
     }
 }
 
 
-double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, double& reward, char update_player, PolicyVec& oppo_cumulative_sample_count, PolicyVec& oppo_strategy) {
+double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, double& reward, char update_player, PolicyVec& oppo_cumulative_sample_count, PolicyVec& oppo_strategy, std::vector<long int>& visited_infosets) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
     std::string hash_2 = "";
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
-    return sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', 1.0, reward, update_player, oppo_cumulative_sample_count, oppo_strategy);
+    return sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', 1.0, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
 }
 
 
@@ -157,6 +216,7 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
     std::vector<std::string> opponent_information_sets = player == 'x' ? P2_information_sets : P1_information_sets;
     std::vector<std::vector<double>> avg_player_policy_numerator(player_information_sets.size(), std::vector<double>(13, 0));
     std::vector<double> avg_player_policy_denominator;
+    std::vector<long int> opponent_visited_infosets(opponent_information_sets.size(), 0);
 
     for (long int i = 0; i < opponent_information_sets.size(); i++) {
         std::vector<double> probability_dist(13, 0.0);
@@ -178,18 +238,18 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
         std::vector<double> prob_dist = {eps, 1-eps};
         if (sampleIndex(prob_dist)){
             if (player == 'x') {
-                q_z = sample_terminal_history_wrapper(player_strategy, policy_obj_o, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy);
+                q_z = sample_terminal_history_wrapper(player_strategy, policy_obj_o, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy, opponent_visited_infosets);
             }
             else {
-                q_z = sample_terminal_history_wrapper(policy_obj_x, player_strategy, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy);
+                q_z = sample_terminal_history_wrapper(policy_obj_x, player_strategy, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy, opponent_visited_infosets);
             }
         }
         else {
             if (player == 'x') {
-                q_z = sample_terminal_history_wrapper(uniform_strategy_x, policy_obj_o, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy);
+                q_z = sample_terminal_history_wrapper(uniform_strategy_x, policy_obj_o, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy, opponent_visited_infosets);
             }
             else {
-                q_z = sample_terminal_history_wrapper(policy_obj_x, uniform_strategy_o, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy);
+                q_z = sample_terminal_history_wrapper(policy_obj_x, uniform_strategy_o, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy, opponent_visited_infosets);
             }
         }
         if (t % update_step_size == 0) {
@@ -219,8 +279,9 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
             end = std::chrono::system_clock::now();
             std::cout << "Expected utility avg after iteration " << t << ": " << expected_utility << std::endl;
             pretty_print(start, end, "expected utility computation iteration " + std::to_string(t), log_flag);
-            std::cout << "Epsilon: " << eps << std::endl;
+            // std::cout << "Epsilon: " << eps << std::endl;
 
+            print_histogram(opponent_visited_infosets);
         }
         end = std::chrono::system_clock::now();
         pretty_print(start, end, "iteration " + std::to_string(t), log_flag);
