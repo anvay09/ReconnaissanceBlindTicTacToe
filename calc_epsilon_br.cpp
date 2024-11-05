@@ -125,7 +125,7 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
         double reward = 0;
-        double eps = 1.0/(t+1.0);
+        double eps = 1.0/(((t*1.0)/(update_step_size*1.0))+1.0);
         std::vector<double> prob_dist = {eps, 1-eps};
         if (sampleIndex(prob_dist)){
             if (player == 'x') {
@@ -159,6 +159,7 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
             end = std::chrono::system_clock::now();
             std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
             pretty_print(start, end, "expected utility computation iteration " + std::to_string(t), log_flag);
+            std::cout << "Epsilon: " << eps << std::endl;
 
         }
         end = std::chrono::system_clock::now();
