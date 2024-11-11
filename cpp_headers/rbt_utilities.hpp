@@ -36,6 +36,8 @@ void simulate_opponent_turn(TicTacToeBoard& true_board, History& history, double
 
 double get_max_Q_value_and_update_policy(std::vector<double>& Q_values, std::vector<int>& actions, PolicyVec& br, InformationSet& I);
 
+double get_min_Q_value_and_update_policy(std::vector<double>& Q_values, std::vector<int>& actions, PolicyVec& br, InformationSet& I);
+
 double compute_best_response(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj);
     
@@ -43,3 +45,11 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj);
 
 double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player);
+
+double compute_worst_response(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
+                 std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj);
+    
+double compute_worst_response_parallel(InformationSet& I, char br_player, std::vector<TicTacToeBoard>& true_board_list, std::vector<History>& history_list, 
+                 std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj);
+
+double compute_worst_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player);

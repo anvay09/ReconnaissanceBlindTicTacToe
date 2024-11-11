@@ -802,6 +802,96 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
 }
 
 
+// void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, double eps) {
+//     std::vector<std::vector<double>> regret_list_x;
+//     std::vector<std::vector<double>> regret_list_o;
+//     std::vector<int> markers_x;
+//     std::vector<int> markers_o;
+//     PolicyVec cumulative_strategy_x;
+//     PolicyVec cumulative_strategy_o;
+//     cumulative_strategy_x.player = 'x';
+//     cumulative_strategy_o.player = 'o';
+    
+//     for (long int i = 0; i < P1_information_sets.size(); i++) {
+//         regret_list_x.push_back(std::vector<double>(13, 0.0));
+
+//         std::vector<double> probability_dist(13, 0.0);
+//         cumulative_strategy_x.policy_dict.push_back(probability_dist);
+//         markers_x.push_back(0);
+//     }
+
+//     for (long int i = 0; i < P2_information_sets.size(); i++) {
+//         regret_list_o.push_back(std::vector<double>(13, 0.0));
+
+//         std::vector<double> probability_dist(13, 0.0);
+//         cumulative_strategy_o.policy_dict.push_back(probability_dist);
+//         markers_o.push_back(0);
+//     }
+
+//     for (int t = 0; t < T; t++) {
+//         std::vector<int> h = {};
+//         TerminalHistory start_history = TerminalHistory(h);
+//         double q_z = 0.0;
+//         double reward = 0;
+
+//         if (br_player == 'x') {
+//             q_z = sample_terminal_history_wrapper(best_response, policy_obj, start_history, reward, br_player, eps);
+//         } else {
+//             q_z = sample_terminal_history_wrapper(policy_obj, best_response, start_history, reward, br_player, eps);
+//         }
+
+//         // traverse history and update regrets
+//         std::string board = "000000000";
+//         TicTacToeBoard true_board = TicTacToeBoard(board);
+//         std::string hash_1 = "";
+//         std::string hash_2 = "";
+//         InformationSet I_1 = InformationSet('x', true, hash_1);
+//         InformationSet I_2 = InformationSet('o', false, hash_2);
+
+//         compute_regrets_along_history(I_1, I_2, true_board, best_response, cumulative_strategy, br_player, t, 1.0, regret_list, markers, start_history, q_z, reward, 0, 'x');        
+
+//         if (t % 10000 == 0) {
+//             double expected_utility = 0.0;
+
+//             if (br_player == 'x'){
+//                 expected_utility = get_expected_utility_wrapper(best_response, policy_obj);
+//             }
+//             else {
+//                 expected_utility = get_expected_utility_wrapper(policy_obj, best_response);
+//             }
+
+//             std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
+
+//             PolicyVec average_strategy = cumulative_strategy;
+//             // normalize the cumulative strategy
+//             for (long int i = 0; i < information_sets.size(); i++) {
+//                 std::vector<double>& cumulative_prob_table = average_strategy.policy_dict[i];
+//                 double sum = 0.0;
+
+//                 for (int j = 0; j < 13; j++) {
+//                     sum += cumulative_prob_table[j];
+//                 }
+
+//                 if (sum > 0) {
+//                     for (int j = 0; j < 13; j++) {
+//                         cumulative_prob_table[j] /= sum;
+//                     }
+//                 }
+//             }
+
+//             if (br_player == 'x'){
+//                 expected_utility = get_expected_utility_wrapper(average_strategy, policy_obj);
+//             }
+//             else {
+//                 expected_utility = get_expected_utility_wrapper(policy_obj, average_strategy);
+//             }
+
+//             std::cout << "Expected utility after averaging: " << expected_utility << std::endl;
+//         }
+//     }
+// }
+
+
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1];

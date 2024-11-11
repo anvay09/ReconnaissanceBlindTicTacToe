@@ -202,15 +202,27 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
 }
 
 
+void mix_worst_response_for_unvisited_infosets(PolicyVec& policy_obj, PolicyVec& wr, std::vector<long int>& visited_infosets) {
+    #pragma omp parallel for num_threads(NUMBER_THREADS)
+    for (long int i = 0; i < visited_infosets.size(); i++){
+        if (visited_infosets[i] == 0){
+            policy_obj.policy_dict[i] = wr.policy_dict[i];
+        }
+    }
+}
+
+
 void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& uniform_strategy_x, PolicyVec& uniform_strategy_o, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, char player, int T, int update_step_size, int log_flag, int average_flag) {
     auto start = std::chrono::system_clock::now();
     PolicyVec player_strategy = player == 'x' ? uniform_strategy_x : uniform_strategy_o;
     PolicyVec avg_player_strategy = player == 'x' ? uniform_strategy_x : uniform_strategy_o;
     PolicyVec opponent_strategy = player == 'x' ? uniform_strategy_o : uniform_strategy_x;
+    PolicyVec opponent_wr = player == 'x' ? uniform_strategy_o : uniform_strategy_x;
     PolicyVec opponent_cumulative_sample_count;
     player_strategy.player = player;
     avg_player_strategy.player = player;
     opponent_strategy.player = player == 'x' ? 'o' : 'x';
+    opponent_wr.player = player == 'x' ? 'o' : 'x';
     opponent_cumulative_sample_count.player = player == 'x' ? 'o' : 'x';
     std::vector<std::string> player_information_sets = player == 'x' ? P1_information_sets : P2_information_sets;
     std::vector<std::string> opponent_information_sets = player == 'x' ? P2_information_sets : P1_information_sets;
@@ -255,6 +267,11 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
         if (t % update_step_size == 0) {
             double expected_utility = 0.0;
             start = std::chrono::system_clock::now();
+            expected_utility = compute_worst_response_wrapper(player_strategy, opponent_wr, toggle_player(player));
+            end = std::chrono::system_clock::now();
+            mix_worst_response_for_unvisited_infosets(opponent_strategy, opponent_wr, opponent_visited_infosets);
+
+            start = std::chrono::system_clock::now();
             expected_utility = compute_best_response_wrapper(opponent_strategy, player_strategy, player);
             end = std::chrono::system_clock::now();
             pretty_print(start, end, "best response computation iteration " + std::to_string(t), log_flag);
@@ -281,7 +298,7 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
             pretty_print(start, end, "expected utility computation iteration " + std::to_string(t), log_flag);
             // std::cout << "Epsilon: " << eps << std::endl;
 
-            print_histogram(opponent_visited_infosets);
+            // print_histogram(opponent_visited_infosets);
         }
         end = std::chrono::system_clock::now();
         pretty_print(start, end, "iteration " + std::to_string(t), log_flag);
