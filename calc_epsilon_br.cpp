@@ -267,7 +267,7 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
         if (t % update_step_size == 0) {
             double expected_utility = 0.0;
             start = std::chrono::system_clock::now();
-            expected_utility = compute_worst_response_wrapper(player_strategy, opponent_wr, toggle_player(player));
+            expected_utility = compute_worst_response_wrapper(avg_player_strategy, opponent_wr, toggle_player(player));
             end = std::chrono::system_clock::now();
             mix_worst_response_for_unvisited_infosets(opponent_strategy, opponent_wr, opponent_visited_infosets);
 
