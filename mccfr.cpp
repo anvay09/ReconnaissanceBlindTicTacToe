@@ -272,7 +272,7 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, in
     PolicyVec cumulative_strategy_o;
     cumulative_strategy_x.player = 'x';
     cumulative_strategy_o.player = 'o';
-    
+
     for (long int i = 0; i < P1_information_sets.size(); i++) {
         regret_list_x.push_back(std::vector<double>(13, 0.0));
 
@@ -289,6 +289,8 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, in
         markers_o.push_back(0);
     }
 
+    std::cout << "Initialization done." << std::endl;
+
     for (int t = 0; t < T; t++) {
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
@@ -296,6 +298,7 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, in
         double reward = 0.0;
 
         q_z = sample_terminal_history_wrapper(policy_obj_x, policy_obj_o, start_history, reward, 'x', eps);
+        std::cout << "Sampled history for x" << std::endl;
         std::string board = "000000000";
         TicTacToeBoard true_board = TicTacToeBoard(board);
         std::string hash_1 = "";
@@ -303,8 +306,10 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, in
         InformationSet I_1 = InformationSet('x', true, hash_1);
         InformationSet I_2 = InformationSet('o', false, hash_2);
         compute_regrets_along_history(I_1, I_2, true_board, policy_obj_x, cumulative_strategy_x, 'x', t, 1.0, regret_list_x, markers_x, start_history, q_z, reward, 0, 'x');  
+        std::cout << "Computed regrets for x" << std::endl;
 
         q_z = sample_terminal_history_wrapper(policy_obj_x, policy_obj_o, start_history, reward, 'o', eps);
+        std::cout << "Sampled history for o" << std::endl;
         board = "000000000";
         true_board = TicTacToeBoard(board);
         hash_1 = "";
@@ -312,6 +317,7 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, in
         I_1 = InformationSet('x', true, hash_1);
         I_2 = InformationSet('o', false, hash_2);
         compute_regrets_along_history(I_1, I_2, true_board, policy_obj_o, cumulative_strategy_o, 'o', t, 1.0, regret_list_o, markers_o, start_history, q_z, reward, 0, 'x');
+        std::cout << "Computed regrets for o" << std::endl;
 
         if (t % 10000 == 0) {
             double expected_utility = 0.0;
