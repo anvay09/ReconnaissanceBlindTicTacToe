@@ -103,7 +103,7 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
     int action = current_history.history[traversal_index]; 
     traversal_index += 1;
 
-    std::cout<< "Checkpoint 2"<< std::endl;
+    std::cout<< "Checkpoint 2: "<< action << " " << true_board.board << " " << I.get_hash() << " " << std::endl;
 
     if (current_player == br_player){
         std::vector<int> actions;
