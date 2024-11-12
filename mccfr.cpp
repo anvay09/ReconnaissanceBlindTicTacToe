@@ -91,7 +91,7 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
 }
 
 
-double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& best_response, PolicyVec& cumulative_strategy, char br_player, int t, double forward_reach,
+double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& best_response, PolicyVec& cumulative_strategy, char br_player, long int t, double forward_reach,
                                      std::vector<std::vector<double>>& regret_list, std::vector<int>& markers, History& current_history, double q_z, double reward, int traversal_index, char current_player) {
     if (traversal_index == current_history.history.size()) {
         return 1.0;
@@ -183,7 +183,7 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
 }
 
 
-void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best_response, char br_player, int T, std::vector<std::string>& information_sets, double eps) {
+void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best_response, char br_player, long int T, std::vector<std::string>& information_sets, double eps) {
     std::vector<std::vector<double>> regret_list;
     std::vector<int> markers;
     PolicyVec cumulative_strategy;
@@ -261,7 +261,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
 }
 
 
-void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, double eps) {
+void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, long int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, double eps) {
     std::vector<std::vector<double>> regret_list_x;
     std::vector<std::vector<double>> regret_list_o;
     PolicyVec br_x('x', P1_information_sets);
@@ -289,7 +289,7 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, in
         markers_o.push_back(0);
     }
 
-    for (int t = 0; t < T; t++) {
+    for (long int t = 0; t < T; t++) {
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
@@ -358,8 +358,8 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, in
             std::cout << "Expected utility after averaging: " << expected_utility << std::endl;
 
             double exploitability = 0.0;
-            exploitability += compute_best_response_wrapper(policy_obj_o, br_x, 'x');
-            exploitability -= compute_best_response_wrapper(policy_obj_x, br_o, 'o');
+            exploitability += compute_best_response_wrapper(average_strategy_o, br_x, 'x');
+            exploitability -= compute_best_response_wrapper(average_strategy_x, br_o, 'o');
             std::cout << "Exploitability: " << exploitability << std::endl;
         }
     }
@@ -412,7 +412,7 @@ int main(int argc, char* argv[]) {
     char continue_exp = 'y';
     while (continue_exp == 'y') {
         double eps = 0.0;
-        int num_iterations = 0;
+        long int num_iterations = 0;
         std::cout << "Enter the epsilon value: ";
         std::cin >> eps;
         std::cout << "Enter number of iterations: ";
