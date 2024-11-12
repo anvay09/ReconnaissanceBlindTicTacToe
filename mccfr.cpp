@@ -143,6 +143,7 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
             }
 
             cumulative_prob_table[actions[i]] += (t - markers[I.get_index()]) * br_prob_dist[actions[i]] * forward_reach;
+            std::cout << cumulative_prob_table[actions[i]] << std::endl;
             regret_sum += regret_I[actions[i]] > 0 ? regret_I[actions[i]] : 0;
         }
 
@@ -346,9 +347,7 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
                 if (sum > 0) {
                     for (int j = 0; j < 13; j++) {
                         cumulative_prob_table[j] /= sum;
-                        std::cout << cumulative_prob_table[j] << " ";
                     }
-                    std::cout << std::endl;
                 }
             }
 
