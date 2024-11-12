@@ -92,7 +92,7 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
 
 
 double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& best_response, PolicyVec& cumulative_strategy, char br_player, long int t, double forward_reach,
-                                     std::vector<std::vector<double>>& regret_list, std::vector<int>& markers, History& current_history, double q_z, double reward, int traversal_index, char current_player) {
+                                     std::vector<std::vector<double>>& regret_list, std::vector<long int>& markers, History& current_history, double q_z, double reward, int traversal_index, char current_player) {
     if (traversal_index == current_history.history.size()) {
         return 1.0;
     }
@@ -185,7 +185,7 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
 
 void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best_response, char br_player, long int T, std::vector<std::string>& information_sets, double eps) {
     std::vector<std::vector<double>> regret_list;
-    std::vector<int> markers;
+    std::vector<long int> markers;
     PolicyVec cumulative_strategy;
     cumulative_strategy.player = br_player;
     
@@ -266,8 +266,8 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
     std::vector<std::vector<double>> regret_list_o;
     PolicyVec br_x('x', P1_information_sets);
     PolicyVec br_o('o', P2_information_sets);
-    std::vector<int> markers_x;
-    std::vector<int> markers_o;
+    std::vector<long int> markers_x;
+    std::vector<long int> markers_o;
     PolicyVec cumulative_strategy_x;
     PolicyVec cumulative_strategy_o;
     cumulative_strategy_x.player = 'x';
@@ -275,17 +275,13 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
 
     for (long int i = 0; i < P1_information_sets.size(); i++) {
         regret_list_x.push_back(std::vector<double>(13, 0.0));
-
-        std::vector<double> probability_dist(13, 0.0);
-        cumulative_strategy_x.policy_dict.push_back(probability_dist);
+        cumulative_strategy_x.policy_dict.push_back(std::vector<double>(13, 0.0));
         markers_x.push_back(0);
     }
 
     for (long int i = 0; i < P2_information_sets.size(); i++) {
         regret_list_o.push_back(std::vector<double>(13, 0.0));
-
-        std::vector<double> probability_dist(13, 0.0);
-        cumulative_strategy_o.policy_dict.push_back(probability_dist);
+        cumulative_strategy_o.policy_dict.push_back(std::vector<double>(13, 0.0));
         markers_o.push_back(0);
     }
 
@@ -350,7 +346,9 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
                 if (sum > 0) {
                     for (int j = 0; j < 13; j++) {
                         cumulative_prob_table[j] /= sum;
+                        std::cout << cumulative_prob_table[j] << " ";
                     }
+                    std::cout << std::endl;
                 }
             }
 
