@@ -261,7 +261,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
 }
 
 
-void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, long int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, double eps) {
+void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, long int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, double eps, long int step_size) {
     std::vector<std::vector<double>> regret_list_x;
     std::vector<std::vector<double>> regret_list_o;
     PolicyVec br_x('x', P1_information_sets);
@@ -313,7 +313,7 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
 
         compute_regrets_along_history(I_1, I_2, true_board, policy_obj_o, cumulative_strategy_o, 'o', t, 1.0, regret_list_o, markers_o, start_history, q_z, reward, 0, 'x');
 
-        if (t % 10000 == 0) {
+        if (t % step_size == 0) {
             double expected_utility = 0.0;
             expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
             std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
@@ -411,14 +411,17 @@ int main(int argc, char* argv[]) {
     while (continue_exp == 'y') {
         double eps = 0.0;
         long int num_iterations = 0;
+        long int step_size = 0;
         std::cout << "Enter the epsilon value: ";
         std::cin >> eps;
         std::cout << "Enter number of iterations: ";
         std::cin >> num_iterations;
+        std::cout << "Enter the number of iterations after which progress is to be checked: ";
+        std::cin >> step_size;
 
         // PolicyVec curr_br = policy_obj_x;
         // mccfr_outcome_sampling_best_response(policy_obj_o, curr_br, 'x', num_iterations, P1_information_sets, eps);
-        mccfr_outcome_sampling(policy_obj_x, policy_obj_o, num_iterations, P1_information_sets, P2_information_sets, eps);
+        mccfr_outcome_sampling(policy_obj_x, policy_obj_o, num_iterations, P1_information_sets, P2_information_sets, eps, step_size);
 
         std::cout << "Continue experiments? (y/n): ";
         std::cin >> continue_exp;
