@@ -143,7 +143,6 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
             }
 
             cumulative_prob_table[actions[i]] += (t - markers[I.get_index()]) * br_prob_dist[actions[i]] * forward_reach;
-            std::cout << cumulative_prob_table[actions[i]] << std::endl;
             regret_sum += regret_I[actions[i]] > 0 ? regret_I[actions[i]] : 0;
         }
 
@@ -301,6 +300,9 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
         InformationSet I_2 = InformationSet('o', false, hash_2);
         compute_regrets_along_history(I_1, I_2, true_board, policy_obj_x, cumulative_strategy_x, 'x', t, 1.0, regret_list_x, markers_x, start_history, q_z, reward, 0, 'x');  
 
+        reward = 0.0;
+        h = {};
+        start_history = TerminalHistory(h);
         q_z = sample_terminal_history_wrapper(policy_obj_x, policy_obj_o, start_history, reward, 'o', eps);
         board = "000000000";
         true_board = TicTacToeBoard(board);
@@ -308,8 +310,7 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
         hash_2 = "";
         I_1 = InformationSet('x', true, hash_1);
         I_2 = InformationSet('o', false, hash_2);
-        h = {};
-        start_history = TerminalHistory(h);
+
         compute_regrets_along_history(I_1, I_2, true_board, policy_obj_o, cumulative_strategy_o, 'o', t, 1.0, regret_list_o, markers_o, start_history, q_z, reward, 0, 'x');
 
         if (t % 10000 == 0) {
