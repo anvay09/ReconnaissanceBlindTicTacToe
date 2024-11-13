@@ -158,8 +158,51 @@ void build_policy(){
     // TODO
 }
 
-void update_ucb(){
+void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vector<std::vector<double>>& infoset_empirical_reward, std::vector<std::vector<long int>>& infoset_pull_count, std::vector<long int>& infoset_time_steps, double reward, TerminalHistory& history, char player) {
     // TODO
+    std::string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    InformationSet I_1 = InformationSet('x', true, hash_1);
+    InformationSet I_2 = InformationSet('o', false, hash_2);
+    char curr_player = 'x';
+    double total_reward = 0.0;
+    long int total_pull = 0;
+
+    for (int action : history.history) {
+
+        if (curr_player == player) {
+            InformationSet I = curr_player == 'x' ? I_1 : I_2;
+            total_pull = infoset_pull_count[I.get_index()][action];
+            total_reward = infoset_empirical_reward[I.get_index()][action] * total_pull;
+            infoset_pull_count[I.get_index()][action] += 1;
+            infoset_empirical_reward[I.get_index()][action] =  (total_reward + reward) / (total_pull + 1);
+            infoset_time_steps[I.get_index()] += 1;
+            infoset_ucb_values[I.get_index()][action] = infoset_empirical_reward[I.get_index()][action] + sqrt(2 * log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][action]);
+        }
+
+        if (action < 9) {
+            if (curr_player == 'x') {
+                I_1.update_move(action, curr_player);
+                I_1.reset_zeros();
+                curr_player = 'o';
+            } else {
+                I_2.update_move(action, curr_player);
+                I_2.reset_zeros();
+                curr_player = 'x';
+            }
+            true_board.update_move(action, curr_player);
+        } 
+        else {
+            if (curr_player == 'x') {
+                I_1.simulate_sense(action, true_board);
+            } else {
+                I_2.simulate_sense(action, true_board);
+            }
+        }
+    }
+
 }
 
 
@@ -167,7 +210,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char playe
     std::vector<long int> infoset_time_steps(player_information_sets.size(), 0);
     std::vector<std::vector<double>> infoset_ucb_values(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<double>> infoset_empirical_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
-    std::vector<std::vector<int>> infoset_pull_count(player_information_sets.size(), std::vector<int>(13, 0));
+    std::vector<std::vector<long int>> infoset_pull_count(player_information_sets.size(), std::vector<long int>(13, 0));
 
     for (long int t = 0; t < num_iterations; t++) {
         // sample terminal history
@@ -177,7 +220,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char playe
 
         reward = sample_terminal_history_wrapper(infoset_ucb_values, opponent_policy, start_history, player);
         // update ucb values
-        update_ucb();
+        update_ucb(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, infoset_time_steps, reward, start_history, player);
     } 
 
     // TODO
