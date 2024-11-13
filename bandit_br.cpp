@@ -80,7 +80,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         double max_ucb = -1.0;
 
         for (int i = 0; i < 13; i++){
-            if (action_ucbs[i] > max_ucb){
+            if (action_ucbs[i] >= max_ucb){
                 max_ucb = action_ucbs[i];
             }
         }
@@ -89,7 +89,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         double sum = 0.0;
 
         for (int i = 0; i < 13; i++){
-            if (std::abs(action_ucbs[i] - max_ucb) < 1e-8){
+            if (std::fabs(action_ucbs[i] - max_ucb) < std::numeric_limits<double>::epsilon()){
                 best_arms[i] = 1.0;
                 sum += 1.0;
             }
