@@ -75,44 +75,38 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
     InformationSet& I = player == 'x' ? I_1 : I_2;
     int action = 0;
 
-    std::cout << "Sample terminal history" << std::endl;
     if (player == br_player){ // choose action with max UCB value
-        std::cout << "Player is best response player" << std::endl;
         std::vector<double>& action_ucbs = infoset_ucb_values[I.get_index()];
         double max_ucb = -1.0;
+        std::vector<int> legal_actions;
+        I.get_actions(legal_actions);
 
-        std::cout << "max_ucb 1" << std::endl;
-        for (int i = 0; i < 13; i++){
-            if (action_ucbs[i] >= max_ucb){
-                max_ucb = action_ucbs[i];
+        for (int a : legal_actions){
+            if (action_ucbs[a] >= max_ucb){
+                max_ucb = action_ucbs[a];
             }
         }
 
-        std::cout << "max_ucb 2" << std::endl;
         std::vector<double> best_arms(13, 0.0);
         double sum = 0.0;
 
-        std::cout << "max_ucb 3" << std::endl;
-        for (int i = 0; i < 13; i++){
-            std::cout << "max_ucb_4" << std::endl;
-            if (std::fabs(action_ucbs[i] - max_ucb) < std::numeric_limits<double>::epsilon()){
-                best_arms[i] = 1.0;
+        for (int a : legal_actions){
+            if (std::fabs(action_ucbs[a] - max_ucb) < std::numeric_limits<double>::epsilon()){
+                best_arms[a] = 1.0;
                 sum += 1.0;
             }
         }
-        std::cout << "max_ucb 5" << "sum_value"<< sum << std::endl;
-        for (int i = 0; i < 13; i++){
-            best_arms[i] /= sum;
+        for (int a : legal_actions){
+            best_arms[a] /= sum;
         }
 
-        std::cout << "max_ucb 6" << std::endl;
         action = sampleIndex(best_arms);
     }
     else {
         std::vector<double> prob_dist = opponent_policy.policy_dict[I.get_index()];
         action = sampleIndex(prob_dist);
     }
-    std::cout<< "max_ucb 7" << std::endl;
+
     if (I.move_flag) {
         bool success = true_board.update_move(action, player);
         current_history.history.push_back(action);
@@ -156,7 +150,6 @@ double sample_terminal_history_wrapper(std::vector<std::vector<double>>& infoset
     std::string hash_2 = "";
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
-    std::cout << "Sample terminal history wrapper" << std::endl;
     return sample_terminal_history(I_1, I_2, true_board, infoset_ucb_values, opponent_policy, current_history, 'x', br_player);
 }
 
