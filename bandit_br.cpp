@@ -72,36 +72,43 @@ int sampleIndex(const std::vector<double>& probabilities) {
 }
 
 
-double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, 
-                               PolicyVec& policy_obj_o, History& current_history, char player, double probability, double& reward, 
-                               char update_player, PolicyVec& oppo_cumulative_sample_count, PolicyVec& oppo_strategy, std::vector<long int>& visited_infosets) {
+double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, std::vector<std::vector<double>>& infoset_ucb_values, PolicyVec& opponent_policy, History& current_history, char player, char br_player) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
-    PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
-    std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
+    int action = 0;
 
-    int action = sampleIndex(prob_dist);
+    if (player == br_player){ // choose action with max UCB value
+        std::vector<double>& action_ucbs = infoset_ucb_values[I.get_index()];
+        double max_ucb = -1.0;
+
+        for (int i = 0; i < 13; i++){
+            if (action_ucbs[i] > max_ucb){
+                max_ucb = action_ucbs[i];
+            }
+        }
+
+        std::vector<double> best_arms(13, 0.0);
+        double sum = 0.0;
+
+        for (int i = 0; i < 13; i++){
+            if (std::abs(action_ucbs[i] - max_ucb) < 1e-8){
+                best_arms[i] = 1.0;
+                sum += 1.0;
+            }
+        }
+
+        for (int i = 0; i < 13; i++){
+            best_arms[i] /= sum;
+        }
+
+        action = sampleIndex(best_arms);
+    }
+    else {
+        std::vector<double> prob_dist = opponent_policy.policy_dict[I.get_index()];
+        action = sampleIndex(prob_dist);
+    }
 
     if (I.move_flag) {
         bool success = true_board.update_move(action, player);
-
-        if (player == update_player) { // update the probability only if the player is the one we are updating
-            probability = probability * prob_dist[action];
-        }
-        else {
-            visited_infosets[I.get_index()] += 1;
-            std::vector<double>& oppo_sample_count = oppo_cumulative_sample_count.policy_dict[I.get_index()];
-            oppo_sample_count[action] += 1.0;
-            double sum_infoset_sample_count = 0.0;
-            for (int i = 0; i < 13; i++) {
-                sum_infoset_sample_count += oppo_sample_count[i];
-            }
-
-            std::vector<double>& oppo_prob_dist = oppo_strategy.policy_dict[I.get_index()];
-            for (int i = 0; i < 13; i++) {
-                oppo_prob_dist[i] = oppo_sample_count[i] / sum_infoset_sample_count;
-            }
-        }
-
         current_history.history.push_back(action);
 
         char winner;
@@ -111,59 +118,40 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             new_I.reset_zeros();
 
             if (player == 'x') {
-                return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
+                return sample_terminal_history(new_I, I_2, true_board, infoset_ucb_values, opponent_policy, current_history, 'o', br_player);
             } else {
-                return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
+                return sample_terminal_history(I_1, new_I, true_board, infoset_ucb_values, opponent_policy, current_history, 'x', br_player);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
             H_T.set_reward();
-            reward = (double) H_T.reward[0];
-            return probability;
+            double reward = (double) H_T.reward[0];
+            return reward;
         }
     }
     else {
         InformationSet new_I = I;
         new_I.simulate_sense(action, true_board);
-        
-        if (player == update_player) { // update the probability only if the player is the one we are updating
-            probability = probability * prob_dist[action];
-        }
-        else {
-            visited_infosets[I.get_index()] += 1;
-            std::vector<double>& oppo_sample_count = oppo_cumulative_sample_count.policy_dict[I.get_index()];
-            oppo_sample_count[action] += 1.0;
-            double sum_infoset_sample_count = 0.0;
-            for (int i = 0; i < 13; i++) {
-                sum_infoset_sample_count += oppo_sample_count[i];
-            }
-
-            std::vector<double>& oppo_prob_dist = oppo_strategy.policy_dict[I.get_index()];
-            for (int i = 0; i < 13; i++) {
-                oppo_prob_dist[i] = oppo_sample_count[i] / sum_infoset_sample_count;
-            }
-        }
         current_history.history.push_back(action);
 
         if (player == 'x') {
-            return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
+            return sample_terminal_history(new_I, I_2, true_board, infoset_ucb_values, opponent_policy, current_history, 'x', br_player);
         } else {
-            return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
+            return sample_terminal_history(I_1, new_I, true_board, infoset_ucb_values, opponent_policy, current_history, 'o', br_player);
         }
     }
 }
 
 
-double sample_terminal_history_wrapper(std::vector<std::vector<double>> policy_obj_x, PolicyVec& policy_obj_o, History& current_history, double reward, char update_player) {
+double sample_terminal_history_wrapper(std::vector<std::vector<double>>& infoset_ucb_values, PolicyVec& opponent_policy, History& current_history, char br_player) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
     std::string hash_2 = "";
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
-    return sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', 1.0, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
+    return sample_terminal_history(I_1, I_2, true_board, infoset_ucb_values, opponent_policy, current_history, 'x', br_player);
 }
-
 
 
 void build_policy(){
