@@ -5,7 +5,6 @@ int NUMBER_THREADS = 4;
 int AVERAGE_DELAY = 5;
 
 
-
 void pretty_print(std::chrono::time_point<std::chrono::system_clock> start, std::chrono::time_point<std::chrono::system_clock> end, std::string msg, int flag) {
     if (flag) {
     std::chrono::duration<double> elapsed_seconds = end-start;
@@ -154,9 +153,36 @@ double sample_terminal_history_wrapper(std::vector<std::vector<double>>& infoset
 }
 
 
-void build_policy(){
-    // TODO
+void build_policy(std::vector<std::vector<double>>& infoset_ucb_values, PolicyVec& policy_obj){
+    #pragma omp parallel for num_threads(NUMBER_THREADS)
+    for (long int i = 0; i < infoset_ucb_values.size(); i++){
+        std::vector<double>& action_ucbs = infoset_ucb_values[i];
+        double max_ucb = -1.0;
+
+        for (int i = 0; i < 13; i++){
+            if (action_ucbs[i] > max_ucb){
+                max_ucb = action_ucbs[i];
+            }
+        }
+
+        std::vector<double> best_arms(13, 0.0);
+        double sum = 0.0;
+
+        for (int i = 0; i < 13; i++){
+            if (std::abs(action_ucbs[i] - max_ucb) < 1e-8){
+                best_arms[i] = 1.0;
+                sum += 1.0;
+            }
+        }
+
+        for (int i = 0; i < 13; i++){
+            best_arms[i] /= sum;
+        }
+
+        policy_obj.policy_dict[i] = best_arms;
+    }
 }
+
 
 void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vector<std::vector<double>>& infoset_empirical_reward, std::vector<std::vector<long int>>& infoset_pull_count, std::vector<long int>& infoset_time_steps, double reward, TerminalHistory& history, char player) {
     // TODO
@@ -206,7 +232,7 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
 }
 
 
-void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char player, std::vector<std::string>& player_information_sets, int log_flag) {
+void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, int log_flag, int log_frequency) {
     std::vector<long int> infoset_time_steps(player_information_sets.size(), 0);
     std::vector<std::vector<double>> infoset_ucb_values(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<double>> infoset_empirical_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
@@ -218,12 +244,25 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char playe
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0;
 
-        reward = sample_terminal_history_wrapper(infoset_ucb_values, opponent_policy, start_history, player);
+        reward = sample_terminal_history_wrapper(infoset_ucb_values, opponent_policy, start_history, br_player);
         // update ucb values
-        update_ucb(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, infoset_time_steps, reward, start_history, player);
-    } 
+        update_ucb(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, infoset_time_steps, reward, start_history, br_player);
 
-    // TODO
+        if (t % log_frequency == 0 && t != 0){
+            PolicyVec policy_obj(br_player, player_information_sets);
+
+            build_policy(infoset_ucb_values, policy_obj);
+            if (br_player == 'x'){
+                double expected_utility = get_expected_utility_wrapper(policy_obj, opponent_policy);
+                std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
+            }
+            else {
+                double expected_utility = get_expected_utility_wrapper(opponent_policy, policy_obj);
+                std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
+            }
+            
+        }
+    } 
 }
 
 int main(int argc, char* argv[]) {
@@ -304,8 +343,8 @@ int main(int argc, char* argv[]) {
             pretty_print(start, end, "computing best response o", log_flag);
         }
 
-        calc_epsilon_best_response(policy_obj_x, policy_obj_o, uniform_policy_obj_x, uniform_policy_obj_o, P1_information_sets, P2_information_sets, player, num_iterations, update_step_size, log_flag, average_flag);
-
+        
+        
         std::cout << "Continue experiments? (y/n): ";
         std::cin >> continue_exp;
     }
