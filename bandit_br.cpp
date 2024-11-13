@@ -100,6 +100,10 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             best_arms[a] /= sum;
         }
 
+        std::cout << "Info set: " << I.get_hash() << std::endl;
+        for (int a : legal_actions){
+            std::cout << best_arms[a] << " ";
+        }
         action = sampleIndex(best_arms);
     }
     else {
