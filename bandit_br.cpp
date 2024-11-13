@@ -269,11 +269,8 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
-    std::string uniform_file_path_1 = argv[3];
-    std::string uniform_file_path_2 = argv[4];
-    int log_flag = std::stoi(argv[5]);
-    int average_flag = std::stoi(argv[6]);
-    NUMBER_THREADS = std::stoi(argv[7]); //96;
+    int log_flag = std::stoi(argv[3]);
+    NUMBER_THREADS = std::stoi(argv[4]); //96;
 
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -302,12 +299,9 @@ int main(int argc, char* argv[]) {
     }
 
     // load policies
-    std::cout << "Loading policies..." << std::endl;
     auto start = std::chrono::system_clock::now(); 
     PolicyVec policy_obj_x('x', file_path_1);
     PolicyVec policy_obj_o('o', file_path_2);
-    PolicyVec uniform_policy_obj_x('x', uniform_file_path_1);
-    PolicyVec uniform_policy_obj_o('o', uniform_file_path_2);
     PolicyVec br_x('x', P1_information_sets);
     PolicyVec br_o('o', P2_information_sets);
     auto end = std::chrono::system_clock::now();
@@ -317,12 +311,9 @@ int main(int argc, char* argv[]) {
     char continue_exp = 'y';
     while (continue_exp == 'y') {
         int num_iterations = 10000;
-        int update_step_size = 100;
         char player = 'x';
         std::cout << "Enter number of iterations: ";
         std::cin >> num_iterations;
-        std::cout << "Enter update step size: ";
-        std::cin >> update_step_size;
         std::cout << "Enter player for best response calculation: ";
         std::cin >> player;
 
@@ -343,7 +334,7 @@ int main(int argc, char* argv[]) {
             pretty_print(start, end, "computing best response o", log_flag);
         }
 
-        
+        calc_br_ucb(player == 'x' ? policy_obj_o : policy_obj_x, num_iterations, player, player == 'x' ? P1_information_sets : P2_information_sets, log_flag, 10000);
         
         std::cout << "Continue experiments? (y/n): ";
         std::cin >> continue_exp;
