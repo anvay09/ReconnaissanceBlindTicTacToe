@@ -209,12 +209,17 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
         if (curr_player == player) {
             std::cout << "updates for UCB: " << player << std::endl;
             InformationSet I = curr_player == 'x' ? I_1 : I_2;
-            std::cout << "Info set: " << I.get_hash() << "  player: " << player << std::endl;
+            std::cout << "Info set: " << I.get_hash() << "  player: " << player << "  action " << action << std::endl;
             total_pull = infoset_pull_count[I.get_index()][action];
+            std::cout << "Total pull: " << total_pull << std::endl;
             total_reward = infoset_empirical_reward[I.get_index()][action] * total_pull;
+            std::cout << "Total reward: " << total_reward << std::endl;
             infoset_pull_count[I.get_index()][action] += 1;
+            std::cout << "Pull count updated" << std::endl;
             infoset_empirical_reward[I.get_index()][action] =  (total_reward + reward) / (total_pull + 1);
+            std::cout << "Empirical reward updated" << std::endl;
             infoset_time_steps[I.get_index()] += 1;
+            std::cout << "Time steps updated" << std::endl;
             std::vector<int> legal_actions;
             std::cout << "Getting legal actions" << std::endl;
             I.get_actions(legal_actions);
@@ -230,15 +235,14 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
                 std::cout << "Updating move for x" << std::endl;
                 I_1.update_move(action, curr_player);
                 I_1.reset_zeros();
-                curr_player = 'o';
             } else {
                 std::cout << "Updating move for o" << std::endl;
                 I_2.update_move(action, curr_player);
                 I_2.reset_zeros();
-                curr_player = 'x';
             }
             std::cout << "true board update" << std::endl;
             true_board.update_move(action, curr_player);
+            curr_player = (curr_player == 'x') ? 'o' : 'x';
         } 
         else {
             if (curr_player == 'x') {
