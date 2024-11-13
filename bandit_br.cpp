@@ -210,13 +210,10 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
     double total_reward = 0.0;
     long int total_pull = 0;
 
-    std::cout << "Inside Update UCB" << std::endl;
-
     for (int action : history.history) {
 
         if (curr_player == player) {
             InformationSet I = curr_player == 'x' ? I_1 : I_2;
-            std::cout << "Info set: " << I.get_hash() << "  player: " << player << "  action " << action << std::endl;
             total_pull = infoset_pull_count[I.get_index()][action];
             total_reward = infoset_empirical_reward[I.get_index()][action] * total_pull;
             infoset_pull_count[I.get_index()][action] += 1;
@@ -227,7 +224,6 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
             for (int a : legal_actions){
                 infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + sqrt(2 * log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][a]);
             }
-            std::cout << "Updates done for UCB: " << std::endl;
         }
 
         if (action < 9) {
@@ -259,17 +255,14 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
     std::vector<std::vector<double>> infoset_empirical_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<long int>> infoset_pull_count(player_information_sets.size(), std::vector<long int>(13, 0));
 
-    std::cout << "Starting BR UCB" << std::endl;
     for (long int t = 0; t < num_iterations; t++) {
         // sample terminal history
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
 
-        std::cout << "Sample terminal history" << std::endl;
         reward = sample_terminal_history_wrapper(infoset_ucb_values, opponent_policy, start_history, br_player);
         // update ucb values
-        std::cout << "Update UCB" << std::endl;
         update_ucb(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, infoset_time_steps, reward, start_history, br_player);
 
         if (t % log_frequency == 0 && t != 0){
@@ -357,7 +350,6 @@ int main(int argc, char* argv[]) {
             pretty_print(start, end, "computing best response o", log_flag);
         }
 
-        std::cout << "Starting BR UCB call" << std::endl;
         calc_br_ucb(player == 'x' ? policy_obj_o : policy_obj_x, num_iterations, player, player == 'x' ? P1_information_sets : P2_information_sets, log_flag, 10000);
         
         std::cout << "Continue experiments? (y/n): ";
