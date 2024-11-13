@@ -209,7 +209,11 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
             infoset_pull_count[I.get_index()][action] += 1;
             infoset_empirical_reward[I.get_index()][action] =  (total_reward + reward) / (total_pull + 1);
             infoset_time_steps[I.get_index()] += 1;
-            infoset_ucb_values[I.get_index()][action] = infoset_empirical_reward[I.get_index()][action] + sqrt(2 * log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][action]);
+            std::vector<int> legal_actions;
+            I.get_actions(legal_actions);
+            for (int a : legal_actions){
+                infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + sqrt(2 * log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][a]);
+            }
             std::cout << "Updates done for UCB: " << std::endl;
         }
 
