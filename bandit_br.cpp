@@ -196,9 +196,12 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
     double total_reward = 0.0;
     long int total_pull = 0;
 
+    std::cout << "Inside Update UCB" << std::endl;
+
     for (int action : history.history) {
 
         if (curr_player == player) {
+            std::cout << "updates for UCB: " << player << std::endl;
             InformationSet I = curr_player == 'x' ? I_1 : I_2;
             total_pull = infoset_pull_count[I.get_index()][action];
             total_reward = infoset_empirical_reward[I.get_index()][action] * total_pull;
@@ -206,24 +209,30 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
             infoset_empirical_reward[I.get_index()][action] =  (total_reward + reward) / (total_pull + 1);
             infoset_time_steps[I.get_index()] += 1;
             infoset_ucb_values[I.get_index()][action] = infoset_empirical_reward[I.get_index()][action] + sqrt(2 * log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][action]);
+            std::cout << "Updates done for UCB: " << std::endl;
         }
 
         if (action < 9) {
             if (curr_player == 'x') {
+                std::cout << "Updating move for x" << std::endl;
                 I_1.update_move(action, curr_player);
                 I_1.reset_zeros();
                 curr_player = 'o';
             } else {
+                std::cout << "Updating move for o" << std::endl;
                 I_2.update_move(action, curr_player);
                 I_2.reset_zeros();
                 curr_player = 'x';
             }
+            std::cout << "true board update" << std::endl;
             true_board.update_move(action, curr_player);
         } 
         else {
             if (curr_player == 'x') {
+                std::cout << "Simulating sense for x" << std::endl;
                 I_1.simulate_sense(action, true_board);
             } else {
+                std::cout << "Simulating sense for o" << std::endl;
                 I_2.simulate_sense(action, true_board);
             }
         }
@@ -238,19 +247,22 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
     std::vector<std::vector<double>> infoset_empirical_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<long int>> infoset_pull_count(player_information_sets.size(), std::vector<long int>(13, 0));
 
+    std::cout << "Starting BR UCB" << std::endl;
     for (long int t = 0; t < num_iterations; t++) {
         // sample terminal history
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
-        double reward = 0;
+        double reward = 0.0;
 
+        std::cout << "Sample terminal history" << std::endl;
         reward = sample_terminal_history_wrapper(infoset_ucb_values, opponent_policy, start_history, br_player);
         // update ucb values
+        std::cout << "Update UCB" << std::endl;
         update_ucb(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, infoset_time_steps, reward, start_history, br_player);
 
         if (t % log_frequency == 0 && t != 0){
             PolicyVec policy_obj(br_player, player_information_sets);
-
+            std::cout << "Build policy" << std::endl;
             build_policy(infoset_ucb_values, policy_obj);
             if (br_player == 'x'){
                 double expected_utility = get_expected_utility_wrapper(policy_obj, opponent_policy);
@@ -334,6 +346,7 @@ int main(int argc, char* argv[]) {
             pretty_print(start, end, "computing best response o", log_flag);
         }
 
+        std::cout << "Starting BR UCB call" << std::endl;
         calc_br_ucb(player == 'x' ? policy_obj_o : policy_obj_x, num_iterations, player, player == 'x' ? P1_information_sets : P2_information_sets, log_flag, 10000);
         
         std::cout << "Continue experiments? (y/n): ";
