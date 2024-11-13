@@ -74,7 +74,6 @@ int sampleIndex(const std::vector<double>& probabilities) {
 double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, std::vector<std::vector<double>>& infoset_ucb_values, PolicyVec& opponent_policy, History& current_history, char player, char br_player) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     int action = 0;
-    std::cout << "Player: " << player << std::endl;
     if (player == br_player){ // choose action with max UCB value
         std::vector<double>& action_ucbs = infoset_ucb_values[I.get_index()];
         double max_ucb = -1.0;
@@ -216,23 +215,15 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
     for (int action : history.history) {
 
         if (curr_player == player) {
-            std::cout << "updates for UCB: " << player << std::endl;
             InformationSet I = curr_player == 'x' ? I_1 : I_2;
             std::cout << "Info set: " << I.get_hash() << "  player: " << player << "  action " << action << std::endl;
             total_pull = infoset_pull_count[I.get_index()][action];
-            std::cout << "Total pull: " << total_pull << std::endl;
             total_reward = infoset_empirical_reward[I.get_index()][action] * total_pull;
-            std::cout << "Total reward: " << total_reward << std::endl;
             infoset_pull_count[I.get_index()][action] += 1;
-            std::cout << "Pull count updated" << std::endl;
             infoset_empirical_reward[I.get_index()][action] =  (total_reward + reward) / (total_pull + 1);
-            std::cout << "Empirical reward updated" << std::endl;
             infoset_time_steps[I.get_index()] += 1;
-            std::cout << "Time steps updated" << std::endl;
             std::vector<int> legal_actions;
-            std::cout << "Getting legal actions" << std::endl;
             I.get_actions(legal_actions);
-            std::cout << "Legal actions end " << std::endl;
             for (int a : legal_actions){
                 infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + sqrt(2 * log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][a]);
             }
@@ -241,24 +232,19 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
 
         if (action < 9) {
             if (curr_player == 'x') {
-                std::cout << "Updating move for x" << std::endl;
                 I_1.update_move(action, curr_player);
                 I_1.reset_zeros();
             } else {
-                std::cout << "Updating move for o" << std::endl;
                 I_2.update_move(action, curr_player);
                 I_2.reset_zeros();
             }
-            std::cout << "true board update" << std::endl;
             true_board.update_move(action, curr_player);
             curr_player = (curr_player == 'x') ? 'o' : 'x';
         } 
         else {
             if (curr_player == 'x') {
-                std::cout << "Simulating sense for x" << std::endl;
                 I_1.simulate_sense(action, true_board);
             } else {
-                std::cout << "Simulating sense for o" << std::endl;
                 I_2.simulate_sense(action, true_board);
             }
         }
