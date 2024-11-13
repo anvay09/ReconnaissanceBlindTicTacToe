@@ -175,7 +175,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char playe
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0;
 
-        sample_terminal_history_wrapper(infoset_ucb_values, opponent_policy, start_history, reward, player);
+        reward = sample_terminal_history_wrapper(infoset_ucb_values, opponent_policy, start_history, player);
         // update ucb values
         update_ucb();
     } 
