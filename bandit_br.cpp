@@ -198,7 +198,7 @@ void build_policy(std::vector<std::vector<double>>& infoset_ucb_values, PolicyVe
 }
 
 
-void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vector<std::vector<double>>& infoset_empirical_reward, std::vector<std::vector<long int>>& infoset_pull_count, std::vector<long int>& infoset_time_steps, double reward, TerminalHistory& history, char player) {
+void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vector<std::vector<double>>& infoset_empirical_reward, std::vector<std::vector<long int>>& infoset_pull_count, std::vector<long int>& infoset_time_steps, double reward, TerminalHistory& history, char player, int C) {
     // TODO
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
@@ -222,7 +222,7 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
             std::vector<int> legal_actions;
             I.get_actions(legal_actions);
             for (int a : legal_actions){
-                infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + sqrt(2 * log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][a]);
+                infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + C * sqrt(log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][a]);
             }
         }
 
@@ -249,7 +249,7 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
 }
 
 
-void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, int log_flag, int log_frequency) {
+void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, int log_flag, int log_frequency, int C) {
     std::vector<long int> infoset_time_steps(player_information_sets.size(), 0);
     std::vector<std::vector<double>> infoset_ucb_values(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<double>> infoset_empirical_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
@@ -263,7 +263,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
 
         reward = sample_terminal_history_wrapper(infoset_ucb_values, opponent_policy, start_history, br_player);
         // update ucb values
-        update_ucb(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, infoset_time_steps, reward, start_history, br_player);
+        update_ucb(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, infoset_time_steps, reward, start_history, br_player, C);
 
         if (t % log_frequency == 0 && t != 0){
             PolicyVec policy_obj(br_player, player_information_sets);
@@ -327,11 +327,17 @@ int main(int argc, char* argv[]) {
     char continue_exp = 'y';
     while (continue_exp == 'y') {
         int num_iterations = 10000;
+        int log_frequency = 10000;
         char player = 'x';
+        int C = 1;
         std::cout << "Enter number of iterations: ";
         std::cin >> num_iterations;
+        std::cout << "Enter log frequency: ";
+        std::cin >> log_frequency;
         std::cout << "Enter player for best response calculation: ";
         std::cin >> player;
+        std::cout << "Enter hyperparameter c for UCB:";
+        std::cin >> C;
 
         if (player == 'x') {
             // compute expected utility of the best response (i.e., when opponent policy is known)
@@ -350,7 +356,7 @@ int main(int argc, char* argv[]) {
             pretty_print(start, end, "computing best response o", log_flag);
         }
 
-        calc_br_ucb(player == 'x' ? policy_obj_o : policy_obj_x, num_iterations, player, player == 'x' ? P1_information_sets : P2_information_sets, log_flag, 10000);
+        calc_br_ucb(player == 'x' ? policy_obj_o : policy_obj_x, num_iterations, player, player == 'x' ? P1_information_sets : P2_information_sets, log_flag, log_frequency, C);
         
         std::cout << "Continue experiments? (y/n): ";
         std::cin >> continue_exp;
