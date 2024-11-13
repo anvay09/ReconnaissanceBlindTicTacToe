@@ -84,6 +84,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         for (int a : legal_actions){
             if (action_ucbs[a] >= max_ucb){
                 max_ucb = action_ucbs[a];
+                action = a;
             }
         }
 
@@ -96,16 +97,13 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
                 sum += 1.0;
             }
         }
-        for (int a : legal_actions){
-            best_arms[a] /= sum;
-        }
 
-        std::cout << "Info set: " << I.get_hash() << std::endl;
-        for (int a : legal_actions){
-            std::cout << best_arms[a] << " ";
+        if (sum > 0){
+            for (int a : legal_actions){
+                best_arms[a] /= sum;
+            }
+            action = sampleIndex(best_arms);
         }
-        std::cout << std::endl;
-        action = sampleIndex(best_arms);
     }
     else {
         std::vector<double> prob_dist = opponent_policy.policy_dict[I.get_index()];
@@ -159,30 +157,41 @@ double sample_terminal_history_wrapper(std::vector<std::vector<double>>& infoset
 }
 
 
-void build_policy(std::vector<std::vector<double>>& infoset_ucb_values, PolicyVec& policy_obj){
+void build_policy(std::vector<std::vector<double>>& infoset_ucb_values, PolicyVec& policy_obj, std::vector<std::string>& information_sets){
     #pragma omp parallel for num_threads(NUMBER_THREADS)
     for (long int i = 0; i < infoset_ucb_values.size(); i++){
         std::vector<double>& action_ucbs = infoset_ucb_values[i];
         double max_ucb = -1.0;
+        std::vector<int> legal_actions;
+        std::string I_hash = information_sets[i];
+        InformationSet I(policy_obj.player, get_move_flag(I_hash, policy_obj.player), I_hash);
+        I.get_actions(legal_actions);
+        int action = 0;
 
-        for (int i = 0; i < 13; i++){
-            if (action_ucbs[i] > max_ucb){
-                max_ucb = action_ucbs[i];
+        for (int a : legal_actions){
+            if (action_ucbs[a] >= max_ucb){
+                max_ucb = action_ucbs[a];
+                action = a;
             }
         }
 
         std::vector<double> best_arms(13, 0.0);
         double sum = 0.0;
 
-        for (int i = 0; i < 13; i++){
-            if (std::abs(action_ucbs[i] - max_ucb) < 1e-8){
-                best_arms[i] = 1.0;
+        for (int a : legal_actions){
+            if (std::fabs(action_ucbs[a] - max_ucb) < std::numeric_limits<double>::epsilon()){
+                best_arms[a] = 1.0;
                 sum += 1.0;
             }
         }
 
-        for (int i = 0; i < 13; i++){
-            best_arms[i] /= sum;
+        if (sum > 0) {
+            for (int a : legal_actions){
+                best_arms[a] /= sum;
+            }
+        }   
+        else {
+            best_arms[action] = 1.0;
         }
 
         policy_obj.policy_dict[i] = best_arms;
@@ -280,7 +289,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         if (t % log_frequency == 0 && t != 0){
             PolicyVec policy_obj(br_player, player_information_sets);
             std::cout << "Build policy" << std::endl;
-            build_policy(infoset_ucb_values, policy_obj);
+            build_policy(infoset_ucb_values, policy_obj, player_information_sets);
             if (br_player == 'x'){
                 double expected_utility = get_expected_utility_wrapper(policy_obj, opponent_policy);
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
@@ -289,7 +298,6 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
                 double expected_utility = get_expected_utility_wrapper(opponent_policy, policy_obj);
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
             }
-            
         }
     } 
 }
