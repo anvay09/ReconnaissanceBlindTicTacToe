@@ -154,14 +154,14 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
 }
 
 
-double sample_terminal_history_wrapper(std::vector<std::vector<double>> policy_obj_x, PolicyVec& policy_obj_o, History& current_history, double reward, char update_player) {
+double sample_terminal_history_wrapper(std::vector<std::vector<double>> policy_obj_x, PolicyVec& policy_obj_o, History& current_history, char update_player) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
     std::string hash_2 = "";
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
-    return sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', 1.0, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
+    return sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', 1.0, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
 }
 
 
@@ -187,7 +187,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char playe
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0;
 
-        sample_terminal_history_wrapper(infoset_ucb_values, opponent_policy, start_history, reward, player);
+        reward = sample_terminal_history_wrapper(infoset_ucb_values, opponent_policy, start_history, player);
         // update ucb values
         update_ucb();
     } 
