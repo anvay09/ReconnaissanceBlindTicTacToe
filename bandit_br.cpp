@@ -222,7 +222,9 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
             std::vector<int> legal_actions;
             I.get_actions(legal_actions);
             for (int a : legal_actions){
-                infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + C * sqrt(log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][a]);
+                if (infoset_pull_count[I.get_index()][a] > 0){
+                    infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + C * sqrt(log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][a]);
+                }
             }
         }
 
@@ -251,9 +253,9 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
 
 void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, int log_flag, int log_frequency, int C) {
     std::vector<long int> infoset_time_steps(player_information_sets.size(), 0);
-    std::vector<std::vector<double>> infoset_ucb_values(player_information_sets.size(), std::vector<double>(13, 0));
+    std::vector<std::vector<double>> infoset_ucb_values(player_information_sets.size(), std::vector<double>(13, std::numeric_limits<double>::infinity()));
     std::vector<std::vector<double>> infoset_empirical_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
-    std::vector<std::vector<long int>> infoset_pull_count(player_information_sets.size(), std::vector<long int>(13, 1));
+    std::vector<std::vector<long int>> infoset_pull_count(player_information_sets.size(), std::vector<long int>(13, 0));
 
     for (long int t = 0; t < num_iterations; t++) {
         // sample terminal history
