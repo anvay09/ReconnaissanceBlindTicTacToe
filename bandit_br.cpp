@@ -71,11 +71,13 @@ int sampleIndex(const std::vector<double>& probabilities) {
 }
 
 
-double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, std::vector<std::vector<double>>& infoset_ucb_values, PolicyVec& opponent_policy, History& current_history, char player, char br_player) {
+double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, std::vector<std::vector<double>>& infoset_ucb_values, std::vector<std::vector<double>>& empirical_means, PolicyVec& opponent_policy, History& current_history, char player, char br_player) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     int action = 0;
     if (player == br_player){ // choose action with max UCB value
         std::vector<double>& action_ucbs = infoset_ucb_values[I.get_index()];
+        std::vector<double>& action_means = empirical_means[I.get_index()];
+
         double max_ucb = -1.0;
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
@@ -103,6 +105,22 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             }
             action = sampleIndex(best_arms);
         }
+
+        std::cout << "UCB values for infoset " << I.get_hash() << ": " << std::endl;
+        for (int i = 0; i < 13; i++){
+            std::cout << action_ucbs[i] << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "Empirical means for infoset " << I.get_hash() << ": " << std::endl;
+        for (int i = 0; i < 13; i++){
+            std::cout << action_means[i] << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "Legal actions for infoset " << I.get_hash() << ": " << std::endl;
+        for (int a : legal_actions){
+            std::cout << a << " ";
+        }
+        std::cout << std::endl;
     }
     else {
         std::vector<double> prob_dist = opponent_policy.policy_dict[I.get_index()];
@@ -120,9 +138,9 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             new_I.reset_zeros();
 
             if (player == 'x') {
-                return sample_terminal_history(new_I, I_2, true_board, infoset_ucb_values, opponent_policy, current_history, 'o', br_player);
+                return sample_terminal_history(new_I, I_2, true_board, infoset_ucb_values, empirical_means, opponent_policy, current_history, 'o', br_player);
             } else {
-                return sample_terminal_history(I_1, new_I, true_board, infoset_ucb_values, opponent_policy, current_history, 'x', br_player);
+                return sample_terminal_history(I_1, new_I, true_board, infoset_ucb_values, empirical_means, opponent_policy, current_history, 'x', br_player);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
@@ -137,22 +155,22 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         current_history.history.push_back(action);
 
         if (player == 'x') {
-            return sample_terminal_history(new_I, I_2, true_board, infoset_ucb_values, opponent_policy, current_history, 'x', br_player);
+            return sample_terminal_history(new_I, I_2, true_board, infoset_ucb_values, empirical_means, opponent_policy, current_history, 'x', br_player);
         } else {
-            return sample_terminal_history(I_1, new_I, true_board, infoset_ucb_values, opponent_policy, current_history, 'o', br_player);
+            return sample_terminal_history(I_1, new_I, true_board, infoset_ucb_values, empirical_means, opponent_policy, current_history, 'o', br_player);
         }
     }
 }
 
 
-double sample_terminal_history_wrapper(std::vector<std::vector<double>>& infoset_ucb_values, PolicyVec& opponent_policy, History& current_history, char br_player) {
+double sample_terminal_history_wrapper(std::vector<std::vector<double>>& infoset_ucb_values, std::vector<std::vector<double>>& empirical_means, PolicyVec& opponent_policy, History& current_history, char br_player) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
     std::string hash_2 = "";
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
-    return sample_terminal_history(I_1, I_2, true_board, infoset_ucb_values, opponent_policy, current_history, 'x', br_player);
+    return sample_terminal_history(I_1, I_2, true_board, infoset_ucb_values, empirical_means, opponent_policy, current_history, 'x', br_player);
 }
 
 
@@ -263,7 +281,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
 
-        reward = sample_terminal_history_wrapper(infoset_ucb_values, opponent_policy, start_history, br_player);
+        reward = sample_terminal_history_wrapper(infoset_ucb_values, infoset_empirical_reward, opponent_policy, start_history, br_player);
         // update ucb values
         update_ucb(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, infoset_time_steps, reward, start_history, br_player, C);
 
