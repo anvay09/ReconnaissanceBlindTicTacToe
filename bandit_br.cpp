@@ -156,11 +156,11 @@ double sample_terminal_history_wrapper(std::vector<std::vector<double>>& infoset
 }
 
 
-void build_policy(std::vector<std::vector<double>>& infoset_ucb_values, PolicyVec& policy_obj, std::vector<std::string>& information_sets){
+void build_policy(std::vector<std::vector<double>>& empirical_rewards, PolicyVec& policy_obj, std::vector<std::string>& information_sets){
     #pragma omp parallel for num_threads(NUMBER_THREADS)
-    for (long int i = 0; i < infoset_ucb_values.size(); i++){
-        std::vector<double>& action_ucbs = infoset_ucb_values[i];
-        double max_ucb = -1.0;
+    for (long int i = 0; i < empirical_rewards.size(); i++){
+        std::vector<double>& action_ucbs = empirical_rewards[i];
+        double max_reward = -1.0;
         std::vector<int> legal_actions;
         std::string I_hash = information_sets[i];
         InformationSet I(policy_obj.player, get_move_flag(I_hash, policy_obj.player), I_hash);
@@ -168,8 +168,8 @@ void build_policy(std::vector<std::vector<double>>& infoset_ucb_values, PolicyVe
         int action = 0;
 
         for (int a : legal_actions){
-            if (action_ucbs[a] >= max_ucb){
-                max_ucb = action_ucbs[a];
+            if (action_ucbs[a] >= max_reward){
+                max_reward = action_ucbs[a];
                 action = a;
             }
         }
@@ -178,7 +178,7 @@ void build_policy(std::vector<std::vector<double>>& infoset_ucb_values, PolicyVe
         double sum = 0.0;
 
         for (int a : legal_actions){
-            if (std::fabs(action_ucbs[a] - max_ucb) < std::numeric_limits<double>::epsilon()){
+            if (std::fabs(action_ucbs[a] - max_reward) < std::numeric_limits<double>::epsilon()){
                 best_arms[a] = 1.0;
                 sum += 1.0;
             }
@@ -270,7 +270,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         if (t % log_frequency == 0 && t != 0){
             PolicyVec policy_obj(br_player, player_information_sets);
             std::cout << "Build policy" << std::endl;
-            build_policy(infoset_ucb_values, policy_obj, player_information_sets);
+            build_policy(infoset_empirical_reward, policy_obj, player_information_sets);
             if (br_player == 'x'){
                 double expected_utility = get_expected_utility_wrapper(policy_obj, opponent_policy);
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
