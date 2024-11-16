@@ -240,9 +240,10 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
             std::vector<int> legal_actions;
             I.get_actions(legal_actions);
             int infoset_depth = I.get_number_of_actions();
+            double exploration_bonus = C/(infoset_depth*infoset_depth);
             for (int a : legal_actions){
                 if (infoset_pull_count[I.get_index()][a] > 0){
-                    infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + sqrt((C/infoset_depth)*log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][a]);
+                    infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + sqrt(exploration_bonus*log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][a]);
                 }
             }
         }
