@@ -288,7 +288,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         if (t % log_frequency == 0 && t != 0){
             PolicyVec policy_obj(br_player, player_information_sets);
             std::cout << "Build policy" << std::endl;
-            build_policy(infoset_empirical_reward, policy_obj, player_information_sets);
+            build_policy(infoset_ucb_values, policy_obj, player_information_sets);
             if (br_player == 'x'){
                 double expected_utility = get_expected_utility_wrapper(policy_obj, opponent_policy);
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
