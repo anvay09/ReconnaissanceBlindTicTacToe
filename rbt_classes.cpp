@@ -556,6 +556,7 @@ int InformationSet::get_number_of_actions() {
         if (this->hash[i] == '|') {
             count_pipe++;
         }
+        i++;
     }
     return count_underscore + (count_pipe/2);
 

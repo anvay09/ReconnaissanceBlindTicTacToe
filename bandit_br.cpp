@@ -1,6 +1,7 @@
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/rbt_utilities.hpp"
 #include <random>
+#include <cmath>
 int NUMBER_THREADS = 4;
 int AVERAGE_DELAY = 5;
 
@@ -240,7 +241,8 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
             std::vector<int> legal_actions;
             I.get_actions(legal_actions);
             int infoset_depth = I.get_number_of_actions();
-            double exploration_bonus = C/((infoset_depth+1)*(infoset_depth+1));
+            double depthfactor = (C/infoset_depth) ;
+            double exploration_bonus = pow(2.0, depthfactor) ;
             for (int a : legal_actions){
                 if (infoset_pull_count[I.get_index()][a] > 0){
                     infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + sqrt(exploration_bonus*log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][a]);
