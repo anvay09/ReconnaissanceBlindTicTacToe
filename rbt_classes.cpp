@@ -544,20 +544,21 @@ bool InformationSet::is_over() {
     return true;
 }
 
-int InformationSet::get_number_of_actions() {
+double InformationSet::get_number_of_actions() {
     int i = 0;
-    int count_underscore = 0;
-    int count_pipe = 0;
+    double count_underscore = 0;
+    double count_pipe = 0;
     while (i < this->hash.size())
     {
         if (this->hash[i] == '_') {
-            count_underscore++;
+            count_underscore += 1.0;
         }
         if (this->hash[i] == '|') {
-            count_pipe++;
+            count_pipe += 1.0;
         }
         i++;
     }
+
     return count_underscore + (count_pipe/2);
 
 }

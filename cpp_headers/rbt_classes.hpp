@@ -77,7 +77,7 @@ public:
     int win_exists();
     int draw_exists();
     bool is_over();
-    int get_number_of_actions();
+    double get_number_of_actions();
 };
 
 class History
