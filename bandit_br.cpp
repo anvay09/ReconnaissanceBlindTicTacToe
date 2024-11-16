@@ -106,21 +106,21 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             action = sampleIndex(best_arms);
         }
 
-        std::cout << "UCB values for infoset " << I.get_hash() << ": " << std::endl;
-        for (int i = 0; i < 13; i++){
-            std::cout << action_ucbs[i] << " ";
-        }
-        std::cout << std::endl;
-        std::cout << "Empirical means for infoset " << I.get_hash() << ": " << std::endl;
-        for (int i = 0; i < 13; i++){
-            std::cout << action_means[i] << " ";
-        }
-        std::cout << std::endl;
-        std::cout << "Legal actions for infoset " << I.get_hash() << ": " << std::endl;
-        for (int a : legal_actions){
-            std::cout << a << " ";
-        }
-        std::cout << std::endl;
+        // std::cout << "UCB values for infoset " << I.get_hash() << ": " << std::endl;
+        // for (int i = 0; i < 13; i++){
+        //     std::cout << action_ucbs[i] << " ";
+        // }
+        // std::cout << std::endl;
+        // std::cout << "Empirical means for infoset " << I.get_hash() << ": " << std::endl;
+        // for (int i = 0; i < 13; i++){
+        //     std::cout << action_means[i] << " ";
+        // }
+        // std::cout << std::endl;
+        // std::cout << "Legal actions for infoset " << I.get_hash() << ": " << std::endl;
+        // for (int a : legal_actions){
+        //     std::cout << a << " ";
+        // }
+        // std::cout << std::endl;
     }
     else {
         std::vector<double> prob_dist = opponent_policy.policy_dict[I.get_index()];
