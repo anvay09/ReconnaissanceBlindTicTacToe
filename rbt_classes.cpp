@@ -544,6 +544,19 @@ bool InformationSet::is_over() {
     return true;
 }
 
+int InformationSet::get_number_of_actions() {
+    int i = 0;
+    int count = 0;
+    while (i < this->hash.size())
+    {
+        if (this->hash[i] == '_') {
+            count++;
+        }
+    }
+    return count;
+
+}
+
 
 History::History(std::vector<int>& history) {
     if (history.empty()) {
