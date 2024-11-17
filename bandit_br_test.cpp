@@ -210,7 +210,7 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
 
 void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, std::vector<std::string>& opponent_information_sets,  int log_flag, int update_step_size, int C, int branch_factor, PolicyVec& opponent_ucb_policy) {
     std::vector<long int> oppo_infoset_time_steps(opponent_information_sets.size(), 0);
-    std::vector<std::vector<double>> oppo_infoset_ucb_values(opponent_information_sets.size(), std::vector<double>(13, std::numeric_limits<double>::infinity()));
+    std::vector<std::vector<double>> oppo_infoset_ucb_values(opponent_information_sets.size(), std::vector<double>(13, 1));
     std::vector<std::vector<double>> oppo_infoset_empirical_reward(opponent_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<long int>> oppo_infoset_pull_count(opponent_information_sets.size(), std::vector<long int>(13, 0));
     PolicyVec player_br_policy(br_player, player_information_sets);
@@ -224,8 +224,6 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
-        std::cout << "####################################################################" << std::endl;
-        std::cout << "Iteration started: " << t << std::endl;
         start = std::chrono::system_clock::now(); 
         sample_terminal_history_wrapper(player_br_policy, opponent_policy, start_history, reward, br_player);
         end = std::chrono::system_clock::now();
@@ -252,8 +250,6 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
             }
         }
-        std::cout << "Iteration finished: " << t << std::endl;
-        std::cout << "####################################################################" << std::endl;
     } 
 }
 
