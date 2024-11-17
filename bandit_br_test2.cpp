@@ -214,8 +214,13 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
             }
             if (max_ucb_action != -1){
                 for (int a : legal_actions){
-                    policy_obj.policy_dict[I.get_index()][a] = infoset_ucb_values[I.get_index()][a]/sum_ucb;
+                    if (sum_ucb > 0){
+                        policy_obj.policy_dict[I.get_index()][a] = infoset_ucb_values[I.get_index()][a]/sum_ucb;
+                    }
+                    else {
+                        policy_obj.policy_dict[I.get_index()][a] = 1.0/legal_actions.size();
                 }
+            }
             }
             else {
                 for (int a : legal_actions){
