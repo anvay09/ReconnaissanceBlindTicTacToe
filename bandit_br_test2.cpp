@@ -203,31 +203,21 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
             double sum_ucb = 0.0;
             double max_ucb_action = -1;
             for (int a : legal_actions){
+                double ucb_value = 100;
                 if (infoset_pull_count[I.get_index()][a] > 0){
-                    double ucb_value = infoset_empirical_reward[I.get_index()][a] + sqrt(exploration_bonus*log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][a]);
+                    ucb_value = infoset_empirical_reward[I.get_index()][a] + sqrt(exploration_bonus*log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][a]);
                     infoset_ucb_values[I.get_index()][a] = ucb_value;
-                    sum_ucb += ucb_value;
+                }
+                sum_ucb += ucb_value;
+            }
+            for (int a : legal_actions){
+                if (sum_ucb > 0){
+                    policy_obj.policy_dict[I.get_index()][a] = infoset_ucb_values[I.get_index()][a]/sum_ucb;
                 }
                 else {
-                    max_ucb_action = a;
-                }
+                    policy_obj.policy_dict[I.get_index()][a] = 1.0/legal_actions.size();
             }
-            if (max_ucb_action != -1){
-                for (int a : legal_actions){
-                    if (sum_ucb > 0){
-                        policy_obj.policy_dict[I.get_index()][a] = infoset_ucb_values[I.get_index()][a]/sum_ucb;
-                    }
-                    else {
-                        policy_obj.policy_dict[I.get_index()][a] = 1.0/legal_actions.size();
-                }
-            }
-            }
-            else {
-                for (int a : legal_actions){
-                    policy_obj.policy_dict[I.get_index()][a] = 0.0;
-                }
-                policy_obj.policy_dict[I.get_index()][max_ucb_action] = 1.0;
-            }
+        }
         }
 
         if (action < 9) {
@@ -255,10 +245,10 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
 
 void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, std::vector<std::string>& opponent_information_sets,  int log_flag, int update_step_size, int C, int branch_factor, PolicyVec& opponent_ucb_policy, PolicyVec& player_average_policy) {
     std::vector<long int> oppo_infoset_time_steps(opponent_information_sets.size(), 0);
-    std::vector<std::vector<double>> oppo_infoset_ucb_values(opponent_information_sets.size(), std::vector<double>(13, 1));
+    std::vector<std::vector<double>> oppo_infoset_ucb_values(opponent_information_sets.size(), std::vector<double>(13, 0));
     std::vector<std::vector<double>> oppo_infoset_empirical_reward(opponent_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<long int>> oppo_infoset_pull_count(opponent_information_sets.size(), std::vector<long int>(13, 0));
-    std::vector<std::vector<double>> avg_player_policy_numerator(player_information_sets.size(), std::vector<double>(13, 0));
+    std::vector<std::vector<double>> avg_player_policy_numerator(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<double> avg_player_policy_denominator;
     for (long int i = 0; i < player_information_sets.size(); i++) {
         avg_player_policy_denominator.push_back(0.0);
