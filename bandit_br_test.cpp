@@ -208,34 +208,35 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
 }
 
 
-void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, std::vector<std::string>& opponent_information_sets,  int log_flag, int update_step_size, int C, int branch_factor) {
+void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, std::vector<std::string>& opponent_information_sets,  int log_flag, int update_step_size, int C, int branch_factor, PolicyVec& player_br_policy, PolicyVec& opponent_ucb_policy) {
     std::vector<long int> oppo_infoset_time_steps(opponent_information_sets.size(), 0);
     std::vector<std::vector<double>> oppo_infoset_ucb_values(opponent_information_sets.size(), std::vector<double>(13, std::numeric_limits<double>::infinity()));
     std::vector<std::vector<double>> oppo_infoset_empirical_reward(opponent_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<long int>> oppo_infoset_pull_count(opponent_information_sets.size(), std::vector<long int>(13, 0));
-    PolicyVec opponent_ucb_policy(toggle_player(br_player), opponent_information_sets);
-    PolicyVec player_br_policy(br_player, player_information_sets);
 
     for (long int t = 0; t < num_iterations; t++) {
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
 
+        auto start = std::chrono::system_clock::now(); 
         sample_terminal_history_wrapper(player_br_policy, opponent_policy, start_history, reward, br_player);
+        auto end = std::chrono::system_clock::now();
+        pretty_print(start, end, "sampled terminal history", log_flag);
         // update ucb values
+        start = std::chrono::system_clock::now(); 
         update_ucb(oppo_infoset_ucb_values, oppo_infoset_empirical_reward, oppo_infoset_pull_count, oppo_infoset_time_steps, opponent_ucb_policy, reward, start_history, toggle_player(br_player), C, branch_factor);
+        end = std::chrono::system_clock::now();
+        pretty_print(start, end, "update ucb values", log_flag);
 
         if (t % update_step_size == 0 && t != 0){
-            PolicyVec br_obj(br_player, player_information_sets);
             if (br_player == 'x'){
-                compute_best_response_wrapper(br_obj, opponent_ucb_policy, br_player);
-                player_br_policy = br_obj;
+                compute_best_response_wrapper(player_br_policy, opponent_ucb_policy, br_player);
                 double expected_utility = get_expected_utility_wrapper(player_br_policy, opponent_policy);
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
             }
             else {
-                compute_best_response_wrapper(opponent_ucb_policy, br_obj, br_player);
-                player_br_policy = br_obj;
+                compute_best_response_wrapper(opponent_ucb_policy, player_br_policy, br_player);
                 double expected_utility = get_expected_utility_wrapper(opponent_policy, player_br_policy);
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
             }
@@ -247,8 +248,10 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
-    int log_flag = std::stoi(argv[3]);
-    NUMBER_THREADS = std::stoi(argv[4]); //96;
+    std::string uniform_file_path_1 = argv[3];
+    std::string uniform_file_path_2 = argv[4];
+    int log_flag = std::stoi(argv[5]);
+    NUMBER_THREADS = std::stoi(argv[6]); //96;
 
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -282,6 +285,8 @@ int main(int argc, char* argv[]) {
     PolicyVec policy_obj_o('o', file_path_2);
     PolicyVec br_x('x', P1_information_sets);
     PolicyVec br_o('o', P2_information_sets);
+    PolicyVec uniform_policy_obj_x('x', uniform_file_path_1);
+    PolicyVec uniform_policy_obj_o('o', uniform_file_path_2);
     auto end = std::chrono::system_clock::now();
     pretty_print(start, end, "loading policies", log_flag);
 
@@ -321,10 +326,10 @@ int main(int argc, char* argv[]) {
             pretty_print(start, end, "computing best response o", log_flag);
         }
         if (player == 'x') {
-            calc_br_ucb(policy_obj_o, num_iterations, player, P1_information_sets, P2_information_sets, log_flag, update_step_size, C, branch_factor);
+            calc_br_ucb(policy_obj_o, num_iterations, player, P1_information_sets, P2_information_sets, log_flag, update_step_size, C, branch_factor, uniform_policy_obj_x, uniform_policy_obj_o);
         }
         else {
-            calc_br_ucb(policy_obj_x, num_iterations, player, P2_information_sets, P1_information_sets, log_flag, update_step_size, C, branch_factor);
+            calc_br_ucb(policy_obj_x, num_iterations, player, P2_information_sets, P1_information_sets, log_flag, update_step_size, C, branch_factor, uniform_policy_obj_o, uniform_policy_obj_x);
         }
         
         std::cout << "Continue experiments? (y/n): ";
