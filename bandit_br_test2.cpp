@@ -204,12 +204,13 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
                 }
                 sum_ucb += ucb_value;
             }
+            std::vector<double>& policy_infoset = policy_obj.policy_dict[I.get_index()];
             for (int a : legal_actions){
                 if (sum_ucb > 0){
-                    policy_obj.policy_dict[I.get_index()][a] = infoset_ucb_values[I.get_index()][a]/sum_ucb;
+                    policy_infoset[a] = infoset_ucb_values[I.get_index()][a]/sum_ucb;
                 }
                 else {
-                    policy_obj.policy_dict[I.get_index()][a] = 1.0/legal_actions.size();
+                    policy_infoset[a] = 1.0/legal_actions.size();
                 }
             }
         }
@@ -249,6 +250,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
     }
 
     for (long int t = 0; t < num_iterations; t++) {
+        auto start = std::chrono::system_clock::now();
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
@@ -272,6 +274,8 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
             }
             std::cout << "Expected utility avg after iteration " << t << ": " << expected_utility << std::endl;
         }
+        auto end = std::chrono::system_clock::now();
+        pretty_print(start, end, "iteration " + std::to_string(t), log_flag);
     } 
 }
 
