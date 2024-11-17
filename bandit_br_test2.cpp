@@ -9,7 +9,7 @@ int AVERAGE_DELAY = 5;
 //avg
 void calc_average_terms(char player, std::vector<std::string>& information_sets, PolicyVec& policy_obj, std::vector<std::vector<double>>& avg_policy_numerator, std::vector<double>& avg_policy_denominator, int t){
     //int weight = T > AVERAGE_DELAY ? T - AVERAGE_DELAY : 0;
-    int weight = t;
+    int weight = 1;
 
     #pragma omp parallel for num_threads(NUMBER_THREADS) shared(avg_policy_numerator, avg_policy_denominator, policy_obj)
     for (long int i = 0; i < information_sets.size(); i++) {
