@@ -245,6 +245,8 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
     std::vector<std::vector<long int>> oppo_infoset_pull_count(opponent_information_sets.size(), std::vector<long int>(13, 0));
     std::vector<std::vector<double>> avg_player_policy_numerator(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<double> avg_player_policy_denominator;
+    PolicyVec policy_br(br_player, player_information_sets);
+
     for (long int i = 0; i < player_information_sets.size(); i++) {
         avg_player_policy_denominator.push_back(0.0);
     }
@@ -261,12 +263,13 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         auto end1 = std::chrono::system_clock::now();
         pretty_print(start1, end1, "Iteration end " + std::to_string(t), log_flag);
 
-        PolicyVec br_policy(br_player, player_information_sets);
         if (t % update_step_size == 0 && t != 0){
             // update average policy
+            PolicyVec br_policy(br_player, player_information_sets);
             auto start = std::chrono::system_clock::now();
             pretty_print(start, start, "best reponse start " + std::to_string(t), log_flag);
             compute_best_response_wrapper(opponent_ucb_policy, br_policy, br_player);
+            policy_br = br_policy;
             auto end = std::chrono::system_clock::now();
             pretty_print(start, end, "best reponse end " + std::to_string(t), log_flag);
             //averaging
@@ -283,10 +286,10 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
            auto start = std::chrono::system_clock::now();
            pretty_print(start, start, "expected utility start " + std::to_string(t), log_flag);
             if (br_player == 'x'){
-                expected_utility = get_expected_utility_wrapper(br_policy, opponent_policy);
+                expected_utility = get_expected_utility_wrapper(policy_br, opponent_policy);
             }
             else {
-                expected_utility = get_expected_utility_wrapper(opponent_policy, br_policy);
+                expected_utility = get_expected_utility_wrapper(opponent_policy, policy_br);
             }
             auto end = std::chrono::system_clock::now();
             pretty_print(start, end, "expected utility end " + std::to_string(t), log_flag);
