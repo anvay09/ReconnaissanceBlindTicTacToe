@@ -238,7 +238,7 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
 }
 
 
-void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, std::vector<std::string>& opponent_information_sets,  int log_flag, int update_step_size, int C, PolicyVec& opponent_ucb_policy, PolicyVec& player_average_policy) {
+void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, std::vector<std::string>& opponent_information_sets,  int log_flag, int log_frequency, int update_step_size, int C, PolicyVec& opponent_ucb_policy, PolicyVec& player_average_policy) {
     std::vector<long int> oppo_infoset_time_steps(opponent_information_sets.size(), 0);
     std::vector<std::vector<double>> oppo_infoset_ucb_values(opponent_information_sets.size(), std::vector<double>(13, 0));
     std::vector<std::vector<double>> oppo_infoset_empirical_reward(opponent_information_sets.size(), std::vector<double>(13, 0.0));
@@ -258,14 +258,17 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         // update ucb values
         update_ucb(oppo_infoset_ucb_values, oppo_infoset_empirical_reward, oppo_infoset_pull_count, oppo_infoset_time_steps, opponent_ucb_policy, reward, start_history, toggle_player(br_player), C);
 
+        PolicyVec br_policy(br_player, player_information_sets);
         if (t % update_step_size == 0 && t != 0){
             // update average policy
-            PolicyVec br_policy(br_player, player_information_sets);
             compute_best_response_wrapper(opponent_ucb_policy, br_policy, br_player);
             //averaging
             calc_average_terms(br_player, player_information_sets, br_policy, avg_player_policy_numerator, avg_player_policy_denominator, t);
             calc_average_policy(player_information_sets, player_average_policy, avg_player_policy_numerator, avg_player_policy_denominator, br_player);    
-            double expected_utility = 0.0;
+        } 
+
+        if (t % log_frequency == 0 && t != 0){
+           double expected_utility = 0.0;
             if (br_player == 'x'){
                 expected_utility = get_expected_utility_wrapper(br_policy, opponent_policy);
             }
@@ -330,12 +333,15 @@ int main(int argc, char* argv[]) {
     while (continue_exp == 'y') {
         int num_iterations = 10000;
         int update_step_size = 10000;
+        int log_frequency = 10000;
         char player = 'x';
         int C = 1;
         std::cout << "Enter number of iterations: ";
         std::cin >> num_iterations;
         std::cout << "Enter update step size: ";
         std::cin >> update_step_size;
+        std::cout << "Enter log frequnecy: ";
+        std::cin >> log_frequency;
         std::cout << "Enter player for best response calculation: ";
         std::cin >> player;
         std::cout << "Enter hyperparameter c for UCB:";
@@ -358,10 +364,10 @@ int main(int argc, char* argv[]) {
             pretty_print(start, end, "computing best response o", log_flag);
         }
         if (player == 'x') {
-            calc_br_ucb(policy_obj_o, num_iterations, player, P1_information_sets, P2_information_sets, log_flag, update_step_size, C, start_policy_obj_o, start_policy_obj_x);
+            calc_br_ucb(policy_obj_o, num_iterations, player, P1_information_sets, P2_information_sets, log_flag, log_frequency, update_step_size, C, start_policy_obj_o, start_policy_obj_x);
         }
         else {
-            calc_br_ucb(policy_obj_x, num_iterations, player, P2_information_sets, P1_information_sets, log_flag, update_step_size, C, start_policy_obj_x, start_policy_obj_o);
+            calc_br_ucb(policy_obj_x, num_iterations, player, P2_information_sets, P1_information_sets, log_flag, log_frequency, update_step_size, C, start_policy_obj_x, start_policy_obj_o);
         }
         
         std::cout << "Continue experiments? (y/n): ";
