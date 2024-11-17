@@ -177,7 +177,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
             else {
                 expected_utility = get_expected_utility_wrapper(opponent_policy, br_policy);
             }
-            std::cout << "Expected utility avg after iteration " << t << ": " << expected_utility << std::endl;
+            std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
         }
     } 
 }
