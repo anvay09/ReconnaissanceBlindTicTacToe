@@ -165,7 +165,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         sample_terminal_history_wrapper(player_ucb_policy, opponent_policy, start_history, reward, br_player);
         // update ucb values
         update_ucb(oppo_infoset_ucb_values, oppo_infoset_empirical_reward, oppo_infoset_pull_count, oppo_infoset_time_steps, opponent_ucb_policy, reward, start_history, toggle_player(br_player), C);
-        update_ucb(player_infoset_ucb_values, player_infoset_empirical_reward, player_infoset_pull_count, player_infoset_time_steps, player_ucb_policy, reward, start_history, br_player, C);
+        update_ucb(player_infoset_ucb_values, player_infoset_empirical_reward, player_infoset_pull_count, player_infoset_time_steps, player_ucb_policy, 0.0-reward, start_history, br_player, C);
 
         if (t % log_frequency == 0 && t != 0){
             double expected_utility = 0.0;
