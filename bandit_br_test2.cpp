@@ -253,9 +253,13 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
+        auto start1 = std::chrono::system_clock::now();
+        pretty_print(start1, start1, "Iteration start " + std::to_string(t), log_flag);
         sample_terminal_history_wrapper(player_average_policy, opponent_policy, start_history, reward, br_player);
         // update ucb values
         update_ucb(oppo_infoset_ucb_values, oppo_infoset_empirical_reward, oppo_infoset_pull_count, oppo_infoset_time_steps, opponent_ucb_policy, reward, start_history, toggle_player(br_player), C);
+        auto end1 = std::chrono::system_clock::now();
+        pretty_print(start1, end1, "Iteration end " + std::to_string(t), log_flag);
 
         PolicyVec br_policy(br_player, player_information_sets);
         if (t % update_step_size == 0 && t != 0){
