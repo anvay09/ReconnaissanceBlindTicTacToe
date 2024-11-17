@@ -216,15 +216,11 @@ void calc_nash_ucb(long int num_iterations, std::vector<std::string>& x_informat
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
-        sample_terminal_history_wrapper(x_ucb_policy, o_ucb_policy, start_history, reward);
+        sample_terminal_history_wrapper(avg_x_policy, avg_o_policy, start_history, reward);
         // update ucb values
-        if (t % 2 == 0) {
-            update_ucb(x_infoset_ucb_values, x_infoset_empirical_reward, x_infoset_pull_count, x_infoset_time_steps, x_ucb_policy, reward, start_history, 'x', C);
-        }
-        else {
-            double reward_new = 0.0 - reward;
-            update_ucb(o_infoset_ucb_values, o_infoset_empirical_reward, o_infoset_pull_count, o_infoset_time_steps, o_ucb_policy, reward_new, start_history, 'o', C);
-        }
+        update_ucb(x_infoset_ucb_values, x_infoset_empirical_reward, x_infoset_pull_count, x_infoset_time_steps, x_ucb_policy, reward, start_history, 'x', C);
+        double reward_new = 0.0 - reward;
+        update_ucb(o_infoset_ucb_values, o_infoset_empirical_reward, o_infoset_pull_count, o_infoset_time_steps, o_ucb_policy, reward_new, start_history, 'o', C);
         if (t % log_frequency == 0 && t != 0){
             calc_average_terms('x', x_information_sets, x_ucb_policy, avg_x_policy_numerator, avg_x_policy_denominator, t);
             calc_average_policy(x_information_sets, avg_x_policy, avg_x_policy_numerator, avg_x_policy_denominator, 'x');
