@@ -5,6 +5,47 @@
 int NUMBER_THREADS = 4;
 int AVERAGE_DELAY = 5;
 
+
+//avg
+void calc_average_terms(char player, std::vector<std::string>& information_sets, PolicyVec& policy_obj, std::vector<std::vector<double>>& avg_policy_numerator, std::vector<double>& avg_policy_denominator, int t){
+    //int weight = T > AVERAGE_DELAY ? T - AVERAGE_DELAY : 0;
+    int weight = 1;
+
+    #pragma omp parallel for num_threads(NUMBER_THREADS) shared(avg_policy_numerator, avg_policy_denominator, policy_obj)
+    for (long int i = 0; i < information_sets.size(); i++) {
+        std::string I_hash = information_sets[i];
+        bool move_flag = get_move_flag(I_hash, player);
+        InformationSet I(player, move_flag, I_hash);
+
+        std::vector<int> actions;
+        I.get_actions(actions);
+        for (int action: actions) {
+            std::vector<double>& policy = policy_obj.policy_dict[I.get_index()];
+            avg_policy_numerator[I.get_index()][action] += weight * policy[action];
+            avg_policy_denominator[I.get_index()] += weight * policy[action];
+        }
+
+    }
+}
+
+void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& avg_policy_obj, std::vector<std::vector<double>> avg_policy_numerator, std::vector<double> avg_policy_denominator, char player){
+    #pragma omp parallel for num_threads(NUMBER_THREADS) shared(avg_policy_obj, avg_policy_numerator, avg_policy_denominator)
+    for (long int i = 0; i < information_sets.size(); i++) {
+        std::string I_hash = information_sets[i];
+        bool move_flag = get_move_flag(I_hash, player);
+        InformationSet I(player, move_flag, I_hash);
+
+        std::vector<int> actions;
+        I.get_actions(actions);
+        for (int action: actions) {
+            std::vector<double>& policy = avg_policy_obj.policy_dict[I.get_index()];
+            policy[action] = avg_policy_denominator[I.get_index()] > 0 ? avg_policy_numerator[I.get_index()][action] / avg_policy_denominator[I.get_index()] : 0;
+        }
+    }
+}
+//avg
+
+
 void pretty_print(std::chrono::time_point<std::chrono::system_clock> start, std::chrono::time_point<std::chrono::system_clock> end, std::string msg, int flag) {
     if (flag) {
     std::chrono::duration<double> elapsed_seconds = end-start;
@@ -156,6 +197,13 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
     std::vector<std::vector<double>> player_infoset_ucb_values(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<double>> player_infoset_empirical_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<long int>> player_infoset_pull_count(player_information_sets.size(), std::vector<long int>(13, 0));
+    std::vector<std::vector<double>> avg_player_policy_numerator(player_information_sets.size(), std::vector<double>(13, 0.0));
+    std::vector<double> avg_player_policy_denominator;
+    for (long int i = 0; i < player_information_sets.size(); i++) {
+        avg_player_policy_denominator.push_back(0.0);
+    }
+    PolicyVec avg_player_policy(br_player, player_information_sets);
+    avg_player_policy = player_ucb_policy;
 
     for (long int t = 0; t < num_iterations; t++) {
         std::vector<int> h = {};
@@ -164,14 +212,16 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         if (br_player == 'x') {
             sample_terminal_history_wrapper(player_ucb_policy, opponent_policy, start_history, reward);
             // update ucb values
-            update_ucb(oppo_infoset_ucb_values, oppo_infoset_empirical_reward, oppo_infoset_pull_count, oppo_infoset_time_steps, opponent_ucb_policy, 0.0-reward, start_history, 'o', C);
+            double reward_new = 0.0 - reward;
+            update_ucb(oppo_infoset_ucb_values, oppo_infoset_empirical_reward, oppo_infoset_pull_count, oppo_infoset_time_steps, opponent_ucb_policy, reward_new, start_history, 'o', C);
             update_ucb(player_infoset_ucb_values, player_infoset_empirical_reward, player_infoset_pull_count, player_infoset_time_steps, player_ucb_policy, reward, start_history, 'x', C);
         }
         else {
             sample_terminal_history_wrapper(opponent_policy, player_ucb_policy, start_history, reward);
             // update ucb values
+            double reward_new = 0.0 - reward;
             update_ucb(oppo_infoset_ucb_values, oppo_infoset_empirical_reward, oppo_infoset_pull_count, oppo_infoset_time_steps, opponent_ucb_policy, reward, start_history, 'x', C);
-            update_ucb(player_infoset_ucb_values, player_infoset_empirical_reward, player_infoset_pull_count, player_infoset_time_steps, player_ucb_policy, 0.0-reward, start_history, 'o', C);
+            update_ucb(player_infoset_ucb_values, player_infoset_empirical_reward, player_infoset_pull_count, player_infoset_time_steps, player_ucb_policy, reward_new, start_history, 'o', C);
         }
         // sample_terminal_history_wrapper(player_ucb_policy, opponent_policy, start_history, reward, br_player);
         
@@ -179,11 +229,14 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
             double expected_utility = 0.0;
             PolicyVec br_policy(br_player, player_information_sets);
             compute_best_response_wrapper(opponent_ucb_policy, br_policy, br_player);
+            calc_average_terms(br_player, player_information_sets, br_policy, avg_player_policy_numerator, avg_player_policy_denominator, t);
+            calc_average_policy(player_information_sets, avg_player_policy, avg_player_policy_numerator, avg_player_policy_denominator, br_player);    
+            
             if (br_player == 'x'){
-                expected_utility = get_expected_utility_wrapper(br_policy, opponent_policy);
+                expected_utility = get_expected_utility_wrapper(avg_player_policy, opponent_policy);
             }
             else {
-                expected_utility = get_expected_utility_wrapper(opponent_policy, br_policy);
+                expected_utility = get_expected_utility_wrapper(opponent_policy, avg_player_policy);
             }
             std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
         }
