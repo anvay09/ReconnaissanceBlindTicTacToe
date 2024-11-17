@@ -208,20 +208,27 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
 }
 
 
-void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, std::vector<std::string>& opponent_information_sets,  int log_flag, int update_step_size, int C, int branch_factor, PolicyVec& player_br_policy, PolicyVec& opponent_ucb_policy) {
+void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, std::vector<std::string>& opponent_information_sets,  int log_flag, int update_step_size, int C, int branch_factor, PolicyVec& opponent_ucb_policy) {
     std::vector<long int> oppo_infoset_time_steps(opponent_information_sets.size(), 0);
     std::vector<std::vector<double>> oppo_infoset_ucb_values(opponent_information_sets.size(), std::vector<double>(13, std::numeric_limits<double>::infinity()));
     std::vector<std::vector<double>> oppo_infoset_empirical_reward(opponent_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<long int>> oppo_infoset_pull_count(opponent_information_sets.size(), std::vector<long int>(13, 0));
+    PolicyVec player_br_policy(br_player, player_information_sets);
+    auto start = std::chrono::system_clock::now(); 
+    compute_best_response_wrapper(player_br_policy, opponent_ucb_policy, br_player);
+    auto end = std::chrono::system_clock::now();
+    pretty_print(start, end, "best response computation against uniform policy initially", log_flag);
+
 
     for (long int t = 0; t < num_iterations; t++) {
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
-
-        auto start = std::chrono::system_clock::now(); 
+        std::cout << "####################################################################" << std::endl;
+        std::cout << "Iteration started: " << t << std::endl;
+        start = std::chrono::system_clock::now(); 
         sample_terminal_history_wrapper(player_br_policy, opponent_policy, start_history, reward, br_player);
-        auto end = std::chrono::system_clock::now();
+        end = std::chrono::system_clock::now();
         pretty_print(start, end, "sampled terminal history", log_flag);
         // update ucb values
         start = std::chrono::system_clock::now(); 
@@ -231,16 +238,28 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
 
         if (t % update_step_size == 0 && t != 0){
             if (br_player == 'x'){
-                compute_best_response_wrapper(player_br_policy, opponent_ucb_policy, br_player);
+                start = std::chrono::system_clock::now(); 
+                PolicyVec br_policy(br_player, player_information_sets);
+                compute_best_response_wrapper(br_policy, opponent_ucb_policy, br_player);
+                player_br_policy = br_policy;
+                end = std::chrono::system_clock::now();
+                pretty_print(start, end, "best response computation", log_flag);
                 double expected_utility = get_expected_utility_wrapper(player_br_policy, opponent_policy);
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
             }
             else {
-                compute_best_response_wrapper(opponent_ucb_policy, player_br_policy, br_player);
+                start = std::chrono::system_clock::now();
+                PolicyVec br_policy(br_player, player_information_sets);
+                compute_best_response_wrapper(opponent_ucb_policy, br_policy, br_player);
+                player_br_policy = br_policy;
+                end = std::chrono::system_clock::now();
+                pretty_print(start, end, "best response computation", log_flag);
                 double expected_utility = get_expected_utility_wrapper(opponent_policy, player_br_policy);
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
             }
         }
+        std::cout << "Iteration finished: " << t << std::endl;
+        std::cout << "####################################################################" << std::endl;
     } 
 }
 
@@ -326,10 +345,10 @@ int main(int argc, char* argv[]) {
             pretty_print(start, end, "computing best response o", log_flag);
         }
         if (player == 'x') {
-            calc_br_ucb(policy_obj_o, num_iterations, player, P1_information_sets, P2_information_sets, log_flag, update_step_size, C, branch_factor, uniform_policy_obj_x, uniform_policy_obj_o);
+            calc_br_ucb(policy_obj_o, num_iterations, player, P1_information_sets, P2_information_sets, log_flag, update_step_size, C, branch_factor, uniform_policy_obj_o);
         }
         else {
-            calc_br_ucb(policy_obj_x, num_iterations, player, P2_information_sets, P1_information_sets, log_flag, update_step_size, C, branch_factor, uniform_policy_obj_o, uniform_policy_obj_x);
+            calc_br_ucb(policy_obj_x, num_iterations, player, P2_information_sets, P1_information_sets, log_flag, update_step_size, C, branch_factor, uniform_policy_obj_x);
         }
         
         std::cout << "Continue experiments? (y/n): ";
