@@ -250,7 +250,6 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
     }
 
     for (long int t = 0; t < num_iterations; t++) {
-        auto start = std::chrono::system_clock::now();
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
@@ -261,24 +260,31 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         PolicyVec br_policy(br_player, player_information_sets);
         if (t % update_step_size == 0 && t != 0){
             // update average policy
+            auto start = std::chrono::system_clock::now();
             compute_best_response_wrapper(opponent_ucb_policy, br_policy, br_player);
+            auto end = std::chrono::system_clock::now();
+            pretty_print(start, end, "best reponse " + std::to_string(t), log_flag);
             //averaging
+            start = std::chrono::system_clock::now();
             calc_average_terms(br_player, player_information_sets, br_policy, avg_player_policy_numerator, avg_player_policy_denominator, t);
             calc_average_policy(player_information_sets, player_average_policy, avg_player_policy_numerator, avg_player_policy_denominator, br_player);    
+            end = std::chrono::system_clock::now();
+            pretty_print(start, end, "averaging " + std::to_string(t), log_flag);
         } 
 
         if (t % log_frequency == 0 && t != 0){
            double expected_utility = 0.0;
+           start = std::chrono::system_clock::now();
             if (br_player == 'x'){
                 expected_utility = get_expected_utility_wrapper(br_policy, opponent_policy);
             }
             else {
                 expected_utility = get_expected_utility_wrapper(opponent_policy, br_policy);
             }
+            end = std::chrono::system_clock::now();
+            pretty_print(start, end, "expected utility " + std::to_string(t), log_flag);
             std::cout << "Expected utility avg after iteration " << t << ": " << expected_utility << std::endl;
         }
-        auto end = std::chrono::system_clock::now();
-        pretty_print(start, end, "iteration " + std::to_string(t), log_flag);
     } 
 }
 
