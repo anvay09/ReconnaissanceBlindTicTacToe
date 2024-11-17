@@ -214,8 +214,8 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
     std::vector<std::vector<double>> oppo_infoset_empirical_reward(opponent_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<long int>> oppo_infoset_pull_count(opponent_information_sets.size(), std::vector<long int>(13, 0));
     PolicyVec player_br_policy(br_player, player_information_sets);
-    auto start = std::chrono::system_clock::now(); 
-    compute_best_response_wrapper(player_br_policy, opponent_ucb_policy, br_player);
+    auto start = std::chrono::system_clock::now();
+    compute_best_response_wrapper(opponent_policy, player_br_policy, br_player);
     auto end = std::chrono::system_clock::now();
     pretty_print(start, end, "best response computation against uniform policy initially", log_flag);
 
@@ -237,23 +237,17 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         pretty_print(start, end, "update ucb values", log_flag);
 
         if (t % update_step_size == 0 && t != 0){
+            start = std::chrono::system_clock::now(); 
+            PolicyVec br_policy(br_player, player_information_sets);
+            compute_best_response_wrapper(opponent_ucb_policy, br_policy, br_player);
+            player_br_policy = br_policy;
+            end = std::chrono::system_clock::now();
+            pretty_print(start, end, "best response computation", log_flag);
             if (br_player == 'x'){
-                start = std::chrono::system_clock::now(); 
-                PolicyVec br_policy(br_player, player_information_sets);
-                compute_best_response_wrapper(br_policy, opponent_ucb_policy, br_player);
-                player_br_policy = br_policy;
-                end = std::chrono::system_clock::now();
-                pretty_print(start, end, "best response computation", log_flag);
                 double expected_utility = get_expected_utility_wrapper(player_br_policy, opponent_policy);
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
             }
             else {
-                start = std::chrono::system_clock::now();
-                PolicyVec br_policy(br_player, player_information_sets);
-                compute_best_response_wrapper(opponent_ucb_policy, br_policy, br_player);
-                player_br_policy = br_policy;
-                end = std::chrono::system_clock::now();
-                pretty_print(start, end, "best response computation", log_flag);
                 double expected_utility = get_expected_utility_wrapper(opponent_policy, player_br_policy);
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
             }
