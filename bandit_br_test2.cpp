@@ -203,7 +203,7 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
             double sum_ucb = 0.0;
             double max_ucb_action = -1;
             for (int a : legal_actions){
-                double ucb_value = 100;
+                double ucb_value = 1;
                 if (infoset_pull_count[I.get_index()][a] > 0){
                     ucb_value = infoset_empirical_reward[I.get_index()][a] + sqrt(exploration_bonus*log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][a]);
                     infoset_ucb_values[I.get_index()][a] = ucb_value;
