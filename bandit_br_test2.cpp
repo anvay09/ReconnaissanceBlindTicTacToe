@@ -274,14 +274,14 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
 
         if (t % log_frequency == 0 && t != 0){
            double expected_utility = 0.0;
-           start = std::chrono::system_clock::now();
+           auto start = std::chrono::system_clock::now();
             if (br_player == 'x'){
                 expected_utility = get_expected_utility_wrapper(br_policy, opponent_policy);
             }
             else {
                 expected_utility = get_expected_utility_wrapper(opponent_policy, br_policy);
             }
-            end = std::chrono::system_clock::now();
+            auto end = std::chrono::system_clock::now();
             pretty_print(start, end, "expected utility " + std::to_string(t), log_flag);
             std::cout << "Expected utility avg after iteration " << t << ": " << expected_utility << std::endl;
         }
