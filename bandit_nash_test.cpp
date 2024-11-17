@@ -147,7 +147,7 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
 }
 
 
-void calc_br_ucb(long int num_iterations, std::vector<std::string>& x_information_sets, std::vector<std::string>& o_information_sets,  int log_flag, int log_frequency, int C, PolicyVec& x_ucb_policy, PolicyVec& o_ucb_policy) {
+void calc_nash_ucb(long int num_iterations, std::vector<std::string>& x_information_sets, std::vector<std::string>& o_information_sets,  int log_flag, int log_frequency, int C, PolicyVec& x_ucb_policy, PolicyVec& o_ucb_policy) {
     std::vector<long int> x_infoset_time_steps(x_information_sets.size(), 0);
     std::vector<std::vector<double>> x_infoset_ucb_values(x_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<double>> x_infoset_empirical_reward(x_information_sets.size(), std::vector<double>(13, 0.0));
@@ -222,18 +222,15 @@ int main(int argc, char* argv[]) {
     while (continue_exp == 'y') {
         int num_iterations = 10000;
         int log_frequency = 10000;
-        char player = 'x';
         int C = 1;
         std::cout << "Enter number of iterations: ";
         std::cin >> num_iterations;
         std::cout << "Enter log frequnecy: ";
         std::cin >> log_frequency;
-        std::cout << "Enter player for best response calculation: ";
-        std::cin >> player;
         std::cout << "Enter hyperparameter c for UCB:";
         std::cin >> C;
 
-        calc_br_ucb(num_iterations, P1_information_sets, P2_information_sets, log_flag, log_frequency, C, start_policy_obj_x, start_policy_obj_o);
+        calc_nash_ucb(num_iterations, P1_information_sets, P2_information_sets, log_flag, log_frequency, C, start_policy_obj_x, start_policy_obj_o);
         std::cout << "Continue experiments? (y/n): ";
         std::cin >> continue_exp;
     }
