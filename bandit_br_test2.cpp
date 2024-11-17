@@ -255,6 +255,9 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
     std::vector<std::vector<long int>> oppo_infoset_pull_count(opponent_information_sets.size(), std::vector<long int>(13, 0));
     std::vector<std::vector<double>> avg_player_policy_numerator(player_information_sets.size(), std::vector<double>(13, 0));
     std::vector<double> avg_player_policy_denominator;
+    for (long int i = 0; i < player_information_sets.size(); i++) {
+        avg_player_policy_denominator.push_back(0.0);
+    }
 
     for (long int t = 0; t < num_iterations; t++) {
         std::vector<int> h = {};
@@ -271,10 +274,11 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         pretty_print(start, end, "update ucb values", log_flag);
 
         if (t % update_step_size == 0 && t != 0){
-            start = std::chrono::system_clock::now(); 
+            start = std::chrono::system_clock::now();
             PolicyVec br_policy(br_player, player_information_sets);
             compute_best_response_wrapper(opponent_ucb_policy, br_policy, br_player);
-
+            end = std::chrono::system_clock::now();
+            pretty_print(start, end, "best response computation iteration " + std::to_string(t), log_flag);
             //averaging
             start = std::chrono::system_clock::now();
             calc_average_terms(br_player, player_information_sets, br_policy, avg_player_policy_numerator, avg_player_policy_denominator, t);
