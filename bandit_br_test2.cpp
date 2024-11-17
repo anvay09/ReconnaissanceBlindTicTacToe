@@ -257,14 +257,15 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         sample_terminal_history_wrapper(player_average_policy, opponent_policy, start_history, reward, br_player);
         // update ucb values
         update_ucb(oppo_infoset_ucb_values, oppo_infoset_empirical_reward, oppo_infoset_pull_count, oppo_infoset_time_steps, opponent_ucb_policy, reward, start_history, toggle_player(br_player), C);
+        // update average policy
+        PolicyVec br_policy(br_player, player_information_sets);
+        compute_best_response_wrapper(opponent_ucb_policy, br_policy, br_player);
+        //averaging
+        calc_average_terms(br_player, player_information_sets, br_policy, avg_player_policy_numerator, avg_player_policy_denominator, t);
+        calc_average_policy(player_information_sets, player_average_policy, avg_player_policy_numerator, avg_player_policy_denominator, br_player);
+            
 
         if (t % update_step_size == 0 && t != 0){
-            PolicyVec br_policy(br_player, player_information_sets);
-            compute_best_response_wrapper(opponent_ucb_policy, br_policy, br_player);
-
-            //averaging
-            calc_average_terms(br_player, player_information_sets, br_policy, avg_player_policy_numerator, avg_player_policy_denominator, t);
-            calc_average_policy(player_information_sets, player_average_policy, avg_player_policy_numerator, avg_player_policy_denominator, br_player);
             double expected_utility = 0.0;
             if (br_player == 'x'){
                 expected_utility = get_expected_utility_wrapper(player_average_policy, opponent_policy);
