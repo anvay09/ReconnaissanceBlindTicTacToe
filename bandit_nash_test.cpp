@@ -276,8 +276,8 @@ int main(int argc, char* argv[]) {
     // compute epsilon best response
     char continue_exp = 'y';
     while (continue_exp == 'y') {
-        int num_iterations = 10000;
-        int log_frequency = 10000;
+        long int num_iterations = 10000;
+        long int log_frequency = 10000;
         int C = 1;
         std::cout << "Enter number of iterations: ";
         std::cin >> num_iterations;
