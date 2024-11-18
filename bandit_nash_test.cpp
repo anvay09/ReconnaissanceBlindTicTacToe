@@ -9,7 +9,7 @@ int AVERAGE_DELAY = 5;
 //avg
 void calc_average_terms(char player, std::vector<std::string>& information_sets, PolicyVec& policy_obj, std::vector<std::vector<double>>& avg_policy_numerator, std::vector<double>& avg_policy_denominator, int t){
     //int weight = T > AVERAGE_DELAY ? T - AVERAGE_DELAY : 0;
-    int weight = 1;
+    int weight = t;
 
     #pragma omp parallel for num_threads(NUMBER_THREADS) shared(avg_policy_numerator, avg_policy_denominator, policy_obj)
     for (long int i = 0; i < information_sets.size(); i++) {
@@ -211,6 +211,7 @@ void calc_nash_ucb(long int num_iterations, std::vector<std::string>& x_informat
     }
     PolicyVec avg_o_policy('o', o_information_sets);
     avg_o_policy = o_ucb_policy;
+    long int count = 1;
 
     for (long int t = 0; t < num_iterations; t++) {
         std::vector<int> h = {};
@@ -222,10 +223,11 @@ void calc_nash_ucb(long int num_iterations, std::vector<std::string>& x_informat
         double reward_new = 0.0 - reward;
         update_ucb(o_infoset_ucb_values, o_infoset_empirical_reward, o_infoset_pull_count, o_infoset_time_steps, o_ucb_policy, reward_new, start_history, 'o', C);
         if (t % log_frequency == 0 && t != 0){
-            calc_average_terms('x', x_information_sets, x_ucb_policy, avg_x_policy_numerator, avg_x_policy_denominator, t);
+            calc_average_terms('x', x_information_sets, x_ucb_policy, avg_x_policy_numerator, avg_x_policy_denominator, count);
             calc_average_policy(x_information_sets, avg_x_policy, avg_x_policy_numerator, avg_x_policy_denominator, 'x');
-            calc_average_terms('o', o_information_sets, o_ucb_policy, avg_o_policy_numerator, avg_o_policy_denominator, t);
+            calc_average_terms('o', o_information_sets, o_ucb_policy, avg_o_policy_numerator, avg_o_policy_denominator, count);
             calc_average_policy(o_information_sets, avg_o_policy, avg_o_policy_numerator, avg_o_policy_denominator, 'o');     
+            count += 1;
             double expected_utility = 0.0;
             expected_utility = get_expected_utility_wrapper(avg_o_policy, avg_o_policy);
             std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
