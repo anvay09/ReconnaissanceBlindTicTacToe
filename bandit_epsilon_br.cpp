@@ -71,7 +71,7 @@ int sampleIndex(const std::vector<double>& probabilities) {
 
 
 double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, 
-                               PolicyVec& policy_obj_o, History& current_history, char player, double probability, double& reward, 
+                               PolicyVec& policy_obj_o, History& current_history, char player, double& reward, 
                                char update_player, PolicyVec& oppo_cumulative_sample_count, PolicyVec& oppo_strategy, std::vector<long int>& visited_infosets) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
@@ -82,10 +82,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
     if (I.move_flag) {
         bool success = true_board.update_move(action, player);
 
-        if (player == update_player) { // update the probability only if the player is the one we are updating
-            probability = probability * prob_dist[action];
-        }
-        else {
+        if (player == toggle_player(update_player)) {
             visited_infosets[I.get_index()] += 1;
             std::vector<double>& oppo_sample_count = oppo_cumulative_sample_count.policy_dict[I.get_index()];
             oppo_sample_count[action] += 1.0;
@@ -109,25 +106,22 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             new_I.reset_zeros();
 
             if (player == 'x') {
-                return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
+                return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
             } else {
-                return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
+                return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
             H_T.set_reward();
             reward = (double) H_T.reward[0];
-            return probability;
+            return reward;
         }
     }
     else {
         InformationSet new_I = I;
         new_I.simulate_sense(action, true_board);
         
-        if (player == update_player) { // update the probability only if the player is the one we are updating
-            probability = probability * prob_dist[action];
-        }
-        else {
+        if (player == toggle_player(update_player)) {
             visited_infosets[I.get_index()] += 1;
             std::vector<double>& oppo_sample_count = oppo_cumulative_sample_count.policy_dict[I.get_index()];
             oppo_sample_count[action] += 1.0;
@@ -144,9 +138,9 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         current_history.history.push_back(action);
 
         if (player == 'x') {
-            return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
+            return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
         } else {
-            return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
+            return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
         }
     }
 }
@@ -159,11 +153,11 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
     std::string hash_2 = "";
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
-    return sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', 1.0, reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
+    return sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward, update_player, oppo_cumulative_sample_count, oppo_strategy, visited_infosets);
 }
 
 
-void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& uniform_strategy_x, PolicyVec& uniform_strategy_o, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, char player, int T, int update_step_size, int log_flag) {
+void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& uniform_strategy_x, PolicyVec& uniform_strategy_o, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, char player, long int T, long int update_step_size, int log_flag) {
     auto start = std::chrono::system_clock::now();
     // player
     PolicyVec player_strategy = player == 'x' ? uniform_strategy_x : uniform_strategy_o;
@@ -189,24 +183,23 @@ void calc_epsilon_best_response(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o
         start = std::chrono::system_clock::now();   
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
-        double q_z = 0.0;
         double reward = 0;
         double eps = 1.0/(((t*1.0)/(update_step_size*1.0))+1.0);
         std::vector<double> prob_dist = {eps, 1-eps};
         if (sampleIndex(prob_dist)){
             if (player == 'x') {
-                q_z = sample_terminal_history_wrapper(player_strategy, policy_obj_o, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy, opponent_visited_infosets);
+                sample_terminal_history_wrapper(player_strategy, policy_obj_o, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy, opponent_visited_infosets);
             }
             else {
-                q_z = sample_terminal_history_wrapper(policy_obj_x, player_strategy, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy, opponent_visited_infosets);
+                sample_terminal_history_wrapper(policy_obj_x, player_strategy, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy, opponent_visited_infosets);
             }
         }
         else {
             if (player == 'x') {
-                q_z = sample_terminal_history_wrapper(uniform_strategy_x, policy_obj_o, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy, opponent_visited_infosets);
+                sample_terminal_history_wrapper(uniform_strategy_x, policy_obj_o, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy, opponent_visited_infosets);
             }
             else {
-                q_z = sample_terminal_history_wrapper(policy_obj_x, uniform_strategy_o, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy, opponent_visited_infosets);
+                sample_terminal_history_wrapper(policy_obj_x, uniform_strategy_o, start_history, reward, player, opponent_cumulative_sample_count, opponent_strategy, opponent_visited_infosets);
             }
         }
         if (t % update_step_size == 0) {
@@ -285,8 +278,8 @@ int main(int argc, char* argv[]) {
     // compute epsilon best response
     char continue_exp = 'y';
     while (continue_exp == 'y') {
-        int num_iterations = 10000;
-        int update_step_size = 100;
+        long int num_iterations = 10000;
+        long int update_step_size = 100;
         char player = 'x';
         std::cout << "Enter number of iterations: ";
         std::cin >> num_iterations;
