@@ -113,7 +113,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
             H_T.set_reward();
-            reward = (double) H_T.reward[0];
+            reward = player == 'x' ? (double) H_T.reward[0] : (double) H_T.reward[1];
             return reward;
         }
     }
