@@ -153,7 +153,7 @@ double sample_terminal_history_wrapper(std::vector<std::vector<double>>& infoset
     std::string hash_2 = "";
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
-    return sample_terminal_history(I_1, I_2, true_board, infoset_ucb_values, empirical_means, opponent_policy, current_history, 'x', br_player);
+    return sample_terminal_history(I_1, I_2, true_board, infoset_ucb_values, opponent_policy, current_history, 'x', br_player);
 }
 
 
