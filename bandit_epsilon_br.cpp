@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
     std::string uniform_file_path_1 = argv[3];
     std::string uniform_file_path_2 = argv[4];
     int log_flag = std::stoi(argv[5]);
-    NUMBER_THREADS = std::stoi(argv[7]); //96;
+    NUMBER_THREADS = std::stoi(argv[6]); //96;
 
     // load information sets
     std::vector<std::string> P1_information_sets;
