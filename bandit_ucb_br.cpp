@@ -72,7 +72,7 @@ int sampleIndex(const std::vector<double>& probabilities) {
 
 
 double sample_game_given_policies(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, 
-                                  PolicyVec& policy_obj_o, History& current_history, char player, double& reward) {
+                                  PolicyVec& policy_obj_o, History& current_history, char player, double& reward, char br_player) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
@@ -90,14 +90,14 @@ double sample_game_given_policies(InformationSet& I_1, InformationSet& I_2, TicT
             new_I.reset_zeros();
 
             if (player == 'x') {
-                return sample_game_given_policies(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', reward);
+                return sample_game_given_policies(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', reward, br_player);
             } else {
-                return sample_game_given_policies(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward);
+                return sample_game_given_policies(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward, br_player);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
             H_T.set_reward();
-            reward = player == 'x' ? (double) H_T.reward[0] : (double) H_T.reward[1];
+            reward = br_player == 'x' ? (double) H_T.reward[0] : (double) H_T.reward[1];
             return reward;
         }
     }
@@ -107,21 +107,21 @@ double sample_game_given_policies(InformationSet& I_1, InformationSet& I_2, TicT
         current_history.history.push_back(action);
 
         if (player == 'x') {
-            return sample_game_given_policies(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward);
+            return sample_game_given_policies(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward, br_player);
         } else {
-            return sample_game_given_policies(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', reward);
+            return sample_game_given_policies(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', reward, br_player);
         }
     }
 }
 
-double sample_game_given_policies_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, double& reward) {
+double sample_game_given_policies_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, double& reward, char br_player) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
     std::string hash_2 = "";
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
-    return sample_game_given_policies(I_1, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward);
+    return sample_game_given_policies(I_1, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward, br_player);
 }
 
 
@@ -131,7 +131,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
     if (player == br_player){ // choose action with max UCB value
         std::vector<double>& action_ucbs = infoset_ucb_values[I.get_index()];
 
-        double max_ucb = -100.0;
+        double max_ucb = -std::numeric_limits<double>::infinity();
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
 
@@ -342,7 +342,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
                     TerminalHistory start_h = TerminalHistory(empty_h);
                     double reward = 0.0;
 
-                    reward = sample_game_given_policies_wrapper(br_policy, opponent_policy, start_h, reward);
+                    reward = sample_game_given_policies_wrapper(br_policy, opponent_policy, start_h, reward, br_player);
                     std::cout << "Reward: " << reward << " History: ";
                     start_h.print_history();
                 }
@@ -353,7 +353,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
                     TerminalHistory start_h = TerminalHistory(empty_h);
                     double reward = 0.0;
 
-                    reward = sample_game_given_policies_wrapper(policy_obj, opponent_policy, start_h, reward);
+                    reward = sample_game_given_policies_wrapper(policy_obj, opponent_policy, start_h, reward, br_player);
                     std::cout << "Reward: " << reward << " History: ";
                     start_h.print_history();
                 }
@@ -370,7 +370,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
                     TerminalHistory start_h = TerminalHistory(empty_h);
                     double reward = 0.0;
 
-                    reward = sample_game_given_policies_wrapper(opponent_policy, br_policy, start_h, reward);
+                    reward = sample_game_given_policies_wrapper(opponent_policy, br_policy, start_h, reward, br_player);
                     std::cout << "Reward: " << reward << "History: ";
                     start_h.print_history();
                 }
@@ -381,7 +381,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
                     TerminalHistory start_h = TerminalHistory(empty_h);
                     double reward = 0.0;
 
-                    reward = sample_game_given_policies_wrapper(opponent_policy, policy_obj, start_h, reward);
+                    reward = sample_game_given_policies_wrapper(opponent_policy, policy_obj, start_h, reward, br_player);
                     std::cout << "Reward: " << reward << " History: ";
                     start_h.print_history();
                 }
@@ -389,6 +389,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
         }
     } 
 }
+
 
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
