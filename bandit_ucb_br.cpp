@@ -138,7 +138,9 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         I.get_actions(legal_actions);
 
         for (int a : legal_actions){
-            action_ucbs[a] = emp_rewards[a] + sqrt(C*log(timestep) / pull_counts[a]);
+            if (pull_counts[a] > 0){
+                action_ucbs[a] = emp_rewards[a] + sqrt(C*log(timestep) / pull_counts[a]);
+            }
         }
 
         for (int a : legal_actions){
