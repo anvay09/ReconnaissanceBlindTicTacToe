@@ -150,7 +150,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             }
         }
 
-        if (player == 'x' && I.get_index() == 5490163){action = 7;}
+        if (player == 'x' && I.get_index() == 5490163 && timestep > 100){action = 7;}
         // std::vector<double> best_arms(13, 0.0);
         // double sum = 0.0;
 
