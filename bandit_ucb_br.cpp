@@ -200,7 +200,7 @@ void build_policy(std::vector<std::vector<double>>& ucb_values, PolicyVec& polic
 }
 
 
-void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vector<std::vector<double>>& infoset_empirical_reward, std::vector<std::vector<long int>>& infoset_pull_count, std::vector<long int>& infoset_time_steps, double reward, TerminalHistory& history, char player, long int C) {
+void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vector<std::vector<double>>& infoset_empirical_reward, std::vector<std::vector<long int>>& infoset_pull_count, long int timestep, double reward, TerminalHistory& history, char player, long int C) {
     // TODO
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
@@ -220,17 +220,17 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
             total_reward = infoset_empirical_reward[I.get_index()][action] * total_pull;
             infoset_pull_count[I.get_index()][action] += 1;
             infoset_empirical_reward[I.get_index()][action] =  (total_reward + reward) / (total_pull + 1);
-            infoset_time_steps[I.get_index()] += 1;
+            // infoset_time_steps[I.get_index()] += 1;
             std::vector<int> legal_actions;
             I.get_actions(legal_actions);
-            double exploration_bonus =C;
+            double exploration_bonus = C;
             for (int a : legal_actions){
                 if (infoset_pull_count[I.get_index()][a] > 0){
-                    infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + sqrt(exploration_bonus*log(infoset_time_steps[I.get_index()]) / infoset_pull_count[I.get_index()][a]);
+                    infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + sqrt(exploration_bonus*log(timestep) / infoset_pull_count[I.get_index()][a]);
                 }
-                else {
-                    infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + sqrt(exploration_bonus*log(infoset_time_steps[I.get_index()]) / 1);
-                }
+                // else {
+                //     infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + sqrt(exploration_bonus*log(timestep) / 1);
+                // }
             }
         }
 
@@ -259,7 +259,7 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
 
 void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, long int log_flag, long int log_frequency, long int C) {
     std::vector<long int> infoset_time_steps(player_information_sets.size(), 0);
-    std::vector<std::vector<double>> infoset_ucb_values(player_information_sets.size(), std::vector<double>(13, 0));
+    std::vector<std::vector<double>> infoset_ucb_values(player_information_sets.size(), std::vector<double>(13, std::numeric_limits<double>::infinity()));
     std::vector<std::vector<double>> infoset_empirical_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<long int>> infoset_pull_count(player_information_sets.size(), std::vector<long int>(13, 0));
 
@@ -272,7 +272,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
 
         reward = sample_terminal_history_wrapper(infoset_ucb_values, opponent_policy, start_history, br_player);
         // update ucb values
-        update_ucb(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, infoset_time_steps, reward, start_history, br_player, C);
+        update_ucb(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, t, reward, start_history, br_player, C);
         
         if (t % log_frequency == 0 && t != 0){
             PolicyVec policy_obj(br_player, player_information_sets);
