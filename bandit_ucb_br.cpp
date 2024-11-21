@@ -130,8 +130,8 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
     int action = 0;
     if (player == br_player){ // choose action with max UCB value
         std::vector<double>& action_ucbs = infoset_ucb_values[I.get_index()];
-        std::vector<double> emp_rewards = infoset_empirical_reward[I.get_index()];
-        std::vector<long int> pull_counts = infoset_pull_count[I.get_index()];
+        std::vector<double>& emp_rewards = infoset_empirical_reward[I.get_index()];
+        std::vector<long int>& pull_counts = infoset_pull_count[I.get_index()];
 
         double max_ucb = -std::numeric_limits<double>::infinity();
         std::vector<int> legal_actions;
