@@ -71,6 +71,60 @@ int sampleIndex(const std::vector<double>& probabilities) {
 }
 
 
+double sample_game_given_policies(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, 
+                                  PolicyVec& policy_obj_o, History& current_history, char player, double& reward) {
+    InformationSet& I = player == 'x' ? I_1 : I_2;
+    PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
+    std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
+
+    int action = sampleIndex(prob_dist);
+
+    if (I.move_flag) {
+        bool success = true_board.update_move(action, player);
+        current_history.history.push_back(action);
+
+        char winner;
+        if (success && !true_board.is_win(winner) && !true_board.is_over()) {
+            InformationSet new_I = I;
+            new_I.update_move(action, player);
+            new_I.reset_zeros();
+
+            if (player == 'x') {
+                return sample_game_given_policies(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', reward);
+            } else {
+                return sample_game_given_policies(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward);
+            }
+        } else {
+            TerminalHistory H_T = TerminalHistory(current_history.history);
+            H_T.set_reward();
+            reward = player == 'x' ? (double) H_T.reward[0] : (double) H_T.reward[1];
+            return reward;
+        }
+    }
+    else {
+        InformationSet new_I = I;
+        new_I.simulate_sense(action, true_board);
+        current_history.history.push_back(action);
+
+        if (player == 'x') {
+            return sample_game_given_policies(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward);
+        } else {
+            return sample_game_given_policies(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', reward);
+        }
+    }
+}
+
+double sample_game_given_policies_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, double& reward) {
+    std::string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    InformationSet I_1 = InformationSet('x', true, hash_1);
+    InformationSet I_2 = InformationSet('o', false, hash_2);
+    return sample_game_given_policies(I_1, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward);
+}
+
+
 double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, std::vector<std::vector<double>>& infoset_ucb_values, PolicyVec& opponent_policy, History& current_history, char player, char br_player) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     int action = 0;
@@ -257,18 +311,17 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
 }
 
 
-void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, long int log_flag, long int log_frequency, long int C) {
+void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, long int log_flag, long int log_frequency, long int C, PolicyVec& br_policy) {
     std::vector<long int> infoset_time_steps(player_information_sets.size(), 0);
     std::vector<std::vector<double>> infoset_ucb_values(player_information_sets.size(), std::vector<double>(13, std::numeric_limits<double>::infinity()));
     std::vector<std::vector<double>> infoset_empirical_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<long int>> infoset_pull_count(player_information_sets.size(), std::vector<long int>(13, 0));
 
-    for (long int t = 0; t < num_iterations; t++) {
+    for (long int t = 0; t <= num_iterations; t++) {
         // sample terminal history
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
-
 
         reward = sample_terminal_history_wrapper(infoset_ucb_values, opponent_policy, start_history, br_player);
         // update ucb values
@@ -281,10 +334,57 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
             if (br_player == 'x'){
                 double expected_utility = get_expected_utility_wrapper(policy_obj, opponent_policy);
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
+
+                // sample 10 games using best response policy and then sample 10 games using the policy just built
+                std::cout << "Sample 10 games using best response policy" << std::endl;
+                for (int i = 0; i < 10; i++){
+                    std::vector<int> empty_h = {};
+                    TerminalHistory start_h = TerminalHistory(empty_h);
+                    double reward = 0.0;
+
+                    reward = sample_game_given_policies_wrapper(br_policy, opponent_policy, start_h, reward);
+                    std::cout << "Reward using best response policy: " << reward << std::endl;
+                    start_h.print_history();
+                }
+
+                std::cout << "Sample 10 games using the policy just built" << std::endl;
+                for (int i = 0; i < 10; i++){
+                    std::vector<int> empty_h = {};
+                    TerminalHistory start_h = TerminalHistory(empty_h);
+                    double reward = 0.0;
+
+                    reward = sample_game_given_policies_wrapper(policy_obj, opponent_policy, start_h, reward);
+                    std::cout << "Reward using the policy just built: " << reward << std::endl;
+                    start_h.print_history();
+                }
+
             }
             else {
                 double expected_utility = get_expected_utility_wrapper(opponent_policy, policy_obj);
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
+
+                // sample 10 games using best response policy and then sample 10 games using the policy just built
+                std::cout << "Sample 10 games using best response policy" << std::endl;
+                for (int i = 0; i < 10; i++){
+                    std::vector<int> empty_h = {};
+                    TerminalHistory start_h = TerminalHistory(empty_h);
+                    double reward = 0.0;
+
+                    reward = sample_game_given_policies_wrapper(opponent_policy, br_policy, start_h, reward);
+                    std::cout << "Reward using best response policy: " << reward << std::endl;
+                    start_h.print_history();
+                }
+
+                std::cout << "Sample 10 games using the policy just built" << std::endl;
+                for (int i = 0; i < 10; i++){
+                    std::vector<int> empty_h = {};
+                    TerminalHistory start_h = TerminalHistory(empty_h);
+                    double reward = 0.0;
+
+                    reward = sample_game_given_policies_wrapper(opponent_policy, policy_obj, start_h, reward);
+                    std::cout << "Reward using the policy just built: " << reward << std::endl;
+                    start_h.print_history();
+                }
             }
         }
     } 
@@ -366,7 +466,7 @@ int main(int argc, char* argv[]) {
             pretty_print(start, end, "computing best response o", log_flag);
         }
 
-        calc_br_ucb(player == 'x' ? policy_obj_o : policy_obj_x, num_iterations, player, player == 'x' ? P1_information_sets : P2_information_sets, log_flag, log_frequency, C);
+        calc_br_ucb(player == 'x' ? policy_obj_o : policy_obj_x, num_iterations, player, player == 'x' ? P1_information_sets : P2_information_sets, log_flag, log_frequency, C, player == 'x' ? br_x : br_o);
         
         std::cout << "Continue experiments? (y/n): ";
         std::cin >> continue_exp;
