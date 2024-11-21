@@ -364,25 +364,25 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
 
                 // sample 10 games using best response policy and then sample 10 games using the policy just built
-                std::cout << "Sample 10 games using best response policy" << std::endl;
+                std::cout << "Sampling 10 games using best response policy..." << std::endl;
                 for (int i = 0; i < 10; i++){
                     std::vector<int> empty_h = {};
                     TerminalHistory start_h = TerminalHistory(empty_h);
                     double reward = 0.0;
 
                     reward = sample_game_given_policies_wrapper(opponent_policy, br_policy, start_h, reward);
-                    std::cout << "Reward using best response policy: " << reward << std::endl;
+                    std::cout << "Reward: " << reward << "History: ";
                     start_h.print_history();
                 }
 
-                std::cout << "Sample 10 games using the policy just built" << std::endl;
+                std::cout << "Sampling 10 games using the policy just built..." << std::endl;
                 for (int i = 0; i < 10; i++){
                     std::vector<int> empty_h = {};
                     TerminalHistory start_h = TerminalHistory(empty_h);
                     double reward = 0.0;
 
                     reward = sample_game_given_policies_wrapper(opponent_policy, policy_obj, start_h, reward);
-                    std::cout << "Reward using the policy just built: " << reward << std::endl;
+                    std::cout << "Reward: " << reward << " History: ";
                     start_h.print_history();
                 }
             }
