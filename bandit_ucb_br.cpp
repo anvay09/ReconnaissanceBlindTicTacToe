@@ -358,6 +358,13 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
                     start_h.print_history();
                 }
 
+                std::string start_infoset_hash = "";
+                InformationSet start_infoset = InformationSet('x', true, start_infoset_hash);
+                // print ucbs for the starting information set
+                for (int a = 0; a < 13; a++){
+                    std::cout << "Action: " << a << " UCB: " << infoset_ucb_values[start_infoset.get_index()][a] << std::endl;
+                }
+
             }
             else {
                 double expected_utility = get_expected_utility_wrapper(opponent_policy, policy_obj);
