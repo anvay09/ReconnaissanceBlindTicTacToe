@@ -150,8 +150,8 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             }
         }
 
-        if (player == 'x' && I.get_index() == 5490163 && timestep > 10000){action = 7;}
-        
+        // if (player == 'x' && I.get_index() == 5490163 && timestep > 10000){action = 7;}
+
         // std::vector<double> best_arms(13, 0.0);
         // double sum = 0.0;
 
@@ -347,7 +347,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
 
                 // sample 10 games using best response policy and then sample 10 games using the policy just built
-                std::cout << "Sample 10 games using the best response policy" << std::endl;
+                std::cout << "Sample 10 games using the best response policy..." << std::endl;
                 for (int i = 0; i < 10; i++){
                     std::vector<int> empty_h = {};
                     TerminalHistory start_h = TerminalHistory(empty_h);
@@ -358,7 +358,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
                     start_h.print_history();
                 }
 
-                std::cout << "Sample 10 games using the policy just built" << std::endl;
+                std::cout << "Sample 10 games using the policy just built..." << std::endl;
                 for (int i = 0; i < 10; i++){
                     std::vector<int> empty_h = {};
                     TerminalHistory start_h = TerminalHistory(empty_h);
