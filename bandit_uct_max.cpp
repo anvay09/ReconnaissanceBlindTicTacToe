@@ -449,13 +449,13 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
                 //     start_h.print_history();
                 // }
 
-                // std::string start_infoset_hash = "";
-                // InformationSet start_infoset = InformationSet('x', true, start_infoset_hash);
-                // std::cout << "Index of starting information set: " << start_infoset.get_index() << std::endl;
+                std::string start_infoset_hash = "";
+                InformationSet start_infoset = InformationSet('x', true, start_infoset_hash);
+                std::cout << "Index of starting information set: " << start_infoset.get_index() << std::endl;
                 // print ucbs for the starting information set
-                // for (int a = 0; a < 13; a++){
-                //     std::cout << "Action: " << a << " UCB: " << infoset_ucb_values[start_infoset.get_index()][a] << " Pull count: " << infoset_pull_count[start_infoset.get_index()][a] << " Empirical reward: " << infoset_empirical_reward[start_infoset.get_index()][a] << std::endl;
-                // }
+                for (int a = 0; a < 13; a++){
+                    std::cout << "Action: " << a << " UCB: " << infoset_ucb_values[start_infoset.get_index()][a] << " Pull count: " << infoset_pull_count[start_infoset.get_index()][a] << " Empirical reward: " << infoset_empirical_reward[start_infoset.get_index()][a] << std::endl;
+                }
 
             }
             else {
