@@ -325,27 +325,42 @@ double update_ucb_reverse_recursive(InformationSet& I_1, InformationSet& I_2, Ti
     }
     
     int played_action = history.history[traversal_index];
+    double percolated_reward = 0.0;
 
     if (played_action < 9) {
         if (curr_player == 'x') {
-            I_1.update_move(played_action, curr_player);
-            I_1.reset_zeros();
+            InformationSet new_I = I_1;
+            new_I.update_move(played_action, curr_player);
+            new_I.reset_zeros();
+            TicTacToeBoard new_board = true_board;
+            new_board.update_move(played_action, curr_player);
+
+            percolated_reward = update_ucb_reverse_recursive(new_I, I_2, new_board, infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, timestep, reward, history, traversal_index + 1, player, 'o', C);
         } else {
-            I_2.update_move(played_action, curr_player);
-            I_2.reset_zeros();
+            InformationSet new_I = I_2;
+            new_I.update_move(played_action, curr_player);
+            new_I.reset_zeros();
+            TicTacToeBoard new_board = true_board;
+            new_board.update_move(played_action, curr_player);
+
+            percolated_reward = update_ucb_reverse_recursive(I_1, new_I, new_board, infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, timestep, reward, history, traversal_index + 1, player, 'x', C);
         }
-        true_board.update_move(played_action, curr_player);
-        curr_player = (curr_player == 'x') ? 'o' : 'x';
     } 
     else {
         if (curr_player == 'x') {
-            I_1.simulate_sense(played_action, true_board);
+            InformationSet new_I = I_1;
+            new_I.simulate_sense(played_action, true_board);
+            TicTacToeBoard new_board = true_board;
+
+            percolated_reward = update_ucb_reverse_recursive(new_I, I_2, new_board, infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, timestep, reward, history, traversal_index + 1, player, 'x', C);
         } else {
-            I_2.simulate_sense(played_action, true_board);
+            InformationSet new_I = I_2;
+            new_I.simulate_sense(played_action, true_board);
+            TicTacToeBoard new_board = true_board;
+
+            percolated_reward = update_ucb_reverse_recursive(I_1, new_I, new_board, infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, timestep, reward, history, traversal_index + 1, player, 'o', C);
         }
     }
-
-    double percolated_reward = update_ucb_reverse_recursive(I_1, I_2, true_board, infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, timestep, reward, history, traversal_index + 1, player, curr_player, C);
 
     if (curr_player == player) {
         InformationSet I = curr_player == 'x' ? I_1 : I_2;
