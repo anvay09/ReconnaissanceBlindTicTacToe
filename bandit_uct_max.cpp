@@ -377,6 +377,9 @@ double update_ucb_reverse_recursive(InformationSet& I_1, InformationSet& I_2, Ti
 
         return max_reward;
     }
+    else {
+        return percolated_reward;
+    }
 }
 
 
