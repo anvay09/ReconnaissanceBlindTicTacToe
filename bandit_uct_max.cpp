@@ -368,14 +368,14 @@ double update_ucb_reverse_recursive(InformationSet& I_1, InformationSet& I_2, Ti
         double total_reward = infoset_empirical_reward[I.get_index()][played_action] * total_pull;
         
         // check if percolated reward is not infinity
-        if (percolated_reward != std::numeric_limits<double>::infinity()){
-            infoset_pull_count[I.get_index()][played_action] += 1;
-            infoset_empirical_reward[I.get_index()][played_action] =  (total_reward + percolated_reward) / (total_pull + 1);
-        }
-        else {
-            infoset_pull_count[I.get_index()][played_action] += 1;
-            infoset_empirical_reward[I.get_index()][played_action] =  (total_reward + reward) / (total_pull + 1);
-        }
+        // if (percolated_reward != std::numeric_limits<double>::infinity()){
+        //     infoset_pull_count[I.get_index()][played_action] += 1;
+        //     infoset_empirical_reward[I.get_index()][played_action] =  (total_reward + percolated_reward) / (total_pull + 1);
+        // }
+        // else {
+        infoset_pull_count[I.get_index()][played_action] += 1;
+        infoset_empirical_reward[I.get_index()][played_action] =  (total_reward + reward) / (total_pull + 1);
+        // }
         
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
