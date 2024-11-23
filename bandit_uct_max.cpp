@@ -138,6 +138,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
 
+        // updating global timestep
         for (int a : legal_actions){
             if (pull_counts[a] > 0){
                 action_ucbs[a] = emp_rewards[a] + sqrt(C*log(timestep) / pull_counts[a]);
@@ -266,7 +267,6 @@ void build_policy(std::vector<std::vector<double>>& ucb_values, PolicyVec& polic
 
 
 void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vector<std::vector<double>>& infoset_empirical_reward, std::vector<std::vector<long int>>& infoset_pull_count, long int timestep, double reward, TerminalHistory& history, char player, long int C) {
-    // TODO
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
@@ -319,6 +319,80 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
 }
 
 
+double update_ucb_reverse_recursive(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, std::vector<std::vector<double>>& infoset_ucb_values, std::vector<std::vector<double>>& infoset_empirical_reward, std::vector<std::vector<long int>>& infoset_pull_count, long int timestep, double reward, TerminalHistory& history, int traversal_index, char player, char curr_player, long int C){
+    if (traversal_index == history.history.size()){
+        return reward;
+    }
+    
+    int played_action = history.history[traversal_index];
+
+    if (played_action < 9) {
+        if (curr_player == 'x') {
+            I_1.update_move(played_action, curr_player);
+            I_1.reset_zeros();
+        } else {
+            I_2.update_move(played_action, curr_player);
+            I_2.reset_zeros();
+        }
+        true_board.update_move(played_action, curr_player);
+        curr_player = (curr_player == 'x') ? 'o' : 'x';
+    } 
+    else {
+        if (curr_player == 'x') {
+            I_1.simulate_sense(played_action, true_board);
+        } else {
+            I_2.simulate_sense(played_action, true_board);
+        }
+    }
+
+    double percolated_reward = update_ucb_reverse_recursive(I_1, I_2, true_board, infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, timestep, reward, history, traversal_index + 1, player, curr_player, C);
+
+    if (curr_player == player) {
+        InformationSet I = curr_player == 'x' ? I_1 : I_2;
+        long int total_pull = infoset_pull_count[I.get_index()][played_action];
+        double total_reward = infoset_empirical_reward[I.get_index()][played_action] * total_pull;
+        
+        // check if percolated reward is not infinity
+        if (percolated_reward != std::numeric_limits<double>::infinity()){
+            infoset_pull_count[I.get_index()][played_action] += 1;
+            infoset_empirical_reward[I.get_index()][played_action] =  (total_reward + percolated_reward) / (total_pull + 1);
+        }
+        else {
+            return percolated_reward;
+        }
+        
+        std::vector<int> legal_actions;
+        I.get_actions(legal_actions);
+        double exploration_bonus = C;
+        double max_reward = -std::numeric_limits<double>::infinity();
+        for (int a : legal_actions){
+            if (infoset_empirical_reward[I.get_index()][a] >= max_reward){
+                max_reward = infoset_empirical_reward[I.get_index()][a];
+            }
+
+            if (infoset_pull_count[I.get_index()][a] > 0){
+                infoset_ucb_values[I.get_index()][a] = infoset_empirical_reward[I.get_index()][a] + sqrt(exploration_bonus*log(timestep) / infoset_pull_count[I.get_index()][a]);
+            }
+        }
+
+        return max_reward;
+    }
+}
+
+
+double update_ucb_reverse_recursive_wrapper(std::vector<std::vector<double>>& infoset_ucb_values, std::vector<std::vector<double>>& infoset_empirical_reward, std::vector<std::vector<long int>>& infoset_pull_count, long int timestep, double reward, TerminalHistory& history, char player, long int C){
+    std::string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    InformationSet I_1 = InformationSet('x', true, hash_1);
+    InformationSet I_2 = InformationSet('o', false, hash_2);
+    char curr_player = 'x';
+
+    return update_ucb_reverse_recursive(I_1, I_2, true_board, infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, timestep, reward, history, 0, player, curr_player, C);
+}
+
+
 void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, long int log_flag, long int log_frequency, long int C, PolicyVec& br_policy) {
     std::vector<long int> infoset_time_steps(player_information_sets.size(), 0);
     std::vector<std::vector<double>> infoset_ucb_values(player_information_sets.size(), std::vector<double>(13, std::numeric_limits<double>::infinity()));
@@ -333,7 +407,8 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
 
         reward = sample_terminal_history_wrapper(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, t, C, opponent_policy, start_history, br_player);
         // update ucb values
-        update_ucb(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, t, reward, start_history, br_player, C);
+        // update_ucb(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, t, reward, start_history, br_player, C);
+        update_ucb_reverse_recursive_wrapper(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, t, reward, start_history, br_player, C);
         
         if (t % log_frequency == 0 && t != 0){
             PolicyVec policy_obj(br_player, player_information_sets);
