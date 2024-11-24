@@ -368,7 +368,7 @@ double update_ucb_reverse_recursive(InformationSet& I_1, InformationSet& I_2, Ti
         double total_reward = infoset_empirical_reward[I.get_index()][played_action] * total_pull;
         
         // check if percolated reward is not infinity
-        if (!isinf(percolated_reward)){
+        if (!std::isinf(percolated_reward)){
             infoset_pull_count[I.get_index()][played_action] += 1;
             infoset_empirical_reward[I.get_index()][played_action] = (total_reward + percolated_reward) / (total_pull + 1);
 
