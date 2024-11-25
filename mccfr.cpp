@@ -242,7 +242,7 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
 }
 
 
-void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best_response, char br_player, long int T, std::vector<std::string>& information_sets, double eps) {
+void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best_response, char br_player, long int T, std::vector<std::string>& information_sets, double eps, long int step_size) {
     std::vector<std::vector<double>> regret_list;
     std::vector<long int> markers;
     PolicyVec cumulative_strategy;
@@ -278,7 +278,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
 
         compute_regrets_along_history(I_1, I_2, true_board, best_response, cumulative_strategy, br_player, t, 1.0, regret_list, markers, start_history, q_z, reward, 0, 'x');        
 
-        if (t % 10000 == 0) {
+        if (t % step_size == 0 && t != 0) {
             double expected_utility = 0.0;
 
             if (br_player == 'x'){
@@ -469,13 +469,7 @@ int main(int argc, char* argv[]) {
 
     PolicyVec policy_obj_x('x', file_path_1);
     PolicyVec policy_obj_o('o', file_path_2);
-    // PolicyVec br_x('x', P1_information_sets);
-    // PolicyVec br_o('o', P2_information_sets);
-
     std::cout << "Policies loaded." << std::endl;
-
-    // double expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
-    // std::cout << "Expected utility of the best response: " << expected_utility << std::endl;
 
     char continue_exp = 'y';
     while (continue_exp == 'y') {
@@ -498,11 +492,11 @@ int main(int argc, char* argv[]) {
         }
         else if (player == 'x'){
             PolicyVec curr_br = policy_obj_x;
-            mccfr_outcome_sampling_best_response(policy_obj_o, curr_br, 'x', num_iterations, P1_information_sets, eps);
+            mccfr_outcome_sampling_best_response(policy_obj_o, curr_br, 'x', num_iterations, P1_information_sets, eps, step_size);
         }
         else if (player == 'o'){
             PolicyVec curr_br = policy_obj_o;
-            mccfr_outcome_sampling_best_response(policy_obj_x, curr_br, 'o', num_iterations, P2_information_sets, eps);
+            mccfr_outcome_sampling_best_response(policy_obj_x, curr_br, 'o', num_iterations, P2_information_sets, eps, step_size);
         }
        
         std::cout << "Continue experiments? (y/n): ";
