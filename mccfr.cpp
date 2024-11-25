@@ -17,6 +17,14 @@ double sample_game_given_policies(InformationSet& I_1, InformationSet& I_2, TicT
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
 
+    // print information set and probability distribution
+    std::cout << "Player: " << player << " Information set: " << I.get_hash() << std::endl;
+    std::cout << "Probability distribution: ";
+    for (int i = 0; i < prob_dist.size(); i++) {
+        std::cout << prob_dist[i] << " ";
+    }
+    std::cout << std::endl;
+
     int action = sampleIndex(prob_dist);
 
     if (I.move_flag) {
@@ -377,10 +385,11 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
             expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
             std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
 
-            PolicyVec average_strategy_x = cumulative_strategy_x;
+            PolicyVec average_strategy_x('x', P1_information_sets);
             // normalize the cumulative strategy
             for (long int i = 0; i < P1_information_sets.size(); i++) {
-                std::vector<double>& cumulative_prob_table = average_strategy_x.policy_dict[i];
+                std::vector<double>& cumulative_prob_table = cumulative_strategy_x.policy_dict[i];
+                std::vector<double>& average_prob_table = average_strategy_x.policy_dict[i];
                 double sum = 0.0;
 
                 for (int j = 0; j < 13; j++) {
@@ -389,15 +398,16 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
 
                 if (sum > 0) {
                     for (int j = 0; j < 13; j++) {
-                        cumulative_prob_table[j] /= sum;
+                        average_prob_table[j] = cumulative_prob_table[j] / sum;
                     }
                 }
             }
 
-            PolicyVec average_strategy_o = cumulative_strategy_o;
+            PolicyVec average_strategy_o('o', P2_information_sets);
             // normalize the cumulative strategy
             for (long int i = 0; i < P2_information_sets.size(); i++) {
-                std::vector<double>& cumulative_prob_table = average_strategy_o.policy_dict[i];
+                std::vector<double>& cumulative_prob_table = cumulative_strategy_o.policy_dict[i];
+                std::vector<double>& average_prob_table = average_strategy_o.policy_dict[i];
                 double sum = 0.0;
 
                 for (int j = 0; j < 13; j++) {
@@ -406,7 +416,7 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
 
                 if (sum > 0) {
                     for (int j = 0; j < 13; j++) {
-                        cumulative_prob_table[j] /= sum;
+                        average_prob_table[j] = cumulative_prob_table[j] / sum;
                     }
                 }
             }
