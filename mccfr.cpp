@@ -482,17 +482,29 @@ int main(int argc, char* argv[]) {
         double eps = 0.0;
         long int num_iterations = 0;
         long int step_size = 0;
+        char player;
+
         std::cout << "Enter the epsilon value: ";
         std::cin >> eps;
         std::cout << "Enter number of iterations: ";
         std::cin >> num_iterations;
         std::cout << "Enter the number of iterations after which progress is to be checked: ";
         std::cin >> step_size;
+        std::cout << "Enter the player for whom the best response is to be computed: (x/o/b), b for both if you want to compute Nash equilibrium) ";
+        std::cin >> player;
 
-        // PolicyVec curr_br = policy_obj_x;
-        // mccfr_outcome_sampling_best_response(policy_obj_o, curr_br, 'x', num_iterations, P1_information_sets, eps);
-        mccfr_outcome_sampling(policy_obj_x, policy_obj_o, num_iterations, P1_information_sets, P2_information_sets, eps, step_size);
-
+        if (player == 'b'){
+            mccfr_outcome_sampling(policy_obj_x, policy_obj_o, num_iterations, P1_information_sets, P2_information_sets, eps, step_size);
+        }
+        else if (player == 'x'){
+            PolicyVec curr_br = policy_obj_x;
+            mccfr_outcome_sampling_best_response(policy_obj_o, curr_br, 'x', num_iterations, P1_information_sets, eps);
+        }
+        else if (player == 'o'){
+            PolicyVec curr_br = policy_obj_o;
+            mccfr_outcome_sampling_best_response(policy_obj_x, curr_br, 'o', num_iterations, P2_information_sets, eps);
+        }
+       
         std::cout << "Continue experiments? (y/n): ";
         std::cin >> continue_exp;
     }
