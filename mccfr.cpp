@@ -372,7 +372,7 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
 
         compute_regrets_along_history(I_1, I_2, true_board, policy_obj_o, cumulative_strategy_o, 'o', t, 1.0, regret_list_o, markers_o, start_history, q_z, reward, 0, 'x');
 
-        if (t % step_size == 0) {
+        if (t % step_size == 0 && t != 0) {
             double expected_utility = 0.0;
             expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
             std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
