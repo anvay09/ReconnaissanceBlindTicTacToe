@@ -58,7 +58,11 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
             H_T.set_reward();
-            reward = (double) H_T.reward[0];
+            if (update_player == 'x'){
+                reward = (double) H_T.reward[0];
+            } else {
+                reward = (double) H_T.reward[1];
+            }
             return probability;
         }
     }
@@ -285,7 +289,7 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
         markers_o.push_back(0);
     }
 
-    for (long int t = 0; t < T; t++) {
+    for (long int t = 0; t <= T; t++) {
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
