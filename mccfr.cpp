@@ -11,6 +11,61 @@ int sampleIndex(const std::vector<double>& probabilities) {
 }
 
 
+double sample_game_given_policies(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, 
+                                  PolicyVec& policy_obj_o, History& current_history, char player, double& reward, char br_player) {
+    InformationSet& I = player == 'x' ? I_1 : I_2;
+    PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
+    std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
+
+    int action = sampleIndex(prob_dist);
+
+    if (I.move_flag) {
+        bool success = true_board.update_move(action, player);
+        current_history.history.push_back(action);
+
+        char winner;
+        if (success && !true_board.is_win(winner) && !true_board.is_over()) {
+            InformationSet new_I = I;
+            new_I.update_move(action, player);
+            new_I.reset_zeros();
+
+            if (player == 'x') {
+                return sample_game_given_policies(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', reward, br_player);
+            } else {
+                return sample_game_given_policies(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward, br_player);
+            }
+        } else {
+            TerminalHistory H_T = TerminalHistory(current_history.history);
+            H_T.set_reward();
+            reward = br_player == 'x' ? (double) H_T.reward[0] : (double) H_T.reward[1];
+            return reward;
+        }
+    }
+    else {
+        InformationSet new_I = I;
+        new_I.simulate_sense(action, true_board);
+        current_history.history.push_back(action);
+
+        if (player == 'x') {
+            return sample_game_given_policies(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward, br_player);
+        } else {
+            return sample_game_given_policies(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', reward, br_player);
+        }
+    }
+}
+
+
+double sample_game_given_policies_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, double& reward, char br_player) {
+    std::string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    InformationSet I_1 = InformationSet('x', true, hash_1);
+    InformationSet I_2 = InformationSet('o', false, hash_2);
+    return sample_game_given_policies(I_1, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', reward, br_player);
+}
+
+
 double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, char player, double probability, double& reward, char update_player, double eps) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
@@ -363,6 +418,17 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
             exploitability += compute_best_response_wrapper(average_strategy_o, br_x, 'x');
             exploitability -= compute_best_response_wrapper(average_strategy_x, br_o, 'o');
             std::cout << "Exploitability: " << exploitability << std::endl;
+
+            // sample 10 games using average strategies
+            for (int i = 0; i < 10; i++){
+                std::vector<int> empty_h = {};
+                TerminalHistory start_h = TerminalHistory(empty_h);
+                double reward = 0.0;
+
+                reward = sample_game_given_policies_wrapper(average_strategy_x, average_strategy_o, start_h, reward, 'x');
+                std::cout << "Reward: " << reward << "History: ";
+                start_h.print_history();
+            }
         }
     }
 }
