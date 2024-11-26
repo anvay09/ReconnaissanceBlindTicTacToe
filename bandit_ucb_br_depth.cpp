@@ -267,7 +267,7 @@ void build_policy(std::vector<std::vector<double>>& ucb_values, PolicyVec& polic
 }
 
 
-void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vector<std::vector<double>>& infoset_empirical_reward, std::vector<std::vector<long int>>& infoset_pull_count, long int timestep, double reward, TerminalHistory& history, char player, long int C, long int k) {
+void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vector<std::vector<double>>& infoset_empirical_reward, std::vector<std::vector<long int>>& infoset_pull_count, long int timestep, double reward, TerminalHistory& history, char player, long int C, long int k, int decay_flag) {
     // TODO
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
@@ -300,6 +300,9 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
             }
             else {
                 decay_factor = pow(9, k*1.0*(I.get_number_of_actions())) * pow(4, k*1.0*(I.get_number_of_actions() - 1));
+            }
+            if (decay_flag == 0) {
+                decay_factor = 1.0;
             }
             double exploration_bonus = (C*1.0)/decay_factor;
             for (int a : legal_actions){
@@ -335,7 +338,7 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
 }
 
 
-void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, long int log_flag, long int log_frequency, long int C, PolicyVec& br_policy, long int k) {
+void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_player, std::vector<std::string>& player_information_sets, long int log_flag, long int log_frequency, long int C, PolicyVec& br_policy, long int k, int decay_flag) {
     std::vector<long int> infoset_time_steps(player_information_sets.size(), 0);
     std::vector<std::vector<double>> infoset_ucb_values(player_information_sets.size(), std::vector<double>(13, std::numeric_limits<double>::infinity()));
     std::vector<std::vector<double>> infoset_empirical_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
@@ -349,7 +352,7 @@ void calc_br_ucb(PolicyVec& opponent_policy, long int num_iterations, char br_pl
 
         reward = sample_terminal_history_wrapper(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, t, C, opponent_policy, start_history, br_player, k);
         // update ucb values
-        update_ucb(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, t, reward, start_history, br_player, C, k);
+        update_ucb(infoset_ucb_values, infoset_empirical_reward, infoset_pull_count, t, reward, start_history, br_player, C, k, decay_flag);
         
         if (t % log_frequency == 0 && t != 0){
             PolicyVec policy_obj(br_player, player_information_sets);
@@ -484,6 +487,9 @@ int main(int argc, char* argv[]) {
         std::cout << "Enter k for UCB decay:";
         long int k = 1;
         std::cin >> k;
+        std::cout << "Enter decay flag (0 for no decay, 1 for decay): ";
+        int decay_flag = 0;
+        std::cin >> decay_flag;
 
         if (player == 'x') {
             // compute expected utility of the best response (i.e., when opponent policy is known)
@@ -502,7 +508,7 @@ int main(int argc, char* argv[]) {
             pretty_print(start, end, "computing best response o", log_flag);
         }
 
-        calc_br_ucb(player == 'x' ? policy_obj_o : policy_obj_x, num_iterations, player, player == 'x' ? P1_information_sets : P2_information_sets, log_flag, log_frequency, C, player == 'x' ? br_x : br_o, k);
+        calc_br_ucb(player == 'x' ? policy_obj_o : policy_obj_x, num_iterations, player, player == 'x' ? P1_information_sets : P2_information_sets, log_flag, log_frequency, C, player == 'x' ? br_x : br_o, k, decay_flag);
         
         std::cout << "Continue experiments? (y/n): ";
         std::cin >> continue_exp;
