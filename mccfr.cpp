@@ -279,6 +279,8 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
         compute_regrets_along_history(I_1, I_2, true_board, best_response, cumulative_strategy, br_player, t, 1.0, regret_list, markers, start_history, q_z, reward, 0, 'x');        
 
         if (t % step_size == 0 && t != 0) {
+            // overridde eps based on step size.
+            eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0); 
             double expected_utility = 0.0;
 
             if (br_player == 'x'){
@@ -346,7 +348,7 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
 
     for (long int t = 0; t <= T; t++) {
         // overridde eps based on step size.
-        // eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0); 
+        eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0); 
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
