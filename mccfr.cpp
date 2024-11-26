@@ -77,7 +77,7 @@ double sample_game_given_policies_wrapper(PolicyVec& policy_obj_x, PolicyVec& po
 double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, char player, double probability, double& reward, char update_player, double eps) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
-    std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
+    std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
 
     if (player == update_player) { // explore with a small epsilon
         std::vector<int> actions;
@@ -381,6 +381,7 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
         {
             std::cout << "q_z: " << q_z << std::endl;
             std::cout << "Reward: " << reward << std::endl;
+            std::cout << "History: ";
             for (int i = 0; i < start_history.history.size(); i++) {
                 std::cout << start_history.history[i] << " ";
             }
