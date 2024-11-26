@@ -301,7 +301,6 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
             else {
                 decay_factor = pow(9, k*1.0*(I.get_number_of_actions())) * pow(4, k*1.0*(I.get_number_of_actions() - 1));
             }
-            double decay_factor = pow(10, k*1.0*sqrt(I.get_number_of_actions()));
             double exploration_bonus = (C*1.0)/decay_factor;
             for (int a : legal_actions){
                 if (infoset_pull_count[I.get_index()][a] > 0){
