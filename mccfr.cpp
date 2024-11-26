@@ -159,7 +159,7 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
 
 
 double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& best_response, PolicyVec& cumulative_strategy, char br_player, long int t, double forward_reach,
-                                     std::vector<std::vector<double>>& regret_list, std::vector<long int>& markers, History& current_history, double q_z, double reward, int traversal_index, char current_player) {
+                                     std::vector<std::vector<double>>& regret_list, std::vector<long int>& markers, History& current_history, double q_z, double reward, int traversal_index, char current_player, int print_flag) {
     if (traversal_index == current_history.history.size()) {
         return 1.0;
     }
@@ -184,9 +184,9 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
             new_I.reset_zeros();
 
             if (current_player == 'x') {
-                reach_prob = played_action_prob * compute_regrets_along_history(new_I, I_2, true_board, best_response, cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'o');
+                reach_prob = played_action_prob * compute_regrets_along_history(new_I, I_2, true_board, best_response, cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'o', print_flag);
             } else {
-                reach_prob = played_action_prob * compute_regrets_along_history(I_1, new_I, true_board, best_response, cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'x');
+                reach_prob = played_action_prob * compute_regrets_along_history(I_1, new_I, true_board, best_response, cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'x', print_flag);
             }
         }
         else {
@@ -194,9 +194,9 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
             new_I.simulate_sense(action, true_board);
 
             if (current_player == 'x') {
-                reach_prob = played_action_prob * compute_regrets_along_history(new_I, I_2, true_board, best_response, cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'x');
+                reach_prob = played_action_prob * compute_regrets_along_history(new_I, I_2, true_board, best_response, cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'x', print_flag);
             } else {
-                reach_prob = played_action_prob * compute_regrets_along_history(I_1, new_I, true_board, best_response, cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'o');
+                reach_prob = played_action_prob * compute_regrets_along_history(I_1, new_I, true_board, best_response, cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'o', print_flag);
             }
         }
 
@@ -222,6 +222,22 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
                 br_prob_dist[actions[i]] = 1.0 / actions.size();
             }
         }
+        if (print_flag){
+            if (I.get_hash() == ""){
+                for (int i = 0; i < regret_I.size(); i++){
+                    std::cout << regret_I[i] << " ";
+                }
+                std::cout << std::endl;
+                for (int i = 0; i < cumulative_prob_table.size(); i++){
+                    std::cout << cumulative_prob_table[i] << " ";
+                }
+                std::cout << std::endl;
+                for (int i = 0; i < br_prob_dist.size(); i++){
+                    std::cout << br_prob_dist[i] << " ";
+                }
+                std::cout << std::endl;
+            }
+        }
 
         return reach_prob;
     }
@@ -232,18 +248,18 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
             I.reset_zeros();
 
             if (current_player == 'x') {
-                return compute_regrets_along_history(I, I_2, true_board, best_response, cumulative_strategy, br_player, t, forward_reach, regret_list, markers, current_history, q_z, reward, traversal_index, 'o');
+                return compute_regrets_along_history(I, I_2, true_board, best_response, cumulative_strategy, br_player, t, forward_reach, regret_list, markers, current_history, q_z, reward, traversal_index, 'o', print_flag);
             } else {
-                return compute_regrets_along_history(I_1, I, true_board, best_response, cumulative_strategy, br_player, t, forward_reach, regret_list, markers, current_history, q_z, reward, traversal_index, 'x');
+                return compute_regrets_along_history(I_1, I, true_board, best_response, cumulative_strategy, br_player, t, forward_reach, regret_list, markers, current_history, q_z, reward, traversal_index, 'x', print_flag);
             }
         }
         else {
             I.simulate_sense(action, true_board);
 
             if (current_player == 'x') {
-                return compute_regrets_along_history(I, I_2, true_board, best_response, cumulative_strategy, br_player, t, forward_reach, regret_list, markers, current_history, q_z, reward, traversal_index, 'x');
+                return compute_regrets_along_history(I, I_2, true_board, best_response, cumulative_strategy, br_player, t, forward_reach, regret_list, markers, current_history, q_z, reward, traversal_index, 'x', print_flag);
             } else {
-                return compute_regrets_along_history(I_1, I, true_board, best_response, cumulative_strategy, br_player, t, forward_reach, regret_list, markers, current_history, q_z, reward, traversal_index, 'o');
+                return compute_regrets_along_history(I_1, I, true_board, best_response, cumulative_strategy, br_player, t, forward_reach, regret_list, markers, current_history, q_z, reward, traversal_index, 'o', print_flag);
             }
         }
     }
@@ -284,7 +300,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
         InformationSet I_1 = InformationSet('x', true, hash_1);
         InformationSet I_2 = InformationSet('o', false, hash_2);
 
-        compute_regrets_along_history(I_1, I_2, true_board, best_response, cumulative_strategy, br_player, t, 1.0, regret_list, markers, start_history, q_z, reward, 0, 'x');        
+        compute_regrets_along_history(I_1, I_2, true_board, best_response, cumulative_strategy, br_player, t, 1.0, regret_list, markers, start_history, q_z, reward, 0, 'x', 0);        
 
         if (t % step_size == 0 && t != 0) {
             double expected_utility = 0.0;
@@ -328,7 +344,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
 }
 
 
-void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, long int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, double eps, long int step_size) {
+void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, long int T, std::vector<std::string>& P1_information_sets, std::vector<std::string>& P2_information_sets, double eps, long int step_size, int print_flag) {
     std::vector<std::vector<double>> regret_list_x;
     std::vector<std::vector<double>> regret_list_o;
     PolicyVec br_x('x', P1_information_sets);
@@ -361,13 +377,22 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
         double reward = 0.0;
 
         q_z = sample_terminal_history_wrapper(policy_obj_x, policy_obj_o, start_history, reward, 'x', eps);
+        if (print_flag)
+        {
+            std::cout << "q_z: " << q_z << std::endl;
+            std::cout << "Reward: " << reward << std::endl;
+            for (int i = 0; i < start_history.history.size(); i++) {
+                std::cout << start_history.history[i] << " ";
+            }
+            std::cout << std::endl;
+        }
         std::string board = "000000000";
         TicTacToeBoard true_board = TicTacToeBoard(board);
         std::string hash_1 = "";
         std::string hash_2 = "";
         InformationSet I_1 = InformationSet('x', true, hash_1);
         InformationSet I_2 = InformationSet('o', false, hash_2);
-        compute_regrets_along_history(I_1, I_2, true_board, policy_obj_x, cumulative_strategy_x, 'x', t, 1.0, regret_list_x, markers_x, start_history, q_z, reward, 0, 'x');  
+        compute_regrets_along_history(I_1, I_2, true_board, policy_obj_x, cumulative_strategy_x, 'x', t, 1.0, regret_list_x, markers_x, start_history, q_z, reward, 0, 'x', print_flag);  
 
         reward = 0.0;
         h = {};
@@ -380,7 +405,7 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
         I_1 = InformationSet('x', true, hash_1);
         I_2 = InformationSet('o', false, hash_2);
 
-        compute_regrets_along_history(I_1, I_2, true_board, policy_obj_o, cumulative_strategy_o, 'o', t, 1.0, regret_list_o, markers_o, start_history, q_z, reward, 0, 'x');
+        compute_regrets_along_history(I_1, I_2, true_board, policy_obj_o, cumulative_strategy_o, 'o', t, 1.0, regret_list_o, markers_o, start_history, q_z, reward, 0, 'x', print_flag);
 
         if (t % step_size == 0 && t != 0) {
             double expected_utility = 0.0;
@@ -450,6 +475,7 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
+    int print_flag = std::stoi(argv[3]);
 
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
@@ -500,7 +526,7 @@ int main(int argc, char* argv[]) {
         std::cin >> player;
 
         if (player == 'b'){
-            mccfr_outcome_sampling(policy_obj_x, policy_obj_o, num_iterations, P1_information_sets, P2_information_sets, eps, step_size);
+            mccfr_outcome_sampling(policy_obj_x, policy_obj_o, num_iterations, P1_information_sets, P2_information_sets, eps, step_size, print_flag);
         }
         else if (player == 'x'){
             PolicyVec curr_br = policy_obj_x;
