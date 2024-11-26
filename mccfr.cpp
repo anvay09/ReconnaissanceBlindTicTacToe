@@ -430,15 +430,15 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
             std::cout << "Exploitability: " << exploitability << std::endl;
 
             // sample 10 games using average strategies
-            for (int i = 0; i < 10; i++){
-                std::vector<int> empty_h = {};
-                TerminalHistory start_h = TerminalHistory(empty_h);
-                double reward = 0.0;
+            // for (int i = 0; i < 10; i++){
+            //     std::vector<int> empty_h = {};
+            //     TerminalHistory start_h = TerminalHistory(empty_h);
+            //     double reward = 0.0;
 
-                reward = sample_game_given_policies_wrapper(average_strategy_x, average_strategy_o, start_h, reward, 'x');
-                std::cout << "Reward: " << reward << "History: ";
-                start_h.print_history();
-            }
+            //     reward = sample_game_given_policies_wrapper(average_strategy_x, average_strategy_o, start_h, reward, 'x');
+            //     std::cout << "Reward: " << reward << "History: ";
+            //     start_h.print_history();
+            // }
         }
     }
 }
