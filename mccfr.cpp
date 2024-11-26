@@ -353,6 +353,8 @@ void mccfr_outcome_sampling(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, lo
     }
 
     for (long int t = 0; t <= T; t++) {
+        // overridde eps based on step size.
+        eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0); 
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
