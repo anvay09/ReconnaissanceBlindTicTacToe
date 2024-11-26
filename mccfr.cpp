@@ -1,7 +1,7 @@
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/rbt_utilities.hpp"
 #include <random>
-
+int NUM_THREADS = 96;
 
 int sampleIndex(const std::vector<double>& probabilities) {
     std::random_device rd;
