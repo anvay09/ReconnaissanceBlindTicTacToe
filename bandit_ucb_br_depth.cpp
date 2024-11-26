@@ -286,10 +286,21 @@ void update_ucb(std::vector<std::vector<double>>& infoset_ucb_values, std::vecto
             total_pull = infoset_pull_count[I.get_index()][action];
             total_reward = infoset_empirical_reward[I.get_index()][action] * total_pull;
             infoset_pull_count[I.get_index()][action] += 1;
-            infoset_empirical_reward[I.get_index()][action] =  (total_reward + reward) / (total_pull + 1);
+            //infoset_empirical_reward[I.get_index()][action] =  (total_reward + reward) / (total_pull + 1);
             // infoset_time_steps[I.get_index()] += 1;
+
+            double weighted_total_pull = total_pull * (total_pull + 1.0)/2.0;
+            double weighted_total_reward = infoset_empirical_reward[I.get_index()][action] * weighted_total_pull;
+            infoset_empirical_reward[I.get_index()][action] =  (weighted_total_reward + (total_pull + 1) * reward) / (weighted_total_pull + total_pull + 1);
             std::vector<int> legal_actions;
             I.get_actions(legal_actions);
+            double decay_factor = 1.0;
+            if (I.move_flag) {
+                decay_factor = pow(36, k*1.0*(I.get_number_of_actions()));
+            }
+            else {
+                decay_factor = pow(9, k*1.0*(I.get_number_of_actions())) * pow(4, k*1.0*(I.get_number_of_actions() - 1));
+            }
             double decay_factor = pow(10, k*1.0*sqrt(I.get_number_of_actions()));
             double exploration_bonus = (C*1.0)/decay_factor;
             for (int a : legal_actions){
