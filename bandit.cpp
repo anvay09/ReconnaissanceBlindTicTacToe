@@ -96,6 +96,7 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
 
     if (terminal_flag == 1){
         I_a_tickmark[I.get_index()][action] = 1;
+        std::cout << "Reward: " << reward << std::endl;
     }
     else {
         if (I.move_flag) {
@@ -106,6 +107,8 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
             if (I_tickmark[new_I.get_index()] == 1){
                 I_a_tickmark[I.get_index()][action] = 1;
             }
+
+            std::cout << "Checkpoint 1" << std::endl;
         }
         else {
             InformationSet new_I = I;
@@ -113,6 +116,8 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
             if (I_tickmark[new_I.get_index()] == 1){
                 I_a_tickmark[I.get_index()][action] = 1;
             }
+
+            std::cout << "Checkpoint 2" << std::endl;
         }
     }
     std::vector<int> legal_actions;
@@ -123,9 +128,12 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
             count += 1;
         }
     }
+
+    std::cout << "Count: " << count << std::endl;
     if (count == legal_actions.size()){
         I_tickmark[I.get_index()] = 1;
     }
+    std::cout << "Checkpoint 3" << std::endl;
 }
 
 
