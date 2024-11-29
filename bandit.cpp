@@ -103,7 +103,7 @@ int explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board
 
         int count = 0;
         for (int a : legal_actions){
-            if (I_a_tickmark[I.get_index()][a] == m){
+            if (I_a_tickmark[I.get_index()][a] >= m){
                 count += 1;
             }
         }
@@ -143,19 +143,23 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     std::vector<int> I_tickmark(player_information_sets.size(), 0);
     int flag = 1;
     long int t = 0;
+    int k = 1;
 
     while (flag){ 
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
-        explore_wrapper(I_a_tickmark, I_tickmark, reward, opponent_policy, start_history, br_player, m);
+        explore_wrapper(I_a_tickmark, I_tickmark, reward, opponent_policy, start_history, br_player, k);
         // start_history.print_history();
         t += 1;
 
         std::string hash = "";
         InformationSet I = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
-        if (I_tickmark[I.get_index()] == m){
-            flag = 0;
+        if (I_tickmark[I.get_index()] == k){
+            k += 1;
+            if (k > m){
+                flag = 0;
+            }
         }
 
         if (t % log_frequency == 0){
@@ -167,17 +171,17 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
 
             std:: cout << "Number of games sampled so far: " << t << std::endl;
 
-            std::cout << "Number of information sets with tickmark m: " << std::count(I_tickmark.begin(), I_tickmark.end(), m) << std::endl;
+            std::cout << "Number of information sets with " << k << " tickmarks: " << std::count(I_tickmark.begin(), I_tickmark.end(), k) << std::endl;
 
             int action_tick_count = 0;
             for (int i = 0; i < I_a_tickmark.size(); i++){
-                action_tick_count += std::count(I_a_tickmark[i].begin(), I_a_tickmark[i].end(), m);
+                action_tick_count += std::count(I_a_tickmark[i].begin(), I_a_tickmark[i].end(), k);
             }
-            std::cout << "Number of actions with tickmark m: " << action_tick_count << std::endl;
+            std::cout << "Number of actions with " << k << " tickmarks: " << action_tick_count << std::endl;
         }
     }
 
-    std::cout << "Total number of games sampled for pulling each policy m times: " << t << std::endl;
+    std::cout << "Total number of games sampled for pulling each policy " << m << " times: " << t << std::endl;
 }
 
 
