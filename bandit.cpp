@@ -121,7 +121,12 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
         }
     }
     std::vector<int> legal_actions;
+    std::cout << I.get_hash() << std::endl;
     I.get_actions(legal_actions);
+    std::cout << "Legal actions: ";
+    for (int a : legal_actions){
+        std::cout << a << " ";
+    }
     int count = 0;
     for (int a : legal_actions){
         if (I_a_tickmark[I.get_index()][a] == 1){
