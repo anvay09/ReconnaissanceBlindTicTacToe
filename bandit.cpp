@@ -117,7 +117,12 @@ int explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board
         }
     }
     else {
-        return is_child_infoset_ticked;
+        if (terminal_flag == 1 || is_child_infoset_ticked == 1){
+            return 1;
+        }
+        else {
+            return 0;
+        }
     }
 }
 
@@ -144,7 +149,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
         explore_wrapper(I_a_tickmark, I_tickmark, reward, opponent_policy, start_history, br_player);
-        start_history.print_history();
+        // start_history.print_history();
         t += 1;
 
         std::string hash = "";
