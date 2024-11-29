@@ -56,7 +56,7 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
         action = sampleIndex(prob_dist);
     }
 
-    // std::cout << "Action: " << action << std::endl;
+    std::cout << "Action: " << action << std::endl;
 
     if (I.move_flag) {
         TicTacToeBoard new_board = true_board;
@@ -151,7 +151,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
         explore_wrapper(I_a_tickmark, I_tickmark, reward, opponent_policy, start_history, br_player);
-        // start_history.print_history();
+        start_history.print_history();
         t += 1;
 
         std::string hash = "";
