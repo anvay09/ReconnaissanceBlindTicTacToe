@@ -94,52 +94,53 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
         }
     }
 
-
-    if (terminal_flag == 1){
-        I_a_tickmark[I.get_index()][action] = 1;
-        std::cout << "Reward: " << reward << std::endl;
-    }
-    else {
-        if (I.move_flag) {
-            InformationSet new_I = I;
-            new_I.update_move(action, curr_player);
-            new_I.reset_zeros();
-
-            if (I_tickmark[new_I.get_index()] == 1){
-                I_a_tickmark[I.get_index()][action] = 1;
-            }
-
-            std::cout << "Checkpoint 1" << std::endl;
+    if (curr_player == br_player){
+        if (terminal_flag == 1){
+            I_a_tickmark[I.get_index()][action] = 1;
+            std::cout << "Reward: " << reward << std::endl;
         }
         else {
-            InformationSet new_I = I;
-            new_I.simulate_sense(action, true_board);
-            if (I_tickmark[new_I.get_index()] == 1){
-                I_a_tickmark[I.get_index()][action] = 1;
+            if (I.move_flag) {
+                InformationSet new_I = I;
+                new_I.update_move(action, curr_player);
+                new_I.reset_zeros();
+
+                if (I_tickmark[new_I.get_index()] == 1){
+                    I_a_tickmark[I.get_index()][action] = 1;
+                }
+
+                std::cout << "Checkpoint 1" << std::endl;
             }
+            else {
+                InformationSet new_I = I;
+                new_I.simulate_sense(action, true_board);
+                if (I_tickmark[new_I.get_index()] == 1){
+                    I_a_tickmark[I.get_index()][action] = 1;
+                }
 
-            std::cout << "Checkpoint 2" << std::endl;
+                std::cout << "Checkpoint 2" << std::endl;
+            }
         }
-    }
-    std::vector<int> legal_actions;
-    std::cout << I.get_hash() << std::endl;
-    I.get_actions(legal_actions);
-    std::cout << "Legal actions: ";
-    for (int a : legal_actions){
-        std::cout << a << " ";
-    }
-    int count = 0;
-    for (int a : legal_actions){
-        if (I_a_tickmark[I.get_index()][a] == 1){
-            count += 1;
+        std::vector<int> legal_actions;
+        std::cout << I.get_hash() << std::endl;
+        I.get_actions(legal_actions);
+        std::cout << "Legal actions: ";
+        for (int a : legal_actions){
+            std::cout << a << " ";
         }
-    }
+        int count = 0;
+        for (int a : legal_actions){
+            if (I_a_tickmark[I.get_index()][a] == 1){
+                count += 1;
+            }
+        }
 
-    std::cout << "Count: " << count << std::endl;
-    if (count == legal_actions.size()){
-        I_tickmark[I.get_index()] = 1;
+        std::cout << "Count: " << count << std::endl;
+        if (count == legal_actions.size()){
+            I_tickmark[I.get_index()] = 1;
+        }
+        std::cout << "Checkpoint 3" << std::endl;
     }
-    std::cout << "Checkpoint 3" << std::endl;
 }
 
 
