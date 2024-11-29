@@ -21,7 +21,7 @@ int sampleIndex(const std::vector<double>& probabilities) {
 }
 
 
-int explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, History& current_history, char curr_player, char br_player, PolicyVec& opponent_policy, std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward){
+int explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, History& current_history, char curr_player, char br_player, PolicyVec& opponent_policy, std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, int m){
     InformationSet I = curr_player == 'x' ? I_1 : I_2;
     int action = 0;
     int terminal_flag = 0;
@@ -34,7 +34,7 @@ int explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board
         std::vector<double> prob_dist(13, 0.0); 
 
         for (int a : legal_actions){
-            if (I_a_tickmark[I.get_index()][a] == 0){
+            if (I_a_tickmark[I.get_index()][a] < m){
                 A.push_back(a);
             }
         }
@@ -69,9 +69,9 @@ int explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board
             new_I.reset_zeros();
 
             if (curr_player == 'x') {
-                is_child_infoset_ticked = explore(new_I, I_2, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+                is_child_infoset_ticked = explore(new_I, I_2, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m);
             } else {
-                is_child_infoset_ticked = explore(I_1, new_I, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+                is_child_infoset_ticked = explore(I_1, new_I, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
@@ -87,15 +87,15 @@ int explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board
         current_history.history.push_back(action);
 
         if (curr_player == 'x') {
-            is_child_infoset_ticked = explore(new_I, I_2, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+            is_child_infoset_ticked = explore(new_I, I_2, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m);
         } else {
-            is_child_infoset_ticked = explore(I_1, new_I, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+            is_child_infoset_ticked = explore(I_1, new_I, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m);
         }
     }
 
     if (curr_player == br_player){
         if (terminal_flag == 1 || is_child_infoset_ticked == 1){
-            I_a_tickmark[I.get_index()][action] = 1;
+            I_a_tickmark[I.get_index()][action] += 1;
         }
   
         std::vector<int> legal_actions;
@@ -103,13 +103,13 @@ int explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board
 
         int count = 0;
         for (int a : legal_actions){
-            if (I_a_tickmark[I.get_index()][a] == 1){
+            if (I_a_tickmark[I.get_index()][a] == m){
                 count += 1;
             }
         }
 
         if (count == legal_actions.size()){
-            I_tickmark[I.get_index()] = 1;
+            I_tickmark[I.get_index()] += 1;
             return 1;
         }
         else {
@@ -127,18 +127,18 @@ int explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board
 }
 
 
-void explore_wrapper(std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, PolicyVec& opponent_policy, History& current_history, char br_player) {
+void explore_wrapper(std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, PolicyVec& opponent_policy, History& current_history, char br_player, int m) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
     std::string hash_2 = "";
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
-    explore(I_1, I_2, true_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+    explore(I_1, I_2, true_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m);
 }
 
 
-void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, long int log_frequency) {
+void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, long int log_frequency, int m) {
     std::vector<std::vector<int>> I_a_tickmark(player_information_sets.size(), std::vector<int>(13, 0));
     std::vector<int> I_tickmark(player_information_sets.size(), 0);
     int flag = 1;
@@ -148,13 +148,13 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
-        explore_wrapper(I_a_tickmark, I_tickmark, reward, opponent_policy, start_history, br_player);
+        explore_wrapper(I_a_tickmark, I_tickmark, reward, opponent_policy, start_history, br_player, m);
         // start_history.print_history();
         t += 1;
 
         std::string hash = "";
         InformationSet I = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
-        if (I_tickmark[I.get_index()] == 1){
+        if (I_tickmark[I.get_index()] == m){
             flag = 0;
         }
 
@@ -167,17 +167,17 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
 
             std:: cout << "Number of games sampled so far: " << t << std::endl;
 
-            std::cout << "Number of information sets with tickmark 1: " << std::count(I_tickmark.begin(), I_tickmark.end(), 1) << std::endl;
+            std::cout << "Number of information sets with tickmark m: " << std::count(I_tickmark.begin(), I_tickmark.end(), m) << std::endl;
 
             int action_tick_count = 0;
             for (int i = 0; i < I_a_tickmark.size(); i++){
-                action_tick_count += std::count(I_a_tickmark[i].begin(), I_a_tickmark[i].end(), 1);
+                action_tick_count += std::count(I_a_tickmark[i].begin(), I_a_tickmark[i].end(), m);
             }
-            std::cout << "Number of actions with tickmark 1: " << action_tick_count << std::endl;
+            std::cout << "Number of actions with tickmark m: " << action_tick_count << std::endl;
         }
     }
 
-    std::cout << "Total number of games sampled for pulling each policy once: " << t << std::endl;
+    std::cout << "Total number of games sampled for pulling each policy m times: " << t << std::endl;
 }
 
 
@@ -222,16 +222,19 @@ int main(int argc, char* argv[]) {
     while (continue_exp == 'y') {
         long int log_frequency = 10000;
         char player = 'x';
+        int m = 1;
         std::cout << "Enter log frequency: ";
         std::cin >> log_frequency;
         std::cout << "Enter player for pull arms: ";
         std::cin >> player;
+        std::cout << "Enter value of m: ";
+        std::cin >> m;
 
         if (player == 'x') {
-            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency);
+            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m);
         }
         else {
-            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency);
+            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m);
         }
 
         std::cout << "Continue experiments? (y/n): ";
