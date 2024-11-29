@@ -56,7 +56,7 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
         action = sampleIndex(prob_dist);
     }
 
-    // std::cout << "Action: " << action << std::endl;
+    std::cout << "Action: " << action << std::endl;
 
     if (I.move_flag) {
         TicTacToeBoard new_board = true_board;
@@ -83,20 +83,21 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
     }
     else {
         InformationSet new_I = I;
-        new_I.simulate_sense(action, true_board);
+        TicTacToeBoard new_board = true_board;
+        new_I.simulate_sense(action, new_board);
         current_history.history.push_back(action);
 
         if (curr_player == 'x') {
-            explore(new_I, I_2, true_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+            explore(new_I, I_2, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
         } else {
-            explore(I_1, new_I, true_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+            explore(I_1, new_I, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
         }
     }
 
 
     if (terminal_flag == 1){
         I_a_tickmark[I.get_index()][action] = 1;
-        // std::cout << "Reward: " << reward << std::endl;
+        std::cout << "Reward: " << reward << std::endl;
     }
     else {
         if (I.move_flag) {
@@ -108,7 +109,7 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
                 I_a_tickmark[I.get_index()][action] = 1;
             }
 
-            // std::cout << "Checkpoint 1" << std::endl;
+            std::cout << "Checkpoint 1" << std::endl;
         }
         else {
             InformationSet new_I = I;
@@ -117,11 +118,16 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
                 I_a_tickmark[I.get_index()][action] = 1;
             }
 
-            // std::cout << "Checkpoint 2" << std::endl;
+            std::cout << "Checkpoint 2" << std::endl;
         }
     }
     std::vector<int> legal_actions;
+    std::cout << I.get_hash() << std::endl;
     I.get_actions(legal_actions);
+    std::cout << "Legal actions: ";
+    for (int a : legal_actions){
+        std::cout << a << " ";
+    }
     int count = 0;
     for (int a : legal_actions){
         if (I_a_tickmark[I.get_index()][a] == 1){
@@ -129,11 +135,11 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
         }
     }
 
-    // std::cout << "Count: " << count << std::endl;
+    std::cout << "Count: " << count << std::endl;
     if (count == legal_actions.size()){
         I_tickmark[I.get_index()] = 1;
     }
-    // std::cout << "Checkpoint 3" << std::endl;
+    std::cout << "Checkpoint 3" << std::endl;
 }
 
 
@@ -159,7 +165,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
         explore_wrapper(I_a_tickmark, I_tickmark, reward, opponent_policy, start_history, br_player);
-        // start_history.print_history();
+        start_history.print_history();
         t += 1;
 
         std::string hash = "";
