@@ -50,15 +50,17 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
         }
 
         action = sampleIndex(prob_dist);
-        std::cout << "Action: " << action << std::endl;
     }
     else {
-        std::vector<double> prob_dist = opponent_policy.policy_dict[I.get_index()];
+        std::vector<double>& prob_dist = opponent_policy.policy_dict[I.get_index()];
         action = sampleIndex(prob_dist);
     }
 
+    std::cout << "Action: " << action << std::endl;
+
     if (I.move_flag) {
-        bool success = true_board.update_move(action, curr_player);
+        TicTacToeBoard new_board = true_board;
+        bool success = new_board.update_move(action, curr_player);
         current_history.history.push_back(action);
 
         char winner;
@@ -68,9 +70,9 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
             new_I.reset_zeros();
 
             if (curr_player == 'x') {
-                explore(new_I, I_2, true_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+                explore(new_I, I_2, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
             } else {
-                explore(I_1, new_I, true_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+                explore(I_1, new_I, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
