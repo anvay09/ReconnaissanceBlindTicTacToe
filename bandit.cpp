@@ -21,10 +21,11 @@ int sampleIndex(const std::vector<double>& probabilities) {
 }
 
 
-void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, History& current_history, char curr_player, char br_player, PolicyVec& opponent_policy, std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward){
+int explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, History& current_history, char curr_player, char br_player, PolicyVec& opponent_policy, std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward){
     InformationSet I = curr_player == 'x' ? I_1 : I_2;
     int action = 0;
     int terminal_flag = 0;
+    int is_child_infoset_ticked = 0;
     
     if (br_player == curr_player){
         std::vector<int> legal_actions;
@@ -68,9 +69,9 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
             new_I.reset_zeros();
 
             if (curr_player == 'x') {
-                explore(new_I, I_2, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+                is_child_infoset_ticked = explore(new_I, I_2, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
             } else {
-                explore(I_1, new_I, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+                is_child_infoset_ticked = explore(I_1, new_I, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
@@ -86,37 +87,17 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
         current_history.history.push_back(action);
 
         if (curr_player == 'x') {
-            explore(new_I, I_2, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+            is_child_infoset_ticked = explore(new_I, I_2, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
         } else {
-            explore(I_1, new_I, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+            is_child_infoset_ticked = explore(I_1, new_I, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
         }
     }
 
     if (curr_player == br_player){
-        if (terminal_flag == 1){
+        if (terminal_flag == 1 || is_child_infoset_ticked == 1){
             I_a_tickmark[I.get_index()][action] = 1;
-            // std::cout << "Tickmark 1 for " << I.get_hash() << " " << action << std::endl;
         }
-        else {
-            if (I.move_flag) {
-                InformationSet new_I = I;
-                new_I.update_move(action, curr_player);
-                new_I.reset_zeros();
-
-                if (I_tickmark[new_I.get_index()] == 1){
-                    I_a_tickmark[I.get_index()][action] = 1;
-                    // std::cout << "Tickmark 1 for " << I.get_hash() << " " << action << std::endl;
-                }
-            }
-            else {
-                InformationSet new_I = I;
-                new_I.simulate_sense(action, true_board);
-                if (I_tickmark[new_I.get_index()] == 1){
-                    I_a_tickmark[I.get_index()][action] = 1;
-                    // std::cout << "Tickmark 1 for " << I.get_hash() << " " << action << std::endl;
-                }
-            }
-        }
+  
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
 
@@ -129,8 +110,14 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
 
         if (count == legal_actions.size()){
             I_tickmark[I.get_index()] = 1;
-            // std::cout << "Tickmark 1 for " << I.get_hash() << std::endl;
+            return 1;
         }
+        else {
+            return 0;
+        }
+    }
+    else {
+        return is_child_infoset_ticked;
     }
 }
 
