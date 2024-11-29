@@ -95,7 +95,7 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
     if (curr_player == br_player){
         if (terminal_flag == 1){
             I_a_tickmark[I.get_index()][action] = 1;
-            std::cout << "Tickmark 1 for " << I.get_hash() << " " << action << std::endl;
+            // std::cout << "Tickmark 1 for " << I.get_hash() << " " << action << std::endl;
         }
         else {
             if (I.move_flag) {
@@ -105,7 +105,7 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
 
                 if (I_tickmark[new_I.get_index()] == 1){
                     I_a_tickmark[I.get_index()][action] = 1;
-                    std::cout << "Tickmark 1 for " << I.get_hash() << " " << action << std::endl;
+                    // std::cout << "Tickmark 1 for " << I.get_hash() << " " << action << std::endl;
                 }
             }
             else {
@@ -113,11 +113,12 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
                 new_I.simulate_sense(action, true_board);
                 if (I_tickmark[new_I.get_index()] == 1){
                     I_a_tickmark[I.get_index()][action] = 1;
-                    std::cout << "Tickmark 1 for " << I.get_hash() << " " << action << std::endl;
+                    // std::cout << "Tickmark 1 for " << I.get_hash() << " " << action << std::endl;
                 }
             }
         }
         std::vector<int> legal_actions;
+        I.get_actions(legal_actions);
 
         int count = 0;
         for (int a : legal_actions){
@@ -128,7 +129,7 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
 
         if (count == legal_actions.size()){
             I_tickmark[I.get_index()] = 1;
-            std::cout << "Tickmark 1 for " << I.get_hash() << std::endl;
+            // std::cout << "Tickmark 1 for " << I.get_hash() << std::endl;
         }
     }
 }
