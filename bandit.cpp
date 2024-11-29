@@ -67,9 +67,9 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
             new_I.reset_zeros();
 
             if (curr_player == 'x') {
-                return explore(new_I, I_2, true_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+                explore(new_I, I_2, true_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
             } else {
-                return explore(I_1, new_I, true_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+                explore(I_1, new_I, true_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
@@ -84,9 +84,9 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
         current_history.history.push_back(action);
 
         if (curr_player == 'x') {
-            return explore(new_I, I_2, true_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+            explore(new_I, I_2, true_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
         } else {
-            return explore(I_1, new_I, true_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
+            explore(I_1, new_I, true_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward);
         }
     }
 
@@ -143,11 +143,12 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     int flag = 1;
     long int t = 0;
 
-    while (flag)
-    {   std::vector<int> h = {};
+    while (flag){ 
+        std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
         explore_wrapper(I_a_tickmark, I_tickmark, reward, opponent_policy, start_history, br_player);
+        start_history.print_history();
         t += 1;
 
         std::string hash = "";
