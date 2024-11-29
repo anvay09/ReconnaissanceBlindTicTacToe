@@ -36,13 +36,17 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
             if (I_a_tickmark[I.get_index()][a] == 0){
                 A.push_back(a);
             }
-            else {
-                I_a_tickmark[I.get_index()][a] = 1;
-            }
         }
 
-        for (int a : A){
-            prob_dist[a] = 1.0/A.size();
+        if (A.size() == 0){
+            for (int a : legal_actions){
+                prob_dist[a] = 1.0/legal_actions.size();
+            }
+        }
+        else{
+            for (int a : A){
+                prob_dist[a] = 1.0/A.size();
+            }
         }
 
         action = sampleIndex(prob_dist);
@@ -153,11 +157,11 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         }
 
         if (t % log_frequency == 0){
-            std:: cout << "Number of histories sampled so far" << t << std::endl;
+            std:: cout << "Number of games sampled so far" << t << std::endl;
         }
     }
 
-    std::cout << "Total Number of histories sampled for pull each policy once: " << t << std::endl;
+    std::cout << "Total mumber of games sampled for pull each policy once: " << t << std::endl;
 }
 
 
