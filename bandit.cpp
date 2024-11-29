@@ -95,6 +95,7 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
     if (curr_player == br_player){
         if (terminal_flag == 1){
             I_a_tickmark[I.get_index()][action] = 1;
+            std::cout << "Tickmark 1 for " << I.get_hash() << " " << action << std::endl;
         }
         else {
             if (I.move_flag) {
@@ -104,6 +105,7 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
 
                 if (I_tickmark[new_I.get_index()] == 1){
                     I_a_tickmark[I.get_index()][action] = 1;
+                    std::cout << "Tickmark 1 for " << I.get_hash() << " " << action << std::endl;
                 }
             }
             else {
@@ -111,6 +113,7 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
                 new_I.simulate_sense(action, true_board);
                 if (I_tickmark[new_I.get_index()] == 1){
                     I_a_tickmark[I.get_index()][action] = 1;
+                    std::cout << "Tickmark 1 for " << I.get_hash() << " " << action << std::endl;
                 }
             }
         }
@@ -125,6 +128,7 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
 
         if (count == legal_actions.size()){
             I_tickmark[I.get_index()] = 1;
+            std::cout << "Tickmark 1 for " << I.get_hash() << std::endl;
         }
     }
 }
@@ -161,11 +165,11 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         }
 
         if (t % log_frequency == 0){
-            std:: cout << "Number of games sampled so far" << t << std::endl;
+            std:: cout << "Number of games sampled so far: " << t << std::endl;
         }
     }
 
-    std::cout << "Total mumber of games sampled for pull each policy once: " << t << std::endl;
+    std::cout << "Total number of games sampled for pulling each policy once: " << t << std::endl;
 }
 
 
