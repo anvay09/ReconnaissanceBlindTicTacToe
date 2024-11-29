@@ -50,6 +50,7 @@ void explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_boar
         }
 
         action = sampleIndex(prob_dist);
+        std::cout << "Action: " << action << std::endl;
     }
     else {
         std::vector<double> prob_dist = opponent_policy.policy_dict[I.get_index()];
