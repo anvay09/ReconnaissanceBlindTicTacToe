@@ -166,6 +166,12 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         }
 
         if (t % log_frequency == 0){
+            std::cout << "Root information set action tickmarks:" << std::endl;
+            for (int i = 0; i < I_a_tickmark[I.get_index()].size(); i++){
+                std::cout << I_a_tickmark[I.get_index()][i] << " ";
+            }
+            std::cout << std::endl;
+
             std:: cout << "Number of games sampled so far: " << t << std::endl;
 
             std::cout << "Number of information sets with tickmark 1: " << std::count(I_tickmark.begin(), I_tickmark.end(), 1) << std::endl;
