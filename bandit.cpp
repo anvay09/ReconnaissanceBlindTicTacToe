@@ -176,15 +176,16 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
             reward = br_player == 'x' ? (double) H_T.reward[0] : (double) H_T.reward[1];
             terminal_flag = 1;
 
+            // update action pull count and empirical action reward only when action leads to terminal state
             if (curr_player == br_player){
                 action_pull_count[I.get_index()][action] += 1;
                 empirical_action_reward[I.get_index()][action] += reward;
             }
             else {
-                // find second last action in history
-                int second_last_action = current_history.history[current_history.history.size() - 2];
-                action_pull_count[previous_opponent_I.get_index()][second_last_action] += 1;
-                empirical_action_reward[previous_opponent_I.get_index()][second_last_action] -= reward;
+                // find third last action in history
+                int third_last_action = current_history.history[current_history.history.size() - 3];
+                action_pull_count[previous_opponent_I.get_index()][third_last_action] += 1;
+                empirical_action_reward[previous_opponent_I.get_index()][third_last_action] -= reward;
             }
         }
     }
