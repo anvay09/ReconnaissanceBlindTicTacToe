@@ -119,8 +119,9 @@ int main() {
         InformationSet I('x', get_move_flag(I_hash, 'x'), I_hash);
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
-        std::unordered_set<std::string> cohort;
+        
         for (int action : legal_actions) {
+            std::unordered_set<std::string> cohort;
             get_cohort(I, action, cohort);
             std::cout << "Original I: " << I.get_hash() << " Action: " << action << " Cohort: ";
             for (std::string c : cohort) {
