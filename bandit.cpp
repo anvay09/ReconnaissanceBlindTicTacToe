@@ -183,8 +183,12 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
             else {
                 // find second last action in history
                 int second_last_action = current_history.history[current_history.history.size() - 2];
+                std::cout << "Second last action: " << second_last_action << std::endl;
+                std::cout << "Previous opponent information set: " << previous_opponent_I.get_hash() << std::endl;
+                std::cout << "Previous opponent index: " << previous_opponent_I.get_index() << std::endl;
                 action_pull_count[previous_opponent_I.get_index()][second_last_action] += 1;
-                empirical_action_reward[previous_opponent_I.get_index()][second_last_action] += reward;
+                std::cout << "Reward: " << reward << std::endl;
+                empirical_action_reward[previous_opponent_I.get_index()][second_last_action] -= reward;
             }
         }
     }
@@ -372,8 +376,6 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1]; // start policy P1
     std::string file_path_2 = argv[2]; // start policy P2
-    std::string file_path_3 = argv[3]; // uniform policy P1
-    std::string file_path_4 = argv[4]; // uniform policy P2 
 
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -405,8 +407,6 @@ int main(int argc, char* argv[]) {
     std::cout << "Loading policies" << std::endl;
     PolicyVec policy_obj_x('x', file_path_1);
     PolicyVec policy_obj_o('o', file_path_2);
-    PolicyVec uniform_policy_obj_x('x', file_path_3);
-    PolicyVec uniform_policy_obj_o('o', file_path_4);
 
     // compute epsilon best response
     char continue_exp = 'y';
@@ -422,12 +422,12 @@ int main(int argc, char* argv[]) {
         std::cin >> m;
 
         if (player == 'x') {
-            PolicyVec uniform_x_copy = uniform_policy_obj_x;
-            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m, uniform_x_copy);
+            PolicyVec uniform_x('x', P1_information_sets);
+            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m, uniform_x);
         }
         else {
-            PolicyVec uniform_o_copy = uniform_policy_obj_o;
-            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m, uniform_o_copy);
+            PolicyVec uniform_o('o', P2_information_sets);
+            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m, uniform_o);
         }
 
         std::cout << "Continue experiments? (y/n): ";
