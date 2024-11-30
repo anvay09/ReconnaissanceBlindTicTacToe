@@ -62,12 +62,6 @@ void get_states_in_infoset(InformationSet &I, std::vector<TicTacToeBoard> &state
         // sort 
         std::sort(base_perm.begin(), base_perm.end());
 
-        std::cout << "Base perm: ";
-        for (int i = 0; i < base_perm.size(); i++) {
-            std::cout << base_perm[i] << " ";
-        }
-        std::cout << std::endl;
-
         do {
             TicTacToeBoard new_state(board_copy);
             for (int j = 0; j < base_perm.size(); j++) {
@@ -134,7 +128,7 @@ int main() {
     }
 
 
-    std::string I_hash = "0_1|00o0|1_0|xx0o|3_1|x0o0|";
+    std::string I_hash = "2_1|0x00|7_3|0oxo|3_1|0xoo|1_";
     InformationSet I('x', get_move_flag(I_hash, 'x'), I_hash);
 
     std::vector<TicTacToeBoard> states;
