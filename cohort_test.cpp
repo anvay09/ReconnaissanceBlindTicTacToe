@@ -60,6 +60,12 @@ void get_states_in_infoset(InformationSet &I, std::vector<TicTacToeBoard> &state
         std::vector<char> base_perm(num_unknown_opponent_moves, I.other_player());
         base_perm.insert(base_perm.end(), uncertain_ind.size() - num_unknown_opponent_moves, '0');
 
+        std::cout << "Base perm: ";
+        for (int i = 0; i < base_perm.size(); i++) {
+            std::cout << base_perm[i] << " ";
+        }
+        std::cout << std::endl;
+
         do {
             TicTacToeBoard new_state(board_copy);
             for (int j = 0; j < base_perm.size(); j++) {
