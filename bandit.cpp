@@ -251,18 +251,12 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<in
     I.get_actions(legal_actions);
     std::vector<double> action_values(13, 0.0);
     double infoset_value = - std::numeric_limits<double>::infinity();
-    int best_action = -1;
-
+ 
     std::cout << "Building max policy for infoset " << I.get_hash() << std::endl;
 
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
         get_cohort(I, a, cohort);
-        std::cout << "Cohort: ";
-        for (std::string I_prime_hash : cohort){
-            std::cout << I_prime_hash << " ";
-        }
-        std::cout << std::endl;
 
         if (cohort.size() == 0){
             int pull_count = action_pull_count[I.get_index()][a];
@@ -270,7 +264,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<in
                 action_values[a] = 0.0;
             }
             else{
-                action_values[a] = empirical_action_reward[I.get_index()][a] / (action_pull_count[I.get_index()][a]);
+                action_values[a] = empirical_action_reward[I.get_index()][a] / pull_count;
             }
         }
         else {
@@ -288,22 +282,32 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<in
             int pull_count = action_pull_count[I.get_index()][a];
             norm += pull_count;
             action_values[a] += empirical_action_reward[I.get_index()][a];
-            std::cout << "Action value before normalization: " << action_values[a] << std::endl;
-            std::cout << "Normalization factor: " << norm << std::endl;
-            action_values[a] /= norm;
+            if (norm == 0){
+                action_values[a] = 0.0;
+            }
+            else{
+                action_values[a] /= norm;
+            }
         }
 
         // find max action value
-        if (action_values[a] > infoset_value){
+
+        if (action_values[a] >= infoset_value){
             infoset_value = action_values[a];
-            best_action = a;
+        }
+    }
+
+    double count = 0.0;
+    for (int a : legal_actions){
+        if (action_values[a] == infoset_value){
+            count += 1.0;
         }
     }
 
     // update policy
     for (int a : legal_actions){
-        if (a == best_action){
-            policy_obj.policy_dict[I.get_index()][a] = 1.0;
+        if (action_values[a] == infoset_value){
+            policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
         }
         else{
             policy_obj.policy_dict[I.get_index()][a] = 0.0;
