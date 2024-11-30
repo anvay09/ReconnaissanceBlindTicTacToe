@@ -2,18 +2,6 @@
 #include "cpp_headers/rbt_utilities.hpp"
 
 
-bool get_move_flag(std::string I_hash, char player){
-    bool move_flag;
-    if (I_hash.size() != 0){
-        move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
-    }
-    else {
-        move_flag = player == 'x' ? true : false;
-    }
-    return move_flag;
-}
-
-
 int get_number_of_unknown_opponent_moves(InformationSet& I) {
     int count_x = 0;
     int count_o = 0;

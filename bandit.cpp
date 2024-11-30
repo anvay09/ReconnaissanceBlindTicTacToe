@@ -2,7 +2,7 @@
 #include "cpp_headers/rbt_utilities.hpp"
 #include <random>
 #include <cmath>
-int NUMBER_THREADS = 4;
+int NUMBER_THREADS = 96;
 
 
 void pretty_print(std::chrono::time_point<std::chrono::system_clock> start, std::chrono::time_point<std::chrono::system_clock> end, std::string msg, int flag) {
@@ -12,6 +12,91 @@ void pretty_print(std::chrono::time_point<std::chrono::system_clock> start, std:
     std::cout << "finished " << msg << " in " << elapsed_seconds.count() << "s" << std::endl;
     }
 }
+
+
+int get_number_of_unknown_opponent_moves(InformationSet& I) {
+    int count_x = 0;
+    int count_o = 0;
+    for (int i = 0; i < 9; i++) {
+        if (I.board[i] == 'x') {
+            count_x++;
+        }
+        if (I.board[i] == 'o') {
+            count_o++;
+        }
+    }
+    if (I.player == 'x') {
+        return count_x - count_o;
+    } else {
+        return count_o - count_x + 1;
+    }
+}
+
+
+void get_uncertain_squares(InformationSet& I, std::vector<int> &squares) {
+    for (int i = 0; i < 9; i++) {
+        if (I.board[i] == '-') {
+            squares.push_back(i);
+        }
+    }
+}
+
+
+void get_states_in_infoset(InformationSet &I, std::vector<TicTacToeBoard> &states) {
+    int num_unknown_opponent_moves = get_number_of_unknown_opponent_moves(I);
+    std::string board_copy = I.board;
+    for (int i = 0; i < 9; i++) {
+        if (board_copy[i] == '-') {
+            board_copy[i] = '0';
+        }
+    }
+
+    if (num_unknown_opponent_moves == 0) {
+        states.push_back(TicTacToeBoard(board_copy));
+    } 
+    else {
+        std::vector<int> uncertain_ind;
+        get_uncertain_squares(I, uncertain_ind);
+        std::vector<char> base_perm(num_unknown_opponent_moves, I.other_player());
+        base_perm.insert(base_perm.end(), uncertain_ind.size() - num_unknown_opponent_moves, '0');
+
+        do {
+            TicTacToeBoard new_state(board_copy);
+            for (int j = 0; j < base_perm.size(); j++) {
+                new_state[uncertain_ind[j]] = base_perm[j];
+            }
+            char winner;
+            if (!new_state.is_win(winner) && !new_state.is_over()) {
+                states.push_back(new_state);
+            }
+        } while (std::next_permutation(base_perm.begin(), base_perm.end()));
+
+    }
+}
+
+
+void get_cohort(InformationSet &I, int action, std::set<InformationSet> &cohort) {
+    if (I.move_flag) {
+        I.update_move(action, I.player);
+        I.reset_zeros();
+        cohort.insert(I);
+        return;
+    }
+    else {
+        std::vector<TicTacToeBoard> states;
+        get_states_in_infoset(I, states);
+        for (TicTacToeBoard &state : states) {
+            InformationSet new_I = I;
+            new_I.simulate_sense(action, state);
+            if (new_I.get_index() != -1) {
+                if (cohort.find(new_I) == cohort.end()) {
+                    cohort.insert(new_I);
+                }
+            }
+        }
+    }
+}
+
 
 int sampleIndex(const std::vector<double>& probabilities) {
     std::random_device rd;
