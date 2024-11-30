@@ -116,7 +116,7 @@ int main() {
     }
 
 
-    std::string I_hash = "8_0|0000|1_1|x000|5_2|000o|";
+    std::string I_hash = "0_1|00o0|1_0|xx0o|3_1|x0o0|";
     InformationSet I('x', get_move_flag(I_hash, 'x'), I_hash);
 
     std::vector<TicTacToeBoard> states;
