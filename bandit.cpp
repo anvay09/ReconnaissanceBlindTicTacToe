@@ -119,8 +119,6 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
     int action = 0;
     int terminal_flag = 0;
     int is_child_infoset_ticked = 0;
-
-    // std::cout << "Information set: " << I.get_hash() << std::endl;
     
     if (br_player == curr_player){
         infoset_reach_count[I.get_index()] += 1;
@@ -183,11 +181,7 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
             else {
                 // find second last action in history
                 int second_last_action = current_history.history[current_history.history.size() - 2];
-                // std::cout << "Second last action: " << second_last_action << std::endl;
-                // std::cout << "Previous opponent information set: " << previous_opponent_I.get_hash() << std::endl;
-                // std::cout << "Previous opponent index: " << previous_opponent_I.get_index() << std::endl;
                 action_pull_count[previous_opponent_I.get_index()][second_last_action] += 1;
-                // std::cout << "Reward: " << reward << std::endl;
                 empirical_action_reward[previous_opponent_I.get_index()][second_last_action] -= reward;
             }
         }
@@ -257,9 +251,16 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<in
     double infoset_value = - std::numeric_limits<double>::infinity();
     int best_action = -1;
 
+    std::cout << "Building max policy for infoset " << I.get_hash() << std::endl;
+
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
         get_cohort(I, a, cohort);
+        std::cout << "Cohort: ";
+        for (std::string I_prime_hash : cohort){
+            std::cout << I_prime_hash << " ";
+        }
+        std::cout << std::endl;
 
         if (cohort.size() == 0){
             int pull_count = action_pull_count[I.get_index()][a];
@@ -285,6 +286,8 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<in
             int pull_count = action_pull_count[I.get_index()][a];
             norm += pull_count;
             action_values[a] += empirical_action_reward[I.get_index()][a];
+            std::cout << "Action value before normalization: " << action_values[a] << std::endl;
+            std::cout << "Normalization factor: " << norm << std::endl;
             action_values[a] /= norm;
         }
 
@@ -315,7 +318,6 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     std::vector<int> infoset_reach_count(player_information_sets.size(), 0);
     std::vector<std::vector<double>> empirical_action_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<int>> action_pull_count(player_information_sets.size(), std::vector<int>(13, 0));
-    // std::cout << "Checkpoint 1" << std::endl;
 
     int flag = 1;
     long int t = 0;
@@ -326,7 +328,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
         explore_wrapper(I_a_tickmark, I_tickmark, reward, opponent_policy, start_history, br_player, k, infoset_reach_count, empirical_action_reward, action_pull_count);
-        // start_history.print_history();
+
         t += 1;
 
         std::string hash = "";
@@ -339,21 +341,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         }
 
         if (t % log_frequency == 0){
-            std::cout << "Root information set action tickmarks:" << std::endl;
-            for (int i = 0; i < I_a_tickmark[I.get_index()].size(); i++){
-                std::cout << I_a_tickmark[I.get_index()][i] << " ";
-            }
-            std::cout << std::endl;
-
             std:: cout << "Number of games sampled so far: " << t << std::endl;
-
-            std::cout << "Number of information sets with " << k << " tickmarks: " << std::count(I_tickmark.begin(), I_tickmark.end(), k) << std::endl;
-
-            int action_tick_count = 0;
-            for (int i = 0; i < I_a_tickmark.size(); i++){
-                action_tick_count += std::count(I_a_tickmark[i].begin(), I_a_tickmark[i].end(), k);
-            }
-            std::cout << "Number of actions with " << k << " tickmarks: " << action_tick_count << std::endl;
         }
     }
 
