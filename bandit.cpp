@@ -15,13 +15,14 @@ void pretty_print(std::chrono::time_point<std::chrono::system_clock> start, std:
 
 
 int get_number_of_unknown_opponent_moves(InformationSet& I) {
+    std::string B = I.get_board_from_hash();
     int count_x = 0;
     int count_o = 0;
     for (int i = 0; i < 9; i++) {
-        if (I.board[i] == 'x') {
+        if (B[i] == 'x') {
             count_x++;
         }
-        if (I.board[i] == 'o') {
+        if (B[i] == 'o') {
             count_o++;
         }
     }
@@ -34,8 +35,9 @@ int get_number_of_unknown_opponent_moves(InformationSet& I) {
 
 
 void get_uncertain_squares(InformationSet& I, std::vector<int> &squares) {
+    std::string B = I.get_board_from_hash();
     for (int i = 0; i < 9; i++) {
-        if (I.board[i] == '-') {
+        if (B[i] == '-') {
             squares.push_back(i);
         }
     }
@@ -44,7 +46,8 @@ void get_uncertain_squares(InformationSet& I, std::vector<int> &squares) {
 
 void get_states_in_infoset(InformationSet &I, std::vector<TicTacToeBoard> &states) {
     int num_unknown_opponent_moves = get_number_of_unknown_opponent_moves(I);
-    std::string board_copy = I.board;
+    std::string board_copy = I.get_board_from_hash();
+
     for (int i = 0; i < 9; i++) {
         if (board_copy[i] == '-') {
             board_copy[i] = '0';
@@ -57,8 +60,11 @@ void get_states_in_infoset(InformationSet &I, std::vector<TicTacToeBoard> &state
     else {
         std::vector<int> uncertain_ind;
         get_uncertain_squares(I, uncertain_ind);
+
         std::vector<char> base_perm(num_unknown_opponent_moves, I.other_player());
         base_perm.insert(base_perm.end(), uncertain_ind.size() - num_unknown_opponent_moves, '0');
+        // sort 
+        std::sort(base_perm.begin(), base_perm.end());
 
         do {
             TicTacToeBoard new_state(board_copy);
@@ -75,11 +81,11 @@ void get_states_in_infoset(InformationSet &I, std::vector<TicTacToeBoard> &state
 }
 
 
-void get_cohort(InformationSet &I, int action, std::set<InformationSet> &cohort) {
+void get_cohort(InformationSet I, int action, std::unordered_set<std::string> &cohort) {
     if (I.move_flag) {
         I.update_move(action, I.player);
         I.reset_zeros();
-        cohort.insert(I);
+        cohort.insert(I.get_hash());
         return;
     }
     else {
@@ -89,8 +95,8 @@ void get_cohort(InformationSet &I, int action, std::set<InformationSet> &cohort)
             InformationSet new_I = I;
             new_I.simulate_sense(action, state);
             if (new_I.get_index() != -1) {
-                if (cohort.find(new_I) == cohort.end()) {
-                    cohort.insert(new_I);
+                if (cohort.find(new_I.get_hash()) == cohort.end()) {
+                    cohort.insert(new_I.get_hash());
                 }
             }
         }
@@ -106,13 +112,17 @@ int sampleIndex(const std::vector<double>& probabilities) {
 }
 
 
-int explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, History& current_history, char curr_player, char br_player, PolicyVec& opponent_policy, std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, int m){
+int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_opponent_I, TicTacToeBoard& true_board, History& current_history, char curr_player, char br_player, 
+            PolicyVec& opponent_policy, std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, int m, 
+            std::vector<int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count) {
     InformationSet I = curr_player == 'x' ? I_1 : I_2;
     int action = 0;
     int terminal_flag = 0;
     int is_child_infoset_ticked = 0;
     
     if (br_player == curr_player){
+        infoset_reach_count[I.get_index()] += 1;
+
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         std::vector<int> A;
@@ -154,15 +164,26 @@ int explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board
             new_I.reset_zeros();
 
             if (curr_player == 'x') {
-                is_child_infoset_ticked = explore(new_I, I_2, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m);
+                is_child_infoset_ticked = explore(new_I, I_2, I, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_pull_count);
             } else {
-                is_child_infoset_ticked = explore(I_1, new_I, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m);
+                is_child_infoset_ticked = explore(I_1, new_I, I, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_pull_count);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
             H_T.set_reward();
             reward = br_player == 'x' ? (double) H_T.reward[0] : (double) H_T.reward[1];
             terminal_flag = 1;
+
+            if (curr_player == br_player){
+                action_pull_count[I.get_index()][action] += 1;
+                empirical_action_reward[I.get_index()][action] += reward;
+            }
+            else {
+                // find second last action in history
+                int second_last_action = current_history.history[current_history.history.size() - 2];
+                action_pull_count[previous_opponent_I.get_index()][second_last_action] += 1;
+                empirical_action_reward[previous_opponent_I.get_index()][second_last_action] += reward;
+            }
         }
     }
     else {
@@ -172,9 +193,9 @@ int explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board
         current_history.history.push_back(action);
 
         if (curr_player == 'x') {
-            is_child_infoset_ticked = explore(new_I, I_2, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m);
+            is_child_infoset_ticked = explore(new_I, I_2, I, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_pull_count);
         } else {
-            is_child_infoset_ticked = explore(I_1, new_I, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m);
+            is_child_infoset_ticked = explore(I_1, new_I, I, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_pull_count);
         }
     }
 
@@ -212,20 +233,83 @@ int explore(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board
 }
 
 
-void explore_wrapper(std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, PolicyVec& opponent_policy, History& current_history, char br_player, int m) {
+void explore_wrapper(std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, PolicyVec& opponent_policy, History& current_history, char br_player, int m, std::vector<int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
     std::string hash_2 = "";
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
-    explore(I_1, I_2, true_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m);
+    explore(I_1, I_2, I_2, true_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_pull_count);
 }
 
 
-void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, long int log_frequency, int m) {
+double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count){
+    std::vector<int> legal_actions;
+    I.get_actions(legal_actions);
+    std::vector<double> action_values(13, 0.0);
+    double infoset_value = - std::numeric_limits<double>::infinity();
+    int best_action = -1;
+
+    for (int a : legal_actions){
+        std::unordered_set<std::string> cohort;
+        get_cohort(I, a, cohort);
+
+        if (cohort.size() == 0){
+            int pull_count = action_pull_count[I.get_index()][a];
+            if (pull_count == 0){
+                action_values[a] = 0.0;
+            }
+            else{
+                action_values[a] = empirical_action_reward[I.get_index()][a] / (action_pull_count[I.get_index()][a]);
+            }
+        }
+        else {
+            std::unordered_map<std::string, double> cohort_values;
+            int norm = 0;
+
+            for (std::string I_prime_hash : cohort){
+                InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+                cohort_values[I_prime_hash] = build_max_policy(policy_obj, I_prime, infoset_reach_count, empirical_action_reward, action_pull_count);
+
+                norm += infoset_reach_count[I_prime.get_index()];
+                action_values[a] += cohort_values[I_prime_hash] * infoset_reach_count[I_prime.get_index()];
+            }
+
+            int pull_count = action_pull_count[I.get_index()][a];
+            norm += pull_count;
+            action_values[a] += empirical_action_reward[I.get_index()][a];
+            action_values[a] /= norm;
+        }
+
+        // find max action value
+        if (action_values[a] > infoset_value){
+            infoset_value = action_values[a];
+            best_action = a;
+        }
+    }
+
+    // update policy
+    for (int a : legal_actions){
+        if (a == best_action){
+            policy_obj.policy_dict[I.get_index()][a] = 1.0;
+        }
+        else{
+            policy_obj.policy_dict[I.get_index()][a] = 0.0;
+        }
+    }
+
+    return infoset_value;
+}
+
+
+void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, long int log_frequency, int m, PolicyVec& player_br) {
     std::vector<std::vector<int>> I_a_tickmark(player_information_sets.size(), std::vector<int>(13, 0));
     std::vector<int> I_tickmark(player_information_sets.size(), 0);
+    std::vector<int> infoset_reach_count(player_information_sets.size(), 0);
+    std::vector<std::vector<double>> empirical_action_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
+    std::vector<std::vector<int>> action_pull_count(player_information_sets.size(), std::vector<int>(13, 0));
+
     int flag = 1;
     long int t = 0;
     int k = 1;
@@ -234,7 +318,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
-        explore_wrapper(I_a_tickmark, I_tickmark, reward, opponent_policy, start_history, br_player, k);
+        explore_wrapper(I_a_tickmark, I_tickmark, reward, opponent_policy, start_history, br_player, k, infoset_reach_count, empirical_action_reward, action_pull_count);
         // start_history.print_history();
         t += 1;
 
@@ -267,13 +351,26 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
 
     std::cout << "Total number of games sampled for pulling each policy " << m << " times: " << t << std::endl;
+    std::string hash = "";
+    InformationSet root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
+    build_max_policy(player_br, root, infoset_reach_count, empirical_action_reward, action_pull_count);
+    std::cout << "Best response policy computed" << std::endl;
+    double expected_utility = 0.0;
+    if (br_player == 'x') {
+        expected_utility = get_expected_utility_wrapper(player_br, opponent_policy);
+    } else {
+        expected_utility = get_expected_utility_wrapper(opponent_policy, player_br);
+    }
+    std::cout << "Expected utility of best response policy: " << expected_utility << std::endl;
 }
 
 
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
-    std::string file_path_1 = argv[1];
-    std::string file_path_2 = argv[2];
+    std::string file_path_1 = argv[1]; // start policy P1
+    std::string file_path_2 = argv[2]; // start policy P2
+    std::string file_path_3 = argv[3]; // uniform policy P1
+    std::string file_path_4 = argv[4]; // uniform policy P2 
 
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -305,6 +402,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Loading policies" << std::endl;
     PolicyVec policy_obj_x('x', file_path_1);
     PolicyVec policy_obj_o('o', file_path_2);
+    PolicyVec uniform_policy_obj_x('x', file_path_3);
+    PolicyVec uniform_policy_obj_o('o', file_path_4);
 
     // compute epsilon best response
     char continue_exp = 'y';
@@ -320,10 +419,12 @@ int main(int argc, char* argv[]) {
         std::cin >> m;
 
         if (player == 'x') {
-            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m);
+            PolicyVec uniform_x_copy = uniform_policy_obj_x;
+            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m, uniform_x_copy);
         }
         else {
-            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m);
+            PolicyVec uniform_o_copy = uniform_policy_obj_o;
+            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m, uniform_o_copy);
         }
 
         std::cout << "Continue experiments? (y/n): ";
