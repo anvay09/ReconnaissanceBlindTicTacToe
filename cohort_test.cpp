@@ -3,13 +3,14 @@
 
 
 int get_number_of_unknown_opponent_moves(InformationSet& I) {
+    std::string B = I.get_board_from_hash();
     int count_x = 0;
     int count_o = 0;
     for (int i = 0; i < 9; i++) {
-        if (I.board[i] == 'x') {
+        if (B[i] == 'x') {
             count_x++;
         }
-        if (I.board[i] == 'o') {
+        if (B[i] == 'o') {
             count_o++;
         }
     }
@@ -22,8 +23,9 @@ int get_number_of_unknown_opponent_moves(InformationSet& I) {
 
 
 void get_uncertain_squares(InformationSet& I, std::vector<int> &squares) {
+    std::string B = I.get_board_from_hash();
     for (int i = 0; i < 9; i++) {
-        if (I.board[i] == '-') {
+        if (B[i] == '-') {
             squares.push_back(i);
         }
     }
@@ -32,7 +34,7 @@ void get_uncertain_squares(InformationSet& I, std::vector<int> &squares) {
 
 void get_states_in_infoset(InformationSet &I, std::vector<TicTacToeBoard> &states) {
     int num_unknown_opponent_moves = get_number_of_unknown_opponent_moves(I);
-    std::string board_copy = I.board;
+    std::string board_copy = I.get_board_from_hash();
     for (int i = 0; i < 9; i++) {
         if (board_copy[i] == '-') {
             board_copy[i] = '0';
