@@ -266,6 +266,8 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<in
             }
             else{
                 action_values[a] = empirical_action_reward[I.get_index()][a] / pull_count;
+                std::cout << "Infoset " << I.get_hash() << " Action " << a << " Value " << action_values[a] << std::endl;
+                std::cout << "Pull count " << pull_count << std::endl;
             }
         }
         else {
@@ -289,6 +291,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<in
             else{
                 action_values[a] /= norm;
                 std::cout << "Infoset " << I.get_hash() << " Action " << a << " Value " << action_values[a] << std::endl;
+                std::cout << "Pull count " << pull_count << std::endl;
             }
         }
 
