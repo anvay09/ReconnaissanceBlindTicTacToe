@@ -119,6 +119,8 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
     int action = 0;
     int terminal_flag = 0;
     int is_child_infoset_ticked = 0;
+
+    std::cout << "Information set: " << I.get_hash() << std::endl;
     
     if (br_player == curr_player){
         infoset_reach_count[I.get_index()] += 1;
@@ -309,6 +311,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     std::vector<int> infoset_reach_count(player_information_sets.size(), 0);
     std::vector<std::vector<double>> empirical_action_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<int>> action_pull_count(player_information_sets.size(), std::vector<int>(13, 0));
+    std::cout << "Checkpoint 1" << std::endl;
 
     int flag = 1;
     long int t = 0;
