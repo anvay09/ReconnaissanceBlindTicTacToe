@@ -185,7 +185,7 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
                 // find third last action in history
                 int third_last_action = current_history.history[current_history.history.size() - 3];
                 action_pull_count[previous_opponent_I.get_index()][third_last_action] += 1;
-                empirical_action_reward[previous_opponent_I.get_index()][third_last_action] -= reward;
+                empirical_action_reward[previous_opponent_I.get_index()][third_last_action] += reward;
             }
         }
     }
@@ -266,8 +266,8 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<in
             }
             else{
                 action_values[a] = empirical_action_reward[I.get_index()][a] / pull_count;
-                std::cout << "Infoset " << I.get_hash() << " Action " << a << " Value " << action_values[a] << std::endl;
-                std::cout << "Pull count " << pull_count << std::endl;
+                // std::cout << "Infoset " << I.get_hash() << " Action " << a << " Value " << action_values[a] << std::endl;
+                // std::cout << "Pull count " << pull_count << std::endl;
             }
         }
         else {
@@ -290,8 +290,8 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<in
             }
             else{
                 action_values[a] /= norm;
-                std::cout << "Infoset " << I.get_hash() << " Action " << a << " Value " << action_values[a] << std::endl;
-                std::cout << "Pull count " << pull_count << std::endl;
+                // std::cout << "Infoset " << I.get_hash() << " Action " << a << " Value " << action_values[a] << std::endl;
+                // std::cout << "Pull count " << pull_count << std::endl;
             }
         }
 
