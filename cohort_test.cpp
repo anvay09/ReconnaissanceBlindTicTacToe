@@ -63,7 +63,7 @@ void get_states_in_infoset(InformationSet &I, std::vector<TicTacToeBoard> &state
 }
 
 
-void get_cohort(InformationSet &I, int action, std::unordered_set<std::string> &cohort) {
+void get_cohort(InformationSet I, int action, std::unordered_set<std::string> &cohort) {
     if (I.move_flag) {
         I.update_move(action, I.player);
         I.reset_zeros();
@@ -114,7 +114,7 @@ int main() {
     }
 
     // sample first 10 infosets, find legal actions and get cohort
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 20; i++) {
         std::string I_hash = P1_information_sets[i];
         InformationSet I('x', get_move_flag(I_hash, 'x'), I_hash);
         std::vector<int> legal_actions;
