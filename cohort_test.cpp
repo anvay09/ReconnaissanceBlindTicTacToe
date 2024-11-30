@@ -1,6 +1,6 @@
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/rbt_utilities.hpp"
-
+#include <random>
 
 int get_number_of_unknown_opponent_moves(InformationSet& I) {
     std::string B = I.get_board_from_hash();
@@ -34,15 +34,13 @@ void get_uncertain_squares(InformationSet& I, std::vector<int> &squares) {
 
 void get_states_in_infoset(InformationSet &I, std::vector<TicTacToeBoard> &states) {
     int num_unknown_opponent_moves = get_number_of_unknown_opponent_moves(I);
-    std::cout << "Num unknown opponent moves: " << num_unknown_opponent_moves << std::endl;
     std::string board_copy = I.get_board_from_hash();
-    std::cout << "Board copy: " << board_copy << std::endl;
+
     for (int i = 0; i < 9; i++) {
         if (board_copy[i] == '-') {
             board_copy[i] = '0';
         }
     }
-    std::cout << "Board copy after: " << board_copy << std::endl;
 
     if (num_unknown_opponent_moves == 0) {
         states.push_back(TicTacToeBoard(board_copy));
@@ -50,12 +48,6 @@ void get_states_in_infoset(InformationSet &I, std::vector<TicTacToeBoard> &state
     else {
         std::vector<int> uncertain_ind;
         get_uncertain_squares(I, uncertain_ind);
-
-        std::cout << "Uncertain squares: ";
-        for (int i = 0; i < uncertain_ind.size(); i++) {
-            std::cout << uncertain_ind[i] << " ";
-        }
-        std::cout << std::endl;
 
         std::vector<char> base_perm(num_unknown_opponent_moves, I.other_player());
         base_perm.insert(base_perm.end(), uncertain_ind.size() - num_unknown_opponent_moves, '0');
@@ -127,29 +119,24 @@ int main() {
         InformationSet::P2_hash_to_int_map[P2_information_sets[i]] = i;
     }
 
+    for (int i = 0; i < 10; i++) {
+        std::random_device rd; // obtain a random number from hardware
+        std::mt19937 gen(rd()); // seed the generator
+        std::uniform_int_distribution<> distr(0, P1_information_sets.size()-1); // define the range
+        std::string I_hash = P1_information_sets[distr(gen)];
+        InformationSet I('x', get_move_flag(I_hash, 'x'), I_hash);
 
-    std::string I_hash = "7_3|00xo|6_3|0oxo|2_";
-    InformationSet I('x', get_move_flag(I_hash, 'x'), I_hash);
-
-    std::vector<TicTacToeBoard> states;
-    get_states_in_infoset(I, states);
-    std::cout << "Original I: " << I.get_hash() << " States: ";
-    for (TicTacToeBoard &state : states) {
-        std::cout << state.board << " ";
+        std::vector<int> legal_actions;
+        I.get_actions(legal_actions);
+        
+        for (int action : legal_actions) {
+            std::unordered_set<std::string> cohort;
+            get_cohort(I, action, cohort);
+            std::cout << "Original I: " << I.get_hash() << " Action: " << action << " Cohort: ";
+            for (std::string c : cohort) {
+                std::cout << c << " ";
+            }
+            std::cout << std::endl;
+        }
     }
-    std::cout << std::endl;
-    // std::vector<int> legal_actions;
-    // I.get_actions(legal_actions);
-    
-    // for (int action : legal_actions) {
-    //     std::unordered_set<std::string> cohort;
-    //     get_cohort(I, action, cohort);
-    //     std::cout << "Original I: " << I.get_hash() << " Action: " << action << " Cohort: ";
-    //     for (std::string c : cohort) {
-    //         std::cout << c << " ";
-    //     }
-    //     std::cout << std::endl;
-    // }
-    
-
 }
