@@ -252,7 +252,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<in
     std::vector<double> action_values(13, 0.0);
     double infoset_value = - std::numeric_limits<double>::infinity();
  
-    std::cout << "Building max policy for infoset " << I.get_hash() << std::endl;
+    // std::cout << "Building max policy for infoset " << I.get_hash() << std::endl;
 
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
