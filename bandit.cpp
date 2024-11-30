@@ -120,7 +120,7 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
     int terminal_flag = 0;
     int is_child_infoset_ticked = 0;
 
-    std::cout << "Information set: " << I.get_hash() << std::endl;
+    // std::cout << "Information set: " << I.get_hash() << std::endl;
     
     if (br_player == curr_player){
         infoset_reach_count[I.get_index()] += 1;
@@ -183,11 +183,11 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
             else {
                 // find second last action in history
                 int second_last_action = current_history.history[current_history.history.size() - 2];
-                std::cout << "Second last action: " << second_last_action << std::endl;
-                std::cout << "Previous opponent information set: " << previous_opponent_I.get_hash() << std::endl;
-                std::cout << "Previous opponent index: " << previous_opponent_I.get_index() << std::endl;
+                // std::cout << "Second last action: " << second_last_action << std::endl;
+                // std::cout << "Previous opponent information set: " << previous_opponent_I.get_hash() << std::endl;
+                // std::cout << "Previous opponent index: " << previous_opponent_I.get_index() << std::endl;
                 action_pull_count[previous_opponent_I.get_index()][second_last_action] += 1;
-                std::cout << "Reward: " << reward << std::endl;
+                // std::cout << "Reward: " << reward << std::endl;
                 empirical_action_reward[previous_opponent_I.get_index()][second_last_action] -= reward;
             }
         }
@@ -199,9 +199,9 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
         current_history.history.push_back(action);
 
         if (curr_player == 'x') {
-            is_child_infoset_ticked = explore(new_I, I_2, I, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_pull_count);
+            is_child_infoset_ticked = explore(new_I, I_2, previous_opponent_I, new_board, current_history, 'x', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_pull_count);
         } else {
-            is_child_infoset_ticked = explore(I_1, new_I, I, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_pull_count);
+            is_child_infoset_ticked = explore(I_1, new_I, previous_opponent_I, new_board, current_history, 'o', br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_pull_count);
         }
     }
 
@@ -315,7 +315,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     std::vector<int> infoset_reach_count(player_information_sets.size(), 0);
     std::vector<std::vector<double>> empirical_action_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<int>> action_pull_count(player_information_sets.size(), std::vector<int>(13, 0));
-    std::cout << "Checkpoint 1" << std::endl;
+    // std::cout << "Checkpoint 1" << std::endl;
 
     int flag = 1;
     long int t = 0;
