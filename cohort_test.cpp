@@ -59,6 +59,8 @@ void get_states_in_infoset(InformationSet &I, std::vector<TicTacToeBoard> &state
 
         std::vector<char> base_perm(num_unknown_opponent_moves, I.other_player());
         base_perm.insert(base_perm.end(), uncertain_ind.size() - num_unknown_opponent_moves, '0');
+        // sort 
+        std::sort(base_perm.begin(), base_perm.end());
 
         std::cout << "Base perm: ";
         for (int i = 0; i < base_perm.size(); i++) {
