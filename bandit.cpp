@@ -85,7 +85,9 @@ void get_cohort(InformationSet I, int action, std::unordered_set<std::string> &c
     if (I.move_flag) {
         I.update_move(action, I.player);
         I.reset_zeros();
-        cohort.insert(I.get_hash());
+        if (I.get_index() != -1) {
+            cohort.insert(I.get_hash());
+        }
         return;
     }
     else {
