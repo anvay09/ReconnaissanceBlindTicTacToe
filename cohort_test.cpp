@@ -34,12 +34,15 @@ void get_uncertain_squares(InformationSet& I, std::vector<int> &squares) {
 
 void get_states_in_infoset(InformationSet &I, std::vector<TicTacToeBoard> &states) {
     int num_unknown_opponent_moves = get_number_of_unknown_opponent_moves(I);
+    std::cout << "Num unknown opponent moves: " << num_unknown_opponent_moves << std::endl;
     std::string board_copy = I.get_board_from_hash();
+    std::cout << "Board copy: " << board_copy << std::endl;
     for (int i = 0; i < 9; i++) {
         if (board_copy[i] == '-') {
             board_copy[i] = '0';
         }
     }
+    std::cout << "Board copy after: " << board_copy << std::endl;
 
     if (num_unknown_opponent_moves == 0) {
         states.push_back(TicTacToeBoard(board_copy));
@@ -47,6 +50,13 @@ void get_states_in_infoset(InformationSet &I, std::vector<TicTacToeBoard> &state
     else {
         std::vector<int> uncertain_ind;
         get_uncertain_squares(I, uncertain_ind);
+
+        std::cout << "Uncertain squares: ";
+        for (int i = 0; i < uncertain_ind.size(); i++) {
+            std::cout << uncertain_ind[i] << " ";
+        }
+        std::cout << std::endl;
+
         std::vector<char> base_perm(num_unknown_opponent_moves, I.other_player());
         base_perm.insert(base_perm.end(), uncertain_ind.size() - num_unknown_opponent_moves, '0');
 
