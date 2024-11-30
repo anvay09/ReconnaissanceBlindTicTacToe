@@ -115,30 +115,29 @@ int main() {
         InformationSet::P2_hash_to_int_map[P2_information_sets[i]] = i;
     }
 
-    // sample first 10 infosets, find legal actions and get cohort
-    for (int i = 0; i < 50; i++) {
-        std::string I_hash = P1_information_sets[i];
-        InformationSet I('x', get_move_flag(I_hash, 'x'), I_hash);
 
-        std::vector<TicTacToeBoard> states;
-        get_states_in_infoset(I, states);
-        std::cout << "Original I: " << I.get_hash() << " States: ";
-        for (TicTacToeBoard &state : states) {
-            std::cout << state.board << " ";
-        }
-        std::cout << std::endl;
-        // std::vector<int> legal_actions;
-        // I.get_actions(legal_actions);
-        
-        // for (int action : legal_actions) {
-        //     std::unordered_set<std::string> cohort;
-        //     get_cohort(I, action, cohort);
-        //     std::cout << "Original I: " << I.get_hash() << " Action: " << action << " Cohort: ";
-        //     for (std::string c : cohort) {
-        //         std::cout << c << " ";
-        //     }
-        //     std::cout << std::endl;
-        // }
+    std::string I_hash = "8_0|0000|1_1|x000|5_2|000o|";
+    InformationSet I('x', get_move_flag(I_hash, 'x'), I_hash);
+
+    std::vector<TicTacToeBoard> states;
+    get_states_in_infoset(I, states);
+    std::cout << "Original I: " << I.get_hash() << " States: ";
+    for (TicTacToeBoard &state : states) {
+        std::cout << state.board << " ";
     }
+    std::cout << std::endl;
+    // std::vector<int> legal_actions;
+    // I.get_actions(legal_actions);
+    
+    // for (int action : legal_actions) {
+    //     std::unordered_set<std::string> cohort;
+    //     get_cohort(I, action, cohort);
+    //     std::cout << "Original I: " << I.get_hash() << " Action: " << action << " Cohort: ";
+    //     for (std::string c : cohort) {
+    //         std::cout << c << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+    
 
 }
