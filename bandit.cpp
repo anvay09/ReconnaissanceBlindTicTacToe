@@ -321,7 +321,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
                 InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
                 cohort_values[I_prime_hash] = build_max_policy(policy_obj, I_prime, infoset_reach_count, empirical_action_reward, action_pull_count);
 
-                if (!isnan(cohort_values[I_prime_hash])){
+                if (!std::isnan(cohort_values[I_prime_hash])){
                     norm += infoset_reach_count[I_prime.get_index()];
                     action_values[a] += cohort_values[I_prime_hash] * infoset_reach_count[I_prime.get_index()];
                 }
