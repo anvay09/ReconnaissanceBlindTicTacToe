@@ -302,62 +302,58 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
  
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
+        std::unordered_map<std::string, double> cohort_values;
         get_cohort(I, a, cohort);
+        int norm = 0;
+        int pull_count = action_pull_count[I.get_index()][a];
 
-        if (cohort.size() == 0){
-            int pull_count = action_pull_count[I.get_index()][a];
-            if (pull_count == 0){
-                action_values[a] = - std::numeric_limits<double>::infinity();
-            }
-            else{
-                action_values[a] = empirical_action_reward[I.get_index()][a] / pull_count;
-            }
-        }
-        else {
-            std::unordered_map<std::string, double> cohort_values;
-            int norm = 0;
+        for (std::string I_prime_hash : cohort){
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+            cohort_values[I_prime_hash] = build_max_policy(policy_obj, I_prime, infoset_reach_count, empirical_action_reward, action_pull_count);
 
-            for (std::string I_prime_hash : cohort){
-                InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
-                cohort_values[I_prime_hash] = build_max_policy(policy_obj, I_prime, infoset_reach_count, empirical_action_reward, action_pull_count);
-
-                if (!std::isnan(cohort_values[I_prime_hash])){
-                    norm += infoset_reach_count[I_prime.get_index()];
-                    action_values[a] += cohort_values[I_prime_hash] * infoset_reach_count[I_prime.get_index()];
-                }
-            }
-
-            int pull_count = action_pull_count[I.get_index()][a];
-            norm += pull_count;
-            action_values[a] += empirical_action_reward[I.get_index()][a];
-            if (norm == 0){
-                action_values[a] = - std::numeric_limits<double>::infinity();
-            }
-            else{
-                action_values[a] /= norm;
+            if (!std::isnan(cohort_values[I_prime_hash])){
+                norm += infoset_reach_count[I_prime.get_index()];
+                action_values[a] += cohort_values[I_prime_hash] * infoset_reach_count[I_prime.get_index()];
             }
         }
 
-        // find max action value
-        if (action_values[a] >= infoset_value){
-            infoset_value = action_values[a];
-        }
-    }
-
-    double count = 0.0;
-    for (int a : legal_actions){
-        if (action_values[a] == infoset_value){
-            count += 1.0;
-        }
-    }
-
-    // update policy
-    for (int a : legal_actions){
-        if (action_values[a] == infoset_value){
-            policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
+        norm += pull_count;
+        action_values[a] += empirical_action_reward[I.get_index()][a];
+        if (norm == 0){
+            action_values[a] = - std::numeric_limits<double>::infinity();
         }
         else{
-            policy_obj.policy_dict[I.get_index()][a] = 0.0;
+            action_values[a] /= norm;
+
+            // find max action value
+            if (action_values[a] > infoset_value){
+                infoset_value = action_values[a];
+            }
+        }
+    }
+
+    if (std::isnan(infoset_value)){
+        // uniform policy
+        for (int a : legal_actions){
+            policy_obj.policy_dict[I.get_index()][a] = 1.0/legal_actions.size();
+        }
+    }
+    else{
+        double count = 0.0;
+        for (int a : legal_actions){
+            if (fabs(action_values[a] - infoset_value) < 1e-6){
+                count += 1.0;
+            }
+        }
+
+        // update policy
+        for (int a : legal_actions){
+            if (action_values[a] == infoset_value){
+                policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
+            }
+            else{
+                policy_obj.policy_dict[I.get_index()][a] = 0.0;
+            }
         }
     }
 
