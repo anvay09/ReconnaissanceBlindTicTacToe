@@ -300,8 +300,6 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
     std::vector<double> action_values(13, 0.0);
     double infoset_value = - std::numeric_limits<double>::infinity();
  
-    // std::cout << "Building max policy for infoset " << I.get_hash() << std::endl;
-
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
         get_cohort(I, a, cohort);
@@ -309,12 +307,10 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
         if (cohort.size() == 0){
             int pull_count = action_pull_count[I.get_index()][a];
             if (pull_count == 0){
-                action_values[a] = 0.0;
+                action_values[a] = - std::numeric_limits<double>::infinity();
             }
             else{
                 action_values[a] = empirical_action_reward[I.get_index()][a] / pull_count;
-                // std::cout << "Infoset " << I.get_hash() << " Action " << a << " Value " << action_values[a] << std::endl;
-                // std::cout << "Pull count " << pull_count << std::endl;
             }
         }
         else {
@@ -325,25 +321,24 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
                 InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
                 cohort_values[I_prime_hash] = build_max_policy(policy_obj, I_prime, infoset_reach_count, empirical_action_reward, action_pull_count);
 
-                norm += infoset_reach_count[I_prime.get_index()];
-                action_values[a] += cohort_values[I_prime_hash] * infoset_reach_count[I_prime.get_index()];
+                if (!isnan(cohort_values[I_prime_hash])){
+                    norm += infoset_reach_count[I_prime.get_index()];
+                    action_values[a] += cohort_values[I_prime_hash] * infoset_reach_count[I_prime.get_index()];
+                }
             }
 
             int pull_count = action_pull_count[I.get_index()][a];
             norm += pull_count;
             action_values[a] += empirical_action_reward[I.get_index()][a];
             if (norm == 0){
-                action_values[a] = 0.0;
+                action_values[a] = - std::numeric_limits<double>::infinity();
             }
             else{
                 action_values[a] /= norm;
-                // std::cout << "Infoset " << I.get_hash() << " Action " << a << " Value " << action_values[a] << std::endl;
-                // std::cout << "Pull count " << pull_count << std::endl;
             }
         }
 
         // find max action value
-
         if (action_values[a] >= infoset_value){
             infoset_value = action_values[a];
         }
