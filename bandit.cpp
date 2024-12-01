@@ -163,7 +163,7 @@ int sampleIndex(const std::vector<double>& probabilities) {
 
 int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_opponent_I, TicTacToeBoard& true_board, History& current_history, char curr_player, char br_player, 
             PolicyVec& opponent_policy, std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, int m, 
-            std::vector<long int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count) {
+            std::vector<long int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<long int>>& action_pull_count) {
     InformationSet I = curr_player == 'x' ? I_1 : I_2;
     int action = 0;
     int terminal_flag = 0;
@@ -283,7 +283,7 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
 }
 
 
-void explore_wrapper(std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, PolicyVec& opponent_policy, History& current_history, char br_player, int m, std::vector<long int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count) {
+void explore_wrapper(std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, PolicyVec& opponent_policy, History& current_history, char br_player, int m, std::vector<long int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<long int>>& action_pull_count) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
@@ -294,7 +294,7 @@ void explore_wrapper(std::vector<std::vector<int>>& I_a_tickmark, std::vector<in
 }
 
 
-double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<long int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count){
+double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<long int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<long int>>& action_pull_count){
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(13, 0.0);
@@ -304,8 +304,8 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
         std::unordered_set<std::string> cohort;
         std::unordered_map<std::string, double> cohort_values;
         get_cohort(I, a, cohort);
-        int norm = 0;
-        int pull_count = action_pull_count[I.get_index()][a];
+        long int norm = 0;
+        long int pull_count = action_pull_count[I.get_index()][a];
 
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
@@ -330,7 +330,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
         }
     }
 
-    if (infoset_value == -1.0){
+    if (fabs(infoset_value + 1.0) < 1e-6){
         // uniform policy
         for (int a : legal_actions){
             policy_obj.policy_dict[I.get_index()][a] = 1.0/legal_actions.size();
@@ -355,6 +355,16 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
         }
     }
 
+    std::cout << "Building max policy for information set: " << I.get_hash() << std::endl;
+    for (int a : legal_actions){
+        std::cout << "Action: " << a << " Value: " << action_values[a] << std::endl;
+    }
+    std::cout << "Information set value: " << infoset_value << std::endl;
+    std::cout << "Policy: " << std::endl;
+    for (int a : legal_actions){
+        std::cout << "Action: " << a << " Probability: " << policy_obj.policy_dict[I.get_index()][a] << std::endl;
+    }
+
     return infoset_value;
 }
 
@@ -364,7 +374,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     std::vector<int> I_tickmark(player_information_sets.size(), 0);
     std::vector<long int> infoset_reach_count(player_information_sets.size(), 0);
     std::vector<std::vector<double>> empirical_action_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
-    std::vector<std::vector<int>> action_pull_count(player_information_sets.size(), std::vector<int>(13, 0));
+    std::vector<std::vector<long int>> action_pull_count(player_information_sets.size(), std::vector<long int>(13, 0));
 
     int flag = 1;
     long int t = 0;
