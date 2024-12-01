@@ -408,11 +408,6 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     InformationSet root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
     double root_value = build_max_policy(player_br, root, infoset_reach_count, empirical_action_reward, action_pull_count);
     std::cout << "Best response policy computed" << std::endl;
-    // std::cout << "Value of best response policy: " << root_value << std::endl;
-    // std::cout << "Value of actions at root infoset: " << std::endl;
-    // for (int i = 0; i < 13; i++) {
-    //     std::cout << "Action " << i << ": " << player_br.policy_dict[root.get_index()][i] << std::endl;
-    // }
 
     double expected_utility = 0.0;
     if (br_player == 'x') {
@@ -422,7 +417,14 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
     std::cout << "Expected utility of best response policy: " << expected_utility << std::endl;
 
-    print_histogram(infoset_reach_count);
+    // number of information sets visited
+    long int count = 0;
+    for (long int i = 0; i < infoset_reach_count.size(); i++) {
+        if (infoset_reach_count[i] > 0) {
+            count += 1;
+        }
+    }
+    std::cout << "Number of information sets visited: " << count << std::endl;
 }
 
 
