@@ -866,6 +866,10 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& 
         split(line, tokens, ' ');
 
         std::string I_hash = tokens[token_idx++];
+        if (I_hash == "*") {
+            I_hash = "";
+        }
+        
         bool move_flag;
         if (I_hash.size() != 0){
             move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
