@@ -3,6 +3,7 @@
 
 
 int main(int argc, char** argv) {
+    std::cout.precision(17);
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
     char input_type = argv[3][0]; // 'j' for json, 't' for txt
@@ -48,4 +49,12 @@ int main(int argc, char** argv) {
     
     double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
     std::cout << "Expected utility: " << expected_utility << std::endl;
+
+    PolicyVec br_x = policy_obj_x;
+    PolicyVec br_o = policy_obj_o;
+
+    double br_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
+    std::cout << "Best response utility of x against o: " << br_utility << std::endl;
+    br_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
+    std::cout << "Best response utility of o against x: " << br_utility << std::endl;
 }
