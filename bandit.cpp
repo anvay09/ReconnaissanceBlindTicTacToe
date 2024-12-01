@@ -14,6 +14,53 @@ void pretty_print(std::chrono::time_point<std::chrono::system_clock> start, std:
 }
 
 
+void print_histogram(std::vector<long int>& visited_infosets) {
+    std::vector<long int> buckets(10, 0);
+
+    for (long int i = 0; i < visited_infosets.size(); i++) {
+        if (visited_infosets[i] == 0) {
+            buckets[0] += 1;
+        }
+        else if (visited_infosets[i] == 1) {
+            buckets[1] += 1;
+        }
+        else if (visited_infosets[i] == 2) {
+            buckets[2] += 1;
+        }
+        else if (visited_infosets[i] >= 3 && visited_infosets[i] <= 10) {
+            buckets[3] += 1;
+        }
+        else if (visited_infosets[i] >= 11 && visited_infosets[i] <= 100) {
+            buckets[4] += 1;
+        }
+        else if (visited_infosets[i] >= 101 && visited_infosets[i] <= 1000) {
+            buckets[5] += 1;
+        }
+        else if (visited_infosets[i] >= 1001 && visited_infosets[i] <= 10000) {
+            buckets[6] += 1;
+        }
+        else if (visited_infosets[i] >= 10001 && visited_infosets[i] <= 100000) {
+            buckets[7] += 1;
+        }
+        else if (visited_infosets[i] >= 100001 && visited_infosets[i] <= 1000000) {
+            buckets[8] += 1;
+        }
+        else {
+            buckets[9] += 1;
+        }
+    }
+
+    std::cout << "Histogram of visited information sets: " << std::endl;
+
+    for (int i = 0; i < 10; i++) {
+        std::cout << buckets[i] << "\t\t";
+    }
+    std::cout << std::endl;
+
+    std::cout << "0\t\t1\t\t2\t\t3-10\t\t11-100\t\t101-1k\t\t1k-10k\t\t10k-100k\t\t100k-1M\t\t1M+" << std::endl;
+}
+
+
 int get_number_of_unknown_opponent_moves(InformationSet& I) {
     std::string B = I.get_board_from_hash();
     int count_x = 0;
@@ -116,7 +163,7 @@ int sampleIndex(const std::vector<double>& probabilities) {
 
 int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_opponent_I, TicTacToeBoard& true_board, History& current_history, char curr_player, char br_player, 
             PolicyVec& opponent_policy, std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, int m, 
-            std::vector<int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count) {
+            std::vector<long int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count) {
     InformationSet I = curr_player == 'x' ? I_1 : I_2;
     int action = 0;
     int terminal_flag = 0;
@@ -236,7 +283,7 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
 }
 
 
-void explore_wrapper(std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, PolicyVec& opponent_policy, History& current_history, char br_player, int m, std::vector<int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count) {
+void explore_wrapper(std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, PolicyVec& opponent_policy, History& current_history, char br_player, int m, std::vector<long int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
@@ -247,7 +294,7 @@ void explore_wrapper(std::vector<std::vector<int>>& I_a_tickmark, std::vector<in
 }
 
 
-double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count){
+double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<long int>& infoset_reach_count, std::vector<std::vector<double>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count){
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(13, 0.0);
@@ -326,7 +373,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<in
 void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, long int log_frequency, int m, PolicyVec& player_br) {
     std::vector<std::vector<int>> I_a_tickmark(player_information_sets.size(), std::vector<int>(13, 0));
     std::vector<int> I_tickmark(player_information_sets.size(), 0);
-    std::vector<int> infoset_reach_count(player_information_sets.size(), 0);
+    std::vector<long int> infoset_reach_count(player_information_sets.size(), 0);
     std::vector<std::vector<double>> empirical_action_reward(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<int>> action_pull_count(player_information_sets.size(), std::vector<int>(13, 0));
 
@@ -374,6 +421,8 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         expected_utility = get_expected_utility_wrapper(opponent_policy, player_br);
     }
     std::cout << "Expected utility of best response policy: " << expected_utility << std::endl;
+
+    print_histogram(infoset_reach_count);
 }
 
 
@@ -410,8 +459,8 @@ int main(int argc, char* argv[]) {
 
     // load policies
     std::cout << "Loading policies" << std::endl;
-    PolicyVec policy_obj_x('x', file_path_1);
-    PolicyVec policy_obj_o('o', file_path_2);
+    PolicyVec policy_obj_x('x', file_path_1, true);
+    PolicyVec policy_obj_o('o', file_path_2, true);
 
     // compute epsilon best response
     char continue_exp = 'y';
