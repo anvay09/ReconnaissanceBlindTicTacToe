@@ -360,15 +360,15 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
         }
     }
 
-    std::cout << "Building max policy for information set: " << I.get_hash() << std::endl;
-    for (int a : legal_actions){
-        std::cout << "Action: " << a << " Value: " << action_values[a] << std::endl;
-    }
-    std::cout << "Information set value: " << infoset_value << std::endl;
-    std::cout << "Policy: " << std::endl;
-    for (int a : legal_actions){
-        std::cout << "Action: " << a << " Probability: " << policy_obj.policy_dict[I.get_index()][a] << std::endl;
-    }
+    // std::cout << "Building max policy for information set: " << I.get_hash() << std::endl;
+    // for (int a : legal_actions){
+    //     std::cout << "Action: " << a << " Value: " << action_values[a] << std::endl;
+    // }
+    // std::cout << "Information set value: " << infoset_value << std::endl;
+    // std::cout << "Policy: " << std::endl;
+    // for (int a : legal_actions){
+    //     std::cout << "Action: " << a << " Probability: " << policy_obj.policy_dict[I.get_index()][a] << std::endl;
+    // }
 
     return infoset_value;
 }
