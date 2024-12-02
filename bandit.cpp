@@ -335,7 +335,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
     if (std::isnan(infoset_value)){
         // uniform policy
         for (int a : legal_actions){
-            policy_obj.policy_dict[I.get_index()][a] = 1.0/legal_actions.size();
+            policy_obj.policy_dict[I.get_index()][a] = 1.0 / ((double) legal_actions.size());
         }
     }
     else{
@@ -347,7 +347,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
         }
 
         if (count > 0) {
-            count = 1.0/legal_actions.size();
+            count = 1.0 / ((double) legal_actions.size());
         }
         // update policy
         for (int a : legal_actions){
