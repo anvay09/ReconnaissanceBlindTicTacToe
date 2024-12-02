@@ -311,7 +311,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
             cohort_values[I_prime_hash] = build_max_policy(policy_obj, I_prime, infoset_reach_count, empirical_action_reward, action_pull_count);
 
-            if (!std::isnan(cohort_values[I_prime_hash])){
+            if (!std::isinf(cohort_values[I_prime_hash])){
                 norm += infoset_reach_count[I_prime.get_index()];
                 action_values[a] += cohort_values[I_prime_hash] * infoset_reach_count[I_prime.get_index()];
             }
@@ -332,7 +332,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
         }
     }
 
-    if (std::isnan(infoset_value)){
+    if (std::isinf(infoset_value)){
         // uniform policy
         for (int a : legal_actions){
             policy_obj.policy_dict[I.get_index()][a] = 1.0 / ((double) legal_actions.size());
@@ -346,9 +346,6 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
             }
         }
 
-        if (count > 0) {
-            count = 1.0 / ((double) legal_actions.size());
-        }
         // update policy
         for (int a : legal_actions){
             if (fabs(action_values[a] - infoset_value) < 1e-6){
