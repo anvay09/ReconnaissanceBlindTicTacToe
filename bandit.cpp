@@ -346,6 +346,9 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
             }
         }
 
+        if (count > 0) {
+            count = 1.0/legal_actions.size();
+        }
         // update policy
         for (int a : legal_actions){
             if (fabs(action_values[a] - infoset_value) < 1e-6){
