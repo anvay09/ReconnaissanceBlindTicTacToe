@@ -443,6 +443,16 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
         infoset_value += policy_obj.policy_dict[I.get_index()][a] * action_values[a];
     }
 
+    // check if probability distribution sums to 1
+    sum = 0.0;
+    for (int a : legal_actions){
+        sum += policy_obj.policy_dict[I.get_index()][a];
+    }
+
+    if (fabs(sum - 1.0) > 1e-6){
+        std::cout << "Probability distribution does not sum to 1, sum is: " << sum << " for information set: " << I.get_hash() << ", number of actions: " << legal_actions.size() << std::endl;
+    }
+
     return infoset_value;
 }
 
@@ -571,11 +581,11 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         double root_value = build_max_policy_parallel(player_br, root, infoset_reach_count, empirical_action_reward, action_pull_count);
         std::cout << "Best response policy computed" << std::endl;
 
-        std::cout << "Probability distribution of root information set: " << std::endl;
-        for (int i = 0; i < 13; i++) {
-            std::cout << player_br.policy_dict[root.get_index()][i] << " ";
-        }
-        std::cout << std::endl;
+        // std::cout << "Probability distribution of root information set: " << std::endl;
+        // for (int i = 0; i < 13; i++) {
+        //     std::cout << player_br.policy_dict[root.get_index()][i] << " ";
+        // }
+        // std::cout << std::endl;
 
         double expected_utility = 0.0;
         if (br_player == 'x') {
