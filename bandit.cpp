@@ -375,7 +375,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(13, 0.0);
-    double infoset_value = 1.0;
+    double infoset_value = 0.0;
  
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
@@ -401,26 +401,39 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
             action_values[a] /= norm;
         }
         // find max action value
-        if (action_values[a] > infoset_value){
-            infoset_value = action_values[a];
-        }
+        // if (action_values[a] > infoset_value){
+        //     infoset_value = action_values[a];
+        // }
     }
 
-    double count = 0.0;
+    // double count = 0.0;
+    // for (int a : legal_actions){
+    //     if (fabs(action_values[a] - infoset_value) < 1e-6){
+    //         count += 1.0;
+    //     }
+    // }
+
+    // // update policy
+    // for (int a : legal_actions){
+    //     if (fabs(action_values[a] - infoset_value) < 1e-6){
+    //         policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
+    //     }
+    //     else{
+    //         policy_obj.policy_dict[I.get_index()][a] = 0.0;
+    //     }
+    // }
+
+    double sum = 0.0;
     for (int a : legal_actions){
-        if (fabs(action_values[a] - infoset_value) < 1e-6){
-            count += 1.0;
-        }
+        sum += action_values[a];
     }
 
-    // update policy
     for (int a : legal_actions){
-        if (fabs(action_values[a] - infoset_value) < 1e-6){
-            policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
-        }
-        else{
-            policy_obj.policy_dict[I.get_index()][a] = 0.0;
-        }
+        policy_obj.policy_dict[I.get_index()][a] = action_values[a]/sum;
+    }
+
+    for (int a : legal_actions){
+        infoset_value += policy_obj.policy_dict[I.get_index()][a] * action_values[a];
     }
 
     return infoset_value;
@@ -431,7 +444,7 @@ double build_max_policy_parallel(PolicyVec& policy_obj, InformationSet&I, std::v
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(13, 0.0);
-    double infoset_value = 1.0;
+    double infoset_value = 0.0;
  
     #pragma omp parallel for num_threads(NUMBER_THREADS)
     for (int a : legal_actions){
@@ -458,26 +471,39 @@ double build_max_policy_parallel(PolicyVec& policy_obj, InformationSet&I, std::v
             action_values[a] /= norm;
         }
         // find max action value
-        if (action_values[a] > infoset_value){
-            infoset_value = action_values[a];
-        }
+        // if (action_values[a] > infoset_value){
+        //     infoset_value = action_values[a];
+        // }
     }
 
-    double count = 0.0;
+    // double count = 0.0;
+    // for (int a : legal_actions){
+    //     if (fabs(action_values[a] - infoset_value) < 1e-6){
+    //         count += 1.0;
+    //     }
+    // }
+
+    // // update policy
+    // for (int a : legal_actions){
+    //     if (fabs(action_values[a] - infoset_value) < 1e-6){
+    //         policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
+    //     }
+    //     else{
+    //         policy_obj.policy_dict[I.get_index()][a] = 0.0;
+    //     }
+    // }
+
+    double sum = 0.0;
     for (int a : legal_actions){
-        if (fabs(action_values[a] - infoset_value) < 1e-6){
-            count += 1.0;
-        }
+        sum += action_values[a];
     }
 
-    // update policy
     for (int a : legal_actions){
-        if (fabs(action_values[a] - infoset_value) < 1e-6){
-            policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
-        }
-        else{
-            policy_obj.policy_dict[I.get_index()][a] = 0.0;
-        }
+        policy_obj.policy_dict[I.get_index()][a] = action_values[a]/sum;
+    }
+
+    for (int a : legal_actions){
+        infoset_value += policy_obj.policy_dict[I.get_index()][a] * action_values[a];
     }
 
     return infoset_value;
@@ -530,11 +556,6 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         InformationSet root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
         double root_value = build_max_policy_parallel(player_br, root, infoset_reach_count, empirical_action_reward, action_pull_count);
         std::cout << "Best response policy computed" << std::endl;
-        std::cout << "Probability distribution of root information set: " << std::endl;
-        for (int i = 0; i < 13; i++) {
-            std::cout << player_br.policy_dict[root.get_index()][i] << "\t";
-        }
-        std::cout << std::endl;
 
         double expected_utility = 0.0;
         if (br_player == 'x') {
