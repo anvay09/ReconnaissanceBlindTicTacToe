@@ -400,28 +400,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
         else{
             action_values[a] /= norm;
         }
-        // find max action value
-        // if (action_values[a] > infoset_value){
-        //     infoset_value = action_values[a];
-        // }
     }
-
-    // double count = 0.0;
-    // for (int a : legal_actions){
-    //     if (fabs(action_values[a] - infoset_value) < 1e-6){
-    //         count += 1.0;
-    //     }
-    // }
-
-    // // update policy
-    // for (int a : legal_actions){
-    //     if (fabs(action_values[a] - infoset_value) < 1e-6){
-    //         policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
-    //     }
-    //     else{
-    //         policy_obj.policy_dict[I.get_index()][a] = 0.0;
-    //     }
-    // }
 
     double sum = 0.0;
     for (int a : legal_actions){
@@ -477,28 +456,7 @@ double build_max_policy_parallel(PolicyVec& policy_obj, InformationSet&I, std::v
         else{
             action_values[a] /= norm;
         }
-        // find max action value
-        // if (action_values[a] > infoset_value){
-        //     infoset_value = action_values[a];
-        // }
     }
-
-    // double count = 0.0;
-    // for (int a : legal_actions){
-    //     if (fabs(action_values[a] - infoset_value) < 1e-6){
-    //         count += 1.0;
-    //     }
-    // }
-
-    // // update policy
-    // for (int a : legal_actions){
-    //     if (fabs(action_values[a] - infoset_value) < 1e-6){
-    //         policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
-    //     }
-    //     else{
-    //         policy_obj.policy_dict[I.get_index()][a] = 0.0;
-    //     }
-    // }
 
     double sum = 0.0;
     for (int a : legal_actions){
@@ -564,18 +522,15 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     std::cin >> iterations;
     std::cout << "Enter number of samples per iteration: ";
     std::cin >> samples;
+    PolicyVec player_uniform(br_player, player_information_sets);
+    double epsilon = 1.0;
 
     for (int j = 0; j < iterations; j++) {
+        epsilon = 1.0/((double)j + 1.0);
         std::string hash = "";
         InformationSet root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
         double root_value = build_max_policy_parallel(player_br, root, infoset_reach_count, empirical_action_reward, action_pull_count);
         std::cout << "Best response policy computed" << std::endl;
-
-        // std::cout << "Probability distribution of root information set: " << std::endl;
-        // for (int i = 0; i < 13; i++) {
-        //     std::cout << player_br.policy_dict[root.get_index()][i] << " ";
-        // }
-        // std::cout << std::endl;
 
         double expected_utility = 0.0;
         if (br_player == 'x') {
@@ -598,7 +553,16 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         for (int i = 0; i < samples; i++){
             std::vector<int> h = {};
             TerminalHistory start_history = TerminalHistory(h);
-            exploit_wrapper(player_br, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_pull_count);
+
+            std::vector epsilon_values = {epsilon, 1.0 - epsilon};
+            int choice = sampleIndex(epsilon_values);
+
+            if (choice == 0) {
+                exploit_wrapper(player_uniform, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_pull_count);
+            }
+            else {
+                exploit_wrapper(player_br, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_pull_count);
+            }
         }
 
         std::cout << "Number of games sampled so far: " << (j + 1) * samples + t << std::endl;
