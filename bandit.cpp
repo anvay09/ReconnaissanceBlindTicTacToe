@@ -443,16 +443,6 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
         infoset_value += policy_obj.policy_dict[I.get_index()][a] * action_values[a];
     }
 
-    // check if probability distribution sums to 1
-    sum = 0.0;
-    for (int a : legal_actions){
-        sum += policy_obj.policy_dict[I.get_index()][a];
-    }
-
-    if (fabs(sum - 1.0) > 1e-6){
-        std::cout << "Probability distribution does not sum to 1, sum is: " << sum << " for information set: " << I.get_hash() << ", number of actions: " << legal_actions.size() << std::endl;
-    }
-
     return infoset_value;
 }
 
