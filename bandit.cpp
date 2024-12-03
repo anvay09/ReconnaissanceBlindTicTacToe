@@ -425,20 +425,13 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
 
     double sum = 0.0;
     for (int a : legal_actions){
-        sum += action_values[a];
+        sum += action_values[a] + 1.0;
     }
 
-    if (sum > 0.0) {
-        for (int a : legal_actions){
-            policy_obj.policy_dict[I.get_index()][a] = action_values[a]/sum;
-        }
+    for (int a : legal_actions){
+        policy_obj.policy_dict[I.get_index()][a] = (action_values[a]+1.0)/sum;
     }
-    else {
-        for (int a : legal_actions){
-            policy_obj.policy_dict[I.get_index()][a] = 1.0/ ((double) legal_actions.size());
-        }
-    }
-    
+
     for (int a : legal_actions){
         infoset_value += policy_obj.policy_dict[I.get_index()][a] * action_values[a];
     }
@@ -502,18 +495,11 @@ double build_max_policy_parallel(PolicyVec& policy_obj, InformationSet&I, std::v
 
     double sum = 0.0;
     for (int a : legal_actions){
-        sum += action_values[a];
+        sum += action_values[a] + 1.0;
     }
 
-    if (sum > 0.0) {
-        for (int a : legal_actions){
-            policy_obj.policy_dict[I.get_index()][a] = action_values[a]/sum;
-        }
-    }
-    else {
-        for (int a : legal_actions){
-            policy_obj.policy_dict[I.get_index()][a] = 1.0/ ((double) legal_actions.size());
-        }
+    for (int a : legal_actions){
+        policy_obj.policy_dict[I.get_index()][a] = (action_values[a]+1.0)/sum;
     }
 
     for (int a : legal_actions){
