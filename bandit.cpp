@@ -526,7 +526,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     double epsilon = 1.0;
 
     for (int j = 0; j < iterations; j++) {
-        epsilon = 1.0/((double)j + 1.0);
+        epsilon = 1.0/((double)(j/10.0) + 1.0);
         std::string hash = "";
         InformationSet root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
         double root_value = build_max_policy_parallel(player_br, root, infoset_reach_count, empirical_action_reward, action_pull_count);
