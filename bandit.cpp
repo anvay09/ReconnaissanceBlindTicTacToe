@@ -532,22 +532,24 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         double root_value = build_max_policy_parallel(player_br, root, infoset_reach_count, empirical_action_reward, action_pull_count);
         std::cout << "Best response policy computed" << std::endl;
 
-        double expected_utility = 0.0;
-        if (br_player == 'x') {
-            expected_utility = get_expected_utility_wrapper(player_br, opponent_policy);
-        } else {
-            expected_utility = get_expected_utility_wrapper(opponent_policy, player_br);
-        }
-        std::cout << "Expected utility of best response policy: " << expected_utility << std::endl;
-
-        // number of information sets visited
-        long int count = 0;
-        for (long int i = 0; i < infoset_reach_count.size(); i++) {
-            if (infoset_reach_count[i] > 0) {
-                count += 1;
+        if (j % 10 == 0 && j != 0) { 
+            double expected_utility = 0.0;
+            if (br_player == 'x') {
+                expected_utility = get_expected_utility_wrapper(player_br, opponent_policy);
+            } else {
+                expected_utility = get_expected_utility_wrapper(opponent_policy, player_br);
             }
+            std::cout << "Expected utility of best response policy: " << expected_utility << std::endl;
+
+            // number of information sets visited
+            long int count = 0;
+            for (long int i = 0; i < infoset_reach_count.size(); i++) {
+                if (infoset_reach_count[i] > 0) {
+                    count += 1;
+                }
+            }
+            std::cout << "Number of information sets visited: " << count << std::endl;
         }
-        std::cout << "Number of information sets visited: " << count << std::endl;
 
         std::cout << "Iteration: " << j << std::endl;
         for (int i = 0; i < samples; i++){
