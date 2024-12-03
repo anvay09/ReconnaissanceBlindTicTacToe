@@ -376,7 +376,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
     I.get_actions(legal_actions);
     std::vector<double> action_values(13, 0.0);
     // double infoset_value = - std::numeric_limits<double>::infinity();
-    double infoset_value = 0.0;
+    double infoset_value = 1.0;
  
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
@@ -405,9 +405,9 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
             action_values[a] /= norm;
         }
         // find max action value
-        // if (action_values[a] > infoset_value){
-        //     infoset_value = action_values[a];
-        // }
+        if (action_values[a] > infoset_value){
+            infoset_value = action_values[a];
+        }
     }
 
     // if (std::isinf(infoset_value)){
@@ -417,42 +417,23 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
     //     }
     // }
     // else{
-    // double count = 0.0;
-    // for (int a : legal_actions){
-    //     if (fabs(action_values[a] - infoset_value) < 1e-6){
-    //         count += 1.0;
-    //     }
-    // }
-    double sum = 0.0;
+    double count = 0.0;
     for (int a : legal_actions){
-        sum += action_values[a];
-    }
-
-    if (sum > 0.0){
-        for (int a : legal_actions){
-            policy_obj.policy_dict[I.get_index()][a] = action_values[a] / sum;
-            infoset_value += policy_obj.policy_dict[I.get_index()][a] * action_values[a];
-        }
-    }
-    else{
-        for (int a : legal_actions){
-            policy_obj.policy_dict[I.get_index()][a] = 1.0 / ((double) legal_actions.size());
-            infoset_value += policy_obj.policy_dict[I.get_index()][a] * action_values[a];
+        if (fabs(action_values[a] - infoset_value) < 1e-6){
+            count += 1.0;
         }
     }
 
     // update policy
-    // for (int a : legal_actions){
-    //     if (fabs(action_values[a] - infoset_value) < 1e-6){
-    //         policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
-    //     }
-    //     else{
-    //         policy_obj.policy_dict[I.get_index()][a] = 0.0;
-    //     }
+    for (int a : legal_actions){
+        if (fabs(action_values[a] - infoset_value) < 1e-6){
+            policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
+        }
+        else{
+            policy_obj.policy_dict[I.get_index()][a] = 0.0;
+        }
+    }
     // }
-    // }
-
-    
 
     return infoset_value;
 }
