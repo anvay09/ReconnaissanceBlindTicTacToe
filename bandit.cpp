@@ -473,8 +473,14 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
 
     std::cout << "Total number of games sampled for pulling each policy " << m << " times: " << t << std::endl;
+    int iterations = 100;
+    int samples = 1000;
+    std::cout << "Enter number of iterations: ";
+    std::cin >> iterations;
+    std::cout << "Enter number of samples per iteration: ";
+    std::cin >> samples;
 
-    for (int j = 0; j < 100; j++) {
+    for (int j = 0; j < iterations; j++) {
         std::string hash = "";
         InformationSet root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
         double root_value = build_max_policy(player_br, root, infoset_reach_count, empirical_action_reward, action_pull_count);
@@ -498,12 +504,13 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         std::cout << "Number of information sets visited: " << count << std::endl;
 
         std::cout << "Iteration: " << j << std::endl;
-        std::cout << "Generating 1000 samples with best response policy..." << std::endl;
-        for (int i = 0; i < 1000; i++){
+        for (int i = 0; i < samples; i++){
             std::vector<int> h = {};
             TerminalHistory start_history = TerminalHistory(h);
             exploit_wrapper(player_br, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_pull_count);
         }
+
+        std::cout << "Number of games sampled so far: " << (j + 1) * samples + t << std::endl;
     }
 }
 
