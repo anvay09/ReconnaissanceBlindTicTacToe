@@ -375,7 +375,8 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(13, 0.0);
-    double infoset_value = - std::numeric_limits<double>::infinity();
+    // double infoset_value = - std::numeric_limits<double>::infinity();
+    double infoset_value = 1.0;
  
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
@@ -388,51 +389,51 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
             cohort_values[I_prime_hash] = build_max_policy(policy_obj, I_prime, infoset_reach_count, empirical_action_reward, action_pull_count);
 
-            if (!std::isinf(cohort_values[I_prime_hash])){
-                norm += infoset_reach_count[I_prime.get_index()];
-                action_values[a] += cohort_values[I_prime_hash] * infoset_reach_count[I_prime.get_index()];
-            }
+            // if (!std::isinf(cohort_values[I_prime_hash])){
+            norm += infoset_reach_count[I_prime.get_index()];
+            action_values[a] += cohort_values[I_prime_hash] * infoset_reach_count[I_prime.get_index()];
+            // }
         }
 
         norm += pull_count;
         action_values[a] += empirical_action_reward[I.get_index()][a];
         if (norm == 0){
-            action_values[a] = - std::numeric_limits<double>::infinity();
+            // action_values[a] = - std::numeric_limits<double>::infinity();
+            action_values[a] = 1.0;
         }
         else{
             action_values[a] /= norm;
-
-            // find max action value
-            if (action_values[a] > infoset_value){
-                infoset_value = action_values[a];
-            }
+        }
+        // find max action value
+        if (action_values[a] > infoset_value){
+            infoset_value = action_values[a];
         }
     }
 
-    if (std::isinf(infoset_value)){
-        // uniform policy
-        for (int a : legal_actions){
-            policy_obj.policy_dict[I.get_index()][a] = 1.0 / ((double) legal_actions.size());
+    // if (std::isinf(infoset_value)){
+    //     // uniform policy
+    //     for (int a : legal_actions){
+    //         policy_obj.policy_dict[I.get_index()][a] = 1.0 / ((double) legal_actions.size());
+    //     }
+    // }
+    // else{
+    double count = 0.0;
+    for (int a : legal_actions){
+        if (fabs(action_values[a] - infoset_value) < 1e-6){
+            count += 1.0;
         }
     }
-    else{
-        double count = 0.0;
-        for (int a : legal_actions){
-            if (fabs(action_values[a] - infoset_value) < 1e-6){
-                count += 1.0;
-            }
-        }
 
-        // update policy
-        for (int a : legal_actions){
-            if (fabs(action_values[a] - infoset_value) < 1e-6){
-                policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
-            }
-            else{
-                policy_obj.policy_dict[I.get_index()][a] = 0.0;
-            }
+    // update policy
+    for (int a : legal_actions){
+        if (fabs(action_values[a] - infoset_value) < 1e-6){
+            policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
+        }
+        else{
+            policy_obj.policy_dict[I.get_index()][a] = 0.0;
         }
     }
+    // }
 
     return infoset_value;
 }
@@ -497,7 +498,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         std::cout << "Number of information sets visited: " << count << std::endl;
 
         std::cout << "Iteration: " << j << std::endl;
-        std::cout << "Generating 100 samples with best response policy..." << std::endl;
+        std::cout << "Generating 1000 samples with best response policy..." << std::endl;
         for (int i = 0; i < 1000; i++){
             std::vector<int> h = {};
             TerminalHistory start_history = TerminalHistory(h);
