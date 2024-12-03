@@ -266,10 +266,10 @@ int main(int argc, char* argv[]) {
     // load policies
     std::cout << "Loading policies..." << std::endl;
     auto start = std::chrono::system_clock::now(); 
-    PolicyVec policy_obj_x('x', file_path_1);
-    PolicyVec policy_obj_o('o', file_path_2);
-    PolicyVec uniform_policy_obj_x('x', uniform_file_path_1);
-    PolicyVec uniform_policy_obj_o('o', uniform_file_path_2);
+    PolicyVec policy_obj_x('x', file_path_1, true);
+    PolicyVec policy_obj_o('o', file_path_2, true);
+    PolicyVec uniform_policy_obj_x('x', uniform_file_path_1, true);
+    PolicyVec uniform_policy_obj_o('o', uniform_file_path_2, true);
     PolicyVec br_x('x', P1_information_sets);
     PolicyVec br_o('o', P2_information_sets);
     auto end = std::chrono::system_clock::now();
