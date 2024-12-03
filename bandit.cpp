@@ -405,9 +405,9 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
             action_values[a] /= norm;
         }
         // find max action value
-        if (action_values[a] > infoset_value){
-            infoset_value = action_values[a];
-        }
+        // if (action_values[a] > infoset_value){
+        //     infoset_value = action_values[a];
+        // }
     }
 
     // if (std::isinf(infoset_value)){
@@ -417,23 +417,32 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
     //     }
     // }
     // else{
-    double count = 0.0;
+    // double count = 0.0;
+    // for (int a : legal_actions){
+    //     if (fabs(action_values[a] - infoset_value) < 1e-6){
+    //         count += 1.0;
+    //     }
+    // }
+    double sum = 0.0;
     for (int a : legal_actions){
-        if (fabs(action_values[a] - infoset_value) < 1e-6){
-            count += 1.0;
-        }
+        sum += action_values[a];
     }
 
     // update policy
-    for (int a : legal_actions){
-        if (fabs(action_values[a] - infoset_value) < 1e-6){
-            policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
-        }
-        else{
-            policy_obj.policy_dict[I.get_index()][a] = 0.0;
-        }
-    }
+    // for (int a : legal_actions){
+    //     if (fabs(action_values[a] - infoset_value) < 1e-6){
+    //         policy_obj.policy_dict[I.get_index()][a] = 1.0/count;
+    //     }
+    //     else{
+    //         policy_obj.policy_dict[I.get_index()][a] = 0.0;
+    //     }
     // }
+    // }
+
+    for (int a : legal_actions){
+        policy_obj.policy_dict[I.get_index()][a] = action_values[a] / sum;
+        infoset_value += policy_obj.policy_dict[I.get_index()][a] * action_values[a];
+    }
 
     return infoset_value;
 }
