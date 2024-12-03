@@ -751,7 +751,7 @@ PolicyVec::PolicyVec(char player, std::vector<std::string> & information_sets) {
 
         if (actions.size() > 0) {
             for (int action : actions) {
-                probability_distribution[action] = 1.0 / actions.size();
+                probability_distribution[action] = 1.0 / ((double) actions.size());
             }
         }
       

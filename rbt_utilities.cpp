@@ -328,19 +328,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, TicTacToeB
             }
         }
     }
-
-    if (fabs(expected_utility_h) > 1.0){
-        std::cout << "----------------------" << std::endl;
-        std::cout << "Expected utility: " << expected_utility_h << std::endl;
-        std::cout << "Player: " << player << std::endl;
-        std::cout << "I1: " << I_1.hash << std::endl;
-        std::cout << "I2: " << I_2.hash << std::endl;
-        std::cout << "True board: " << true_board.board << std::endl;
-        std::cout << "Probability: " << probability << std::endl;
-        std::cout << "Current history: ";
-        current_history.print_history();
-    }
-
+    
     return expected_utility_h;
 }
 
