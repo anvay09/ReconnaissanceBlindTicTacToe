@@ -376,7 +376,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
     I.get_actions(legal_actions);
     std::vector<double> action_values(13, 0.0);
     // double infoset_value = - std::numeric_limits<double>::infinity();
-    double infoset_value = 1.0;
+    double infoset_value = 0.0;
  
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
@@ -430,13 +430,14 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<lo
 
     if (sum > 0.0){
         for (int a : legal_actions){
-        policy_obj.policy_dict[I.get_index()][a] = action_values[a] / sum;
-        infoset_value += policy_obj.policy_dict[I.get_index()][a] * action_values[a];
-    }
+            policy_obj.policy_dict[I.get_index()][a] = action_values[a] / sum;
+            infoset_value += policy_obj.policy_dict[I.get_index()][a] * action_values[a];
+        }
     }
     else{
         for (int a : legal_actions){
             policy_obj.policy_dict[I.get_index()][a] = 1.0 / ((double) legal_actions.size());
+            infoset_value += policy_obj.policy_dict[I.get_index()][a] * action_values[a];
         }
     }
 
