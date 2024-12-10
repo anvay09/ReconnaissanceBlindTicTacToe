@@ -810,7 +810,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
 
         root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
         std::vector<int> success_metrics{0, 0, 0};
-        double max_UCB = build_max_UCB_policy_parallel(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_pull_count, t, C, success_metrics);
+        double max_UCB = build_max_UCB_policy_parallel(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_pull_count, j+1, C, success_metrics);
         std::cout << "Max UCB policy computed" << std::endl;
         
         if (j % 10 == 0 && j != 0) { 
