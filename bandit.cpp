@@ -838,8 +838,8 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             TerminalHistory start_history = TerminalHistory(h);
             exploit_wrapper(player_br, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_pull_count, I_tickmark, I_a_tickmark);
 
-            std::vector<int> h = {};
-            TerminalHistory start_history = TerminalHistory(h);
+            h = {};
+            start_history = TerminalHistory(h);
             exploit_wrapper(player_max_ucb_policy, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_pull_count, I_tickmark, I_a_tickmark);
         }
 
