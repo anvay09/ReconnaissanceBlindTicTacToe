@@ -607,7 +607,6 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(13, 0.0);
     double max_ucb = -1.0;
-    // std::cout << "local: Checkpoint 1" << std::endl;
 
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
@@ -631,10 +630,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                 if (denom != 0){
                     u += denom;
-                    // std::cout << "Denominator: " << denom << std::endl;
-                    // std::cout << "Success metrics: " << success_metrics_prime[0] << " " << success_metrics_prime[1] << " " << success_metrics_prime[2] << std::endl;
                     action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
-                    // std::cout << "local: Checkpoint 2" << std::endl;
 
                     success_metrics[0] += success_metrics_prime[0];
                     success_metrics[1] += success_metrics_prime[1];
@@ -647,9 +643,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 
         if (pull_count != 0){
             u += pull_count;
-            // std::cout << "Pull count: " << pull_count << std::endl;
             action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / pull_count;
-            // std::cout << "local: Checkpoint 3" << std::endl;
 
             success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
             success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -658,24 +652,18 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 
         if (u != 0){
             // action_ucb_values[a] /= u;
-            // std::cout << "U: " << u << " T: " << t << std::endl;
             action_ucb_values[a] += C * sqrt(log(t)/u);
-            // std::cout << "local: Checkpoint 4" << std::endl;
         }
         else {
             action_ucb_values[a] = 1.0;
         }
     }
 
-    // std::cout << "local: Checkpoint 5" << std::endl;
-
     for (int a : legal_actions){
         if (action_ucb_values[a] > max_ucb){
             max_ucb = action_ucb_values[a];
         }
     }
-
-    // std::cout << "local: Information set: " << I.get_hash() << std::endl;
 
     if (I_tickmark[I.get_index()] == 0){
         // sample from legal actions
@@ -691,8 +679,6 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
             }
         }
 
-        // std::cout << "local: Checkpoint 6" << std::endl;
-
         return 0.0;
     }
     else {
@@ -703,25 +689,33 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
             }
         }
 
-        std::cout << "local: Checkpoint 7: Information set: " << I.get_hash() << std::endl;
-
         // sample from candidate actions
-        int action = candidate_actions[std::rand() % candidate_actions.size()];
-        std::cout << "local: Checkpoint 7.5: Information set: " << I.get_hash() << " Index: " << I.get_index() << std::endl;
-        std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
+        if (candidate_actions.size() != 0){
+            int action = candidate_actions[std::rand() % candidate_actions.size()];
+            std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
 
-
-
-        for (int a : legal_actions){
-            if (a == action){
-                prob_dist[a] = 1.0;
-            }
-            else{
-                prob_dist[a] = 0.0;
+            for (int a : legal_actions){
+                if (a == action){
+                    prob_dist[a] = 1.0;
+                }
+                else{
+                    prob_dist[a] = 0.0;
+                }
             }
         }
+        else {
+            int action = legal_actions[std::rand() % legal_actions.size()];
+            std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
 
-        std::cout << "local: Checkpoint 8: Information set: " << I.get_hash() << std::endl;
+            for (int a : legal_actions){
+                if (a == action){
+                    prob_dist[a] = 1.0;
+                }
+                else{
+                    prob_dist[a] = 0.0;
+                }
+            }
+        }
 
         return max_ucb;
     }
@@ -733,7 +727,6 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(13, 0.0);
     double max_ucb = -1.0;
-    std::cout << "Checkpoint 1" << std::endl;
 
     #pragma omp parallel for num_threads(NUMBER_THREADS)
     for (int a : legal_actions){
@@ -757,10 +750,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                 if (denom != 0){
                     u += denom;
-                    std::cout << "Denominator: " << denom << std::endl;
-                    std::cout << "Success metrics: " << success_metrics_prime[0] << " " << success_metrics_prime[1] << " " << success_metrics_prime[2] << std::endl;
                     action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
-                    std::cout << "Checkpoint 2" << std::endl;
 
                     success_metrics[0] += success_metrics_prime[0];
                     success_metrics[1] += success_metrics_prime[1];
@@ -774,7 +764,6 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
         if (pull_count != 0){
             u += pull_count;
             action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / pull_count;
-            std::cout << "Checkpoint 3" << std::endl;
 
             success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
             success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -784,17 +773,13 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
         if (u != 0){
             // action_ucb_values[a] /= u;
             action_ucb_values[a] += C * sqrt(log(t)/u);
-            std::cout << "Checkpoint 4" << std::endl;
         }
         else {
             action_ucb_values[a] = 1.0;
         }
     }
 
-    std::cout << "Checkpoint 5" << std::endl;
-    std::cout << "Information set: " << I.get_hash() << std::endl;
     for (int a : legal_actions){
-        std::cout << "Action: " << a << " UCB value: " << action_ucb_values[a] << std::endl;
         if (action_ucb_values[a] > max_ucb){
             max_ucb = action_ucb_values[a];
         }
@@ -814,7 +799,6 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
             }
         }
 
-        std::cout << "Checkpoint 6" << std::endl;
         return 0.0;
     }
     else {
@@ -826,19 +810,34 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
         }
 
         // sample from candidate actions
-        int action = candidate_actions[std::rand() % candidate_actions.size()];
-        std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
+                // sample from candidate actions
+        if (candidate_actions.size() != 0){
+            int action = candidate_actions[std::rand() % candidate_actions.size()];
+            std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
 
-        for (int a : legal_actions){
-            if (a == action){
-                prob_dist[a] = 1.0;
+            for (int a : legal_actions){
+                if (a == action){
+                    prob_dist[a] = 1.0;
+                }
+                else{
+                    prob_dist[a] = 0.0;
+                }
             }
-            else{
-                prob_dist[a] = 0.0;
+        }
+        else {
+            int action = legal_actions[std::rand() % legal_actions.size()];
+            std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
+
+            for (int a : legal_actions){
+                if (a == action){
+                    prob_dist[a] = 1.0;
+                }
+                else{
+                    prob_dist[a] = 0.0;
+                }
             }
         }
 
-        std::cout << "Checkpoint 7" << std::endl;
         return max_ucb;
     }
 }
