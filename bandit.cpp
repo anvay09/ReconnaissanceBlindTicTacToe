@@ -613,6 +613,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
         std::unordered_map<std::string, double> cohort_ucb_values;
         get_cohort(I, a, cohort);
         int u = 0;
+        int norm = 0;
         int pull_count = action_pull_count[I.get_index()][a]; // number of times action led to terminal state
 
         for (std::string I_prime_hash : cohort){
@@ -631,6 +632,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
                 if (denom != 0){
                     u += denom;
                     action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
+                    norm += infoset_reach_count[I_prime.get_index()];
 
                     success_metrics[0] += success_metrics_prime[0];
                     success_metrics[1] += success_metrics_prime[1];
@@ -651,7 +653,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
         }
 
         if (u != 0){
-            // action_ucb_values[a] /= u;
+            action_ucb_values[a] /= norm;
             action_ucb_values[a] += C * sqrt(log(t)/u);
         }
         else {
@@ -734,6 +736,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
         std::unordered_map<std::string, double> cohort_ucb_values;
         get_cohort(I, a, cohort);
         int u = 0;
+        int norm = 0;
         int pull_count = action_pull_count[I.get_index()][a]; // number of times action led to terminal state
 
         for (std::string I_prime_hash : cohort){
@@ -751,6 +754,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
                 if (denom != 0){
                     u += denom;
                     action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
+                    norm += infoset_reach_count[I_prime.get_index()];
 
                     success_metrics[0] += success_metrics_prime[0];
                     success_metrics[1] += success_metrics_prime[1];
@@ -771,7 +775,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
         }
 
         if (u != 0){
-            // action_ucb_values[a] /= u;
+            action_ucb_values[a] /= norm;
             action_ucb_values[a] += C * sqrt(log(t)/u);
         }
         else {
