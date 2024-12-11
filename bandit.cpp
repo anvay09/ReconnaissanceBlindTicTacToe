@@ -630,7 +630,10 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                 if (denom != 0){
                     u += denom;
+                    std::cout << "Denominator: " << denom << std::endl;
+                    std::cout << "Success metrics: " << success_metrics_prime[0] << " " << success_metrics_prime[1] << " " << success_metrics_prime[2] << std::endl;
                     action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
+                    std::cout << "Checkpoint 2" << std::endl;
 
                     success_metrics[0] += success_metrics_prime[0];
                     success_metrics[1] += success_metrics_prime[1];
