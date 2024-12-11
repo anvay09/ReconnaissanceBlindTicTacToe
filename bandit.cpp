@@ -592,7 +592,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
             }
             else {
                 u += success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
-                action_ucb_values[a] += success_metrics_prime[0] - success_metrics_prime[2];
+                action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / (success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2]);
                 success_metrics[0] += success_metrics_prime[0];
                 success_metrics[1] += success_metrics_prime[1];
                 success_metrics[2] += success_metrics_prime[2];
@@ -601,11 +601,14 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
         // if infoset reach count is zero then the action and pull count is zero then the action has not been taken
         // in that case ignore the action
 
-        u += pull_count;
-        action_ucb_values[a] += empirical_action_reward[I.get_index()][a];
+        
+        if (pull_count != 0){
+            u += pull_count;
+            action_ucb_values[a] += empirical_action_reward[I.get_index()][a] / pull_count;
+        }
 
         if (u != 0){
-            action_ucb_values[a] /= u;
+            // action_ucb_values[a] /= u;
             action_ucb_values[a] += C * sqrt(log(t)/u);
         }
         else {
