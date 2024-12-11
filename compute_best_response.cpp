@@ -658,6 +658,12 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
 
     }
   
+    std::cout << "Q values: ";
+    for (double q : Q_values) {
+        std::cout << q << " ";
+    }
+    std::cout << std::endl;
+
     return get_max_Q_value_and_update_policy(Q_values, actions, br, I);
 }
 
@@ -748,8 +754,8 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Loading policies..." << std::endl;
     char player = 'x';
-    PolicyVec policy_obj_x('x', file_path_1);
-    PolicyVec policy_obj_o('o', file_path_2);
+    PolicyVec policy_obj_x('x', file_path_1, true);
+    PolicyVec policy_obj_o('o', file_path_2, true);
     
     std::cout << "Policies loaded." << std::endl;
     std::cout << "Getting expected utility..." << std::endl;
