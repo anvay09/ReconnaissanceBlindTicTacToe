@@ -720,7 +720,9 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
         }
     }
 
+    std::cout << "Information set: " << I.get_hash() << std::endl;
     for (int a : legal_actions){
+        std::cout << "Action: " << a << " UCB value: " << action_ucb_values[a] << std::endl;
         if (action_ucb_values[a] > max_ucb){
             max_ucb = action_ucb_values[a];
         }
