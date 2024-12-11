@@ -602,7 +602,7 @@ double build_max_reward_policy_parallel(PolicyVec& policy_obj, InformationSet&I,
 }
 
 
-double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, std::vector<int>& I_tickmark, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count, int t, int C, std::vector<int>& success_metrics){
+double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, std::vector<int>& I_tickmark, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count, std::vector<int>& infoset_time_step, int C, std::vector<int>& success_metrics){
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(13, 0.0);
@@ -620,7 +620,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
             std::vector<int> success_metrics_prime{0, 0, 0}; // wins, draws, losses
 
-            cohort_ucb_values[I_prime_hash] = build_max_UCB_policy(policy_obj, I_prime, infoset_reach_count, I_tickmark, empirical_action_reward, action_pull_count, t, C, success_metrics_prime);
+            cohort_ucb_values[I_prime_hash] = build_max_UCB_policy(policy_obj, I_prime, infoset_reach_count, I_tickmark, empirical_action_reward, action_pull_count, infoset_time_step, C, success_metrics_prime);
 
 
             if (I_tickmark[I_prime.get_index()] == 0){
@@ -654,7 +654,8 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 
         if (u != 0){
             action_ucb_values[a] /= norm;
-            action_ucb_values[a] += C * sqrt(log(t)/u);
+            action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/u);
+            infoset_time_step[I.get_index()] += 1;
         }
         else {
             action_ucb_values[a] = 1.0;
@@ -724,7 +725,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 }
 
 
-double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, std::vector<int>& I_tickmark, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count, int t, int C, std::vector<int>& success_metrics){
+double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, std::vector<int>& I_tickmark, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count, std::vector<int>& infoset_time_step, int C, std::vector<int>& success_metrics){
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(13, 0.0);
@@ -743,7 +744,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
             std::vector<int> success_metrics_prime{0, 0, 0}; // wins, draws, losses
 
-            cohort_ucb_values[I_prime_hash] = build_max_UCB_policy(policy_obj, I_prime, infoset_reach_count, I_tickmark, empirical_action_reward, action_pull_count, t, C, success_metrics_prime);
+            cohort_ucb_values[I_prime_hash] = build_max_UCB_policy(policy_obj, I_prime, infoset_reach_count, I_tickmark, empirical_action_reward, action_pull_count, infoset_time_step, C, success_metrics_prime);
 
             if (I_tickmark[I_prime.get_index()] == 0){
                 u += infoset_reach_count[I_prime.get_index()];
@@ -776,7 +777,8 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
 
         if (u != 0){
             action_ucb_values[a] /= norm;
-            action_ucb_values[a] += C * sqrt(log(t)/u);
+            action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/u);
+            infoset_time_step[I.get_index()] += 1;
         }
         else {
             action_ucb_values[a] = 1.0;
@@ -854,6 +856,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     std::vector<std::vector<int>> I_a_tickmark(player_information_sets.size(), std::vector<int>(13, 0));
     std::vector<int> I_tickmark(player_information_sets.size(), 0);
     std::vector<int> infoset_reach_count(player_information_sets.size(), 0);
+    std::vector<int> infoset_time_step(player_information_sets.size(), 1);
     std::vector<std::vector<std::vector<int>>> empirical_action_reward(player_information_sets.size(), std::vector<std::vector<int>>(13, std::vector<int>(3, 0)));
     std::vector<std::vector<int>> action_pull_count(player_information_sets.size(), std::vector<int>(13, 0));
     PolicyVec player_max_ucb_policy(br_player, player_information_sets);
@@ -903,7 +906,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
 
         root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
         std::vector<int> success_metrics{0, 0, 0};
-        double max_UCB = build_max_UCB_policy_parallel(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_pull_count, j+1, C, success_metrics);
+        double max_UCB = build_max_UCB_policy_parallel(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_pull_count, infoset_time_step, C, success_metrics);
         std::cout << "Max UCB policy computed" << std::endl;
         
         if (j % 10 == 0 && j != 0) { 
