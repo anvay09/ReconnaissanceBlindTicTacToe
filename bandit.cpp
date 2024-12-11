@@ -14,10 +14,10 @@ void pretty_print(std::chrono::time_point<std::chrono::system_clock> start, std:
 }
 
 
-void print_histogram(std::vector<long int>& visited_infosets) {
-    std::vector<long int> buckets(10, 0);
+void print_histogram(std::vector<int>& visited_infosets) {
+    std::vector<int> buckets(10, 0);
 
-    for (long int i = 0; i < visited_infosets.size(); i++) {
+    for (int i = 0; i < visited_infosets.size(); i++) {
         if (visited_infosets[i] == 0) {
             buckets[0] += 1;
         }
@@ -163,7 +163,7 @@ int sampleIndex(const std::vector<double>& probabilities) {
 
 int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_opponent_I, TicTacToeBoard& true_board, History& current_history, char curr_player, char br_player, 
             PolicyVec& opponent_policy, std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, int m, 
-            std::vector<long int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<long int>>& action_pull_count) {
+            std::vector<int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count) {
     InformationSet I = curr_player == 'x' ? I_1 : I_2;
     int action = 0;
     int terminal_flag = 0;
@@ -302,7 +302,7 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
 }
 
 
-void explore_wrapper(std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, PolicyVec& opponent_policy, History& current_history, char br_player, int m, std::vector<long int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<long int>>& action_pull_count) {
+void explore_wrapper(std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, PolicyVec& opponent_policy, History& current_history, char br_player, int m, std::vector<int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
@@ -314,7 +314,7 @@ void explore_wrapper(std::vector<std::vector<int>>& I_a_tickmark, std::vector<in
 
 
 int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_opponent_I, TicTacToeBoard& true_board, History& current_history, char curr_player, char br_player, 
-            PolicyVec& policy_obj, PolicyVec& opponent_policy, std::vector<long int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<long int>>& action_pull_count, std::vector<int>& I_tickmark, std::vector<std::vector<int>>& I_a_tickmark) {
+            PolicyVec& policy_obj, PolicyVec& opponent_policy, std::vector<int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count, std::vector<int>& I_tickmark, std::vector<std::vector<int>>& I_a_tickmark) {
     InformationSet I = curr_player == 'x' ? I_1 : I_2;
     int action = 0;
     int terminal_flag = 0;
@@ -429,7 +429,7 @@ int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
 }
 
 
-void exploit_wrapper(PolicyVec& policy_obj, PolicyVec& opponent_policy, History& current_history, char br_player, std::vector<long int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<long int>>& action_pull_count, std::vector<int>& I_tickmark, std::vector<std::vector<int>>& I_a_tickmark) {
+void exploit_wrapper(PolicyVec& policy_obj, PolicyVec& opponent_policy, History& current_history, char br_player, std::vector<int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count, std::vector<int>& I_tickmark, std::vector<std::vector<int>>& I_a_tickmark) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
@@ -440,7 +440,7 @@ void exploit_wrapper(PolicyVec& policy_obj, PolicyVec& opponent_policy, History&
 }
 
 
-double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<long int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<long int>>& action_pull_count){
+double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count){
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(13, 0.0);
@@ -450,8 +450,8 @@ double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::ve
         std::unordered_set<std::string> cohort;
         std::unordered_map<std::string, double> cohort_values;
         get_cohort(I, a, cohort);
-        long int norm = 0;
-        long int pull_count = action_pull_count[I.get_index()][a]; // number of times action led to terminal state
+        int norm = 0;
+        int pull_count = action_pull_count[I.get_index()][a]; // number of times action led to terminal state
 
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
@@ -521,7 +521,7 @@ double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::ve
 }
 
 
-double build_max_reward_policy_parallel(PolicyVec& policy_obj, InformationSet&I, std::vector<long int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<long int>>& action_pull_count) {
+double build_max_reward_policy_parallel(PolicyVec& policy_obj, InformationSet&I, std::vector<int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(13, 0.0);
@@ -532,8 +532,8 @@ double build_max_reward_policy_parallel(PolicyVec& policy_obj, InformationSet&I,
         std::unordered_set<std::string> cohort;
         std::unordered_map<std::string, double> cohort_values;
         get_cohort(I, a, cohort);
-        long int norm = 0;
-        long int pull_count = action_pull_count[I.get_index()][a];
+        int norm = 0;
+        int pull_count = action_pull_count[I.get_index()][a];
 
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
@@ -602,7 +602,7 @@ double build_max_reward_policy_parallel(PolicyVec& policy_obj, InformationSet&I,
 }
 
 
-double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<long int>& infoset_reach_count, std::vector<int>& I_tickmark, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<long int>>& action_pull_count, long int t, long int C, std::vector<int>& success_metrics){
+double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, std::vector<int>& I_tickmark, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count, int t, int C, std::vector<int>& success_metrics){
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(13, 0.0);
@@ -612,8 +612,8 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
         std::unordered_set<std::string> cohort;
         std::unordered_map<std::string, double> cohort_ucb_values;
         get_cohort(I, a, cohort);
-        long int u = 0;
-        long int pull_count = action_pull_count[I.get_index()][a]; // number of times action led to terminal state
+        int u = 0;
+        int pull_count = action_pull_count[I.get_index()][a]; // number of times action led to terminal state
 
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
@@ -707,19 +707,20 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 }
 
 
-double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, std::vector<long int>& infoset_reach_count, std::vector<int>& I_tickmark, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<long int>>& action_pull_count, long int t, long int C, std::vector<int>& success_metrics){
+double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, std::vector<int>& I_tickmark, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_pull_count, int t, int C, std::vector<int>& success_metrics){
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(13, 0.0);
     double max_ucb = -1.0;
+    std::cout << "Checkpoint 1" << std::endl;
 
     #pragma omp parallel for num_threads(NUMBER_THREADS)
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
         std::unordered_map<std::string, double> cohort_ucb_values;
         get_cohort(I, a, cohort);
-        long int u = 0;
-        long int pull_count = action_pull_count[I.get_index()][a]; // number of times action led to terminal state
+        int u = 0;
+        int pull_count = action_pull_count[I.get_index()][a]; // number of times action led to terminal state
 
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
@@ -736,6 +737,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
                 if (denom != 0){
                     u += denom;
                     action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
+                    std::cout << "Checkpoint 2" << std::endl;
 
                     success_metrics[0] += success_metrics_prime[0];
                     success_metrics[1] += success_metrics_prime[1];
@@ -749,6 +751,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
         if (pull_count != 0){
             u += pull_count;
             action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / pull_count;
+            std::cout << "Checkpoint 3" << std::endl;
 
             success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
             success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -758,12 +761,14 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
         if (u != 0){
             // action_ucb_values[a] /= u;
             action_ucb_values[a] += C * sqrt(log(t)/u);
+            std::cout << "Checkpoint 4" << std::endl;
         }
         else {
             action_ucb_values[a] = 1.0;
         }
     }
 
+    std::cout << "Checkpoint 5" << std::endl;
     std::cout << "Information set: " << I.get_hash() << std::endl;
     for (int a : legal_actions){
         std::cout << "Action: " << a << " UCB value: " << action_ucb_values[a] << std::endl;
@@ -786,6 +791,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
             }
         }
 
+        std::cout << "Checkpoint 6" << std::endl;
         return 0.0;
     }
     else {
@@ -809,21 +815,22 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
             }
         }
 
+        std::cout << "Checkpoint 7" << std::endl;
         return max_ucb;
     }
 }
 
 
-void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, long int log_frequency, int m, PolicyVec& player_br) {
+void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, int m, PolicyVec& player_br) {
     std::vector<std::vector<int>> I_a_tickmark(player_information_sets.size(), std::vector<int>(13, 0));
     std::vector<int> I_tickmark(player_information_sets.size(), 0);
-    std::vector<long int> infoset_reach_count(player_information_sets.size(), 0);
+    std::vector<int> infoset_reach_count(player_information_sets.size(), 0);
     std::vector<std::vector<std::vector<int>>> empirical_action_reward(player_information_sets.size(), std::vector<std::vector<int>>(13, std::vector<int>(3, 0)));
-    std::vector<std::vector<long int>> action_pull_count(player_information_sets.size(), std::vector<long int>(13, 0));
+    std::vector<std::vector<int>> action_pull_count(player_information_sets.size(), std::vector<int>(13, 0));
     PolicyVec player_max_ucb_policy(br_player, player_information_sets);
 
     int flag = 1;
-    long int t = 0;
+    int t = 0;
     int k = 1;
 
     while (flag){ 
@@ -880,8 +887,8 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             std::cout << "Expected utility of best response policy: " << expected_utility << std::endl;
 
             // number of information sets visited
-            long int count = 0;
-            for (long int i = 0; i < infoset_reach_count.size(); i++) {
+            int count = 0;
+            for (int i = 0; i < infoset_reach_count.size(); i++) {
                 if (infoset_reach_count[i] > 0) {
                     count += 1;
                 }
@@ -929,10 +936,10 @@ int main(int argc, char* argv[]) {
     P2_f_is.close();
 
     // create hash to int maps
-    for (long int i = 0; i < P1_information_sets.size(); i++) {
+    for (int i = 0; i < P1_information_sets.size(); i++) {
         InformationSet::P1_hash_to_int_map[P1_information_sets[i]] = i;
     }
-    for (long int i = 0; i < P2_information_sets.size(); i++) {
+    for (int i = 0; i < P2_information_sets.size(); i++) {
         InformationSet::P2_hash_to_int_map[P2_information_sets[i]] = i;
     }
 
@@ -944,7 +951,7 @@ int main(int argc, char* argv[]) {
     // compute epsilon best response
     char continue_exp = 'y';
     while (continue_exp == 'y') {
-        long int log_frequency = 10000;
+        int log_frequency = 10000;
         char player = 'x';
         int m = 1;
         std::cout << "Enter log frequency: ";
