@@ -350,15 +350,13 @@ int main(int argc, char* argv[]) {
         long int step_size = 0;
         char player;
 
-        std::cout << "Enter the epsilon value: ";
-        std::cin >> eps;
         std::cout << "Enter number of iterations: ";
         std::cin >> num_iterations;
         std::cout << "Enter the number of iterations after which progress is to be checked: ";
         std::cin >> step_size;
         std::cout << "Enter the player for whom the best response is to be computed (x/o):";
         std::cin >> player;
-        std::cout << "Enter value of epsilon";
+        std::cout << "Enter value of epsilon:";
         std::cin >> eps; 
 
         if (player == 'x'){
