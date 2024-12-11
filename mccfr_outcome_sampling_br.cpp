@@ -13,7 +13,7 @@ int sampleIndex(const std::vector<double>& probabilities) {
 double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, char player, double probability, double& reward, char update_player, double eps) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
-    std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
+    std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
 
     if (player == update_player) { // explore with a small epsilon
         std::vector<int> actions;
@@ -123,9 +123,9 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
             new_I.reset_zeros();
 
             if (current_player == 'x') {
-                reach_prob = played_action_prob * compute_regrets_along_history(new_I, I_2, true_board, player_br_policy, player_cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'o');
+                reach_prob = compute_regrets_along_history(new_I, I_2, true_board, player_br_policy, player_cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'o');
             } else {
-                reach_prob = played_action_prob * compute_regrets_along_history(I_1, new_I, true_board, player_br_policy, player_cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'x');
+                reach_prob = compute_regrets_along_history(I_1, new_I, true_board, player_br_policy, player_cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'x');
             }
         }
         else {
@@ -133,9 +133,9 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
             new_I.simulate_sense(action, true_board);
 
             if (current_player == 'x') {
-                reach_prob = played_action_prob * compute_regrets_along_history(new_I, I_2, true_board, player_br_policy, player_cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'x');
+                reach_prob = compute_regrets_along_history(new_I, I_2, true_board, player_br_policy, player_cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'x');
             } else {
-                reach_prob = played_action_prob * compute_regrets_along_history(I_1, new_I, true_board, player_br_policy, player_cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'o');
+                reach_prob = compute_regrets_along_history(I_1, new_I, true_board, player_br_policy, player_cumulative_strategy, br_player, t, forward_reach * played_action_prob, regret_list, markers, current_history, q_z, reward, traversal_index, 'o');
             }
         }
 
@@ -143,9 +143,14 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
 
         for (int i = 0; i < actions.size(); i++) {
             if (actions[i] == action) {
-                regret_I[actions[i]] += (reward * reach_prob * (1 - played_action_prob)) / (q_z * played_action_prob);
+                if (played_action_prob > 0) {
+                    regret_I[actions[i]] += (reward * reach_prob * (1 - played_action_prob)) / q_z;
+                }
+                else {
+                    regret_I[actions[i]] += (reward * reach_prob) / (q_z);
+                }
             } else {
-                regret_I[actions[i]] += -reward * reach_prob / q_z;
+                regret_I[actions[i]] += -reward * reach_prob * played_action_prob / q_z;
             }
 
             cumulative_prob_table[actions[i]] += (t - markers[I.get_index()]) * br_prob_dist[actions[i]] * forward_reach;
@@ -162,7 +167,7 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
             }
         }
 
-        return reach_prob;
+        return reach_prob*played_action_prob;
     }
     else {
         if (I.move_flag) {
