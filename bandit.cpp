@@ -646,7 +646,9 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 
         if (pull_count != 0){
             u += pull_count;
+            std::cout << "Pull count: " << pull_count << std::endl;
             action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / pull_count;
+            std::cout << "Checkpoint 3" << std::endl;
 
             success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
             success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -655,7 +657,9 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 
         if (u != 0){
             // action_ucb_values[a] /= u;
+            std::cout << "U: " << u << " T: " << t << std::endl;
             action_ucb_values[a] += C * sqrt(log(t)/u);
+            std::cout << "Checkpoint 4" << std::endl;
         }
         else {
             action_ucb_values[a] = 1.0;
