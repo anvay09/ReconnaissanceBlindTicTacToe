@@ -709,6 +709,8 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
         int action = candidate_actions[std::rand() % candidate_actions.size()];
         std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
 
+        std::cout << "local: Checkpoint 7.5: Information set: " << I.get_hash() << std::endl;
+
         for (int a : legal_actions){
             if (a == action){
                 prob_dist[a] = 1.0;
