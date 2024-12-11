@@ -607,6 +607,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(13, 0.0);
     double max_ucb = -1.0;
+    std::cout << "local: Checkpoint 1" << std::endl;
 
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
@@ -633,7 +634,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
                     std::cout << "Denominator: " << denom << std::endl;
                     std::cout << "Success metrics: " << success_metrics_prime[0] << " " << success_metrics_prime[1] << " " << success_metrics_prime[2] << std::endl;
                     action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
-                    std::cout << "Checkpoint 2" << std::endl;
+                    std::cout << "local: Checkpoint 2" << std::endl;
 
                     success_metrics[0] += success_metrics_prime[0];
                     success_metrics[1] += success_metrics_prime[1];
@@ -648,7 +649,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
             u += pull_count;
             std::cout << "Pull count: " << pull_count << std::endl;
             action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / pull_count;
-            std::cout << "Checkpoint 3" << std::endl;
+            std::cout << "local: Checkpoint 3" << std::endl;
 
             success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
             success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -659,18 +660,22 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
             // action_ucb_values[a] /= u;
             std::cout << "U: " << u << " T: " << t << std::endl;
             action_ucb_values[a] += C * sqrt(log(t)/u);
-            std::cout << "Checkpoint 4" << std::endl;
+            std::cout << "local: Checkpoint 4" << std::endl;
         }
         else {
             action_ucb_values[a] = 1.0;
         }
     }
 
+    std::cout << "local: Checkpoint 5" << std::endl;
+
     for (int a : legal_actions){
         if (action_ucb_values[a] > max_ucb){
             max_ucb = action_ucb_values[a];
         }
     }
+
+    std::cout << "local: Information set: " << I.get_hash() << std::endl;
 
     if (I_tickmark[I.get_index()] == 0){
         // sample from legal actions
@@ -686,6 +691,8 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
             }
         }
 
+        std::cout << "local: Checkpoint 6" << std::endl;
+
         return 0.0;
     }
     else {
@@ -695,6 +702,8 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
                 candidate_actions.push_back(a);
             }
         }
+
+        std::cout << "local: Checkpoint 7" << std::endl;
 
         // sample from candidate actions
         int action = candidate_actions[std::rand() % candidate_actions.size()];
@@ -708,6 +717,8 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
                 prob_dist[a] = 0.0;
             }
         }
+
+        std::cout << "local: Checkpoint 8" << std::endl;
 
         return max_ucb;
     }
