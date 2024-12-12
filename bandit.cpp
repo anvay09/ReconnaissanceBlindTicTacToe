@@ -1355,10 +1355,10 @@ int main(int argc, char* argv[]) {
 
     // compute epsilon best response
     char continue_exp = 'y';
-    int experiment_num = 1;
+    int experiment_num = 21;
 
     // while (continue_exp == 'y') {
-    while (experiment_num <= 20) {
+    while (experiment_num <= 100) {
         int log_frequency = 10000;
         char player = 'x';
         int m = 1;
