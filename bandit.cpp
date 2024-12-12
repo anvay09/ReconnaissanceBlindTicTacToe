@@ -1089,7 +1089,9 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
                 max_ucb = action_ucb_values[a];
             }
         }
-        std::cout << std::endl;
+        if (I.get_hash() == "" && infoset_time_step[I.get_index()]%10000 == 0){
+            std::cout << std::endl;
+        }
 
         if (I_tickmark[I.get_index()] == 0){
             // sample from legal actions
