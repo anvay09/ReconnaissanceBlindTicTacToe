@@ -1028,7 +1028,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         // double max_UCB = build_max_UCB_policy_parallel(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_pull_count, infoset_time_step, C, success_metrics);
         // std::cout << "Max UCB policy computed" << std::endl;
         
-        if (j % 10 == 0 && j != 0) { 
+        if (j % 100 == 0 && j != 0) { 
             double expected_utility = 0.0;
             if (br_player == 'x') {
                 expected_utility = get_expected_utility_wrapper(player_br, opponent_policy);
@@ -1044,10 +1044,11 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
                     count += 1;
                 }
             }
+            std::cout << "Iteration: " << j << std::endl;
             std::cout << "Number of information sets visited: " << count << std::endl;
+            std::cout << "Number of games sampled so far: " << (j + 1) * samples * 2 + t << std::endl;
         }
 
-        std::cout << "Iteration: " << j << std::endl;
         for (int i = 0; i < samples; i++){
             std::vector<int> h = {};
             TerminalHistory start_history = TerminalHistory(h);
@@ -1073,8 +1074,6 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             I_2 = InformationSet('o', false, hash_2);
             update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_pull_count, infoset_values, 'x', br_player, 0);
         }
-
-        std::cout << "Number of games sampled so far: " << (j + 1) * samples * 2 + t << std::endl;
     }
 }
 
