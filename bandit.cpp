@@ -996,8 +996,9 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
 
 
 void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true_board, InformationSet& opponent_I, History& game, PolicyVec& max_UCB_policy, std::vector<int>& infoset_reach_count, 
-                                         std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<double>& infoset_ucb_values, 
-                                         char curr_player, char br_player, int traversal_index, std::vector<int>& infoset_time_step, int C, std::vector<int>& I_tickmark, std::vector<std::vector<int>>& success_metrics_pi_hat, std::vector<std::vector<int>>& action_explore_count) {
+                                         std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_terminal_reach_count, 
+                                         std::vector<double>& infoset_ucb_values, char curr_player, char br_player, int traversal_index, std::vector<int>& infoset_time_step, 
+                                         int C, std::vector<int>& I_tickmark, std::vector<std::vector<int>>& success_metrics_pi_hat, std::vector<std::vector<int>>& action_explore_count) {
     if (traversal_index == game.history.size()){
         return;
     }
@@ -1165,7 +1166,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
 }
 
 
-void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, int m, PolicyVec& player_br) {
+void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, int m, PolicyVec& player_br, int experiment_number) {
     std::vector<std::vector<int>> I_a_tickmark(player_information_sets.size(), std::vector<int>(13, 0));
     std::vector<int> I_tickmark(player_information_sets.size(), 0);
     std::vector<int> infoset_reach_count(player_information_sets.size(), 0);
@@ -1177,10 +1178,14 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     std::vector<std::vector<int>> action_terminal_reach_count(player_information_sets.size(), std::vector<int>(13, 0));
     std::vector<std::vector<int>> action_explore_count(player_information_sets.size(), std::vector<int>(13, 0));
     PolicyVec player_max_ucb_policy(br_player, player_information_sets);
+    std::vector<std::pair<int, double>> exploitability_log; 
 
     int flag = 1;
     int t = 0;
     int k = 1;
+
+    PolicyVec exact_br(br_player, player_information_sets);
+    double exact_br_value = compute_best_response_wrapper(opponent_policy, exact_br, br_player);
 
     while (flag){ 
         std::vector<int> h = {};
@@ -1205,15 +1210,16 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
 
     std::cout << "Total number of games sampled for pulling each policy " << m << " times: " << t << std::endl;
-    int iterations = 100;
-    int samples = 1000;
-    int C = 15;
-    std::cout << "Enter number of iterations: ";
-    std::cin >> iterations;
-    std::cout << "Enter number of samples per iteration: ";
-    std::cin >> samples;
-    std::cout << "Enter value of C: ";
-    std::cin >> C;
+    int iterations = 500000;
+    int samples = 1;
+    int C = 16;
+
+    // std::cout << "Enter number of iterations: ";
+    // std::cin >> iterations;
+    // std::cout << "Enter number of samples per iteration: ";
+    // std::cin >> samples;
+    // std::cout << "Enter value of C: ";
+    // std::cin >> C;
 
     std::string hash = "";
     InformationSet root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
@@ -1225,21 +1231,26 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     double max_UCB = build_max_UCB_policy_parallel(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
     std::cout << "Max UCB policy computed" << std::endl;
 
-    for (int j = 0; j < iterations; j++) {
+    for (int j = 0; j <= iterations; j++) {
         if (j % 1000 == 0 && j != 0) { 
             // root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
             // std::vector<int> success_metrics{0, 0, 0};
             // double max_UCB = build_max_UCB_policy_parallel(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
 
             double expected_utility = 0.0;
+            double exploitability = 0.0;
+            int sample_count = (j + 1) * samples * 2 + t;
+
             if (br_player == 'x') {
                 expected_utility = get_expected_utility_wrapper(player_br, opponent_policy);
+                exploitability_log.push_back(std::make_pair(sample_count, exact_br_value - expected_utility));
             } 
             else {
                 expected_utility = get_expected_utility_wrapper(opponent_policy, player_br);
+                exploitability_log.push_back(std::make_pair(sample_count, exact_br_value - expected_utility));
             }
             std::cout << "Expected utility of best response policy: " << expected_utility << std::endl;
-
+            
             // number of information sets visited
             int count = 0;
             for (int i = 0; i < infoset_reach_count.size(); i++) {
@@ -1249,7 +1260,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             }
             std::cout << "Iteration: " << j << std::endl;
             std::cout << "Number of information sets visited: " << count << std::endl;
-            std::cout << "Number of games sampled so far: " << (j + 1) * samples * 2 + t << std::endl;
+            std::cout << "Number of games sampled so far: " << sample_count << std::endl;
         }
 
         for (int i = 0; i < samples; i++){
@@ -1292,8 +1303,17 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             I_1 = InformationSet('x', true, hash_1);
             I_2 = InformationSet('o', false, hash_2);
             update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
-        }
+        } 
     }
+
+    std::cout << "Saving exploitability log" << std::endl;
+    std::string file_name = "data/exploitability_log_" + std::to_string(experiment_number) + ".txt";
+
+    std::ofstream f(file_name);
+    for (int i = 0; i < exploitability_log.size(); i++) {
+        f << exploitability_log[i].first << " " << exploitability_log[i].second << std::endl;
+    }
+    f.close();
 }
 
 
@@ -1335,28 +1355,31 @@ int main(int argc, char* argv[]) {
 
     // compute epsilon best response
     char continue_exp = 'y';
+    int experiment_num = 1;
+
     while (continue_exp == 'y') {
         int log_frequency = 10000;
         char player = 'x';
         int m = 1;
-        std::cout << "Enter log frequency: ";
-        std::cin >> log_frequency;
-        std::cout << "Enter player for pull arms: ";
-        std::cin >> player;
-        std::cout << "Enter value of m: ";
-        std::cin >> m;
+        // std::cout << "Enter log frequency: ";
+        // std::cin >> log_frequency;
+        // std::cout << "Enter player for pull arms: ";
+        // std::cin >> player;
+        // std::cout << "Enter value of m: ";
+        // std::cin >> m;
 
         if (player == 'x') {
             PolicyVec uniform_x('x', P1_information_sets);
-            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m, uniform_x);
+            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m, uniform_x, experiment_num);
         }
         else {
             PolicyVec uniform_o('o', P2_information_sets);
-            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m, uniform_o);
+            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m, uniform_o, experiment_num);
         }
 
-        std::cout << "Continue experiments? (y/n): ";
+        std::cout << "Continue experiments? (" << experiment_num << " experiments done) (y/n): ";
         std::cin >> continue_exp;
+        experiment_num += 1;
     }
     
 }
