@@ -931,7 +931,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
             max_ucb = action_ucb_values[a];
         }
     }
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
     if (I_tickmark[I.get_index()] == 0){
         // sample from legal actions
