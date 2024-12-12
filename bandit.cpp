@@ -1078,20 +1078,20 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
             }
         }
 
-        if (I.get_hash() == "" && infoset_time_step[I.get_index()]%10000 == 0){
-            std::cout << "Action UCB values: ";
-        }
+        // if (I.get_hash() == "" && infoset_time_step[I.get_index()]%10000 == 0){
+        //     std::cout << "Action UCB values: ";
+        // }
         for (int a : legal_actions){
-            if (I.get_hash() == "" && infoset_time_step[I.get_index()]%10000 == 0){
-                std::cout << action_ucb_values[a] << " ";
-            }
+            // if (I.get_hash() == "" && infoset_time_step[I.get_index()]%10000 == 0){
+            //     std::cout << action_ucb_values[a] << " ";
+            // }
             if (action_ucb_values[a] > max_ucb){
                 max_ucb = action_ucb_values[a];
             }
         }
-        if (I.get_hash() == "" && infoset_time_step[I.get_index()]%10000 == 0){
-            std::cout << std::endl;
-        }
+        // if (I.get_hash() == "" && infoset_time_step[I.get_index()]%10000 == 0){
+        //     std::cout << std::endl;
+        // }
 
         if (I_tickmark[I.get_index()] == 0){
             // sample from legal actions
@@ -1226,7 +1226,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     std::cout << "Max UCB policy computed" << std::endl;
 
     for (int j = 0; j < iterations; j++) {
-        if (j % log_frequency == 0 && j != 0) { 
+        if (j % 1000 == 0 && j != 0) { 
             // root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
             // std::vector<int> success_metrics{0, 0, 0};
             // double max_UCB = build_max_UCB_policy_parallel(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
