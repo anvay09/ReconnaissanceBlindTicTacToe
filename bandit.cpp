@@ -1210,7 +1210,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
 
     std::cout << "Total number of games sampled for pulling each policy " << m << " times: " << t << std::endl;
-    int iterations = 500000;
+    int iterations = 200000;
     int samples = 1;
     int C = 16;
 
@@ -1357,7 +1357,8 @@ int main(int argc, char* argv[]) {
     char continue_exp = 'y';
     int experiment_num = 1;
 
-    while (continue_exp == 'y') {
+    // while (continue_exp == 'y') {
+    while (experiment_num <= 20) {
         int log_frequency = 10000;
         char player = 'x';
         int m = 1;
@@ -1378,7 +1379,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "Continue experiments? (" << experiment_num << " experiments done) (y/n): ";
-        std::cin >> continue_exp;
+        // std::cin >> continue_exp;
         experiment_num += 1;
     }
     
