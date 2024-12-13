@@ -284,7 +284,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
 
         if (t % step_size == 0 && t != 0) {
             // overridde eps based on step size.
-            // eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0); 
+            eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0); 
             double expected_utility = 0.0;
             double exploitability = 0.0;
 

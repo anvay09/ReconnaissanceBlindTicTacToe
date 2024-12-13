@@ -15,42 +15,85 @@ def read_exploitability_log(file_name):
 # LUCB data
 num_experiments = 100
 x = [1000 * i for i in range(0, 412)]
-y = [0.0 for i in range(0, 412)]
+y = [-1.0 for i in range(0, 412)]
 
 for i in range(1, num_experiments + 1):
     iterations, exploitabilities = read_exploitability_log(f"data/exploitability_log_{i}.txt")
+    y_curr = [-1.0 for i in range(0, 412)]
     for j in range(len(iterations)):
         x_index = iterations[j]
         x_index = iterations[j] // 1000
-        y[x_index] += exploitabilities[j]
-    
-x = x[12:]
-y = y[12:]
+        y_curr[x_index] = exploitabilities[j]
 
+    for j in range(1,411):
+        if y_curr[j] == -1.0:
+            y_curr[j] = (y_curr[j - 1] + y_curr[j + 1])/2.0
+
+    if y_curr[-1] == -1.0:
+        y_curr[-1] = y_curr[-2]
+    if y_curr[0] == -1.0:
+        y_curr[0] = y_curr[1]
+
+    for j in range(412):
+        y[j] += y_curr[j]
+
+    
+x = x[12:401]
+y = y[12:401]
 y = [y[i] / num_experiments for i in range(len(y))]
 
+# LUCB uniform data
+num_experiments = 64
+x_uniform = [1000 * i for i in range(0, 412)]
+y_uniform = [-1.0 for i in range(0, 412)]
+
+for i in range(1, num_experiments + 1):
+    iterations, exploitabilities = read_exploitability_log(f"data/LUCB_uniform_exploitability_log_{i}.txt")
+    y_curr = [-1.0 for i in range(0, 412)]
+    for j in range(len(iterations)):
+        x_index = iterations[j]
+        x_index = iterations[j] // 1000
+        y_curr[x_index] = exploitabilities[j]
+        
+    for j in range(1,411):
+        if y_curr[j] == -1.0:
+            y_curr[j] = (y_curr[j - 1] + y_curr[j + 1])/2.0
+
+    if y_curr[-1] == -1.0:
+        y_curr[-1] = y_curr[-2]
+    if y_curr[0] == -1.0:
+        y_curr[0] = y_curr[1]
+
+    for j in range(412):
+        y_uniform[j] += y_curr[j]
+
+x_uniform = x_uniform[12:401]
+y_uniform = y_uniform[12:401]
+y_uniform = [y_uniform[i] / num_experiments for i in range(len(y_uniform))]
+
 # mcfr data
-num_experiments = 1
+num_experiments = 4
 x_mcfr = [1000 * i for i in range(0, 412)]
 y_mcfr = [0.0 for i in range(0, 412)]
 
 for i in range(1, num_experiments + 1):
-    iterations, exploitabilities = read_exploitability_log(f"data/mcfr_exploitability_log_{i}.txt")
-    for j in range(412):
+    iterations, exploitabilities = read_exploitability_log(f"data/mccfr_exploitability_log_{i}.txt")
+    for j in range(411):
         x_index = iterations[j]
         x_index = iterations[j] // 1000
         y_mcfr[x_index] += exploitabilities[j]
 
-x_mcfr = x_mcfr[12:]
-y_mcfr = y_mcfr[12:]
-
+x_mcfr = x_mcfr[12:401]
+y_mcfr = y_mcfr[12:401]
 y_mcfr = [y_mcfr[i] / num_experiments for i in range(len(y_mcfr))]
 
-
+# plot LUCB uniform data, yellow color
+plt.plot(x_uniform, y_uniform, marker='', linewidth=1, color='blue', label='Exploitability of LUCB with uniform exploration against number of samples, averaged over 64 experiments')
 # plot x vs y, join points with lines, no markers, line width 1, color blue, label "Exploitability of LUCB BR against number of samples, averaged over 5 experiments"
-plt.plot(x, y, marker='', linewidth=1, color='blue', label='Exploitability of LUCB BR against number of samples, averaged over 100 experiments')
+plt.plot(x, y, marker='', linewidth=1, color='black', label='Exploitability of LUCB BR against number of samples, averaged over 100 experiments')
 # plot mccfr data, red color
-plt.plot(x_mcfr, y_mcfr, marker='', linewidth=1, color='red', label='Exploitability of MCCFR against number of samples, averaged over 1 experiment')
+plt.plot(x_mcfr, y_mcfr, marker='', linewidth=1, color='red', label='Exploitability of MCCFR against number of samples, averaged over 4 experiments')
+
 plt.xlabel('Number of samples')
 plt.ylabel('Exploitability')
 plt.legend()
