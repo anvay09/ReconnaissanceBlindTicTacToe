@@ -284,7 +284,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
 
         if (t % step_size == 0 && t != 0) {
             // overridde eps based on step size.
-            eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0); 
+            // eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0); 
             double expected_utility = 0.0;
             double exploitability = 0.0;
 
@@ -299,31 +299,31 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
 
             std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
 
-            PolicyVec average_strategy = cumulative_strategy;
-            // normalize the cumulative strategy
-            for (long int i = 0; i < information_sets.size(); i++) {
-                std::vector<double>& cumulative_prob_table = average_strategy.policy_dict[i];
-                double sum = 0.0;
+            // PolicyVec average_strategy = cumulative_strategy;
+            // // normalize the cumulative strategy
+            // for (long int i = 0; i < information_sets.size(); i++) {
+            //     std::vector<double>& cumulative_prob_table = average_strategy.policy_dict[i];
+            //     double sum = 0.0;
 
-                for (int j = 0; j < 13; j++) {
-                    sum += cumulative_prob_table[j];
-                }
+            //     for (int j = 0; j < 13; j++) {
+            //         sum += cumulative_prob_table[j];
+            //     }
 
-                if (sum > 0) {
-                    for (int j = 0; j < 13; j++) {
-                        cumulative_prob_table[j] /= sum;
-                    }
-                }
-            }
+            //     if (sum > 0) {
+            //         for (int j = 0; j < 13; j++) {
+            //             cumulative_prob_table[j] /= sum;
+            //         }
+            //     }
+            // }
 
-            if (br_player == 'x'){
-                expected_utility = get_expected_utility_wrapper(average_strategy, policy_obj);
-            }
-            else {
-                expected_utility = get_expected_utility_wrapper(policy_obj, average_strategy);
-            }
+            // if (br_player == 'x'){
+            //     expected_utility = get_expected_utility_wrapper(average_strategy, policy_obj);
+            // }
+            // else {
+            //     expected_utility = get_expected_utility_wrapper(policy_obj, average_strategy);
+            // }
 
-            std::cout << "Expected utility after averaging: " << expected_utility << std::endl;
+            // std::cout << "Expected utility after averaging: " << expected_utility << std::endl;
         }
     }
 
