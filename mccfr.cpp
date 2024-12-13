@@ -328,7 +328,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
     }
 
     std::cout << "Saving exploitability log" << std::endl;
-    std::string file_name = "data/mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/mccfr_dampen_eps_exploitability_log_" + std::to_string(experiment_number) + ".txt";
 
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++) {
