@@ -242,11 +242,15 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
 }
 
 
-void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best_response, char br_player, long int T, std::vector<std::string>& information_sets, double eps, long int step_size) {
+void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best_response, char br_player, long int T, std::vector<std::string>& information_sets, double eps, long int step_size, int experiment_number) {
     std::vector<std::vector<double>> regret_list;
     std::vector<long int> markers;
     PolicyVec cumulative_strategy;
     cumulative_strategy.player = br_player;
+
+    PolicyVec exact_br(br_player, information_sets);
+    double exact_br_value = compute_best_response_wrapper(policy_obj, exact_br, br_player);
+    std::vector<std::pair<int, double>> exploitability_log; 
     
     for (long int i = 0; i < information_sets.size(); i++) {
         regret_list.push_back(std::vector<double>(13, 0.0));
@@ -256,7 +260,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
         markers.push_back(0);
     }
 
-    for (int t = 0; t < T; t++) {
+    for (int t = 0; t <= T; t++) {
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
@@ -282,12 +286,15 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
             // overridde eps based on step size.
             eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0); 
             double expected_utility = 0.0;
+            double exploitability = 0.0;
 
             if (br_player == 'x'){
                 expected_utility = get_expected_utility_wrapper(best_response, policy_obj);
+                exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
             }
             else {
                 expected_utility = get_expected_utility_wrapper(policy_obj, best_response);
+                exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
             }
 
             std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
@@ -319,6 +326,15 @@ void mccfr_outcome_sampling_best_response(PolicyVec& policy_obj, PolicyVec& best
             std::cout << "Expected utility after averaging: " << expected_utility << std::endl;
         }
     }
+
+    std::cout << "Saving exploitability log" << std::endl;
+    std::string file_name = "data/mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+
+    std::ofstream f(file_name);
+    for (int i = 0; i < exploitability_log.size(); i++) {
+        f << exploitability_log[i].first << " " << exploitability_log[i].second << std::endl;
+    }
+    f.close();
 }
 
 
@@ -470,35 +486,39 @@ int main(int argc, char* argv[]) {
     std::cout << "Policies loaded." << std::endl;
 
     char continue_exp = 'y';
-    while (continue_exp == 'y') {
-        double eps = 0.0;
-        long int num_iterations = 0;
-        long int step_size = 0;
-        char player;
+    int experiment_num = 1;
 
-        std::cout << "Enter the epsilon value: ";
-        std::cin >> eps;
-        std::cout << "Enter number of iterations: ";
-        std::cin >> num_iterations;
-        std::cout << "Enter the number of iterations after which progress is to be checked: ";
-        std::cin >> step_size;
-        std::cout << "Enter the player for whom the best response is to be computed: (x/o/b), b for both if you want to compute Nash equilibrium) ";
-        std::cin >> player;
+    // while (continue_exp == 'y') {
+    while (experiment_num <= 100) {
+        double eps = 0.1;
+        long int num_iterations = 500000;
+        long int step_size = 1000;
+        char player = 'x';
+
+        // std::cout << "Enter the epsilon value: ";
+        // std::cin >> eps;
+        // std::cout << "Enter number of iterations: ";
+        // std::cin >> num_iterations;
+        // std::cout << "Enter the number of iterations after which progress is to be checked: ";
+        // std::cin >> step_size;
+        // std::cout << "Enter the player for whom the best response is to be computed: (x/o/b), b for both if you want to compute Nash equilibrium) ";
+        // std::cin >> player;
 
         if (player == 'b'){
             mccfr_outcome_sampling(policy_obj_x, policy_obj_o, num_iterations, P1_information_sets, P2_information_sets, eps, step_size);
         }
         else if (player == 'x'){
             PolicyVec curr_br = policy_obj_x;
-            mccfr_outcome_sampling_best_response(policy_obj_o, curr_br, 'x', num_iterations, P1_information_sets, eps, step_size);
+            mccfr_outcome_sampling_best_response(policy_obj_o, curr_br, 'x', num_iterations, P1_information_sets, eps, step_size, experiment_num);
         }
         else if (player == 'o'){
             PolicyVec curr_br = policy_obj_o;
-            mccfr_outcome_sampling_best_response(policy_obj_x, curr_br, 'o', num_iterations, P2_information_sets, eps, step_size);
+            mccfr_outcome_sampling_best_response(policy_obj_x, curr_br, 'o', num_iterations, P2_information_sets, eps, step_size, experiment_num);
         }
        
-        std::cout << "Continue experiments? (y/n): ";
-        std::cin >> continue_exp;
+       std::cout << "Experiment " << experiment_num << " done." << std::endl;
+        // std::cout << "Continue experiments? (y/n): ";
+        // std::cin >> continue_exp;
     }
     
 }
