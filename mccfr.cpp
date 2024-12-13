@@ -481,8 +481,8 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Loading policies..." << std::endl;
 
-    PolicyVec policy_obj_x('x', file_path_1);
-    PolicyVec policy_obj_o('o', file_path_2);
+    PolicyVec policy_obj_x('x', file_path_1, true);
+    PolicyVec policy_obj_o('o', file_path_2, true);
     std::cout << "Policies loaded." << std::endl;
 
     char continue_exp = 'y';
