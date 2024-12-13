@@ -1226,10 +1226,10 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     double root_val = build_max_reward_policy_parallel(player_br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values);
     std::cout << "Best response policy computed" << std::endl;
 
-    root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
-    std::vector<int> success_metrics{0, 0, 0};
-    double max_UCB = build_max_UCB_policy_parallel(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
-    std::cout << "Max UCB policy computed" << std::endl;
+    // root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
+    // std::vector<int> success_metrics{0, 0, 0};
+    // double max_UCB = build_max_UCB_policy_parallel(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
+    // std::cout << "Max UCB policy computed" << std::endl;
 
     for (int j = 0; j <= iterations; j++) {
         if (j % 1000 == 0 && j != 0) { 
@@ -1276,13 +1276,13 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             InformationSet I_2 = InformationSet('o', false, hash_2);
             update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
 
-            board = "000000000";
-            true_board = TicTacToeBoard(board);
-            hash_1 = "";
-            hash_2 = "";
-            I_1 = InformationSet('x', true, hash_1);
-            I_2 = InformationSet('o', false, hash_2);
-            update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+            // board = "000000000";
+            // true_board = TicTacToeBoard(board);
+            // hash_1 = "";
+            // hash_2 = "";
+            // I_1 = InformationSet('x', true, hash_1);
+            // I_2 = InformationSet('o', false, hash_2);
+            // update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
 
             h = {};
             start_history = TerminalHistory(h);
@@ -1296,18 +1296,18 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             I_2 = InformationSet('o', false, hash_2);
             update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
 
-            board = "000000000";
-            true_board = TicTacToeBoard(board);
-            hash_1 = "";
-            hash_2 = "";
-            I_1 = InformationSet('x', true, hash_1);
-            I_2 = InformationSet('o', false, hash_2);
-            update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+            // board = "000000000";
+            // true_board = TicTacToeBoard(board);
+            // hash_1 = "";
+            // hash_2 = "";
+            // I_1 = InformationSet('x', true, hash_1);
+            // I_2 = InformationSet('o', false, hash_2);
+            // update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
         } 
     }
 
     std::cout << "Saving exploitability log" << std::endl;
-    std::string file_name = "data/exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/LUCB_uniform_exploitability_log_" + std::to_string(experiment_number) + ".txt";
 
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++) {
@@ -1355,7 +1355,7 @@ int main(int argc, char* argv[]) {
 
     // compute epsilon best response
     char continue_exp = 'y';
-    int experiment_num = 21;
+    int experiment_num = 1;
 
     // while (continue_exp == 'y') {
     while (experiment_num <= 100) {
