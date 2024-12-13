@@ -709,11 +709,11 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             for (int a : legal_actions){
                 if (a == action){
                     prob_dist[a] = 1.0;
-                    average_prob_dist[a] = (average_prob_dist[a] * (t - 1.0) + 1.0) / t;
+                    average_prob_dist[a] = (average_prob_dist[a] * (t - 1.0) + t) / (2*t - 1.0);
                 }
                 else{
                     prob_dist[a] = 0.0;
-                    average_prob_dist[a] = (average_prob_dist[a] * (t - 1.0)) / t;
+                    average_prob_dist[a] = (average_prob_dist[a] * (t - 1.0)) / (2*t - 1.0);
                 }
             }
 
@@ -1235,7 +1235,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     double root_val = build_max_reward_policy_parallel(player_br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values);
     std::cout << "Best response policy computed" << std::endl;
 
-    player_average_br = player_br;
+    // player_average_br = player_br;
 
     root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
     std::vector<int> success_metrics{0, 0, 0};
