@@ -516,7 +516,8 @@ int main(int argc, char* argv[]) {
             mccfr_outcome_sampling_best_response(policy_obj_x, curr_br, 'o', num_iterations, P2_information_sets, eps, step_size, experiment_num);
         }
        
-       std::cout << "Experiment " << experiment_num << " done." << std::endl;
+        std::cout << "Experiment " << experiment_num << " done." << std::endl;
+        experiment_num += 1;
         // std::cout << "Continue experiments? (y/n): ";
         // std::cin >> continue_exp;
     }
