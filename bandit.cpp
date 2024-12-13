@@ -1375,12 +1375,12 @@ int main(int argc, char* argv[]) {
         int log_frequency = 10000;
         char player = 'x';
         int m = 1;
-        std::cout << "Enter log frequency: ";
-        std::cin >> log_frequency;
-        std::cout << "Enter player for pull arms: ";
-        std::cin >> player;
-        std::cout << "Enter value of m: ";
-        std::cin >> m;
+        // std::cout << "Enter log frequency: ";
+        // std::cin >> log_frequency;
+        // std::cout << "Enter player for pull arms: ";
+        // std::cin >> player;
+        // std::cout << "Enter value of m: ";
+        // std::cin >> m;
 
         if (player == 'x') {
             PolicyVec uniform_x('x', P1_information_sets);
