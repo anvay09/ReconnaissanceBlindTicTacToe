@@ -1205,7 +1205,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
 
     std::cout << "Total number of games sampled for pulling each policy " << m << " times: " << t << std::endl;
-    int iterations = 200000;
+    int iterations = 500000;
     int samples = 1;
     int C = 16;
 
@@ -1220,6 +1220,21 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     InformationSet root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
     double root_val = build_max_reward_policy_parallel(player_br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values);
     std::cout << "Best response policy computed" << std::endl;
+
+
+    // debug player_br policy, check if values at each information set add up to 1, check if values at each information set are non-negative or nans
+    for (int i = 0; i < player_br.policy_dict.size(); i++){
+        double sum = 0.0;
+        for (int j = 0; j < player_br.policy_dict[i].size(); j++){
+            sum += player_br.policy_dict[i][j];
+            if (player_br.policy_dict[i][j] < 0.0 || std::isnan(player_br.policy_dict[i][j]) || std::isinf(player_br.policy_dict[i][j])){
+                std::cout << "Negative value or nan found at information set " << i << " action " << j << std::endl;
+            }
+        }
+        if (fabs(sum - 1.0) > 1e-6){
+            std::cout << "Sum of values at information set " << i << " is not 1.0" << std::endl;
+        }
+    }
 
     root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
     std::vector<int> success_metrics{0, 0, 0};
