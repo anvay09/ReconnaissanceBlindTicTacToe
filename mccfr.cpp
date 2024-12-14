@@ -491,9 +491,9 @@ int main(int argc, char* argv[]) {
     // while (continue_exp == 'y') {
     while (experiment_num <= 100) {
         double eps = 0.1;
-        long int num_iterations = 500000;
-        long int step_size = 1000;
-        char player = 'x';
+        long int num_iterations = 10000000;
+        long int step_size = 100000;
+        char player = 'o';
 
         // std::cout << "Enter the epsilon value: ";
         // std::cin >> eps;
