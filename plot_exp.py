@@ -57,16 +57,16 @@ def clean_data_mccfr(file_name, num_experiments):
     y_mccfr = [y_mccfr[i] / num_experiments for i in range(len(y_mccfr))]
     return x_mccfr, y_mccfr
 
-x, y = clean_data("data/exploitability_log", 100, 412, interpolation = True)
-x_a, y_a = clean_data("data/LUCB_average_exploitability_log", 96, 412, interpolation = True)
+x, y = clean_data("data/exploitability_log", 10, 412, interpolation = True)
+x_a, y_a = clean_data("data/LUCB_average_exploitability_log", 100, 412, interpolation = True)
 x_uniform, y_uniform = clean_data("data/LUCB_uniform_exploitability_log", 100, 412, interpolation = True)
-x_mccfr, y_mccfr = clean_data_mccfr("data/mccfr_exploitability_log", 4)
+x_mccfr, y_mccfr = clean_data_mccfr("data/mccfr_exploitability_log", 47)
 x_mccfr_dampened, y_mccfr_dampened = clean_data_mccfr("data/mccfr_dampen_eps_exploitability_log", 100)
 
 # plt.plot(x_uniform, y_uniform, marker='', linewidth=1, color='blue', linestyle = '--', label='Exploitability of LUCB with uniform exploration against number of samples, averaged over 100 experiments')
-plt.plot(x, y, marker='', linewidth=1, color='black', label='Exploitability of LUCB BR against number of samples, averaged over 100 experiments')
-plt.plot(x_mccfr, y_mccfr, marker='', linewidth=1, color='red', label='Exploitability of MCCFR against number of samples, averaged over 4 experiments')
-plt.plot(x_mccfr_dampened, y_mccfr_dampened, marker='', linewidth=1, color='green', label='Exploitability of MCCFR with dampened epsilon against number of samples, averaged over 100 experiments')
+plt.plot(x, y, marker='', linewidth=1, color='black', label='LUCB, averaged over 100 experiments')
+plt.plot(x_mccfr, y_mccfr, marker='', linewidth=1, color='red', label='MCCFR, averaged over 47 experiments')
+plt.plot(x_mccfr_dampened, y_mccfr_dampened, marker='', linewidth=1, color='green', label='MCCFR with dampened epsilon, averaged over 100 experiments')
 # plt.plot(x_a, y_a, marker='', linewidth=1, color='blue', label='Exploitability of LUCB with average policy against number of samples, averaged over 96 experiments')
 
 plt.yticks([0.01, 0.05, 0.1, 0.2, 0.3, 0.5])
