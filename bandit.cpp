@@ -628,6 +628,7 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
     }
     
     int action = game.history[traversal_index];
+    std::cout << "Action: " << action << std::endl;
 
     if (curr_player == br_player){
         if (I.move_flag) {
