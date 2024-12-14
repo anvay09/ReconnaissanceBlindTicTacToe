@@ -1271,7 +1271,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
                 update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
             }
             else {
-                update_max_reward_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'o', br_player, 0);
+                update_max_reward_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
             }
 
             board = "000000000";
@@ -1284,7 +1284,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
                 update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
             }
             else {
-                update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'o', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+                update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
             }
 
             max_UCB_flag = false;
@@ -1305,7 +1305,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
                 update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
             }
             else {
-                update_max_reward_policy_given_history(I_2, true_board, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'o', br_player, 0);
+                update_max_reward_policy_given_history(I_2, true_board, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
             }
 
             board = "000000000";
@@ -1318,7 +1318,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
                 update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
             }
             else {
-                update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'o', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+                update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
             }
 
             max_UCB_flag = true;
