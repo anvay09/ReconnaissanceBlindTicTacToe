@@ -628,7 +628,7 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
     }
     
     int action = game.history[traversal_index];
-    std::cout << "Action: " << action << std::endl;
+    // std::cout << "Action: " << action << std::endl;
 
     if (curr_player == br_player){
         if (I.move_flag) {
@@ -638,14 +638,13 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             new_I.reset_zeros();
             new_board.update_move(action, I.player);
             update_max_reward_policy_given_history(new_I, new_board, opponent_I, game, max_reward_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, toggle_player(curr_player), br_player, traversal_index + 1);
-            std::cout << "Checkpoint 1" << std::endl;
+            // std::cout << "Checkpoint 1" << std::endl;
         }
         else {
             InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
-            I.reset_zeros();
             update_max_reward_policy_given_history(new_I, true_board, opponent_I, game, max_reward_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, curr_player, br_player, traversal_index + 1);
-            std::cout << "Checkpoint 2" << std::endl;
+            // std::cout << "Checkpoint 2" << std::endl;
         }
 
         std::vector<int> legal_actions;
@@ -678,7 +677,7 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             }
         }
 
-        std::cout << "checkpoint 3" << std::endl;
+        // std::cout << "checkpoint 3" << std::endl;
 
         for (int a : legal_actions){
             if (action_values[a] > infoset_value){
@@ -701,7 +700,7 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             }
 
             infoset_values[I.get_index()] = 0.0;
-            std::cout << "checkpoint 4" << std::endl;
+            // std::cout << "checkpoint 4" << std::endl;
         }
         else {
             std::vector<int> candidate_actions;
@@ -725,7 +724,7 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             }
 
             infoset_values[I.get_index()] = infoset_value;
-            std::cout << "checkpoint 5" << std::endl;
+            // std::cout << "checkpoint 5" << std::endl;
         }
     }
     else {
@@ -734,12 +733,12 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             opponent_I.reset_zeros();
             true_board.update_move(action, opponent_I.player);
             update_max_reward_policy_given_history(I, true_board, opponent_I, game, max_reward_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, toggle_player(curr_player), br_player, traversal_index + 1);
-            std::cout << "checkpoint 6" << std::endl;
+            // std::cout << "checkpoint 6" << std::endl;
         }
         else {
             opponent_I.simulate_sense(action, true_board);
             update_max_reward_policy_given_history(I, true_board, opponent_I, game, max_reward_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, curr_player, br_player, traversal_index + 1);
-            std::cout << "checkpoint 7" << std::endl;
+            // std::cout << "checkpoint 7" << std::endl;
         }
     }
 }
@@ -1268,7 +1267,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         exploit_wrapper(player_br, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
-        std::cout << "Sampled game " << t << std::endl;
+        // std::cout << "Sampled game " << t << std::endl;
 
         std::string board = "000000000";
         TicTacToeBoard true_board = TicTacToeBoard(board);
@@ -1277,7 +1276,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         InformationSet I_1 = InformationSet('x', true, hash_1);
         InformationSet I_2 = InformationSet('o', false, hash_2);
         update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
-        std::cout << "Updated max reward policy" << std::endl;
+        // std::cout << "Updated max reward policy" << std::endl;
 
         board = "000000000";
         true_board = TicTacToeBoard(board);
@@ -1286,12 +1285,12 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         I_1 = InformationSet('x', true, hash_1);
         I_2 = InformationSet('o', false, hash_2);
         update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
-        std::cout << "Updated max UCB policy" << std::endl;
+        // std::cout << "Updated max UCB policy" << std::endl;
 
         h = {};
         start_history = TerminalHistory(h);
         exploit_wrapper(player_max_ucb_policy, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
-        std::cout << "Sampled game " << t << std::endl;
+        // std::cout << "Sampled game " << t << std::endl;
 
         board = "000000000";
         true_board = TicTacToeBoard(board);
@@ -1300,7 +1299,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         I_1 = InformationSet('x', true, hash_1);
         I_2 = InformationSet('o', false, hash_2);
         update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
-        std::cout << "Updated max reward policy" << std::endl;
+        // std::cout << "Updated max reward policy" << std::endl;
 
         board = "000000000";
         true_board = TicTacToeBoard(board);
@@ -1309,7 +1308,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         I_1 = InformationSet('x', true, hash_1);
         I_2 = InformationSet('o', false, hash_2);
         update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
-        std::cout << "Updated max UCB policy" << std::endl;
+        // std::cout << "Updated max UCB policy" << std::endl;
     }
 
     std::cout << "Saving exploitability log" << std::endl;
