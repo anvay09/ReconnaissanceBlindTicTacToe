@@ -736,6 +736,7 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             opponent_I.update_move(action, opponent_I.player);
             opponent_I.reset_zeros();
             true_board.update_move(action, opponent_I.player);
+            std::cout << "checkpoint 5.9" << " True board: " << true_board.board << std::endl;
             update_max_reward_policy_given_history(I, true_board, opponent_I, game, max_reward_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, toggle_player(curr_player), br_player, traversal_index + 1);
             std::cout << "checkpoint 6" << std::endl;
         }
