@@ -637,12 +637,14 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             new_I.update_move(action, I.player);
             new_I.reset_zeros();
             new_board.update_move(action, I.player);
+            std::cout << "Checkpoint 0, infoset: " << I.get_hash() << std::endl;
             update_max_reward_policy_given_history(new_I, new_board, opponent_I, game, max_reward_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, toggle_player(curr_player), br_player, traversal_index + 1);
             std::cout << "Checkpoint 1, infoset: " << I.get_hash() << std::endl;
         }
         else {
             InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
+            std::cout << "Checkpoint 1.5, infoset: " << I.get_hash() << std::endl;
             update_max_reward_policy_given_history(new_I, true_board, opponent_I, game, max_reward_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, curr_player, br_player, traversal_index + 1);
             std::cout << "Checkpoint 2, infoset: " << I.get_hash() << std::endl;
         }
