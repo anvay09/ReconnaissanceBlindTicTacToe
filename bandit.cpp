@@ -353,8 +353,6 @@ int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
             TerminalHistory H_T = TerminalHistory(current_history.history);
             H_T.set_reward();
             int r = br_player == 'x' ? H_T.reward[0] : H_T.reward[1];
-            current_history.print_history();
-            std::cout << "Reward: " << r << std::endl;
             terminal_flag = 1;
 
             // update action pull count and empirical action reward only when action leads to terminal state
