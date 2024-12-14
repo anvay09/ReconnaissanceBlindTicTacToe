@@ -732,6 +732,9 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
         }
     }
     else {
+        std::cout << "Current player: " << curr_player << std::endl;
+        std::cout << "Move flag: " << opponent_I.move_flag << std::endl;
+        
         if (opponent_I.move_flag){
             opponent_I.update_move(action, opponent_I.player);
             opponent_I.reset_zeros();
