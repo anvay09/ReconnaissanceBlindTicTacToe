@@ -1193,6 +1193,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
 
     PolicyVec exact_br(br_player, player_information_sets);
     double exact_br_value = compute_best_response_wrapper(opponent_policy, exact_br, br_player);
+    std::cout << "Exact best response value: " << exact_br_value << std::endl;
 
     while (flag){ 
         std::vector<int> h = {};
