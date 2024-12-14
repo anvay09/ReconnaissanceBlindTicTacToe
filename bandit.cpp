@@ -638,24 +638,26 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             new_I.reset_zeros();
             new_board.update_move(action, I.player);
             update_max_reward_policy_given_history(new_I, new_board, opponent_I, game, max_reward_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, toggle_player(curr_player), br_player, traversal_index + 1);
-            std::cout << "Checkpoint 1" << std::endl;
+            std::cout << "Checkpoint 1, infoset: " << I.get_hash() << std::endl;
         }
         else {
             InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
             update_max_reward_policy_given_history(new_I, true_board, opponent_I, game, max_reward_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, curr_player, br_player, traversal_index + 1);
-            std::cout << "Checkpoint 2" << std::endl;
+            std::cout << "Checkpoint 2, infoset: " << I.get_hash() << std::endl;
         }
 
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         std::vector<double> action_values(13, 0.0);
         double infoset_value = -1.0;
+        std::cout << "Legal actions: " << legal_actions.size() << std::endl;
 
         for (int a : legal_actions){
             std::unordered_set<std::string> cohort;
             std::unordered_map<std::string, double> cohort_values;
             get_cohort(I, a, cohort);
+            std::cout << "Cohort size: " << cohort.size() << std::endl;
             int norm = 0;
             int terminal_reach_count = action_terminal_reach_count[I.get_index()][a];
 
@@ -677,7 +679,7 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             }
         }
 
-        std::cout << "checkpoint 3" << std::endl;
+        std::cout << "checkpoint 3, infoset: " << I.get_hash() << std::endl;
 
         for (int a : legal_actions){
             if (action_values[a] > infoset_value){
