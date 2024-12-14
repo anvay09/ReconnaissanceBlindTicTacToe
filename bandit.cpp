@@ -638,12 +638,14 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             new_I.reset_zeros();
             new_board.update_move(action, I.player);
             update_max_reward_policy_given_history(new_I, new_board, opponent_I, game, max_reward_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, toggle_player(curr_player), br_player, traversal_index + 1);
+            std::cout << "Checkpoint 1" << std::endl;
         }
         else {
             InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
             I.reset_zeros();
             update_max_reward_policy_given_history(new_I, true_board, opponent_I, game, max_reward_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, curr_player, br_player, traversal_index + 1);
+            std::cout << "Checkpoint 2" << std::endl;
         }
 
         std::vector<int> legal_actions;
@@ -676,6 +678,8 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             }
         }
 
+        std::cout << "checkpoint 3" << std::endl;
+
         for (int a : legal_actions){
             if (action_values[a] > infoset_value){
                 infoset_value = action_values[a];
@@ -697,6 +701,7 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             }
 
             infoset_values[I.get_index()] = 0.0;
+            std::cout << "checkpoint 4" << std::endl;
         }
         else {
             std::vector<int> candidate_actions;
@@ -720,6 +725,7 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             }
 
             infoset_values[I.get_index()] = infoset_value;
+            std::cout << "checkpoint 5" << std::endl;
         }
     }
     else {
@@ -728,10 +734,12 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
             opponent_I.reset_zeros();
             true_board.update_move(action, opponent_I.player);
             update_max_reward_policy_given_history(I, true_board, opponent_I, game, max_reward_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, toggle_player(curr_player), br_player, traversal_index + 1);
+            std::cout << "checkpoint 6" << std::endl;
         }
         else {
             opponent_I.simulate_sense(action, true_board);
             update_max_reward_policy_given_history(I, true_board, opponent_I, game, max_reward_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, curr_player, br_player, traversal_index + 1);
+            std::cout << "checkpoint 7" << std::endl;
         }
     }
 }
