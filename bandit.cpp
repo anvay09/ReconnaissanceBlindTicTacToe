@@ -643,7 +643,7 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
         else {
             InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
-            new_I.reset_zeros();
+            // new_I.reset_zeros();
             update_max_reward_policy_given_history(new_I, true_board, opponent_I, game, max_reward_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, curr_player, br_player, traversal_index + 1);
             // std::cout << "Checkpoint 2" << std::endl;
         }
@@ -1031,7 +1031,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
         else {
             InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
-            new_I.reset_zeros();
+            // new_I.reset_zeros();
             update_max_UCB_policy_given_history(new_I, true_board, opponent_I, game, max_UCB_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, curr_player, br_player, traversal_index + 1, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
         }   
 
