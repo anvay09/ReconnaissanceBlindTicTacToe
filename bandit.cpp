@@ -1252,15 +1252,6 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
   
             std::cout << "Number of information sets visited: " << count << std::endl;
             std::cout << "Number of games sampled so far: " << t << std::endl;
-
-            root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
-            std::cout << "UCB value of root: " << infoset_ucb_values[root.get_index()] << std::endl;
-            std::cout << "Value of root: " << infoset_values[root.get_index()] << std::endl;
-            std::cout << "Action reach count of root: ";
-            for (int a = 0; a < 13; a++) {
-                std::cout << action_explore_count[root.get_index()][a] << " ";
-            }
-            std::cout << std::endl;
         }
   
         if (max_UCB_flag) {
