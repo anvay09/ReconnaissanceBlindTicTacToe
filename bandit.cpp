@@ -1222,10 +1222,10 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     double root_val = build_max_reward_policy_parallel(player_br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values);
     std::cout << "Best response policy computed" << std::endl;
 
-    // root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
-    // std::vector<int> success_metrics{0, 0, 0};
-    // double max_UCB = build_max_UCB_policy_parallel(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
-    // std::cout << "Max UCB policy computed" << std::endl;
+    root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
+    std::vector<int> success_metrics{0, 0, 0};
+    double max_UCB = build_max_UCB_policy_parallel(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
+    std::cout << "Max UCB policy computed" << std::endl;
 
     bool max_UCB_flag = true;
     for (; t <= iterations; t += 1) {
@@ -1252,6 +1252,15 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
   
             std::cout << "Number of information sets visited: " << count << std::endl;
             std::cout << "Number of games sampled so far: " << t << std::endl;
+
+            root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
+            std::cout << "UCB value of root: " << infoset_ucb_values[root.get_index()] << std::endl;
+            std::cout << "Value of root: " << infoset_values[root.get_index()] << std::endl;
+            std::cout << "Action reach count of root: ";
+            for (int a = 0; a < 13; a++) {
+                std::cout << action_explore_count[root.get_index()][a] << " ";
+            }
+            std::cout << std::endl;
         }
   
         if (max_UCB_flag) {
@@ -1272,18 +1281,18 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
                 update_max_reward_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
             }
 
-            // board = "000000000";
-            // true_board = TicTacToeBoard(board);
-            // hash_1 = "";
-            // hash_2 = "";
-            // I_1 = InformationSet('x', true, hash_1);
-            // I_2 = InformationSet('o', false, hash_2);
-            // if (br_player == 'x') {
-            //     update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
-            // }
-            // else {
-            //     update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
-            // }
+            board = "000000000";
+            true_board = TicTacToeBoard(board);
+            hash_1 = "";
+            hash_2 = "";
+            I_1 = InformationSet('x', true, hash_1);
+            I_2 = InformationSet('o', false, hash_2);
+            if (br_player == 'x') {
+                update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+            }
+            else {
+                update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+            }
 
             max_UCB_flag = false;
         }
@@ -1306,18 +1315,18 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
                 update_max_reward_policy_given_history(I_2, true_board, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
             }
 
-            // board = "000000000";
-            // true_board = TicTacToeBoard(board);
-            // hash_1 = "";
-            // hash_2 = "";
-            // I_1 = InformationSet('x', true, hash_1);
-            // I_2 = InformationSet('o', false, hash_2);
-            // if (br_player == 'x') {
-            //     update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
-            // }
-            // else {
-            //     update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
-            // }
+            board = "000000000";
+            true_board = TicTacToeBoard(board);
+            hash_1 = "";
+            hash_2 = "";
+            I_1 = InformationSet('x', true, hash_1);
+            I_2 = InformationSet('o', false, hash_2);
+            if (br_player == 'x') {
+                update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+            }
+            else {
+                update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+            }
 
             max_UCB_flag = true;
         }
