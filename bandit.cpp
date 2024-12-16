@@ -1169,7 +1169,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
 }
 
 
-void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, int m, PolicyVec& player_br, int experiment_number) {
+void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, int m, PolicyVec& player_br, int experiment_number, int bypass_input) {
     std::vector<std::vector<int>> I_a_tickmark(player_information_sets.size(), std::vector<int>(13, 0));
     std::vector<int> I_tickmark(player_information_sets.size(), 0);
 
@@ -1222,12 +1222,15 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     int C = 24;
     log_frequency = 10000;
 
-    std::cout << "Enter number of games to sample: ";
-    std::cin >> iterations;
-    std::cout << "Enter value of C: ";
-    std::cin >> C;
-    std::cout << "Enter log frequency: ";
-    std::cin >> log_frequency;
+    if (bypass_input == 0){
+        std::cout << "Enter number of games to sample: ";
+        std::cin >> iterations;
+        std::cout << "Enter value of C: ";
+        std::cin >> C;
+        std::cout << "Enter log frequency: ";
+        std::cin >> log_frequency;
+    }
+    std::cout << "Playing " << iterations << " games with C = " << C << " and log frequency = " << log_frequency << std::endl;
 
     std::string hash = "";
     InformationSet root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
@@ -1353,6 +1356,7 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1]; // start policy P1
     std::string file_path_2 = argv[2]; // start policy P2
+    int bypass_input = std::stoi(argv[3]);
 
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -1394,20 +1398,24 @@ int main(int argc, char* argv[]) {
         int log_frequency = 10000;
         char player = 'o';
         int m = 1;
-        std::cout << "Enter log frequency: ";
-        std::cin >> log_frequency;
-        std::cout << "Enter player for pull arms: ";
-        std::cin >> player;
-        std::cout << "Enter value of m: ";
-        std::cin >> m;
+
+        if (bypass_input == 0) {
+            std::cout << "Enter log frequency: ";
+            std::cin >> log_frequency;
+            std::cout << "Enter player for pull arms: ";
+            std::cin >> player;
+            std::cout << "Enter value of m: ";
+            std::cin >> m;
+        }
+        std::cout << "Starting experiments for player " << player << " with m = " << m << " and log frequency = " << log_frequency << std::endl;
 
         if (player == 'x') {
             PolicyVec uniform_x('x', P1_information_sets);
-            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m, uniform_x, experiment_num);
+            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m, uniform_x, experiment_num, bypass_input);
         }
         else {
             PolicyVec uniform_o('o', P2_information_sets);
-            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m, uniform_o, experiment_num);
+            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m, uniform_o, experiment_num, bypass_input);
         }
 
         std::cout << "Continue experiments? (" << experiment_num << " experiments done) (y/n): ";
