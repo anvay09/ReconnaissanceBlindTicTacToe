@@ -1419,7 +1419,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "Continue experiments? (" << experiment_num << " experiments done) (y/n): ";
-        std::cin >> continue_exp;
+        // std::cin >> continue_exp;
         experiment_num += 1;
     }
 }
