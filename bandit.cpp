@@ -1219,7 +1219,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
 
     std::cout << "Total number of games sampled for pulling each policy " << m << " times: " << t << std::endl;
     int iterations = 500000;
-    int C = 24;
+    int C = 16;
     log_frequency = 10000;
 
     if (bypass_input == 0){

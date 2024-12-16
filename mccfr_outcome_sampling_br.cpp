@@ -373,7 +373,7 @@ int main(int argc, char* argv[]) {
         double eps = 0.1;
         long int num_iterations = 500000;
         long int step_size = 10000;
-        char player = 'o';
+        char player = 'x';
 
         if (bypass_input == 0) {
             std::cout << "Enter number of iterations: ";
