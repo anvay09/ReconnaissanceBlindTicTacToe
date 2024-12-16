@@ -1276,12 +1276,12 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             std::string hash_2 = "";
             InformationSet I_1 = InformationSet('x', true, hash_1);
             InformationSet I_2 = InformationSet('o', false, hash_2);
-            
+
             if (br_player == 'x') {
-                update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
+                update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
             }
             else {
-                update_max_reward_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
+                update_max_reward_policy_given_history(I_2, true_board, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
             }
 
             board = "000000000";
@@ -1313,10 +1313,10 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             InformationSet I_2 = InformationSet('o', false, hash_2);
 
             if (br_player == 'x') {
-                update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
+                update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
             }
             else {
-                update_max_reward_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
+                update_max_reward_policy_given_history(I_2, true_board, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
             }
 
             board = "000000000";
