@@ -1391,7 +1391,7 @@ int main(int argc, char* argv[]) {
 
     // compute epsilon best response
     char continue_exp = 'y';
-    int experiment_num = 1;
+    int experiment_num = 11;
 
     // while (continue_exp == 'y') {
     while (experiment_num <= 100) {
