@@ -226,13 +226,13 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
             // update action pull count and empirical action reward only when action leads to terminal state
             if (curr_player == br_player){
                 action_terminal_reach_count[I.get_index()][action] += 1;
-                if (r == 1){
+                if ((r == 1 && br_player == 'x') || (r == -1 && br_player == 'o')){
                     empirical_action_reward[I.get_index()][action][0] += 1;
                 }
                 else if (r == 0){
                     empirical_action_reward[I.get_index()][action][1] += 1;
                 }
-                else if (r == -1){
+                else if ((r == -1 && br_player == 'x') || (r == 1 && br_player == 'o')){
                     empirical_action_reward[I.get_index()][action][2] += 1;
                 }
             }
@@ -241,13 +241,13 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
                 int third_last_action = current_history.history[current_history.history.size() - 3];
                 action_terminal_reach_count[previous_opponent_I.get_index()][third_last_action] += 1;
 
-                if (r == 1){
+                if ((r == 1 && br_player == 'x') || (r == -1 && br_player == 'o')){
                     empirical_action_reward[previous_opponent_I.get_index()][third_last_action][0] += 1;
                 }
                 else if (r == 0){
                     empirical_action_reward[previous_opponent_I.get_index()][third_last_action][1] += 1;
                 }
-                else if (r == -1){
+                else if ((r == -1 && br_player == 'x') || (r == 1 && br_player == 'o')){
                     empirical_action_reward[previous_opponent_I.get_index()][third_last_action][2] += 1;
                 }
             }
@@ -358,13 +358,13 @@ int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
             // update action pull count and empirical action reward only when action leads to terminal state
             if (curr_player == br_player){
                 action_terminal_reach_count[I.get_index()][action] += 1;        
-                if (r == 1){
+                if ((r == 1 && br_player == 'x') || (r == -1 && br_player == 'o')){
                     empirical_action_reward[I.get_index()][action][0] += 1;
                 }
                 else if (r == 0){
                     empirical_action_reward[I.get_index()][action][1] += 1;
                 }
-                else if (r == -1){
+                else if ((r == -1 && br_player == 'x') || (r == 1 && br_player == 'o')){
                     empirical_action_reward[I.get_index()][action][2] += 1;
                 }
             }
@@ -373,13 +373,13 @@ int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
                 int third_last_action = current_history.history[current_history.history.size() - 3];
                 action_terminal_reach_count[previous_opponent_I.get_index()][third_last_action] += 1;
                 
-                if (r == 1){
+                if ((r == 1 && br_player == 'x') || (r == -1 && br_player == 'o')){
                     empirical_action_reward[previous_opponent_I.get_index()][third_last_action][0] += 1;
                 }
                 else if (r == 0){
                     empirical_action_reward[previous_opponent_I.get_index()][third_last_action][1] += 1;
                 }
-                else if (r == -1){
+                else if ((r == -1 && br_player == 'x') || (r == 1 && br_player == 'o')){
                     empirical_action_reward[previous_opponent_I.get_index()][third_last_action][2] += 1;
                 }
             }
