@@ -220,19 +220,19 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
             H_T.set_reward();
-            double r = br_player == 'x' ? H_T.reward[0] : H_T.reward[1];
+            int r = br_player == 'x' ? H_T.reward[0] : H_T.reward[1];
             terminal_flag = 1;
 
             // update action pull count and empirical action reward only when action leads to terminal state
             if (curr_player == br_player){
                 action_terminal_reach_count[I.get_index()][action] += 1;
-                if (fabs(r - 1.0) < 1e-6){
+                if (r == 1){
                     empirical_action_reward[I.get_index()][action][0] += 1;
                 }
-                else if (fabs(r - 0.0) < 1e-6){
+                else if (r == 0){
                     empirical_action_reward[I.get_index()][action][1] += 1;
                 }
-                else if (fabs(r + 1.0) < 1e-6){
+                else if (r == -1){
                     empirical_action_reward[I.get_index()][action][2] += 1;
                 }
             }
@@ -241,18 +241,18 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
                 int third_last_action = current_history.history[current_history.history.size() - 3];
                 action_terminal_reach_count[previous_opponent_I.get_index()][third_last_action] += 1;
 
-                if (fabs(r - 1.0) < 1e-6){
+                if (r == 1){
                     empirical_action_reward[previous_opponent_I.get_index()][third_last_action][0] += 1;
                 }
-                else if (fabs(r - 0.0) < 1e-6){
+                else if (r == 0){
                     empirical_action_reward[previous_opponent_I.get_index()][third_last_action][1] += 1;
                 }
-                else if (fabs(r + 1.0) < 1e-6){
+                else if (r == -1){
                     empirical_action_reward[previous_opponent_I.get_index()][third_last_action][2] += 1;
                 }
             }
 
-            reward = r;
+            reward = (double) r;
         }
     }
     else {
@@ -352,19 +352,19 @@ int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
             H_T.set_reward();
-            double r = br_player == 'x' ? H_T.reward[0] : H_T.reward[1];
+            int r = br_player == 'x' ? H_T.reward[0] : H_T.reward[1];
             terminal_flag = 1;
 
             // update action pull count and empirical action reward only when action leads to terminal state
             if (curr_player == br_player){
                 action_terminal_reach_count[I.get_index()][action] += 1;        
-                if (fabs(r - 1.0) < 1e-6){
+                if (r == 1){
                     empirical_action_reward[I.get_index()][action][0] += 1;
                 }
-                else if (fabs(r - 0.0) < 1e-6){
+                else if (r == 0){
                     empirical_action_reward[I.get_index()][action][1] += 1;
                 }
-                else if (fabs(r + 1.0) < 1e-6){
+                else if (r == -1){
                     empirical_action_reward[I.get_index()][action][2] += 1;
                 }
             }
@@ -373,13 +373,13 @@ int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
                 int third_last_action = current_history.history[current_history.history.size() - 3];
                 action_terminal_reach_count[previous_opponent_I.get_index()][third_last_action] += 1;
                 
-                if (fabs(r - 1.0) < 1e-6){
+                if (r == 1){
                     empirical_action_reward[previous_opponent_I.get_index()][third_last_action][0] += 1;
                 }
-                else if (fabs(r - 0.0) < 1e-6){
+                else if (r == 0){
                     empirical_action_reward[previous_opponent_I.get_index()][third_last_action][1] += 1;
                 }
-                else if (fabs(r + 1.0) < 1e-6){
+                else if (r == -1){
                     empirical_action_reward[previous_opponent_I.get_index()][third_last_action][2] += 1;
                 }
             }
