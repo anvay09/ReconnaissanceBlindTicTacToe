@@ -220,7 +220,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec&
         markers.push_back(0);
     }
 
-    for (int t = 0; t < T; t++) {
+    for (int t = 0; t <= T; t++) {
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
