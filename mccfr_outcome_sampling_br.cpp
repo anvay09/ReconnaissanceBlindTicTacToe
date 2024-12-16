@@ -396,6 +396,7 @@ int main(int argc, char* argv[]) {
         }
        
         std::cout << "Continue experiments? (" << num_experiments << " experiments done) (y/n): ";
+        num_experiments += 1;
         // std::cin >> continue_exp;
     }
 }
