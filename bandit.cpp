@@ -1394,7 +1394,7 @@ int main(int argc, char* argv[]) {
     int experiment_num = 1;
 
     // while (continue_exp == 'y') {
-    while (experiment_num <= 10) {
+    while (experiment_num <= 100) {
         int log_frequency = 10000;
         char player = 'x';
         int m = 1;

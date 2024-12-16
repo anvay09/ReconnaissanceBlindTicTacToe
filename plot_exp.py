@@ -40,12 +40,12 @@ def clean_data(file_name, num_experiments, num_iterations, step_size = 1000, omi
     y = [y[i] / num_experiments for i in range(len(y))]
     return x, y
 
-player = 'o'
+player = 'x'
 LUCB_num_experiments = 10
 MCCFR_num_experiments = 10
 C = 16
-x, y = clean_data("data/o_C=16_LUCB_exploitability_log", LUCB_num_experiments, 50, 10000, 1, -1, interpolation = False)
-x_mccfr, y_mccfr = clean_data("data/o_MCCFR_OS_exploitability_log", MCCFR_num_experiments, 50, 10000, 1, -1, interpolation = False)
+x, y = clean_data("data/x_C=16_LUCB_exploitability_log", LUCB_num_experiments, 50, 10000, 2, 1, interpolation = False)
+x_mccfr, y_mccfr = clean_data("data/x_MCCFR_OS_exploitability_log", MCCFR_num_experiments, 50, 10000, 1, 1, interpolation = False)
 
 plt.plot(x, y, marker='', linewidth=1, color='blue', label='LUCB for player ' + player + ', C = ' + str(C) + ', against number of samples, averaged over ' + str(LUCB_num_experiments) + ' experiments')
 plt.plot(x_mccfr, y_mccfr, marker='', linewidth=1, color='red', label='MCCFR Outcome sampling for player ' + player + ', averaged over ' + str(MCCFR_num_experiments) + ' experiments')
