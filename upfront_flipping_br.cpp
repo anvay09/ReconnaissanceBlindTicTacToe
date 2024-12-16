@@ -20,7 +20,6 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
     if (player == update_player) { // explore with a small epsilon
         std::vector<int> actions;
         I.get_actions(actions);
-        double sum = 1.0;
 
         std::vector<double> eps_prob_dist = {eps, 1-eps};
         if (sampleIndex(eps_prob_dist)){
@@ -154,9 +153,9 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
                 if (played_action_prob > 0) {
                     regret_I[actions[i]] += (reward * reach_prob * (1 - played_action_prob)) / q_z;
                 }
-                else {
-                    regret_I[actions[i]] += (reward * reach_prob) / (q_z);
-                }
+                // else {
+                //     regret_I[actions[i]] += (reward * reach_prob) / (q_z);
+                // }
             } else {
                 regret_I[actions[i]] += -reward * reach_prob * played_action_prob / q_z;
             }
