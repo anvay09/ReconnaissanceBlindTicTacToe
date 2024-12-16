@@ -11,20 +11,19 @@ def read_exploitability_log(file_name):
         exploitabilities.append(float(exploitability))
     return iterations, exploitabilities
 
-def clean_data(file_name, num_experiments, num_iterations, step_size = 1000, omit_range = 12, interpolation = False):
-    x = [step_size * i for i in range(0, num_iterations)]
-    y = [-1.0 for i in range(0, num_iterations)]
+def clean_data(file_name, num_experiments, num_iterations, step_size = 1000, omit_range = 1, multiplier = 1, interpolation = False):
+    x = [step_size * i for i in range(0, num_iterations+1)]
+    y = [0.0 for i in range(0, num_iterations+1)]
 
     for i in range(1, num_experiments + 1):
         iterations, exploitabilities = read_exploitability_log(file_name + f"_{i}.txt")
-        y_curr = [-1.0 for i in range(0, num_iterations)]
+        y_curr = [-1.0 for i in range(0, num_iterations+1)]
         for j in range(len(iterations)):
-            x_index = iterations[j]
             x_index = iterations[j] // step_size
-            y_curr[x_index] = exploitabilities[j]
+            y_curr[x_index] = multiplier * exploitabilities[j]
 
         if interpolation:
-            for j in range(1,num_iterations - 1):
+            for j in range(1,num_iterations):
                 if y_curr[j] == -1.0:
                     y_curr[j] = (y_curr[j - 1] + y_curr[j + 1])/2.0
 
@@ -33,47 +32,27 @@ def clean_data(file_name, num_experiments, num_iterations, step_size = 1000, omi
             if y_curr[0] == -1.0:
                 y_curr[0] = y_curr[1]
 
-        for j in range(num_iterations):
+        for j in range(0, num_iterations+1):
             y[j] += y_curr[j]
 
-    x = x[omit_range:num_iterations - omit_range + 1]
-    y = y[omit_range:num_iterations - omit_range + 1]
+    x = x[omit_range:num_iterations + 1]
+    y = y[omit_range:num_iterations + 1]
     y = [y[i] / num_experiments for i in range(len(y))]
     return x, y
 
-def clean_data_mccfr(file_name, num_experiments):
-    x_mccfr = [1000 * i for i in range(0, 412)]
-    y_mccfr = [0.0 for i in range(0, 412)]
-
-    for i in range(1, num_experiments + 1):
-        iterations, exploitabilities = read_exploitability_log(file_name + f"_{i}.txt")
-        for j in range(411):
-            x_index = iterations[j]
-            x_index = iterations[j] // 1000
-            y_mccfr[x_index] += exploitabilities[j]
-
-    x_mccfr = x_mccfr[12:401]
-    y_mccfr = y_mccfr[12:401]
-    y_mccfr = [y_mccfr[i] / num_experiments for i in range(len(y_mccfr))]
-    return x_mccfr, y_mccfr
-
-
 player = 'o'
 LUCB_num_experiments = 10
-C = 24
-x, y = clean_data("data/exploitability_log", LUCB_num_experiments, 50, 10000, 0, interpolation = True)
-# x_a, y_a = clean_data("data/LUCB_average_exploitability_log", 100, 412, interpolation = True)
-# x_uniform, y_uniform = clean_data("data/LUCB_uniform_exploitability_log", 100, 412, interpolation = True)
-# x_mccfr, y_mccfr = clean_data_mccfr("data/mccfr_exploitability_log", 100)
-# x_mccfr_dampened, y_mccfr_dampened = clean_data_mccfr("data/mccfr_dampen_eps_exploitability_log", 100)
+MCCFR_num_experiments = 10
+C = 16
+x, y = clean_data("data/o_C=16_LUCB_exploitability_log", LUCB_num_experiments, 50, 10000, 1, -1, interpolation = False)
+x_mccfr, y_mccfr = clean_data("data/o_MCCFR_OS_exploitability_log", MCCFR_num_experiments, 50, 10000, 1, -1, interpolation = False)
 
-# plt.plot(x_uniform, y_uniform, marker='', linewidth=1, color='blue', linestyle = '--', label='Exploitability of LUCB with uniform exploration against number of samples, averaged over 100 experiments')
-plt.plot(x, y, marker='', linewidth=1, color='black', label='LUCB for player ' + player + ', C = ' + str(C) + ', against number of samples, averaged over ' + str(LUCB_num_experiments) + ' experiments')
-# plt.plot(x_mccfr, y_mccfr, marker='', linewidth=1, color='red', label='MCCFR, averaged over 100 experiments')
-# plt.plot(x_mccfr_dampened, y_mccfr_dampened, marker='', linewidth=1, color='green', label='MCCFR with dampened epsilon, averaged over 100 experiments')
-# plt.plot(x_a, y_a, marker='', linewidth=1, color='blue', label='Exploitability of LUCB with average policy against number of samples, averaged over 96 experiments')
+plt.plot(x, y, marker='', linewidth=1, color='blue', label='LUCB for player ' + player + ', C = ' + str(C) + ', against number of samples, averaged over ' + str(LUCB_num_experiments) + ' experiments')
+plt.plot(x_mccfr, y_mccfr, marker='', linewidth=1, color='red', label='MCCFR Outcome sampling for player ' + player + ', averaged over ' + str(MCCFR_num_experiments) + ' experiments')
 
-plt.yticks([0.01, 0.05, 0.1, 0.2, 0.3, 0.5])
+# horizontal line
+plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
+plt.yticks([0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5])
 plt.xlabel('Number of samples')
 plt.ylabel('Exploitability')
 plt.legend()
