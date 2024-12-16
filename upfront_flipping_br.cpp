@@ -30,15 +30,12 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         else{
             std::vector<int> legal_actions;
             I.get_actions(legal_actions);
-            std::vector<double> uniform_prob_dist;
-            for (int i = 0; i < 13; i++) {
-                    uniform_prob_dist.push_back(0.0);
-            }
+            std::vector<double> uniform_prob_dist(13, 0.0);
             for (int i = 0; i < legal_actions.size(); i++) {
                 uniform_prob_dist[legal_actions[i]] = 1.0/legal_actions.size();
             }
-            action_selection_probabiltiy += eps * uniform_prob_dist[action];
             action = sampleIndex(uniform_prob_dist);
+            action_selection_probabiltiy += eps * uniform_prob_dist[action];
         }
     }
     else{
