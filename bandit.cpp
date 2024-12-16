@@ -1193,6 +1193,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
 
     PolicyVec exact_br(br_player, player_information_sets);
     double exact_br_value = compute_best_response_wrapper(opponent_policy, exact_br, br_player);
+    std::cout << "Exact best response value: " << exact_br_value << std::endl;
 
     while (flag){ 
         std::vector<int> h = {};
@@ -1283,7 +1284,13 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             hash_2 = "";
             I_1 = InformationSet('x', true, hash_1);
             I_2 = InformationSet('o', false, hash_2);
-            update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+
+            if (br_player == 'x') {
+                update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+            }
+            else {
+                update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+            }
 
             max_UCB_flag = false;
         }
@@ -1306,14 +1313,20 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             hash_2 = "";
             I_1 = InformationSet('x', true, hash_1);
             I_2 = InformationSet('o', false, hash_2);
-            update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+  
+            if (br_player == 'x') {
+                update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+            }
+            else {
+                update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+            }
 
             max_UCB_flag = true;
         }
     }
 
     std::cout << "Saving exploitability log" << std::endl;
-    std::string file_name = "data/" + std::to_string(br_player) + "LUCB_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/" + std::string(1, br_player) + "LUCB_exploitability_log_" + std::to_string(experiment_number) + ".txt";
 
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++) {
