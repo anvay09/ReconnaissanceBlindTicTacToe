@@ -251,6 +251,8 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
                     empirical_action_reward[previous_opponent_I.get_index()][third_last_action][2] += 1;
                 }
             }
+
+            reward = r;
         }
     }
     else {
