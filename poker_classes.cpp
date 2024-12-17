@@ -179,6 +179,39 @@ bool PokerTable::update_move(int action, char player) {
     if (this->is_valid_move(action)) {
         std::vector<char> action_to_char = {'x', 'b', 'c', 'r', 'f'};
         this->bid_sequence += action_to_char[action];
+
+        bool preflop = true;
+        char prev_bid = '-';
+        int i = 0;
+
+        while (i < this->bid_sequence.size()) {
+            if (this->bid_sequence[i] == 'x'){
+                if (prev_bid == 'x'){
+                    if (preflop){
+                        this->bid_sequence += "d";
+                        preflop = false;
+                        prev_bid = '-';
+                    }
+                    else {
+                        this->bid_sequence += "s";
+                    }
+                }
+                else {
+                    prev_bid = 'x';
+                }
+            }
+            else if (this->bid_sequence[i] == 'c'){
+                if (preflop){
+                    this->bid_sequence += "d";
+                    preflop = false;
+                    prev_bid = '-';
+                }
+                else {
+                    this->bid_sequence += "s";
+                }
+            }
+        }
+
         return true;
     }
     return false;
