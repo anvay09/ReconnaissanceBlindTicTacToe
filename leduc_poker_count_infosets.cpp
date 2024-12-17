@@ -16,23 +16,39 @@ void play(InformationSet& I_1, PokerTable& true_cards, InformationSet& I_2, Hist
     InformationSet& I = current_player == 'x' ? I_1 : I_2;
     std::vector<int> actions;
     I.get_actions(actions);
-    int action = actions[std::rand() % actions.size()];
+    std::cout << "--------------------------------" << std::endl;
+    std::cout << "Player: " << current_player << std::endl;
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::uniform_int_distribution<int> dis(0, actions.size() - 1);
+    int action = actions[dis(g)];
+
+    std::cout << "Information set: " << I.get_hash() << std::endl;
+    std::cout << "Action chosen: " << action << std::endl;
 
     if (I.move_flag){
         bool success = true_cards.update_move(action, current_player);
         history.history.push_back(action);
+        std::cout << "Bidding sequence: " << true_cards.bid_sequence << std::endl;
 
         char winner;
         if (success && !true_cards.is_win(winner) && !true_cards.is_over()) {
             I.update_move(action, current_player);
 
-            play(I_1, true_cards, I_2, history, current_player == 'x' ? 'o' : 'x');
+            if (true_cards.bid_sequence.back() == 'd') {
+                play(I_1, true_cards, I_2, history, 'x');
+            }
+            else {
+                play(I_1, true_cards, I_2, history, current_player == 'x' ? 'o' : 'x');
+            }
         }
         else {
             TerminalHistory H_T = TerminalHistory(history.history);
             H_T.set_reward();
 
-            std::cout << "Reward: " << H_T.reward[0] << std::endl;
+            std::cout << "Winner: " << winner << std::endl;
+            std::cout << "Reward: " << H_T.reward[0] << " " << H_T.reward[1] << std::endl;
         }
     }
     else {
@@ -42,7 +58,7 @@ void play(InformationSet& I_1, PokerTable& true_cards, InformationSet& I_2, Hist
     }
 }
 
-void main() {
+int main() {
     std::vector<char> deck = {'J', 'J', 'Q', 'Q', 'K', 'K'};
     PokerTable true_cards;
     deal_cards(true_cards, deck);
@@ -53,6 +69,9 @@ void main() {
     InformationSet I_2('o', false, hash_2);
     std::vector<int> h = {true_cards.cards[0], true_cards.cards[1], true_cards.cards[2]};
     History start_history = History(h);
+    std::cout << "History: ";
+    start_history.print_history();
+    std::cout << "Starting game..." << std::endl;
     play(I_1, true_cards, I_2, start_history, 'x');
     std::cout << "I_1 hash: " << I_1.get_hash() << std::endl;
     std::cout << "I_2 hash: " << I_2.get_hash() << std::endl;
@@ -61,4 +80,6 @@ void main() {
     std::cout << "History: ";
     start_history.print_history();
     std::cout << "True cards bidding sequence: " << true_cards.bid_sequence << std::endl;
+
+    return 0;
 }

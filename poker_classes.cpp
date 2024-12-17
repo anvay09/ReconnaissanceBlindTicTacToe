@@ -181,35 +181,29 @@ bool PokerTable::update_move(int action, char player) {
         this->bid_sequence += action_to_char[action];
 
         bool preflop = true;
-        char prev_bid = '-';
+        int check_count = 0;
         int i = 0;
 
         while (i < this->bid_sequence.size()) {
-            if (this->bid_sequence[i] == 'x'){
-                if (prev_bid == 'x'){
-                    if (preflop){
-                        this->bid_sequence += "d";
-                        preflop = false;
-                        prev_bid = '-';
-                    }
-                    else {
-                        this->bid_sequence += "s";
-                    }
-                }
-                else {
-                    prev_bid = 'x';
-                }
+            if (this->bid_sequence[i] == 'd'){
+                preflop = false;
+                check_count = 0;
+            }
+            else if (this->bid_sequence[i] == 'x'){
+                check_count++;
             }
             else if (this->bid_sequence[i] == 'c'){
-                if (preflop){
-                    this->bid_sequence += "d";
-                    preflop = false;
-                    prev_bid = '-';
-                }
-                else {
-                    this->bid_sequence += "s";
-                }
+                check_count = 2;
             }
+
+            i++;
+        }
+
+        if (check_count == 2 && preflop){
+            this->bid_sequence += "d";
+        }
+        else if (check_count == 2 && !preflop){
+            this->bid_sequence += "s";
         }
 
         return true;
@@ -565,7 +559,7 @@ char History::other_player(char player) {
     return (player == 'x') ? 'o' : 'x';
 }
 
-double History::get_bid_sequence(PokerTable &true_cards) {
+double History::get_bid_sequence(PokerTable &true_cards) { // DEBUG: function not working as expected
     char curr_player = 'x';
     char prev_bid = '-';
     bool preflop = true;
@@ -657,6 +651,7 @@ void TerminalHistory::set_reward() {
     PokerTable true_cards;
     double half_pot = this->get_bid_sequence(true_cards);
     char winner;
+    std::cout << "Winner: " << winner << " " << true_cards.bid_sequence << " Half pot: " << half_pot << std::endl;
     if (true_cards.is_win(winner)) {
         if (winner == 'x') {
             this->reward[0] = half_pot;
