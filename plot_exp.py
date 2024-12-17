@@ -41,7 +41,7 @@ def clean_data(file_name, num_experiments, num_iterations, step_size = 1000, omi
     return x, y
 
 player = 'x'
-LUCB_num_experiments = 10
+LUCB_num_experiments = 14
 MCCFR_num_experiments = 10
 C = 16
 x, y = clean_data("data/x_C=16_LUCB_exploitability_log", LUCB_num_experiments, 50, 10000, 2, 1, interpolation = False)
