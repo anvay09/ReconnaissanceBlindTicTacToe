@@ -46,7 +46,7 @@ class InformationSet : public PokerTable
 public:
     static std::unordered_map<std::string, int > P1_hash_to_int_map;
     static std::unordered_map<std::string, int > P2_hash_to_int_map;
-    // static std::unordered_map<int, std::vector<int> > sense_square_dict;
+
     char player;
     bool move_flag;
     std::string hash;
@@ -68,16 +68,10 @@ public:
     void get_valid_moves(std::vector<int> &actions);
     void get_played_actions(std::vector<int> &actions);
     void simulate_sense(int action, PokerTable& true_cards);
-    void reset_zeros();
-    void reset_zeros(std::string& cards);
     void get_useful_senses(std::vector<int> &actions);
     bool is_valid_move(int action);
     bool update_move(int action, char player);
-    bool is_win_for_player();
-    int win_exists();
-    int draw_exists();
     bool is_over();
-    double get_number_of_actions();
 };
 
 class History

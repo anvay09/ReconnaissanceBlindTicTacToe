@@ -248,9 +248,7 @@ std::string InformationSet::get_cards_from_hash() {
     }
     else {
         cards[0] = this->hash[0];
-        if (this->hash[1] == 'J' || this->hash[1] == 'Q' || this->hash[1] == 'K'){
-            cards[1] = this->hash[1];
-        }
+        cards[1] = this->hash[1];
         return cards;
     }
 }
@@ -290,110 +288,151 @@ void InformationSet::get_actions_given_policy(std::vector<int>& actions, PolicyV
     else {
         if (this->move_flag) {
             std::vector<double>& prob_dist = policy_obj.policy_dict[this->get_index()];
-            for (int move = 0; move < 9; move++) {
+            for (int move = 0; move < 5; move++) {
                 if (prob_dist[move] > 0) {
                     actions.push_back(move);
                 }
             }
         } else {
-            std::vector<double>& prob_dist = policy_obj.policy_dict[this->get_index()];
-            for (int sense = 9; sense < 13; sense++) {
-                if (prob_dist[sense] > 0) {
-                    actions.push_back(sense);
-                }
-            }
+            actions.push_back(5);
         }
     }
 }
-
 
 void InformationSet::get_valid_moves(std::vector<int> &actions) {
-    int w = this->win_exists();
-    if (w != -1) {
-        actions.push_back(w);
+    if (this->hash.back() == 's' || this->hash.back() == 'f') {
+        return;
     }
     else {
-        for (int i = 0; i < 9; i++) {
-            if (this->cards[i] == '0' || this->cards[i] == '-') {
-                actions.push_back(i);
+        if (this->hash.size() == 2){
+            actions.push_back(0); // x
+            actions.push_back(1); // b
+            return; 
+        }
+        else if (this->hash.back() == 'x'){ 
+            if (this->hash[this->hash.size() - 2] == 'x'){ // xx sequence, can only lead to d or s
+                return;
+            }
+            else { // x or b
+                actions.push_back(0); // x
+                actions.push_back(1); // b
+                return;
+            }
+        }
+        else if (this->hash.back() == 'b'){ // c, r, or f
+            actions.push_back(2);
+            actions.push_back(3);
+            actions.push_back(4);
+            return;
+        }
+        else if (this->hash.back() == 'c' || this->hash.back() == 'f' || this->hash.back() == 's'){
+            return;
+        }
+        else if (this->hash.back() == 'r'){ // f or c
+            actions.push_back(2);
+            actions.push_back(4);
+            return;
+        }
+        else if (this->hash.back() == 'd'){ // x or b
+            actions.push_back(0);
+            actions.push_back(1);
+            return;
+        }
+        else {
+            return;
+        }
+    }   
+}
+
+void InformationSet::get_played_actions(std::vector<int> &actions) { 
+    std::unordered_map<char, int> action_to_int = {{'x', 0}, {'b', 1}, {'c', 2}, {'r', 3}, {'f', 4}};
+    int i;
+    if (this->player == 'x'){
+        i = 2;
+    }
+    else {
+        i = 3;
+    }
+
+    bool move_flag_j = true;
+    while (i < this->hash.size()) {
+        if (move_flag_j) {
+            if (this->hash[i] == 'd') {
+                i += 1;
+                if (this->player == 'x') {
+                    move_flag_j = true;
+                }
+                else {
+                    move_flag_j = false;
+                }
+            }
+            else {
+                actions.push_back(action_to_int[this->hash[i]]);
+                i += 1;
+                move_flag_j = false;
+            }
+        }
+        else {
+            if (this->hash[i] == 'd') {
+                actions.push_back(5);
+                i += 1;
+                if (this->player == 'x') {
+                    move_flag_j = true;
+                }
+                else {
+                    move_flag_j = false;
+                }
+            }
+            else if (this->hash[i] == 's' || this->hash[i] == 'f'){
+                i += 1;
+                move_flag_j = false;
+            }
+            else {
+                actions.push_back(5);
+                i += 1;
+                move_flag_j = true;
             }
         }
     }
-}
-
-void InformationSet::get_played_actions(std::vector<int> &actions) {
-    bool move_action = this->player == 'x' ? true : false;
-    bool sense_action = this->player == 'x' ? false : true;
-    bool observation = false;
-    int i = 0;
-
-    while (i < this->hash.size()) {
-        switch (this->hash[i]) { 
-            case '|': 
-                if (observation) { 
-                    observation = false;
-                    move_action = true;
-                }
-                else{
-                    observation = true;
-                    sense_action = false;
-                }
-
-                i++;
-                break;
-
-            case '_': 
-                move_action = false;
-                sense_action = true;
-
-                i++;
-                break;
-
-            default: 
-                if (move_action) {
-                    actions.push_back(this->hash[i] - '0');
-                    i++;
-                }
-                else if (sense_action) { 
-                    actions.push_back(this->hash[i] - '0' + 9);
-                    i++;
-                }
-                else if (observation) { 
-                    i += 4;
-                }
-        }
-    }
+    
 }
 
 void InformationSet::get_useful_senses(std::vector<int> &actions) {
-    std::unordered_map<int, std::vector<int> > sense_action_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
-    for (auto &sense : sense_action_dict) {
-        for (int i = 0; i < 4; i++) {
-            if (this->cards[sense.second[i]] == '-') {
-                actions.push_back(sense.first);
-                break;
-            }
-        }
-    }
+    actions.push_back(5);
+    return;
 }
 
 void InformationSet::simulate_sense(int action, PokerTable& true_cards) {
-    this->reset_zeros();
-    std::string observation = "----";
-    int count = 0;
-    std::unordered_map<int, std::string> sense_action_mapping = {{9, "0"}, {10, "1"}, {11, "2"}, {12, "3"}};
-    std::unordered_map<int, std::vector<int> > sense_action_dict = {{9, {0, 1, 3, 4}}, {10, {1, 2, 4, 5}}, {11, {3, 4, 6, 7}}, {12, {4, 5, 7, 8}}};
-    for (int action : sense_action_dict[action]) {
-        this->cards[action] = true_cards[action];
-        observation[count] = true_cards[action];
-        count++;
+    bool reveal_flop = false;
+    if (true_cards.bid_sequence.size() > 2) {
+        if (this->player == 'x') {
+            if (true_cards.bid_sequence.back() == 'd') {
+                reveal_flop = true;
+            }
+        }
+        else {
+            if (true_cards.bid_sequence[true_cards.bid_sequence.size() - 2] == 'd') {
+                reveal_flop = true;
+            }
+        }
     }
-    this->hash = this->hash + sense_action_mapping[action] + "|" + observation + "|";
+    
+    if (reveal_flop) {
+        std::vector<char> cards = {};
+        cards.push_back(this->cards[0]); // player's own card
+        cards.push_back(true_cards.cards[2]); // community card
+        std::sort(cards.begin(), cards.end()); // sort cards in ascending order
+        this->cards = std::string(1, cards[0]) + std::string(1, cards[1]);
+        this->hash = this->cards + true_cards.bid_sequence;
+    }
+    else {
+        this->hash = this->cards + true_cards.bid_sequence;
+    }
+
     this->move_flag = true;
     if (this->player == 'x'){
         if (InformationSet::P1_hash_to_int_map.find(this->hash) == InformationSet::P1_hash_to_int_map.end()) {
             this->index = -1;
-            // std::cout << "InformationSet::simulate_sense: KeyError: " << this->hash << " not found in P1_hash_to_int_map" << std::endl;
         }
         else {
             this->index = InformationSet::P1_hash_to_int_map[this->hash];
@@ -402,7 +441,6 @@ void InformationSet::simulate_sense(int action, PokerTable& true_cards) {
     else {
         if (InformationSet::P2_hash_to_int_map.find(this->hash) == InformationSet::P2_hash_to_int_map.end()) {
             this->index = -1;
-            // std::cout << "InformationSet::simulate_sense: KeyError: " << this->hash << " not found in P2_hash_to_int_map" << std::endl;
         }
         else {
             this->index = InformationSet::P2_hash_to_int_map[this->hash];
@@ -410,39 +448,48 @@ void InformationSet::simulate_sense(int action, PokerTable& true_cards) {
     }
 }
 
-void InformationSet::reset_zeros(std::string& cards) {
-    for (int i = 0; i < 9; i++) {
-        if (cards[i] == '0') {
-            cards[i] = '-';
-        }
-    }
-}
-
-void InformationSet::reset_zeros() {
-    for (int i = 0; i < 9; i++) {
-        if (this->cards[i] == '0') {
-            this->cards[i] = '-';
-        }
-    }
-}
-
-bool InformationSet::is_valid_move(int action) {
-    if (action < 0 || action > 8) {
+bool InformationSet::is_valid_move(int action) { 
+    if (this->hash.back() == 's' || this->hash.back() == 'f') {
         return false;
-    } else {
-        return this->cards[action] == '0' || this->cards[action] == '-';
     }
+    else {
+        if (this->hash.size() == 2){
+            return action == 0 || action == 1; // x or b
+        }
+        else if (this->hash.back() == 'x'){ 
+            if (this->hash[this->hash.size() - 2] == 'x'){ // xx sequence, can only lead to d or s
+                return false;
+            }
+            else { // x or b
+                return action == 0 || action == 1;
+            }
+        }
+        else if (this->hash.back() == 'b'){ // c, r, or f
+            return action == 2 || action == 3 || action == 4;
+        }
+        else if (this->hash.back() == 'c' || this->hash.back() == 'f' || this->hash.back() == 's'){
+            return false;
+        }
+        else if (this->hash.back() == 'r'){ // f or c
+            return action == 2 || action == 4;
+        }
+        else if (this->hash.back() == 'd'){ // x or b
+            return action == 0 || action == 1;
+        }
+        else {
+            return false;
+        }
+    }   
 }
 
-bool InformationSet::update_move(int action, char player) {
+bool InformationSet::update_move(int action, char player) { 
     if (this->is_valid_move(action)) {
-        this->cards[action] = player;
-        this->hash = this->hash + std::to_string(action) + "_";
+        std::vector<char> action_to_char = {'x', 'b', 'c', 'r', 'f'};
+        this->hash = this->hash + std::string(1, action_to_char[action]);
         this->move_flag = false;
         if (this->player == 'x'){
             if (InformationSet::P1_hash_to_int_map.find(this->hash) == InformationSet::P1_hash_to_int_map.end()) {
                 this->index = -1;
-                // std::cout << "InformationSet::update_move: KeyError: " << this->hash << " not found in P1_hash_to_int_map" << std::endl;
             }
             else {
                 this->index = InformationSet::P1_hash_to_int_map[this->hash];
@@ -451,7 +498,6 @@ bool InformationSet::update_move(int action, char player) {
         else {
             if (InformationSet::P2_hash_to_int_map.find(this->hash) == InformationSet::P2_hash_to_int_map.end()) {
                 this->index = -1;
-                // std::cout << "InformationSet::update_move: KeyError: " << this->hash << " not found in P2_hash_to_int_map" << std::endl;
             }
             else {
                 this->index = InformationSet::P2_hash_to_int_map[this->hash];
@@ -463,88 +509,11 @@ bool InformationSet::update_move(int action, char player) {
     return false;
 }
 
-bool InformationSet::is_win_for_player() {
-    for (int i = 0; i < 3; i++) {
-        if ((this->cards[3 * i] == this->cards[3 * i + 1] && this->cards[3 * i + 1] == this->cards[3 * i + 2] && this->cards[3 * i] == this->player)) {
-            return true;
-        }
-
-        if ((this->cards[i] == this->cards[i + 3] && this->cards[i + 3] == this->cards[i + 6] && this->cards[i] == this->player)) {
-            return true;
-        }
-    }
-
-    if ((this->cards[0] == this->cards[4] && this->cards[4] == this->cards[8] && this->cards[0] == this->player)) {
+bool InformationSet::is_over() { 
+    if (this->hash.back() == 's' || this->hash.back() == 'f') {
         return true;
     }
-
-    if ((this->cards[2] == this->cards[4] && this->cards[4] == this->cards[6] && this->cards[2] == this->player)) {
-        return true;
-    }
-
     return false;
-}
-
-int InformationSet::win_exists() {
-    for (int i = 0; i < 9; i++) {
-        if (this->cards[i] == '0') {
-            this->cards[i] = this->player;
-            if (this->is_win_for_player()) {
-                this->cards[i] = '0';
-                return i;
-            }
-            this->cards[i] = '0';
-        }
-    }
-
-    return -1;
-}
-
-int InformationSet::draw_exists() {
-    std::vector<int> zeroes;
-    for (int i = 0; i < 9; i++) {
-        if (this->cards[i] == '0') {
-            zeroes.push_back(i);
-        }
-    }
-
-    for (int zero : zeroes) {
-        std::string new_I_cards = this->cards;
-        new_I_cards[zero] = this->player;
-        if (InformationSet(this->player, this->move_flag, this->hash, this->cards).is_over()) {
-            return zero;
-        }
-    }
-
-    return -1;
-}
-
-bool InformationSet::is_over() {
-    for (int i = 0; i < 9; i++) {
-        if (this->cards[i] == '0' || this->cards[i] == '-') {
-            return false;
-        }
-    }
-    return true;
-}
-
-double InformationSet::get_number_of_actions() {
-    int i = 0;
-    double count_underscore = 0;
-    double count_pipe = 0;
-    while (i < this->hash.size())
-    {
-        if (this->hash[i] == '_') {
-            count_underscore += 1.0;
-        }
-        if (this->hash[i] == '|') {
-            count_pipe += 1.0;
-        }
-        i++;
-    }
-
-    return count_underscore + (count_pipe/2);
-
 }
 
 
@@ -582,10 +551,8 @@ void History::get_information_sets(InformationSet &I_1, InformationSet &I_2) {
         if (action < 9) {
             if (curr_player == 'x') {
                 I_1.update_move(action, curr_player);
-                I_1.reset_zeros();
             } else {
                 I_2.update_move(action, curr_player);
-                I_2.reset_zeros();
             }
             true_cards.update_move(action, curr_player);
             curr_player = this->other_player(curr_player);
