@@ -81,7 +81,7 @@ public:
     int track_traversal_index;
     History(std::vector<int>& history);
     char other_player(char player);
-    bool get_cards(PokerTable &cards, char& curr_player);
+    double get_bid_sequence(PokerTable &true_cards);
     void get_information_sets(InformationSet& I_1, InformationSet& I_2);
     void print_history();
 };

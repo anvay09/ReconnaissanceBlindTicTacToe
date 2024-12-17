@@ -516,6 +516,8 @@ bool InformationSet::is_over() {
     return false;
 }
 
+// History: first node in the game is a chance node, so the history should start with 3 cards followed by the action sequence
+// We use 74 for J, 81 for Q, 75 for K (as per ASCII values), history format will be < player 1 card, player 2 card, board card, action sequence >
 
 History::History(std::vector<int>& history) {
     if (history.empty()) {
@@ -530,25 +532,58 @@ char History::other_player(char player) {
     return (player == 'x') ? 'o' : 'x';
 }
 
-bool History::get_cards(PokerTable &true_cards, char& curr_player) {
-    curr_player = 'x';
+double History::get_bid_sequence(PokerTable &true_cards) {
+    char curr_player = 'x';
+    char prev_bid = '-';
+    bool preflop = true;
+    double half_pot = 1.0;
+    std::vector<char> action_to_char = {'x', 'b', 'c', 'r', 'f'};
+    true_cards.cards[0] = this->history[0];
+    true_cards.cards[1] = this->history[1];
+    true_cards.cards[2] = this->history[2];
+
     for (int action : this->history) {
-        if (action < 9) {
-            if (!true_cards.update_move(action, curr_player)) {
-                return true;
+        if (action < 5) {
+            if ((action == 0 && prev_bid == 'x') ||
+                (action == 2 && prev_bid == 'b') ||
+                (action == 2 && prev_bid == 'r')){
+                if (preflop){
+                    true_cards.bid_sequence += "d";
+                    preflop = false;
+                    prev_bid = '-';
+                }
+                else {
+                    true_cards.bid_sequence += "s";
+                }
             }
+            else {
+                if (action == 0) {
+                    prev_bid = 'x';
+                }
+                else if (action == 1) {
+                    prev_bid = 'b';
+                    half_pot += 1.0;
+                }
+                else if (action == 3) {
+                    prev_bid = 'r';
+                    half_pot += 1.0;
+                }
+            }
+
+            true_cards.bid_sequence += action_to_char[action];
+            true_cards.update_move(action, curr_player);
             curr_player = this->other_player(curr_player);
         }
     }
-    curr_player = '0';
-    return false;
+
+    return half_pot;
 }
 
 void History::get_information_sets(InformationSet &I_1, InformationSet &I_2) {
     PokerTable true_cards;
     char curr_player = 'x';
     for (int action : this->history) {
-        if (action < 9) {
+        if (action < 5) {
             if (curr_player == 'x') {
                 I_1.update_move(action, curr_player);
             } else {
@@ -585,33 +620,17 @@ TerminalHistory TerminalHistory::copy() {
     return TerminalHistory(this->history, this->reward);
 }
 
-void TerminalHistory::set_reward() {
+void TerminalHistory::set_reward() { 
     PokerTable true_cards;
-    bool overlapping_move_flag;
-    char overlapping_move_player;
-
-    overlapping_move_flag = this->get_cards(true_cards, overlapping_move_player);
-
-    if (overlapping_move_flag) {
-        if (overlapping_move_player == 'x'){
-            this->reward[0] = -1.0;
-            this->reward[1] = 1.0;
-        }
-        else {
-            this->reward[0] = 1.0;
-            this->reward[1] = -1.0;
-        }
-
-    } else {
-        char winner;
-        if (true_cards.is_win(winner)) {
-            if (winner == 'x') {
-                this->reward[0] = 1.0;
-                this->reward[1] = -1.0;
-            } else {
-                this->reward[0] = -1.0;
-                this->reward[1] = 1.0;
-            }
+    double half_pot = this->get_bid_sequence(true_cards);
+    char winner;
+    if (true_cards.is_win(winner)) {
+        if (winner == 'x') {
+            this->reward[0] = half_pot;
+            this->reward[1] = -half_pot;
+        } else {
+            this->reward[0] = -half_pot;
+            this->reward[1] = half_pot;
         }
     }
 }
@@ -628,7 +647,7 @@ PolicyVec::PolicyVec() {
     this->policy_dict = std::vector< std::vector<double> >();
 }
 
-PolicyVec::PolicyVec(char player, std::vector<std::string> & information_sets) {
+PolicyVec::PolicyVec(char player, std::vector<std::string> &information_sets) { 
     this->player = player;
     std::vector< std::vector<double> > policy_list(information_sets.size());
 
@@ -637,7 +656,17 @@ PolicyVec::PolicyVec(char player, std::vector<std::string> & information_sets) {
         bool move_flag;
 
         if (I_hash.size() != 0){
-            move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
+            move_flag = true; 
+            int itr = 2;
+            while (itr < I_hash.size()) {
+                if (I_hash[itr] != 'd'){
+                    move_flag = !move_flag;
+                }
+                else{
+                    move_flag = true;
+                }
+                itr++;
+            }
         }
         else {
             move_flag = player == 'x' ? true : false;
@@ -647,7 +676,7 @@ PolicyVec::PolicyVec(char player, std::vector<std::string> & information_sets) {
         std::vector<int> actions;
         I.get_actions(actions);
 
-        std::vector<double> probability_distribution(13, 0.0);
+        std::vector<double> probability_distribution(6, 0.0);
 
         if (actions.size() > 0) {
             for (int action : actions) {
@@ -685,7 +714,7 @@ PolicyVec PolicyVec::copy() {
     return PolicyVec(this->player, this->policy_dict);
 }
 
-std::vector< std::vector<double> > PolicyVec::read_policy_from_json(std::string& file_path, char player){
+std::vector< std::vector<double>> PolicyVec::read_policy_from_json(std::string& file_path, char player){ 
     long int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
     std::vector< std::vector<double> > policy_list(policy_size);
     
@@ -697,7 +726,17 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_json(std::string&
         std::string I_hash = it.key();
         bool move_flag;
         if (I_hash.size() != 0){
-            move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
+            move_flag = true; 
+            int itr = 2;
+            while (itr < I_hash.size()) {
+                if (I_hash[itr] != 'd'){
+                    move_flag = !move_flag;
+                }
+                else{
+                    move_flag = true;
+                }
+                itr++;
+            }
         }
         else {
             move_flag = player == 'x' ? true : false;
@@ -705,36 +744,22 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_json(std::string&
 
         InformationSet I(player, move_flag, I_hash);
 
-        std::vector <double> probability_distribution(13);
+        std::vector <double> probability_distribution(6);
         // initialise all values to zero
-        for (int i = 0; i < 13; i++) {
+        for (int i = 0; i < 6; i++) {
             probability_distribution[i] = 0.0;
         }
 
-        if (I_hash.back() == '_') {
-            std::vector<std::string> sense_keys = {"9", "10", "11", "12"};
+        if (!move_flag) {
+            std::vector<std::string> sense_keys = {"5"};
             for (int i = 0; i < sense_keys.size(); i++) {
                 probability_distribution[stoi(sense_keys[i])] = policy_obj[I_hash][sense_keys[i]];
             }
         }
-        else if (I_hash.back() == '|') {
-            std::vector<std::string> move_keys = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};
+        else if (move_flag) {
+            std::vector<std::string> move_keys = {"0", "1", "2", "3", "4"};
             for (int i = 0; i < move_keys.size(); i++) {
                 probability_distribution[stoi(move_keys[i])] = policy_obj[I_hash][move_keys[i]];
-            }
-        }
-        else {
-            if (player == 'x'){
-                std::vector<std::string> move_keys = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};
-                for (int i = 0; i < move_keys.size(); i++) {
-                    probability_distribution[stoi(move_keys[i])] = policy_obj[I_hash][move_keys[i]];
-                }
-            }
-            else{
-                std::vector<std::string> sense_keys = {"9", "10", "11", "12"};
-                for (int i = 0; i < sense_keys.size(); i++) {
-                    probability_distribution[stoi(sense_keys[i])] = policy_obj[I_hash][sense_keys[i]];
-                }
             }
         }
 
@@ -749,9 +774,9 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& 
     std::vector< std::vector<double> > policy_list(policy_size);
 
     for (long int i = 0; i < policy_size; i++) {
-        std::vector<double> probability_distribution(13);
+        std::vector<double> probability_distribution(6);
         // initialise all values to zero
-        for (int i = 0; i < 13; i++) {
+        for (int i = 0; i < 6; i++) {
             probability_distribution[i] = 0.0;
         }
         policy_list[i] = probability_distribution;
@@ -766,13 +791,20 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& 
         split(line, tokens, ' ');
 
         std::string I_hash = tokens[token_idx++];
-        if (I_hash == "*") {
-            I_hash = "";
-        }
         
         bool move_flag;
         if (I_hash.size() != 0){
-            move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
+            move_flag = true; 
+            int itr = 2;
+            while (itr < I_hash.size()) {
+                if (I_hash[itr] != 'd'){
+                    move_flag = !move_flag;
+                }
+                else{
+                    move_flag = true;
+                }
+                itr++;
+            }
         }
         else {
             move_flag = player == 'x' ? true : false;
@@ -780,9 +812,9 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& 
 
         InformationSet I(player, move_flag, I_hash);
 
-        std::vector <double> probability_distribution(13);
+        std::vector <double> probability_distribution(6);
         // initialise all values to zero
-        for (int i = 0; i < 13; i++) {
+        for (int i = 0; i < 6; i++) {
             probability_distribution[i] = 0.0;
         }
 
