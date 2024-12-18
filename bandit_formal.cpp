@@ -757,7 +757,11 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 
             cohort_ucb_values[I_prime_hash] = build_max_UCB_policy(policy_obj, I_prime, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics_prime, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
 
-            if (I_tickmark[I_prime.get_index()] != 0){
+            if (I_tickmark[I_prime.get_index()] == 0){
+                u += infoset_reach_count[I_prime.get_index()];
+                action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
+            }
+            else {
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                 if (denom != 0){
                     u += denom;
@@ -881,7 +885,11 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
 
             cohort_ucb_values[I_prime_hash] = build_max_UCB_policy(policy_obj, I_prime, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics_prime, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
 
-            if (I_tickmark[I_prime.get_index()] != 0){
+            if (I_tickmark[I_prime.get_index()] == 0){
+                u += infoset_reach_count[I_prime.get_index()];
+                action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
+            }
+            else {
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                 if (denom != 0){
                     u += denom;
@@ -1028,7 +1036,11 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
                 std::vector<int> success_metrics_prime = success_metrics_pi_hat[I_prime.get_index()];
                 cohort_ucb_values[I_prime_hash] = infoset_ucb_values[I_prime.get_index()];
 
-                if (I_tickmark[I_prime.get_index()] != 0){
+                if (I_tickmark[I_prime.get_index()] == 0){
+                    u += infoset_reach_count[I_prime.get_index()];
+                    action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
+                }
+                else {
                     int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                     if (denom != 0){
                         u += denom;
