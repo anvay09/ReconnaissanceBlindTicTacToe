@@ -10,25 +10,31 @@ int sampleIndex(const std::vector<double>& probabilities) {
     return distribution(generator);
 }
 
-void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, char player, double probability, double& reward, char update_player, double eps, double& action_selection_probability_explore, double& action_selection_probability_exploit, int explore_or_exploit_flag) {
+double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, char player, double probability, double& reward, char update_player, double eps, double& action_selection_probability_explore, double& action_selection_probability_exploit) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
-    std::vector<double> uniform_prob_dist = player_uniform_policy.policy_dict[I.get_index()];
     int action = -1;
 
     if (player == update_player) { // explore with a small epsilon
         std::vector<int> actions;
         I.get_actions(actions);
-        if (explore_or_exploit_flag == 1){
+
+        std::vector<double> eps_prob_dist = {eps, 1-eps};
+        if (sampleIndex(eps_prob_dist)){
             action = sampleIndex(prob_dist);
+            action_selection_probability_exploit *= (1-eps) * prob_dist[action];
         }
         else{
+            std::vector<int> legal_actions;
+            I.get_actions(legal_actions);
+            std::vector<double> uniform_prob_dist(13, 0.0);
+            for (int i = 0; i < legal_actions.size(); i++) {
+                uniform_prob_dist[legal_actions[i]] = 1.0/legal_actions.size();
+            }
             action = sampleIndex(uniform_prob_dist);
+            action_selection_probability_explore *= eps * uniform_prob_dist[action];
         }
-        
-        action_selection_probability_exploit *= prob_dist[action];
-        action_selection_probability_explore *= uniform_prob_dist[action];
     }
     else{
         action = sampleIndex(prob_dist);
@@ -36,6 +42,11 @@ void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToe
 
     if (I.move_flag) {
         bool success = true_board.update_move(action, player);
+
+        if (player == update_player) { // update the probability only if the player is the one we are updating
+            probability = (action_selection_probability_explore + action_selection_probability_exploit);
+        }
+
         current_history.history.push_back(action);
 
         char winner;
@@ -45,9 +56,9 @@ void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToe
             new_I.reset_zeros();
 
             if (player == 'x') {
-                sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'o', probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit, explore_or_exploit_flag);
+                return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
             } else {
-                sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit, explore_or_exploit_flag);
+                return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
@@ -57,23 +68,28 @@ void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToe
             } else {
                 reward = (double) H_T.reward[1];
             }
+            return probability;
         }
     }
     else {
         InformationSet new_I = I;
         new_I.simulate_sense(action, true_board);
+        
+        if (player == update_player) { // update the probability only if the player is the one we are updating
+            probability = (action_selection_probability_explore + action_selection_probability_exploit);
+        }
         current_history.history.push_back(action);
 
         if (player == 'x') {
-            sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit, explore_or_exploit_flag);
+            return sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
         } else {
-            sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'o', probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit, explore_or_exploit_flag);
+            return sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, current_history, 'o', probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
         }
     }
 }
 
 
-double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, double& reward, char update_player, double eps, int explore_or_exploit_flag) {
+double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, double& reward, char update_player, double eps) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
@@ -82,8 +98,7 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
     InformationSet I_2 = InformationSet('o', false, hash_2);
     double action_selection_probability_explore = 1.0;
     double action_selection_probability_exploit = 1.0;
-    sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', 1.0, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit, explore_or_exploit_flag);
-    return (1-eps)*action_selection_probability_exploit + eps*action_selection_probability_explore;
+    return sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, current_history, 'x', 1.0, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
 }
 
 
@@ -201,7 +216,7 @@ void compute_regrets_along_history_wrapper(PolicyVec& player_br_policy, PolicyVe
 
 } 
 
-void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, PolicyVec& player_uniform_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, double eps, long int step_size) {
+void onpath_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, double eps, long int step_size) {
     std::vector<std::vector<double>> regret_list;
     std::vector<long int> markers;
     PolicyVec cumulative_strategy;
@@ -221,16 +236,10 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
         double q_z = 0.0;
         double reward = 0;
 
-        int explore_or_exploit = 0;
-        std::vector<double> eps_prob_dist = {eps, 1-eps};
-        if (sampleIndex(eps_prob_dist)){
-            explore_or_exploit = 1;
-        }
-
         if (br_player == 'x') {
-            q_z = sample_terminal_history_wrapper(player_br_policy, opponent_policy, player_uniform_policy, start_history, reward, br_player, eps, explore_or_exploit);
+            q_z = sample_terminal_history_wrapper(player_br_policy, opponent_policy, start_history, reward, br_player, eps);
         } else {
-            q_z = sample_terminal_history_wrapper(opponent_policy, player_br_policy, player_uniform_policy, start_history, reward, br_player, eps, explore_or_exploit);
+            q_z = sample_terminal_history_wrapper(opponent_policy, player_br_policy, start_history, reward, br_player, eps);
         }
 
         // traverse history and update regrets
@@ -343,8 +352,6 @@ int main(int argc, char* argv[]) {
     PolicyVec policy_obj_x('x', file_path_1, true);
     PolicyVec policy_obj_o('o', file_path_2, true);
     std::cout << "Start policies loaded." << std::endl;
-    PolicyVec uniform_policy_obj_x('x', P1_information_sets);
-    PolicyVec uniform_policy_obj_o('o', P2_information_sets);
 
     char continue_exp = 'y';
     while (continue_exp == 'y') {
@@ -364,11 +371,11 @@ int main(int argc, char* argv[]) {
 
         if (player == 'x'){
             PolicyVec player_br_policy = policy_obj_x;
-            upfront_flipping_best_response(policy_obj_o, player_br_policy, uniform_policy_obj_x, 'x', P1_information_sets,  num_iterations, eps, step_size);
+            onpath_flipping_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets,  num_iterations, eps, step_size);
         }
         else if (player == 'o'){
             PolicyVec player_br_policy = policy_obj_o;
-            upfront_flipping_best_response(policy_obj_x, player_br_policy, uniform_policy_obj_o, 'o', P2_information_sets, num_iterations, eps, step_size);
+            onpath_flipping_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, eps, step_size);
         }
        
         std::cout << "Continue experiments? (y/n): ";
