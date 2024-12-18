@@ -10,7 +10,7 @@ int sampleIndex(const std::vector<double>& probabilities) {
     return distribution(generator);
 }
 
-void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, char player, double probability, double& reward, char update_player, double eps, double& action_selection_probability_explore, double& action_selection_probability_exploit, int explore_or_exploit_flag) {
+void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, char player, double& reward, char update_player, double eps, double& reach_probability_explore, double& reach_probability_exploit, int explore_or_exploit_flag) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
@@ -27,8 +27,8 @@ void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToe
             action = sampleIndex(uniform_prob_dist);
         }
         
-        action_selection_probability_exploit *= prob_dist[action];
-        action_selection_probability_explore *= uniform_prob_dist[action];
+        reach_probability_exploit *= prob_dist[action];
+        reach_probability_explore *= uniform_prob_dist[action];
     }
     else{
         action = sampleIndex(prob_dist);
@@ -45,9 +45,9 @@ void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToe
             new_I.reset_zeros();
 
             if (player == 'x') {
-                sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'o', probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit, explore_or_exploit_flag);
+                sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'o', reward, update_player, eps, reach_probability_explore, reach_probability_exploit, explore_or_exploit_flag);
             } else {
-                sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit, explore_or_exploit_flag);
+                sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', reward, update_player, eps, reach_probability_explore, reach_probability_exploit, explore_or_exploit_flag);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
@@ -65,9 +65,9 @@ void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToe
         current_history.history.push_back(action);
 
         if (player == 'x') {
-            sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit, explore_or_exploit_flag);
+            sample_terminal_history(new_I, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', reward, update_player, eps, reach_probability_explore, reach_probability_exploit, explore_or_exploit_flag);
         } else {
-            sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'o', probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit, explore_or_exploit_flag);
+            sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'o', reward, update_player, eps, reach_probability_explore, reach_probability_exploit, explore_or_exploit_flag);
         }
     }
 }
@@ -80,10 +80,10 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
     std::string hash_2 = "";
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
-    double action_selection_probability_explore = 1.0;
-    double action_selection_probability_exploit = 1.0;
-    sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', 1.0, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit, explore_or_exploit_flag);
-    return (1-eps)*action_selection_probability_exploit + eps*action_selection_probability_explore;
+    double reach_probability_explore = 1.0;
+    double reach_probability_exploit = 1.0;
+    sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', reward, update_player, eps, reach_probability_explore, reach_probability_exploit, explore_or_exploit_flag);
+    return (1-eps)*reach_probability_exploit + eps*reach_probability_explore;
 }
 
 
@@ -142,7 +142,6 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
                 else {
                     regret_I[actions[i]] += (reward * reach_prob) / (q_z);
                 }
-                regret_I[actions[i]] += (reward * reach_prob * (1 - played_action_prob)) / q_z;
             } 
             else {
                 regret_I[actions[i]] += -reward * reach_prob * played_action_prob / q_z;
