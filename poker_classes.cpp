@@ -544,23 +544,42 @@ char History::other_player(char player) {
 
 double History::get_bid_sequence(PokerTable &true_cards) {
     double half_pot = 1.0;
+    bool preflop = true;
     std::vector<char> action_to_char = {'x', 'b', 'c', 'r', 'f'};
     true_cards.cards[0] = this->history[0];
     true_cards.cards[1] = this->history[1];
     true_cards.cards[2] = this->history[2];
-
+ 
     for (int action : this->history) {
         if (action < 5) {
             true_cards.update_move(action);
+            if (true_cards.bid_sequence.back() == 'd') {
+                preflop = false;
+            }
 
             if (action == 1) {
-                half_pot += 1.0;
+                if (preflop) {
+                    half_pot += 1.0;
+                }
+                else {
+                    half_pot += 2.0;
+                }
             }
             else if (action == 3) {
-                half_pot += 1.0;
+                if (preflop) {
+                    half_pot += 1.0;
+                }
+                else {
+                    half_pot += 2.0;
+                }
             }
             else if (action == 4) {
-                half_pot -= 1.0;
+                if (preflop) {
+                    half_pot -= 1.0;
+                }
+                else {
+                    half_pot -= 2.0;
+                }
             }
         }
     }
@@ -611,9 +630,8 @@ void TerminalHistory::set_reward() {
     PokerTable true_cards;
     double half_pot = this->get_bid_sequence(true_cards);
     char winner;
-    std::cout << true_cards.bid_sequence << " Half pot: " << half_pot << std::endl;
+    
     if (true_cards.is_win(winner)) {
-        std::cout << "Winner: " << winner << std::endl;
         if (winner == 'x') {
             this->reward[0] = half_pot;
             this->reward[1] = -half_pot;
