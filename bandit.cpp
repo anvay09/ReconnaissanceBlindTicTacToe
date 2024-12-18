@@ -789,7 +789,8 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 
         if (u != 0){
             action_ucb_values[a] /= norm;
-            action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
+            // action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
+            action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()]) / u);
             infoset_time_step[I.get_index()] += 1;
         }
         else {
@@ -918,7 +919,8 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
 
         if (u != 0){
             action_ucb_values[a] /= norm;
-            action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
+            // action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
+            action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()]) / u);
             infoset_time_step[I.get_index()] += 1;
         }
         else {
@@ -1067,7 +1069,8 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
 
             if (u != 0){
                 action_ucb_values[a] /= norm;
-                action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
+                // action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
+                action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()]) / u);
                 infoset_time_step[I.get_index()] += 1;
             }
             else {
