@@ -757,18 +757,12 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 
             cohort_ucb_values[I_prime_hash] = build_max_UCB_policy(policy_obj, I_prime, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics_prime, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
 
-
-            if (I_tickmark[I_prime.get_index()] == 0){
-                u += infoset_reach_count[I_prime.get_index()];
-                action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
-            }
-            else {
+            if (I_tickmark[I_prime.get_index()] != 0){
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                 if (denom != 0){
                     u += denom;
-                    action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
-                    norm += infoset_reach_count[I_prime.get_index()];
-                    
+                    action_ucb_values[a] += (success_metrics_prime[0] - success_metrics_prime[2]);
+
                     success_metrics[0] += success_metrics_prime[0];
                     success_metrics[1] += success_metrics_prime[1];
                     success_metrics[2] += success_metrics_prime[2];
@@ -780,7 +774,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 
         if (terminal_reach_count != 0){
             u += terminal_reach_count;
-            action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
+            action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]);
 
             success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
             success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -788,8 +782,8 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
         }
 
         if (u != 0){
-            action_ucb_values[a] /= norm;
-            action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
+            action_ucb_values[a] /= u;
+            action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/u);
             infoset_time_step[I.get_index()] += 1;
         }
         else {
@@ -887,16 +881,11 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
 
             cohort_ucb_values[I_prime_hash] = build_max_UCB_policy(policy_obj, I_prime, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics_prime, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
 
-            if (I_tickmark[I_prime.get_index()] == 0){
-                u += infoset_reach_count[I_prime.get_index()];
-                action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
-            }
-            else {
+            if (I_tickmark[I_prime.get_index()] != 0){
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                 if (denom != 0){
                     u += denom;
-                    action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
-                    norm += infoset_reach_count[I_prime.get_index()];
+                    action_ucb_values[a] += (success_metrics_prime[0] - success_metrics_prime[2]);
 
                     success_metrics[0] += success_metrics_prime[0];
                     success_metrics[1] += success_metrics_prime[1];
@@ -909,7 +898,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
 
         if (terminal_reach_count != 0){
             u += terminal_reach_count;
-            action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
+            action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]);
 
             success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
             success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -917,8 +906,8 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
         }
 
         if (u != 0){
-            action_ucb_values[a] /= norm;
-            action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
+            action_ucb_values[a] /= u;
+            action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/u);
             infoset_time_step[I.get_index()] += 1;
         }
         else {
@@ -931,6 +920,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
             max_ucb = action_ucb_values[a];
         }
     }
+    // std::cout << std::endl;
 
     if (I_tickmark[I.get_index()] == 0){
         // sample from legal actions
@@ -1038,16 +1028,11 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
                 std::vector<int> success_metrics_prime = success_metrics_pi_hat[I_prime.get_index()];
                 cohort_ucb_values[I_prime_hash] = infoset_ucb_values[I_prime.get_index()];
 
-                if (I_tickmark[I_prime.get_index()] == 0){
-                    u += infoset_reach_count[I_prime.get_index()];
-                    action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
-                }
-                else {
+                if (I_tickmark[I_prime.get_index()] != 0){
                     int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                     if (denom != 0){
                         u += denom;
-                        action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
-                        norm += infoset_reach_count[I_prime.get_index()];
+                        action_ucb_values[a] += (success_metrics_prime[0] - success_metrics_prime[2]);
 
                         success_metrics[0] += success_metrics_prime[0];
                         success_metrics[1] += success_metrics_prime[1];
@@ -1058,7 +1043,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
 
             if (terminal_reach_count != 0){
                 u += terminal_reach_count;
-                action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
+                action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]);
 
                 success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
                 success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -1066,8 +1051,9 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
             }
 
             if (u != 0){
-                action_ucb_values[a] /= norm;
-                action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
+                action_ucb_values[a] /= u;
+                action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/u);
+
                 infoset_time_step[I.get_index()] += 1;
             }
             else {
@@ -1326,7 +1312,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
 
     std::cout << "Saving exploitability log" << std::endl;
-    std::string file_name = "data/" + std::string(1, br_player) + "_C=" + std::to_string(C) + "_LUCB_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/" + std::string(1, br_player) + "_C=" + std::to_string(C) + "_LUCB_formal_exploitability_log_" + std::to_string(experiment_number) + ".txt";
 
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++) {
@@ -1375,7 +1361,7 @@ int main(int argc, char* argv[]) {
 
     // compute epsilon best response
     char continue_exp = 'y';
-    int experiment_num = 1;
+    int experiment_num = 11;
 
     // while (continue_exp == 'y') {
     while (experiment_num <= 100) {
