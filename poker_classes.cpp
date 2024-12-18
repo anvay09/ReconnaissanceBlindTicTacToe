@@ -35,18 +35,10 @@ size_t split(const std::string &txt, std::vector<std::string> &strs, char ch)
 // s: showdown!
 // 3. Players: for compatibility with Reconnaisance Blind Tic Tac Toe, 'x' and 'o' are used 
 
-PokerTable::PokerTable(std::string& cards, std::string& bid_sequence) {
-    if (cards.empty()) {
-        this->cards = EMPTY_TABLE;
-    } else {
-        this->cards = cards;
-    }
-
-    if (bid_sequence.empty()) {
-        this->bid_sequence = "";
-    } else {
-        this->bid_sequence = bid_sequence;
-    }
+PokerTable::PokerTable(std::string& cards, std::string& bid_sequence, char player) {
+    this->cards = cards;
+    this->bid_sequence = bid_sequence;
+    this->player_to_move = player;
 }
 
 char PokerTable::operator[](int key) const {
@@ -60,32 +52,21 @@ char & PokerTable::operator[](int key) {
 void PokerTable::operator=(const PokerTable &other) {
     this->cards = other.cards;
     this->bid_sequence = other.bid_sequence;
+    this->player_to_move = other.player_to_move;
 }
 
 bool PokerTable::operator==(const PokerTable &other) {
-    return this->cards == other.cards && this->bid_sequence == other.bid_sequence;
+    return this->cards == other.cards && this->bid_sequence == other.bid_sequence && this->player_to_move == other.player_to_move;
 }
 
 PokerTable PokerTable::copy() {
-    return PokerTable(this->cards, this->bid_sequence);
+    return PokerTable(this->cards, this->bid_sequence, this->player_to_move);
 }
 
 bool PokerTable::is_win(char& winner) {
 // if bid sequence ends in f, calculate which player folded; if bid sequence ends in s, check for pairs and high cards
     if (this->bid_sequence.back() == 'f') {
-        bool turn = true; 
-        int i = 0;
-        while (i < this->bid_sequence.size()) {
-            if (this->bid_sequence[i] != 'd'){
-                turn = !turn;
-            }
-            else{
-                turn = true;
-            }
-            i++;
-        }
-
-        winner = turn ? 'x' : 'o';
+        winner = player_to_move;
         return true;
     }
     else if (this->bid_sequence.back() == 's'){
@@ -175,10 +156,11 @@ bool PokerTable::is_valid_move(int action) {
     }   
 }
 
-bool PokerTable::update_move(int action, char player) {
+bool PokerTable::update_move(int action) {
     if (this->is_valid_move(action)) {
         std::vector<char> action_to_char = {'x', 'b', 'c', 'r', 'f'};
         this->bid_sequence += action_to_char[action];
+        this->player_to_move = (this->player_to_move == 'x') ? 'o' : 'x';
 
         bool preflop = true;
         int check_count = 0;
@@ -201,6 +183,7 @@ bool PokerTable::update_move(int action, char player) {
 
         if (check_count == 2 && preflop){
             this->bid_sequence += "d";
+            this->player_to_move = 'x';
         }
         else if (check_count == 2 && !preflop){
             this->bid_sequence += "s";
@@ -509,7 +492,7 @@ bool InformationSet::is_valid_move(int action) {
     }   
 }
 
-bool InformationSet::update_move(int action, char player) { 
+bool InformationSet::update_move(int action) { 
     if (this->is_valid_move(action)) {
         std::vector<char> action_to_char = {'x', 'b', 'c', 'r', 'f'};
         this->hash = this->hash + std::string(1, action_to_char[action]);
@@ -559,10 +542,7 @@ char History::other_player(char player) {
     return (player == 'x') ? 'o' : 'x';
 }
 
-double History::get_bid_sequence(PokerTable &true_cards) { // DEBUG: function not working as expected
-    char curr_player = 'x';
-    char prev_bid = '-';
-    bool preflop = true;
+double History::get_bid_sequence(PokerTable &true_cards) {
     double half_pot = 1.0;
     std::vector<char> action_to_char = {'x', 'b', 'c', 'r', 'f'};
     true_cards.cards[0] = this->history[0];
@@ -571,35 +551,17 @@ double History::get_bid_sequence(PokerTable &true_cards) { // DEBUG: function no
 
     for (int action : this->history) {
         if (action < 5) {
-            if ((action == 0 && prev_bid == 'x') ||
-                (action == 2 && prev_bid == 'b') ||
-                (action == 2 && prev_bid == 'r')){
-                if (preflop){
-                    true_cards.bid_sequence += "d";
-                    preflop = false;
-                    prev_bid = '-';
-                }
-                else {
-                    true_cards.bid_sequence += "s";
-                }
-            }
-            else {
-                if (action == 0) {
-                    prev_bid = 'x';
-                }
-                else if (action == 1) {
-                    prev_bid = 'b';
-                    half_pot += 1.0;
-                }
-                else if (action == 3) {
-                    prev_bid = 'r';
-                    half_pot += 1.0;
-                }
-            }
+            true_cards.update_move(action);
 
-            true_cards.bid_sequence += action_to_char[action];
-            true_cards.update_move(action, curr_player);
-            curr_player = this->other_player(curr_player);
+            if (action == 1) {
+                half_pot += 1.0;
+            }
+            else if (action == 3) {
+                half_pot += 1.0;
+            }
+            else if (action == 4) {
+                half_pot -= 1.0;
+            }
         }
     }
 
@@ -608,18 +570,16 @@ double History::get_bid_sequence(PokerTable &true_cards) { // DEBUG: function no
 
 void History::get_information_sets(InformationSet &I_1, InformationSet &I_2) {
     PokerTable true_cards;
-    char curr_player = 'x';
     for (int action : this->history) {
         if (action < 5) {
-            if (curr_player == 'x') {
-                I_1.update_move(action, curr_player);
+            if (true_cards.player_to_move == 'x') {
+                I_1.update_move(action);
             } else {
-                I_2.update_move(action, curr_player);
+                I_2.update_move(action);
             }
-            true_cards.update_move(action, curr_player);
-            curr_player = this->other_player(curr_player);
+            true_cards.update_move(action);
         } else {
-            if (curr_player == 'x') {
+            if (true_cards.player_to_move == 'x') {
                 I_1.simulate_sense(action, true_cards);
             } else {
                 I_2.simulate_sense(action, true_cards);
@@ -651,8 +611,9 @@ void TerminalHistory::set_reward() {
     PokerTable true_cards;
     double half_pot = this->get_bid_sequence(true_cards);
     char winner;
-    std::cout << "Winner: " << winner << " " << true_cards.bid_sequence << " Half pot: " << half_pot << std::endl;
+    std::cout << true_cards.bid_sequence << " Half pot: " << half_pot << std::endl;
     if (true_cards.is_win(winner)) {
+        std::cout << "Winner: " << winner << std::endl;
         if (winner == 'x') {
             this->reward[0] = half_pot;
             this->reward[1] = -half_pot;

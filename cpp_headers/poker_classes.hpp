@@ -27,7 +27,8 @@ class PokerTable
 public:
     std::string cards;
     std::string bid_sequence;
-    PokerTable(std::string& cards = EMPTY_TABLE, std::string& bid_sequence = EMPTY_HASH);
+    char player_to_move;
+    PokerTable(std::string& cards = EMPTY_TABLE, std::string& bid_sequence = EMPTY_HASH, char player = 'x');
     char operator[](int key) const;
     char & operator[](int key);
     void operator=(const PokerTable &other);
@@ -37,7 +38,7 @@ public:
     bool is_over();
     bool is_draw();
     bool is_valid_move(int action);
-    bool update_move(int action, char player);
+    bool update_move(int action);
     void print_cards();
 };
 
@@ -70,7 +71,7 @@ public:
     void simulate_sense(int action, PokerTable& true_cards);
     void get_useful_senses(std::vector<int> &actions);
     bool is_valid_move(int action);
-    bool update_move(int action, char player);
+    bool update_move(int action);
     bool is_over();
 };
 
