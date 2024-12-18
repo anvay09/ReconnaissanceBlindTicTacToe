@@ -768,15 +768,16 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 
 
             if (I_tickmark[I_prime.get_index()] == 0){
-                u += infoset_reach_count[I_prime.get_index()];
-                action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
+                // u += infoset_reach_count[I_prime.get_index()];
+                // action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
             }
             else {
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                 if (denom != 0){
                     u += denom;
-                    action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
-                    norm += infoset_reach_count[I_prime.get_index()];
+                    // action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
+                    // norm += infoset_reach_count[I_prime.get_index()];
+                    action_ucb_values[a] += (success_metrics_prime[0] - success_metrics_prime[2]);
 
                     success_metrics[0] += success_metrics_prime[0];
                     success_metrics[1] += success_metrics_prime[1];
@@ -789,7 +790,8 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 
         if (terminal_reach_count != 0){
             u += terminal_reach_count;
-            action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
+            // action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
+            action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]);
 
             success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
             success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -797,9 +799,11 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
         }
 
         if (u != 0){
-            action_ucb_values[a] /= norm;
-            // action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/u);
-            action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
+            action_ucb_values[a] /= u;
+            action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/u);
+
+            // action_ucb_values[a] /= norm;
+            // action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
             infoset_time_step[I.get_index()] += 1;
         }
         else {
@@ -1054,15 +1058,16 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
                 cohort_ucb_values[I_prime_hash] = infoset_ucb_values[I_prime.get_index()];
 
                 if (I_tickmark[I_prime.get_index()] == 0){
-                    u += infoset_reach_count[I_prime.get_index()];
-                    action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
+                    // u += infoset_reach_count[I_prime.get_index()];
+                    // action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
                 }
                 else {
                     int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                     if (denom != 0){
                         u += denom;
-                        action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
-                        norm += infoset_reach_count[I_prime.get_index()];
+                        // action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
+                        action_ucb_values[a] += (success_metrics_prime[0] - success_metrics_prime[2]);
+                        // norm += infoset_reach_count[I_prime.get_index()];
 
                         success_metrics[0] += success_metrics_prime[0];
                         success_metrics[1] += success_metrics_prime[1];
@@ -1073,7 +1078,8 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
 
             if (terminal_reach_count != 0){
                 u += terminal_reach_count;
-                action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
+                // action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
+                action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]);
 
                 success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
                 success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -1081,9 +1087,11 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
             }
 
             if (u != 0){
-                action_ucb_values[a] /= norm;
-                // action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/u);
-                action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
+                action_ucb_values[a] /= u;
+                action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/u);
+
+                // action_ucb_values[a] /= norm;
+                // action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
                 infoset_time_step[I.get_index()] += 1;
             }
             else {
