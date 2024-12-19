@@ -45,3 +45,5 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj);
 
 double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player);
+
+void save_map_txt(std::string output_file, std::vector<std::vector<double>>& map, std::vector<std::string>& Information_sets);

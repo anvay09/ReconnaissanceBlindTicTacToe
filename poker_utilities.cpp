@@ -475,16 +475,30 @@ double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, P
 
 
 double get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o){
-    std::string cards = "000000000";
-    PokerTable true_cards = PokerTable(cards);
-    std::string hash_1 = "";
-    std::string hash_2 = "";
-    InformationSet I_1 = InformationSet('x', true, hash_1);
-    InformationSet I_2 = InformationSet('o', false, hash_2);
-    std::vector<int> h = {};
-    TerminalHistory start_history = TerminalHistory(h);
+    std::vector<std::string> unique_draws = {"JJQ", "JQJ", "QJJ", "QQJ", "QJQ", "JQQ", 
+                                             "KKJ", "KJK", "JKK", "KKQ", "KQK", "QKK", 
+                                             "QQK", "QKQ", "KQQ", "JJK", "JKJ", "KJJ",
+                                             "JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
+    double p = 1.0/30.0;
+    std::vector<double> draw_probabilities = {p, p, p, p, p, p,
+                                              p, p, p, p, p, p,
+                                              p, p, p, p, p, p,
+                                              2*p, 2*p, 2*p, 2*p, 2*p, 2*p};
 
-    double expected_utility = get_expected_utility_parallel(I_1, I_2, true_cards, policy_obj_x, policy_obj_o, 1, start_history, 'x');
+    double expected_utility = 0.0;
+
+    for (int i = 0; i < unique_draws.size(); i++){
+        PokerTable true_cards = PokerTable(unique_draws[i]);
+        std::string hash_1 = "a " + std::string(1, true_cards.cards[0]) + "- ";
+        std::string hash_2 = "o " + std::string(1, true_cards.cards[1]) + "- ";
+        InformationSet I_1('x', true, hash_1);
+        InformationSet I_2('o', false, hash_2);
+        std::vector<int> h = {};
+        TerminalHistory start_history = TerminalHistory(h);
+
+        expected_utility += draw_probabilities[i] * get_expected_utility_parallel(I_1, I_2, true_cards, policy_obj_x, policy_obj_o, 1, start_history, 'x');
+    }
+
     return expected_utility;
 }
 
@@ -756,12 +770,11 @@ std::vector<std::vector<double> > get_prev_regrets(std::string& file_path, char 
     return regret_map;
 }
 
-// TO-DO: Check if this function is correct
 // best response calculation functions
 bool get_move_flag(std::string I_hash, char player){
     bool move_flag;
     if (I_hash.size() != 0){
-        move_flag = I_hash[I_hash.size()-1] == '|' ? true : false;
+        move_flag = I_hash[0] == 'a' ? true : false;
     }
     else {
         move_flag = player == 'x' ? true : false;
@@ -1319,3 +1332,40 @@ double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char 
 
     return expected_utility;
 }
+
+
+void save_map_txt(std::string output_file, std::vector<std::vector<double>>& map, std::vector<std::string>& Information_sets){
+    std::ofstream f_out;
+    f_out.open(output_file, std::ios::trunc);
+    for (long int j = 0; j < map.size(); j++) {
+        // if all actions have zero probability, do not save information set
+        bool all_zero = true;
+        for (int i = 0; i < 6; i++) {
+            if (map[j][i] > 0.0){
+                all_zero = false;
+                break;
+            }
+        }
+
+        if (all_zero) {
+            continue;
+        }
+        else {
+            if (Information_sets[j] == "") {
+                f_out << "* ";
+            }
+            else {
+                f_out << Information_sets[j] << " ";
+            }
+
+            for (int i = 0; i < 6; i++) {
+                if (map[j][i] > 0.0){
+                    f_out << i << " " << map[j][i] << " ";
+                }
+            }
+            f_out << std::endl;
+        }
+    }
+    f_out.close();
+}
+
