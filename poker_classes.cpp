@@ -257,8 +257,8 @@ std::string InformationSet::get_cards_from_hash() {
         return cards;
     }
     else {
-        cards[0] = this->hash[0];
-        cards[1] = this->hash[1];
+        cards[0] = this->hash[2];
+        cards[1] = this->hash[3];
         return cards;
     }
 }
@@ -314,7 +314,7 @@ void InformationSet::get_valid_moves(std::vector<int> &actions) {
         return;
     }
     else {
-        if (this->hash.size() == 2){
+        if (this->hash.size() == 5){
             actions.push_back(0); // x
             actions.push_back(1); // b
             return; 
@@ -358,10 +358,10 @@ void InformationSet::get_played_actions(std::vector<int> &actions) {
     std::unordered_map<char, int> action_to_int = {{'x', 0}, {'b', 1}, {'c', 2}, {'r', 3}, {'f', 4}};
     int i;
     if (this->player == 'x'){
-        i = 2;
+        i = 5;
     }
     else {
-        i = 3;
+        i = 6;
     }
 
     bool move_flag_j = true;
@@ -428,15 +428,11 @@ void InformationSet::simulate_sense(int action, PokerTable& true_cards) {
     }
     
     if (reveal_flop) {
-        std::vector<char> cards = {};
-        cards.push_back(this->cards[0]); // player's own card
-        cards.push_back(true_cards.cards[2]); // community card
-        std::sort(cards.begin(), cards.end()); // sort cards in ascending order
-        this->cards = std::string(1, cards[0]) + std::string(1, cards[1]);
-        this->hash = this->cards + true_cards.bid_sequence;
+        this->cards[1] = true_cards.cards[2];
+        this->hash = "a " + this->cards + " " + true_cards.bid_sequence;
     }
     else {
-        this->hash = this->cards + true_cards.bid_sequence;
+        this->hash = "a " + this->cards + " " + true_cards.bid_sequence;
     }
 
     this->move_flag = true;
@@ -463,7 +459,7 @@ bool InformationSet::is_valid_move(int action) {
         return false;
     }
     else {
-        if (this->hash.size() == 2){
+        if (this->hash.size() == 5){
             return action == 0 || action == 1; // x or b
         }
         else if (this->hash.back() == 'x'){ 
@@ -495,7 +491,8 @@ bool InformationSet::is_valid_move(int action) {
 bool InformationSet::update_move(int action) { 
     if (this->is_valid_move(action)) {
         std::vector<char> action_to_char = {'x', 'b', 'c', 'r', 'f'};
-        this->hash = this->hash + std::string(1, action_to_char[action]);
+        this->hash += std::string(1, action_to_char[action]);
+        this->hash[0] = 'o';
         this->move_flag = false;
         if (this->player == 'x'){
             if (InformationSet::P1_hash_to_int_map.find(this->hash) == InformationSet::P1_hash_to_int_map.end()) {
