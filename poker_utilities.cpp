@@ -1155,7 +1155,7 @@ double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char 
 void save_map_txt(std::string output_file, std::vector<std::vector<double>>& map, std::vector<std::string>& Information_sets){
     std::ofstream f_out;
     f_out.open(output_file, std::ios::trunc);
-    for (long int j = 0; j < map.size(); j++) {
+    for (int j = 0; j < map.size(); j++) {
         // if all actions have zero probability, do not save information set
         bool all_zero = true;
         for (int i = 0; i < 6; i++) {

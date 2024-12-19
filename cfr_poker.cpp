@@ -22,7 +22,6 @@ void save_map_json(std::string output_file, std::vector<std::vector<double>>& ma
 //cfr
 void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char player, std::string base_path){
     std::cout << "Starting iteration " << T << " for player " << player << "..." << std::endl;
-    auto start = std::chrono::system_clock::now();
 
     #pragma omp parallel for num_threads(NUMBER_THREADS) shared(regret_list, policy_obj_x, policy_obj_o)
     for (long int i = 0; i < information_sets.size(); i++) {
@@ -34,16 +33,6 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
         calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, regret_list[i]);
     }
 
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "finished computation at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
-
-
-    std::cout << "Updating policy for player " << player << "..." << std::endl;
-    start = std::chrono::system_clock::now();
     #pragma omp parallel for num_threads(NUMBER_THREADS) shared(regret_list, policy_obj_x, policy_obj_o)
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
@@ -71,18 +60,10 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
             }
         }
     }
-
-    end = std::chrono::system_clock::now();
-    elapsed_seconds = end - start;
-    end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "finished computation at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
 }
 
-void initialize_start(std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list,  std::vector<double>& prob_reaching_list, PolicyVec& policy_obj, PolicyVec& avg_policy_obj, std::vector<double>& avg_policy_denominator, char player) {
+void initialize_start(std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, std::vector<double>& prob_reaching_list, PolicyVec& policy_obj, PolicyVec& avg_policy_obj, std::vector<double>& avg_policy_denominator, char player) {
     std::cout << "initialize_start for player " << player << std::endl;
-    auto start = std::chrono::system_clock::now();
     policy_obj = PolicyVec(player, information_sets);
     avg_policy_obj = policy_obj;
     
@@ -99,12 +80,6 @@ void initialize_start(std::string information_set_file, std::vector<std::string>
         prob_reaching_list.push_back(0.0);
     }
     f_is.close();
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "finished computation at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s"
-            << std::endl;
 }
 
 void initialize_continue(std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, std::vector<std::vector<double>>& regret_map, std::vector<double>& prob_reaching_list, PolicyVec& policy_obj, PolicyVec& avg_policy_obj, std::vector<double>& avg_policy_denominator, char player) {

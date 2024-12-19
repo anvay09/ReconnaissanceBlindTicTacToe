@@ -602,7 +602,7 @@ PolicyVec::PolicyVec(char player, std::vector<std::string> &information_sets) {
     this->player = player;
     std::vector< std::vector<double> > policy_list(information_sets.size());
 
-    for (long int i = 0; i < information_sets.size(); i++) {
+    for (int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
         bool move_flag;
 
@@ -656,7 +656,7 @@ PolicyVec PolicyVec::copy() {
 }
 
 std::vector< std::vector<double>> PolicyVec::read_policy_from_json(std::string& file_path, char player){ 
-    long int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
+    int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
     std::vector< std::vector<double> > policy_list(policy_size);
     
     std::ifstream i(file_path);
@@ -701,10 +701,10 @@ std::vector< std::vector<double>> PolicyVec::read_policy_from_json(std::string& 
 }
 
 std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& file_path, char player){
-    long int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
+    int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
     std::vector< std::vector<double> > policy_list(policy_size);
 
-    for (long int i = 0; i < policy_size; i++) {
+    for (int i = 0; i < policy_size; i++) {
         std::vector<double> probability_distribution(6);
         // initialise all values to zero
         for (int i = 0; i < 6; i++) {
