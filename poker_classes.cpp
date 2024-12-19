@@ -354,59 +354,6 @@ void InformationSet::get_valid_moves(std::vector<int> &actions) {
     }   
 }
 
-void InformationSet::get_played_actions(std::vector<int> &actions) { 
-    std::unordered_map<char, int> action_to_int = {{'x', 0}, {'b', 1}, {'c', 2}, {'r', 3}, {'f', 4}};
-    int i;
-    if (this->player == 'x'){
-        i = 5;
-    }
-    else {
-        i = 6;
-    }
-
-    bool move_flag_j = true;
-    while (i < this->hash.size()) {
-        if (move_flag_j) {
-            if (this->hash[i] == 'd') {
-                i += 1;
-                if (this->player == 'x') {
-                    move_flag_j = true;
-                }
-                else {
-                    move_flag_j = false;
-                }
-            }
-            else {
-                actions.push_back(action_to_int[this->hash[i]]);
-                i += 1;
-                move_flag_j = false;
-            }
-        }
-        else {
-            if (this->hash[i] == 'd') {
-                actions.push_back(5);
-                i += 1;
-                if (this->player == 'x') {
-                    move_flag_j = true;
-                }
-                else {
-                    move_flag_j = false;
-                }
-            }
-            else if (this->hash[i] == 's' || this->hash[i] == 'f'){
-                i += 1;
-                move_flag_j = false;
-            }
-            else {
-                actions.push_back(5);
-                i += 1;
-                move_flag_j = true;
-            }
-        }
-    }
-    
-}
-
 void InformationSet::get_useful_senses(std::vector<int> &actions) {
     actions.push_back(5);
     return;
@@ -539,7 +486,7 @@ char History::other_player(char player) {
     return (player == 'x') ? 'o' : 'x';
 }
 
-double History::get_bid_sequence(PokerTable &true_cards) {
+double History::update_true_cards_given_history(PokerTable &true_cards) {
     double half_pot = 1.0;
     bool preflop = true;
     std::vector<char> action_to_char = {'x', 'b', 'c', 'r', 'f'};
@@ -625,7 +572,7 @@ TerminalHistory TerminalHistory::copy() {
 
 void TerminalHistory::set_reward() { 
     PokerTable true_cards;
-    double half_pot = this->get_bid_sequence(true_cards);
+    double half_pot = this->update_true_cards_given_history(true_cards);
     char winner;
     
     if (true_cards.is_win(winner)) {

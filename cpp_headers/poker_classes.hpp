@@ -17,7 +17,7 @@
 #include <chrono>
 #include <ctime>
 
-static std::string EMPTY_TABLE = "000"; // Player 1 card {J, Q, K}, Player 2 card {J, Q, K}, Board card {J, Q, K}
+static std::string EMPTY_TABLE = "---"; // Player 1 card {J, Q, K}, Player 2 card {J, Q, K}, Board card {J, Q, K}
 static std::string EMPTY_HASH = "";
 class Policy;
 class PolicyVec;
@@ -67,7 +67,6 @@ public:
     void get_actions_given_policy(std::vector<int>& actions, PolicyVec& policy_obj);
     void get_actions_given_policy(std::vector<int>& actions, Policy& policy_obj);
     void get_valid_moves(std::vector<int> &actions);
-    void get_played_actions(std::vector<int> &actions);
     void simulate_sense(int action, PokerTable& true_cards);
     void get_useful_senses(std::vector<int> &actions);
     bool is_valid_move(int action);
@@ -82,7 +81,7 @@ public:
     int track_traversal_index;
     History(std::vector<int>& history);
     char other_player(char player);
-    double get_bid_sequence(PokerTable &true_cards);
+    double update_true_cards_given_history(PokerTable &true_cards);
     void get_information_sets(InformationSet& I_1, InformationSet& I_2);
     void print_history();
 };
