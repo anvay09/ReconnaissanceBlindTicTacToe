@@ -4,19 +4,19 @@ using json = nlohmann::json;
 
 char toggle_player(char player);
 
-void valid_histories_play(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, char player, History& current_history, InformationSet& end_I, std::vector<int>& played_actions, int current_action_index, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list);
+void valid_histories_play(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, History& current_history, InformationSet& end_I, std::vector<int>& played_actions, int current_action_index, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list);
 
 void upgraded_get_histories_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list);
 
-double get_expected_utility(InformationSet &I_1, InformationSet &I_2, PokerTable &true_cards, char player, PolicyVec &policy_obj_x, PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player);
+double get_expected_utility(InformationSet &I_1, InformationSet &I_2, PokerTable &true_cards, PolicyVec &policy_obj_x, PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player);
 
-double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, PokerTable &true_cards, char player, PolicyVec &policy_obj_x, PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player);
+double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, PokerTable &true_cards, PolicyVec &policy_obj_x, PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player);
 
 double get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o);
 
-double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, char player, int next_action, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, double probability, History history_obj, char initial_player, InformationSet& end_I);
+double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, int next_action, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, double probability, History history_obj, char initial_player, InformationSet& end_I);
     
-double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, char player, int next_action, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, double probability, History history_obj, InformationSet& curr_I_1, char initial_player);
+double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, int next_action, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, double probability, History history_obj, InformationSet& curr_I_1, char initial_player);
     
 double get_counter_factual_utility(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& starting_histories, std::vector<double>& prob_reaching_h_list);
 

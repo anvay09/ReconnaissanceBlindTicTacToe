@@ -637,7 +637,7 @@ void get_probability_of_reaching_all_h(InformationSet& I, PolicyVec& policy_obj_
             InformationSet I_1('x', true, hash_1);
             InformationSet I_2('o', false, hash_2);
             PokerTable true_cards = PokerTable(cards);
-            double probability_reaching_h = get_prob_h_given_policy_wrapper(I_1, I_2, true_cards, 'x', h[0], policy_obj_x, policy_obj_o, 1.0, h_object, I, initial_player);
+            double probability_reaching_h = get_prob_h_given_policy_wrapper(I_1, I_2, true_cards, h[0], policy_obj_x, policy_obj_o, 1.0, h_object, I, initial_player);
             prob_reaching_h_list_all.push_back(probability_reaching_h);
         }
         else {
