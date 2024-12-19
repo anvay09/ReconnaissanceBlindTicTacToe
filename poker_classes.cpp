@@ -660,17 +660,7 @@ PolicyVec::PolicyVec(char player, std::vector<std::string> &information_sets) {
         bool move_flag;
 
         if (I_hash.size() != 0){
-            move_flag = true; 
-            int itr = 2;
-            while (itr < I_hash.size()) {
-                if (I_hash[itr] != 'd'){
-                    move_flag = !move_flag;
-                }
-                else{
-                    move_flag = true;
-                }
-                itr++;
-            }
+            move_flag = I_hash[0] == 'a' ? true : false;
         }
         else {
             move_flag = player == 'x' ? true : false;
@@ -730,17 +720,7 @@ std::vector< std::vector<double>> PolicyVec::read_policy_from_json(std::string& 
         std::string I_hash = it.key();
         bool move_flag;
         if (I_hash.size() != 0){
-            move_flag = true; 
-            int itr = 2;
-            while (itr < I_hash.size()) {
-                if (I_hash[itr] != 'd'){
-                    move_flag = !move_flag;
-                }
-                else{
-                    move_flag = true;
-                }
-                itr++;
-            }
+            move_flag = I_hash[0] == 'a' ? true : false;
         }
         else {
             move_flag = player == 'x' ? true : false;
@@ -798,17 +778,7 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& 
         
         bool move_flag;
         if (I_hash.size() != 0){
-            move_flag = true; 
-            int itr = 2;
-            while (itr < I_hash.size()) {
-                if (I_hash[itr] != 'd'){
-                    move_flag = !move_flag;
-                }
-                else{
-                    move_flag = true;
-                }
-                itr++;
-            }
+            move_flag = I_hash[0] == 'a' ? true : false;
         }
         else {
             move_flag = player == 'x' ? true : false;
