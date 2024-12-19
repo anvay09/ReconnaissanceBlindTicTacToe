@@ -489,8 +489,8 @@ double get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_o
 
     for (int i = 0; i < unique_draws.size(); i++){
         PokerTable true_cards = PokerTable(unique_draws[i]);
-        std::string hash_1 = "a " + std::string(1, true_cards.cards[0]) + "- ";
-        std::string hash_2 = "o " + std::string(1, true_cards.cards[1]) + "- ";
+        std::string hash_1 = "a-" + std::string(1, true_cards.cards[0]) + "--";
+        std::string hash_2 = "o-" + std::string(1, true_cards.cards[1]) + "--";
         InformationSet I_1('x', true, hash_1);
         InformationSet I_2('o', false, hash_2);
         std::vector<int> h = {};

@@ -429,10 +429,10 @@ void InformationSet::simulate_sense(int action, PokerTable& true_cards) {
     
     if (reveal_flop) {
         this->cards[1] = true_cards.cards[2];
-        this->hash = "a " + this->cards + " " + true_cards.bid_sequence;
+        this->hash = "a-" + this->cards + "-" + true_cards.bid_sequence;
     }
     else {
-        this->hash = "a " + this->cards + " " + true_cards.bid_sequence;
+        this->hash = "a-" + this->cards + "-" + true_cards.bid_sequence;
     }
 
     this->move_flag = true;

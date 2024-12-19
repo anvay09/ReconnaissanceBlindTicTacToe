@@ -88,8 +88,8 @@ int main() {
         PokerTable true_cards;
         true_cards.cards = unique_draws[i];
 
-        std::string hash_1 = "a " + std::string(1, true_cards.cards[0]) + "- ";
-        std::string hash_2 = "o " + std::string(1, true_cards.cards[1]) + "- ";
+        std::string hash_1 = "a-" + std::string(1, true_cards.cards[0]) + "--";
+        std::string hash_2 = "o-" + std::string(1, true_cards.cards[1]) + "--";
         InformationSet I_1('x', true, hash_1);
         InformationSet I_2('o', false, hash_2);
 

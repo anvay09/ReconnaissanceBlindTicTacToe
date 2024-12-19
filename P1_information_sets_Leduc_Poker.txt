@@ -1,249 +1,249 @@
-a J- 
-a J- br
-a J- xb
-a JJ bcd
-a JJ bcdbr
-a JJ bcdxb
-a JJ brcd
-a JJ brcdbr
-a JJ brcdxb
-a JJ xbcd
-a JJ xbcdbr
-a JJ xbcdxb
-a JJ xbrcd
-a JJ xbrcdbr
-a JJ xbrcdxb
-a JJ xxd
-a JJ xxdbr
-a JJ xxdxb
-a JK bcd
-a JK bcdbr
-a JK bcdxb
-a JK brcd
-a JK brcdbr
-a JK brcdxb
-a JK xbcd
-a JK xbcdbr
-a JK xbcdxb
-a JK xbrcd
-a JK xbrcdbr
-a JK xbrcdxb
-a JK xxd
-a JK xxdbr
-a JK xxdxb
-a JQ bcd
-a JQ bcdbr
-a JQ bcdxb
-a JQ brcd
-a JQ brcdbr
-a JQ brcdxb
-a JQ xbcd
-a JQ xbcdbr
-a JQ xbcdxb
-a JQ xbrcd
-a JQ xbrcdbr
-a JQ xbrcdxb
-a JQ xxd
-a JQ xxdbr
-a JQ xxdxb
-a K- 
-a K- br
-a K- xb
-a KJ bcd
-a KJ bcdbr
-a KJ bcdxb
-a KJ brcd
-a KJ brcdbr
-a KJ brcdxb
-a KJ xbcd
-a KJ xbcdbr
-a KJ xbcdxb
-a KJ xbrcd
-a KJ xbrcdbr
-a KJ xbrcdxb
-a KJ xxd
-a KJ xxdbr
-a KJ xxdxb
-a KK bcd
-a KK bcdbr
-a KK bcdxb
-a KK brcd
-a KK brcdbr
-a KK brcdxb
-a KK xbcd
-a KK xbcdbr
-a KK xbcdxb
-a KK xbrcd
-a KK xbrcdbr
-a KK xbrcdxb
-a KK xxd
-a KK xxdbr
-a KK xxdxb
-a KQ bcd
-a KQ bcdbr
-a KQ bcdxb
-a KQ brcd
-a KQ brcdbr
-a KQ brcdxb
-a KQ xbcd
-a KQ xbcdbr
-a KQ xbcdxb
-a KQ xbrcd
-a KQ xbrcdbr
-a KQ xbrcdxb
-a KQ xxd
-a KQ xxdbr
-a KQ xxdxb
-a Q- 
-a Q- br
-a Q- xb
-a QJ bcd
-a QJ bcdbr
-a QJ bcdxb
-a QJ brcd
-a QJ brcdbr
-a QJ brcdxb
-a QJ xbcd
-a QJ xbcdbr
-a QJ xbcdxb
-a QJ xbrcd
-a QJ xbrcdbr
-a QJ xbrcdxb
-a QJ xxd
-a QJ xxdbr
-a QJ xxdxb
-a QK bcd
-a QK bcdbr
-a QK bcdxb
-a QK brcd
-a QK brcdbr
-a QK brcdxb
-a QK xbcd
-a QK xbcdbr
-a QK xbcdxb
-a QK xbrcd
-a QK xbrcdbr
-a QK xbrcdxb
-a QK xxd
-a QK xxdbr
-a QK xxdxb
-a QQ bcd
-a QQ bcdbr
-a QQ bcdxb
-a QQ brcd
-a QQ brcdbr
-a QQ brcdxb
-a QQ xbcd
-a QQ xbcdbr
-a QQ xbcdxb
-a QQ xbrcd
-a QQ xbrcdbr
-a QQ xbrcdxb
-a QQ xxd
-a QQ xxdbr
-a QQ xxdxb
-o J- b
-o J- brc
-o J- x
-o J- xbc
-o J- xbr
-o JJ bcdb
-o JJ bcdx
-o JJ brcdb
-o JJ brcdx
-o JJ xbcdb
-o JJ xbcdx
-o JJ xbrcdb
-o JJ xbrcdx
-o JJ xxdb
-o JJ xxdx
-o JK bcdb
-o JK bcdx
-o JK brcdb
-o JK brcdx
-o JK xbcdb
-o JK xbcdx
-o JK xbrcdb
-o JK xbrcdx
-o JK xxdb
-o JK xxdx
-o JQ bcdb
-o JQ bcdx
-o JQ brcdb
-o JQ brcdx
-o JQ xbcdb
-o JQ xbcdx
-o JQ xbrcdb
-o JQ xbrcdx
-o JQ xxdb
-o JQ xxdx
-o K- b
-o K- brc
-o K- x
-o K- xbc
-o K- xbr
-o KJ bcdb
-o KJ bcdx
-o KJ brcdb
-o KJ brcdx
-o KJ xbcdb
-o KJ xbcdx
-o KJ xbrcdb
-o KJ xbrcdx
-o KJ xxdb
-o KJ xxdx
-o KK bcdb
-o KK bcdx
-o KK brcdb
-o KK brcdx
-o KK xbcdb
-o KK xbcdx
-o KK xbrcdb
-o KK xbrcdx
-o KK xxdb
-o KK xxdx
-o KQ bcdb
-o KQ bcdx
-o KQ brcdb
-o KQ brcdx
-o KQ xbcdb
-o KQ xbcdx
-o KQ xbrcdb
-o KQ xbrcdx
-o KQ xxdb
-o KQ xxdx
-o Q- b
-o Q- brc
-o Q- x
-o Q- xbc
-o Q- xbr
-o QJ bcdb
-o QJ bcdx
-o QJ brcdb
-o QJ brcdx
-o QJ xbcdb
-o QJ xbcdx
-o QJ xbrcdb
-o QJ xbrcdx
-o QJ xxdb
-o QJ xxdx
-o QK bcdb
-o QK bcdx
-o QK brcdb
-o QK brcdx
-o QK xbcdb
-o QK xbcdx
-o QK xbrcdb
-o QK xbrcdx
-o QK xxdb
-o QK xxdx
-o QQ bcdb
-o QQ bcdx
-o QQ brcdb
-o QQ brcdx
-o QQ xbcdb
-o QQ xbcdx
-o QQ xbrcdb
-o QQ xbrcdx
-o QQ xxdb
-o QQ xxdx
+a-J--
+a-J--br
+a-J--xb
+a-JJ-bcd
+a-JJ-bcdbr
+a-JJ-bcdxb
+a-JJ-brcd
+a-JJ-brcdbr
+a-JJ-brcdxb
+a-JJ-xbcd
+a-JJ-xbcdbr
+a-JJ-xbcdxb
+a-JJ-xbrcd
+a-JJ-xbrcdbr
+a-JJ-xbrcdxb
+a-JJ-xxd
+a-JJ-xxdbr
+a-JJ-xxdxb
+a-JK-bcd
+a-JK-bcdbr
+a-JK-bcdxb
+a-JK-brcd
+a-JK-brcdbr
+a-JK-brcdxb
+a-JK-xbcd
+a-JK-xbcdbr
+a-JK-xbcdxb
+a-JK-xbrcd
+a-JK-xbrcdbr
+a-JK-xbrcdxb
+a-JK-xxd
+a-JK-xxdbr
+a-JK-xxdxb
+a-JQ-bcd
+a-JQ-bcdbr
+a-JQ-bcdxb
+a-JQ-brcd
+a-JQ-brcdbr
+a-JQ-brcdxb
+a-JQ-xbcd
+a-JQ-xbcdbr
+a-JQ-xbcdxb
+a-JQ-xbrcd
+a-JQ-xbrcdbr
+a-JQ-xbrcdxb
+a-JQ-xxd
+a-JQ-xxdbr
+a-JQ-xxdxb
+a-K--
+a-K--br
+a-K--xb
+a-KJ-bcd
+a-KJ-bcdbr
+a-KJ-bcdxb
+a-KJ-brcd
+a-KJ-brcdbr
+a-KJ-brcdxb
+a-KJ-xbcd
+a-KJ-xbcdbr
+a-KJ-xbcdxb
+a-KJ-xbrcd
+a-KJ-xbrcdbr
+a-KJ-xbrcdxb
+a-KJ-xxd
+a-KJ-xxdbr
+a-KJ-xxdxb
+a-KK-bcd
+a-KK-bcdbr
+a-KK-bcdxb
+a-KK-brcd
+a-KK-brcdbr
+a-KK-brcdxb
+a-KK-xbcd
+a-KK-xbcdbr
+a-KK-xbcdxb
+a-KK-xbrcd
+a-KK-xbrcdbr
+a-KK-xbrcdxb
+a-KK-xxd
+a-KK-xxdbr
+a-KK-xxdxb
+a-KQ-bcd
+a-KQ-bcdbr
+a-KQ-bcdxb
+a-KQ-brcd
+a-KQ-brcdbr
+a-KQ-brcdxb
+a-KQ-xbcd
+a-KQ-xbcdbr
+a-KQ-xbcdxb
+a-KQ-xbrcd
+a-KQ-xbrcdbr
+a-KQ-xbrcdxb
+a-KQ-xxd
+a-KQ-xxdbr
+a-KQ-xxdxb
+a-Q--
+a-Q--br
+a-Q--xb
+a-QJ-bcd
+a-QJ-bcdbr
+a-QJ-bcdxb
+a-QJ-brcd
+a-QJ-brcdbr
+a-QJ-brcdxb
+a-QJ-xbcd
+a-QJ-xbcdbr
+a-QJ-xbcdxb
+a-QJ-xbrcd
+a-QJ-xbrcdbr
+a-QJ-xbrcdxb
+a-QJ-xxd
+a-QJ-xxdbr
+a-QJ-xxdxb
+a-QK-bcd
+a-QK-bcdbr
+a-QK-bcdxb
+a-QK-brcd
+a-QK-brcdbr
+a-QK-brcdxb
+a-QK-xbcd
+a-QK-xbcdbr
+a-QK-xbcdxb
+a-QK-xbrcd
+a-QK-xbrcdbr
+a-QK-xbrcdxb
+a-QK-xxd
+a-QK-xxdbr
+a-QK-xxdxb
+a-QQ-bcd
+a-QQ-bcdbr
+a-QQ-bcdxb
+a-QQ-brcd
+a-QQ-brcdbr
+a-QQ-brcdxb
+a-QQ-xbcd
+a-QQ-xbcdbr
+a-QQ-xbcdxb
+a-QQ-xbrcd
+a-QQ-xbrcdbr
+a-QQ-xbrcdxb
+a-QQ-xxd
+a-QQ-xxdbr
+a-QQ-xxdxb
+o-J--b
+o-J--brc
+o-J--x
+o-J--xbc
+o-J--xbr
+o-JJ-bcdb
+o-JJ-bcdx
+o-JJ-brcdb
+o-JJ-brcdx
+o-JJ-xbcdb
+o-JJ-xbcdx
+o-JJ-xbrcdb
+o-JJ-xbrcdx
+o-JJ-xxdb
+o-JJ-xxdx
+o-JK-bcdb
+o-JK-bcdx
+o-JK-brcdb
+o-JK-brcdx
+o-JK-xbcdb
+o-JK-xbcdx
+o-JK-xbrcdb
+o-JK-xbrcdx
+o-JK-xxdb
+o-JK-xxdx
+o-JQ-bcdb
+o-JQ-bcdx
+o-JQ-brcdb
+o-JQ-brcdx
+o-JQ-xbcdb
+o-JQ-xbcdx
+o-JQ-xbrcdb
+o-JQ-xbrcdx
+o-JQ-xxdb
+o-JQ-xxdx
+o-K--b
+o-K--brc
+o-K--x
+o-K--xbc
+o-K--xbr
+o-KJ-bcdb
+o-KJ-bcdx
+o-KJ-brcdb
+o-KJ-brcdx
+o-KJ-xbcdb
+o-KJ-xbcdx
+o-KJ-xbrcdb
+o-KJ-xbrcdx
+o-KJ-xxdb
+o-KJ-xxdx
+o-KK-bcdb
+o-KK-bcdx
+o-KK-brcdb
+o-KK-brcdx
+o-KK-xbcdb
+o-KK-xbcdx
+o-KK-xbrcdb
+o-KK-xbrcdx
+o-KK-xxdb
+o-KK-xxdx
+o-KQ-bcdb
+o-KQ-bcdx
+o-KQ-brcdb
+o-KQ-brcdx
+o-KQ-xbcdb
+o-KQ-xbcdx
+o-KQ-xbrcdb
+o-KQ-xbrcdx
+o-KQ-xxdb
+o-KQ-xxdx
+o-Q--b
+o-Q--brc
+o-Q--x
+o-Q--xbc
+o-Q--xbr
+o-QJ-bcdb
+o-QJ-bcdx
+o-QJ-brcdb
+o-QJ-brcdx
+o-QJ-xbcdb
+o-QJ-xbcdx
+o-QJ-xbrcdb
+o-QJ-xbrcdx
+o-QJ-xxdb
+o-QJ-xxdx
+o-QK-bcdb
+o-QK-bcdx
+o-QK-brcdb
+o-QK-brcdx
+o-QK-xbcdb
+o-QK-xbcdx
+o-QK-xbrcdb
+o-QK-xbrcdx
+o-QK-xxdb
+o-QK-xxdx
+o-QQ-bcdb
+o-QQ-bcdx
+o-QQ-brcdb
+o-QQ-brcdx
+o-QQ-xbcdb
+o-QQ-xbcdx
+o-QQ-xbrcdb
+o-QQ-xbrcdx
+o-QQ-xxdb
+o-QQ-xxdx
