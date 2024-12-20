@@ -13,6 +13,11 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, PokerTable& 
     InformationSet& I = true_cards.player_to_move == 'x' ? I_1 : I_2;
     std::vector<int> actions;
 
+    if (I == end_I){
+        valid_histories_list.push_back(current_history.history);
+        return;
+    }
+
     if (I.player == 'x') {
         I.get_actions_given_policy(actions, policy_obj_x);
     } 
@@ -34,30 +39,10 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, PokerTable& 
                 new_I.update_move(action);
 
                 if (I.player == 'x') {
-                    if (end_I.player == 'x') {
-                        valid_histories_play(new_I, I_2, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
-                    }
-                    else {
-                        if (I_2 == end_I){
-                            valid_histories_list.push_back(new_history.history);
-                        }
-                        else {
-                            valid_histories_play(new_I, I_2, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
-                        }
-                    }
+                    valid_histories_play(new_I, I_2, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
                 }
                 else {
-                    if (end_I.player == 'o') {
-                        valid_histories_play(I_1, new_I, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
-                    }
-                    else {
-                        if (I_1 == end_I){
-                            valid_histories_list.push_back(new_history.history);
-                        }
-                        else {
-                            valid_histories_play(I_1, new_I, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
-                        }
-                    }
+                    valid_histories_play(I_1, new_I, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
                 }
             }
         }
@@ -72,30 +57,10 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, PokerTable& 
             new_history.history.push_back(action);
 
             if (I.player == 'x') {
-                if (end_I.player == 'x') {
-                    if (!(new_I == end_I)){
-                        valid_histories_play(new_I, I_2, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
-                    }
-                    else {
-                        valid_histories_list.push_back(new_history.history);
-                    }
-                }
-                else {
-                    valid_histories_play(new_I, I_2, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
-                }
+                valid_histories_play(new_I, I_2, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
             }
             else {
-                if (end_I.player == 'o') {
-                    if (!(new_I == end_I)){
-                        valid_histories_play(I_1, new_I, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
-                    }
-                    else {
-                        valid_histories_list.push_back(new_history.history);
-                    }
-                }
-                else {
-                    valid_histories_play(I_1, new_I, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
-                }
+                valid_histories_play(I_1, new_I, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
             }
         }
     }
@@ -110,28 +75,41 @@ void upgraded_get_histories_given_I(InformationSet& I, PolicyVec& policy_obj_x, 
     
     for (std::string draw : unique_draws){
         if (I.get_hash().size() == 5){
-            std::vector<int> init_h = {};
-            init_h.push_back(draw[0]);
-            init_h.push_back(draw[1]);
-            init_h.push_back(draw[2]);
-            valid_histories_list.push_back(init_h);
-            return;
+            if (I.player == 'x'){
+                if (I.get_hash()[2] == draw[0]){
+                    std::vector<int> init_h = {};
+                    init_h.push_back(draw[0]);
+                    init_h.push_back(draw[1]);
+                    init_h.push_back(draw[2]);
+                    valid_histories_list.push_back(init_h);
+                }
+            }
+            else {
+                if (I.get_hash()[2] == draw[1]){
+                    std::vector<int> init_h = {};
+                    init_h.push_back(draw[0]);
+                    init_h.push_back(draw[1]);
+                    init_h.push_back(draw[2]);
+                    valid_histories_list.push_back(init_h);
+                }
+            }
         }
+        else {
+            std::string hash_1 = "a-" + std::string(1, draw[0]) + "--";
+            std::string hash_2 = "o-" + std::string(1, draw[1]) + "--";
+        
+            InformationSet I_1('x', true, hash_1);
+            InformationSet I_2('o', false, hash_2);
+            PokerTable true_cards = PokerTable(draw);
+        
+            std::vector<int> h = {};
+            h.push_back(draw[0]);
+            h.push_back(draw[1]);
+            h.push_back(draw[2]);
+            NonTerminalHistory current_history(h);
 
-        std::string hash_1 = "a-" + std::string(1, 'x') + "--";
-        std::string hash_2 = "o-" + std::string(1, 'o') + "--";
-    
-        InformationSet I_1('x', true, hash_1);
-        InformationSet I_2('o', false, hash_2);
-        PokerTable true_cards = PokerTable(draw);
-    
-        std::vector<int> h = {};
-        h.push_back(draw[0]);
-        h.push_back(draw[1]);
-        h.push_back(draw[2]);
-        NonTerminalHistory current_history(h);
-
-        valid_histories_play(I_1, I_2, true_cards, current_history, I, 0, 0, policy_obj_x, policy_obj_o, valid_histories_list);
+            valid_histories_play(I_1, I_2, true_cards, current_history, I, 0, 0, policy_obj_x, policy_obj_o, valid_histories_list);
+        }
     }
     return;
 }   
@@ -378,7 +356,6 @@ double get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_o
 
 double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, int next_action, 
                                PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, double probability, History history_obj, char initial_player, InformationSet& end_I){
-
     InformationSet& I = true_cards.player_to_move == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
 
@@ -387,15 +364,6 @@ double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, PokerTa
         bool success = new_true_cards.update_move(next_action);
 
         if (I.player == toggle_player(initial_player)) {
-            if (I.get_index() == -1){
-                std::cout << "KEY ERROR: Get Prob h, size of history: " << history_obj.history.size() << " Information set: " << end_I.get_hash() << std::endl;
-                std::cout << "Invalid I: " << I.get_hash() << std::endl;
-                for (int z=0; z < history_obj.history.size(); z++){
-                    std::cout << history_obj.history[z] << " ";
-                }
-                std::cout << std::endl;
-                exit(1);
-            }
             probability *= policy_obj.policy_dict[I.get_index()][next_action];
         }
         history_obj.track_traversal_index += 1;
@@ -422,15 +390,6 @@ double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, PokerTa
         PokerTable new_true_cards = true_cards;
 
         if (I.player == toggle_player(initial_player)) {
-            if (I.get_index() == -1){
-                std::cout << "KEY ERROR: Get Prob h, size of history: " << history_obj.history.size() << " Information set: " << end_I.get_hash() << std::endl;
-                std::cout << "Invalid I: " << I.get_hash() << std::endl;
-                for (int z=0; z < history_obj.history.size(); z++){
-                    std::cout << history_obj.history[z] << " ";
-                }
-                std::cout << std::endl;
-                exit(1);
-            }
             probability *= policy_obj.policy_dict[I.get_index()][next_action];
         }
         history_obj.track_traversal_index += 1;
@@ -451,7 +410,7 @@ double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, PokerTa
 
 
 double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, int next_action, PolicyVec& policy_obj_x, 
-                                       PolicyVec& policy_obj_o, double probability, History history_obj, InformationSet& curr_I_1, char initial_player){
+                                       PolicyVec& policy_obj_o, History history_obj, InformationSet& curr_I_1, char initial_player){
     double p = 1.0 / 30.0;
     if (true_cards.cards[0] != true_cards.cards[1] && true_cards.cards[1] != true_cards.cards[2] && true_cards.cards[0] != true_cards.cards[2]){
         p = 2.0 / 30.0;
@@ -461,7 +420,7 @@ double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2,
         return p;
     }
     else {
-        return p * get_prob_h_given_policy(I_1, I_2, true_cards, next_action, policy_obj_x, policy_obj_o, probability, history_obj, initial_player, curr_I_1);
+        return p * get_prob_h_given_policy(I_1, I_2, true_cards, next_action, policy_obj_x, policy_obj_o, 1.0, history_obj, initial_player, curr_I_1);
     }
 }
 
@@ -511,7 +470,7 @@ void get_probability_of_reaching_all_h(InformationSet& I, PolicyVec& policy_obj_
         InformationSet I_1('x', true, hash_1);
         InformationSet I_2('o', false, hash_2);
         PokerTable true_cards = PokerTable(cards);
-        double probability_reaching_h = get_prob_h_given_policy_wrapper(I_1, I_2, true_cards, h[0], policy_obj_x, policy_obj_o, 1.0, h_object, I, initial_player);
+        double probability_reaching_h = get_prob_h_given_policy_wrapper(I_1, I_2, true_cards, h[3], policy_obj_x, policy_obj_o, h_object, I, initial_player);
         prob_reaching_h_list_all.push_back(probability_reaching_h);
     }
 }
@@ -532,7 +491,6 @@ void calc_cfr_policy_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyV
     double util = 0.0;
     std::vector<int> actions;
     PolicyVec& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
-
 
     std::vector<std::vector<int>> starting_histories;
     std::vector<double> prob_reaching_h_list;

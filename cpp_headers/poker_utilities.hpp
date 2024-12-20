@@ -16,7 +16,7 @@ double get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_o
 
 double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, int next_action, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, double probability, History history_obj, char initial_player, InformationSet& end_I);
     
-double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, int next_action, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, double probability, History history_obj, InformationSet& curr_I_1, char initial_player);
+double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, int next_action, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History history_obj, InformationSet& curr_I_1, char initial_player);
     
 double get_counter_factual_utility(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& starting_histories, std::vector<double>& prob_reaching_h_list);
 
