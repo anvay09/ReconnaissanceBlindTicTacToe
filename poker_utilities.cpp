@@ -189,7 +189,7 @@ double get_expected_utility_action_version(InformationSet &I_1, InformationSet &
         PokerTable new_true_cards = true_cards;
         bool success = new_true_cards.update_move(action);
 
-        double probability_new = probability * 1;
+        double probability_new = probability;
         History new_history = current_history;
         new_history.history.push_back(action);
         
@@ -218,7 +218,7 @@ double get_expected_utility_action_version(InformationSet &I_1, InformationSet &
         InformationSet new_I = I;
         new_I.simulate_sense(action, true_cards);
         
-        double probability_new = probability * 1;
+        double probability_new = probability;
         History new_history = current_history;
         new_history.history.push_back(action);
 
@@ -446,7 +446,7 @@ double get_counter_factual_utility(InformationSet& I, PolicyVec& policy_obj_x, P
         h_object.update_true_cards_given_history(true_cards);
 
         if (prob_reaching_h_list[count] > 0) {
-            counter_factual_utility += get_expected_utility_action_version(curr_I_1, curr_I_2, true_cards, policy_obj_x, policy_obj_o, 1, h_object, I.player, action) * prob_reaching_h_list[count];
+            counter_factual_utility += get_expected_utility_action_version(curr_I_1, curr_I_2, true_cards, policy_obj_x, policy_obj_o, 1.0, h_object, I.player, action) * prob_reaching_h_list[count];
         }
         
         count += 1;
