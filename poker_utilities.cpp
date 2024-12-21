@@ -673,7 +673,7 @@ double get_max_Q_value_and_update_policy(std::vector<std::vector<double>>& Infos
     return max_Q;
 }
 
-// TO-DO: Check if this function is correct
+
 double compute_best_response(InformationSet& I, char br_player, std::vector<PokerTable>& true_cards_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj, std::vector<std::vector<double>>& Infoset_Q_values) {    
     std::vector<int> actions;
@@ -1057,7 +1057,7 @@ double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char 
                                               p, p, p, p, p, p,
                                               2*p, 2*p, 2*p, 2*p, 2*p, 2*p};
 
-    int num_infosets = policy_obj.policy_dict.size();
+    int num_infosets = br.policy_dict.size();
     double expected_utility = 0.0;
     std::vector<std::vector<double>> Infoset_Q_values(num_infosets, std::vector<double>(6, 0.0));
     for (int d = 0; d < unique_draws.size(); d++){

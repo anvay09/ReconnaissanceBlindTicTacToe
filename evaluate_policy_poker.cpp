@@ -47,5 +47,15 @@ int main(int argc, char* argv[]) {
     double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
     std::cout << "Expected utility: " << expected_utility << std::endl;
 
+    PolicyVec br_x('x', P1_information_sets);
+    PolicyVec br_o('o', P2_information_sets);
+
+    std::cout << "Computing best response..." << std::endl;
+    double br_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
+    std::cout << "Best response utility: " << br_utility << std::endl;
+
+    br_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
+    std::cout << "Best response utility: " << br_utility << std::endl;
+
     return 0;
 }
