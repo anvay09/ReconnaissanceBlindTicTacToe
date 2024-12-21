@@ -533,15 +533,21 @@ double History::update_true_cards_given_history(PokerTable &true_cards) {
 
 void History::get_information_sets(InformationSet &I_1, InformationSet &I_2) {
     PokerTable true_cards;
+    true_cards.cards[0] = this->history[0];
+    true_cards.cards[1] = this->history[1];
+    true_cards.cards[2] = this->history[2];
+    
     for (int action : this->history) {
         if (action < 5) {
             if (true_cards.player_to_move == 'x') {
+                true_cards.update_move(action);
                 I_1.update_move(action);
             } else {
+                true_cards.update_move(action);
                 I_2.update_move(action);
             }
-            true_cards.update_move(action);
-        } else {
+            
+        } else if (action == 5) {
             if (true_cards.player_to_move == 'x') {
                 I_1.simulate_sense(action, true_cards);
             } else {
