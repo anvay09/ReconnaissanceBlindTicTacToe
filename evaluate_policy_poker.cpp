@@ -1,7 +1,7 @@
 #include "cpp_headers/poker_classes.hpp"
 #include "cpp_headers/poker_utilities.hpp"
 
-// g++-13 -O3 evaluate_policy.cpp rbt_classes.cpp -o evaluate_policy -fopenmp
+// g++-13 -O3 evaluate_policy_poker.cpp poker_classes.cpp poker_utilities.cpp -o eval_poker -fopenmp
 
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
@@ -50,12 +50,15 @@ int main(int argc, char* argv[]) {
     PolicyVec br_x('x', P1_information_sets);
     PolicyVec br_o('o', P2_information_sets);
 
-    std::cout << "Computing best response..." << std::endl;
-    double br_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
-    std::cout << "Best response utility: " << br_utility << std::endl;
+    std::cout << "Computing best response for player x" << std::endl;
+    compute_best_response_wrapper(policy_obj_o, br_x, 'x');
+    expected_utility = get_expected_utility_wrapper(br_x, policy_obj_o);
+    std::cout << "Expected utility: " << expected_utility << std::endl;
 
-    br_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
-    std::cout << "Best response utility: " << br_utility << std::endl;
+    std::cout << "Computing best response for player o" << std::endl;
+    compute_best_response_wrapper(policy_obj_x, br_o, 'o');
+    expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
+    std::cout << "Expected utility: " << expected_utility << std::endl;
 
     return 0;
 }
