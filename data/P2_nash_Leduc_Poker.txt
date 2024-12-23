@@ -1,0 +1,207 @@
+a-J--b 2 0.12621 3 0.05472 4 0.81907 
+a-J--x 0 0.7036 1 0.2964 
+a-J--xbr 2 0.99999 4 1e-05 
+a-JJ-bcdb 3 1 
+a-JJ-bcdx 1 1 
+a-JJ-bcdxbr 2 1 
+a-JJ-brcdb 2 1e-05 3 0.99999 
+a-JJ-brcdx 1 1 
+a-JJ-brcdxbr 2 1 
+a-JJ-xbcdb 3 1 
+a-JJ-xbcdx 1 1 
+a-JJ-xbcdxbr 2 1 
+a-JJ-xbrcdb 3 1 
+a-JJ-xbrcdx 1 1 
+a-JJ-xbrcdxbr 2 1 
+a-JJ-xxdb 2 0.26824 3 0.73176 
+a-JJ-xxdx 1 1 
+a-JJ-xxdxbr 2 1 
+a-JK-bcdb 3 0.36893 4 0.63107 
+a-JK-bcdx 0 0.60945 1 0.39055 
+a-JK-bcdxbr 4 1 
+a-JK-brcdb 3 0.29324 4 0.70676 
+a-JK-brcdx 1 1 
+a-JK-brcdxbr 4 1 
+a-JK-xbcdb 3 0.04293 4 0.95707 
+a-JK-xbcdx 0 0.44976 1 0.55024 
+a-JK-xbcdxbr 4 1 
+a-JK-xbrcdb 2 1e-05 3 0.2028 4 0.79719 
+a-JK-xbrcdx 0 0.46781 1 0.53219 
+a-JK-xbrcdxbr 4 1 
+a-JK-xxdb 4 1 
+a-JK-xxdx 0 0.99234 1 0.00766 
+a-JK-xxdxbr 2 0.01731 4 0.98269 
+a-JQ-bcdb 4 1 
+a-JQ-bcdx 0 0.00061 1 0.99939 
+a-JQ-bcdxbr 4 1 
+a-JQ-brcdb 3 0.42662 4 0.57337 
+a-JQ-brcdx 0 0.99931 1 0.00069 
+a-JQ-brcdxbr 2 0.00089 4 0.99911 
+a-JQ-xbcdb 3 0.13136 4 0.86864 
+a-JQ-xbcdx 0 0.60575 1 0.39425 
+a-JQ-xbcdxbr 4 1 
+a-JQ-xbrcdb 2 1e-05 3 0.32664 4 0.67335 
+a-JQ-xbrcdx 0 0.95796 1 0.04204 
+a-JQ-xbrcdxbr 4 1 
+a-JQ-xxdb 3 0.03547 4 0.96453 
+a-JQ-xxdx 0 0.9286 1 0.0714 
+a-JQ-xxdxbr 4 1 
+a-K--b 2 0.42031 3 0.57969 
+a-K--x 0 9e-05 1 0.99991 
+a-K--xbr 2 1 
+a-KJ-bcdb 2 0.72812 3 0.02486 4 0.24703 
+a-KJ-bcdx 0 0.51593 1 0.48407 
+a-KJ-bcdxbr 2 0.68414 4 0.31586 
+a-KJ-brcdb 2 0.88478 3 0.04158 4 0.07363 
+a-KJ-brcdx 0 0.69832 1 0.30168 
+a-KJ-brcdxbr 2 0.99248 4 0.00752 
+a-KJ-xbcdb 2 0.73441 4 0.26559 
+a-KJ-xbcdx 0 0.87021 1 0.12979 
+a-KJ-xbcdxbr 2 1 
+a-KJ-xbrcdb 2 0.78297 3 0.04298 4 0.17405 
+a-KJ-xbrcdx 0 0.6632 1 0.3368 
+a-KJ-xbrcdxbr 2 1 
+a-KJ-xxdb 2 0.001 3 0.00472 4 0.99427 
+a-KJ-xxdx 0 0.97476 1 0.02524 
+a-KJ-xxdxbr 2 0.9726 4 0.0274 
+a-KK-bcdb 3 1 
+a-KK-bcdx 1 1 
+a-KK-bcdxbr 2 1 
+a-KK-brcdb 3 1 
+a-KK-brcdx 1 1 
+a-KK-brcdxbr 2 1 
+a-KK-xbcdb 2 0.36364 3 0.63636 
+a-KK-xbcdx 1 1 
+a-KK-xbcdxbr 2 1 
+a-KK-xbrcdb 3 1 
+a-KK-xbrcdx 1 1 
+a-KK-xbrcdxbr 2 1 
+a-KK-xxdb 2 0.00284 3 0.99646 4 0.0007 
+a-KK-xxdx 0 0.00105 1 0.99895 
+a-KK-xxdxbr 2 0.99948 4 0.00052 
+a-KQ-bcdb 2 0.29978 4 0.70022 
+a-KQ-bcdx 0 1 
+a-KQ-bcdxbr 2 0.85106 4 0.14894 
+a-KQ-brcdb 2 0.53416 3 0.08509 4 0.38075 
+a-KQ-brcdx 0 0.48603 1 0.51397 
+a-KQ-brcdxbr 2 0.49585 4 0.50415 
+a-KQ-xbcdb 2 0.42231 4 0.57769 
+a-KQ-xbcdx 0 0.64413 1 0.35587 
+a-KQ-xbcdxbr 2 0.06367 4 0.93633 
+a-KQ-xbrcdb 2 0.63639 3 0.00016 4 0.36345 
+a-KQ-xbrcdx 0 0.39203 1 0.60797 
+a-KQ-xbrcdxbr 2 0.39225 4 0.60775 
+a-KQ-xxdb 2 0.97221 3 0.00668 4 0.02112 
+a-KQ-xxdx 0 0.97807 1 0.02193 
+a-KQ-xxdxbr 2 0.95996 4 0.04004 
+a-Q--b 2 0.63123 3 0.36877 4 1e-05 
+a-Q--x 0 0.15089 1 0.84911 
+a-Q--xbr 2 1 
+a-QJ-bcdb 3 0.01873 4 0.98127 
+a-QJ-bcdx 0 0.99997 1 3e-05 
+a-QJ-bcdxbr 2 0.00258 4 0.99742 
+a-QJ-brcdb 4 1 
+a-QJ-brcdx 0 0.99999 1 1e-05 
+a-QJ-brcdxbr 2 0.48489 4 0.51511 
+a-QJ-xbcdb 4 1 
+a-QJ-xbcdx 0 0.4847 1 0.5153 
+a-QJ-xbcdxbr 2 0.00352 4 0.99648 
+a-QJ-xbrcdb 3 0.02056 4 0.97944 
+a-QJ-xbrcdx 0 1 
+a-QJ-xbrcdxbr 2 0.00741 4 0.99259 
+a-QJ-xxdb 4 1 
+a-QJ-xxdx 0 0.99997 1 3e-05 
+a-QJ-xxdxbr 2 0.01347 4 0.98653 
+a-QK-bcdb 2 0.29969 4 0.70031 
+a-QK-bcdx 0 0.63095 1 0.36905 
+a-QK-bcdxbr 2 0.00017 4 0.99983 
+a-QK-brcdb 2 0.51872 3 2e-05 4 0.48127 
+a-QK-brcdx 0 0.57551 1 0.42449 
+a-QK-brcdxbr 2 0.07202 4 0.92798 
+a-QK-xbcdb 2 0.44886 3 6e-05 4 0.55108 
+a-QK-xbcdx 0 0.70421 1 0.29579 
+a-QK-xbcdxbr 2 0.00021 4 0.99979 
+a-QK-xbrcdb 2 0.28158 4 0.71842 
+a-QK-xbrcdx 0 0.81189 1 0.18811 
+a-QK-xbrcdxbr 2 3e-05 4 0.99997 
+a-QK-xxdb 2 0.7298 3 2e-05 4 0.27018 
+a-QK-xxdx 0 0.9776 1 0.0224 
+a-QK-xxdxbr 2 0.99998 4 2e-05 
+a-QQ-bcdb 3 1 
+a-QQ-bcdx 1 1 
+a-QQ-bcdxbr 2 1 
+a-QQ-brcdb 3 1 
+a-QQ-brcdx 1 1 
+a-QQ-brcdxbr 2 1 
+a-QQ-xbcdb 2 0.36364 3 0.63636 
+a-QQ-xbcdx 1 1 
+a-QQ-xbcdxbr 2 1 
+a-QQ-xbrcdb 3 1 
+a-QQ-xbrcdx 1 1 
+a-QQ-xbrcdxbr 2 1 
+a-QQ-xxdb 2 0.26669 3 0.73331 
+a-QQ-xxdx 1 1 
+a-QQ-xxdxbr 2 1 
+o-J-- 5 1 
+o-J--bc 5 1 
+o-J--br 5 1 
+o-J--xb 5 1 
+o-J--xbrc 5 1 
+o-J--xx 5 1 
+o-JJ-bcdxb 5 1 
+o-JJ-brcdxb 5 1 
+o-JJ-xbcdxb 5 1 
+o-JJ-xbrcdxb 5 1 
+o-JJ-xxdxb 5 1 
+o-JK-bcdxb 5 1 
+o-JK-brcdxb 5 1 
+o-JK-xbcdxb 5 1 
+o-JK-xbrcdxb 5 1 
+o-JK-xxdxb 5 1 
+o-JQ-bcdxb 5 1 
+o-JQ-brcdxb 5 1 
+o-JQ-xbcdxb 5 1 
+o-JQ-xbrcdxb 5 1 
+o-JQ-xxdxb 5 1 
+o-K-- 5 1 
+o-K--bc 5 1 
+o-K--br 5 1 
+o-K--xb 5 1 
+o-K--xbrc 5 1 
+o-K--xx 5 1 
+o-KJ-bcdxb 5 1 
+o-KJ-brcdxb 5 1 
+o-KJ-xbcdxb 5 1 
+o-KJ-xbrcdxb 5 1 
+o-KJ-xxdxb 5 1 
+o-KK-bcdxb 5 1 
+o-KK-brcdxb 5 1 
+o-KK-xbcdxb 5 1 
+o-KK-xbrcdxb 5 1 
+o-KK-xxdxb 5 1 
+o-KQ-bcdxb 5 1 
+o-KQ-brcdxb 5 1 
+o-KQ-xbcdxb 5 1 
+o-KQ-xbrcdxb 5 1 
+o-KQ-xxdxb 5 1 
+o-Q-- 5 1 
+o-Q--bc 5 1 
+o-Q--br 5 1 
+o-Q--xb 5 1 
+o-Q--xbrc 5 1 
+o-Q--xx 5 1 
+o-QJ-bcdxb 5 1 
+o-QJ-brcdxb 5 1 
+o-QJ-xbcdxb 5 1 
+o-QJ-xbrcdxb 5 1 
+o-QJ-xxdxb 5 1 
+o-QK-bcdxb 5 1 
+o-QK-brcdxb 5 1 
+o-QK-xbcdxb 5 1 
+o-QK-xbrcdxb 5 1 
+o-QK-xxdxb 5 1 
+o-QQ-bcdxb 5 1 
+o-QQ-brcdxb 5 1 
+o-QQ-xbcdxb 5 1 
+o-QQ-xbrcdxb 5 1 
+o-QQ-xxdxb 5 1 

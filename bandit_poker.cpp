@@ -88,13 +88,13 @@ void get_states_in_infoset(InformationSet &I, std::vector<PokerTable> &states) {
 
         if (I.move_flag){ // if move infoset then state is straightforward
             PokerTable state = PokerTable(draw);
-            state.bid_sequence = std::string(I.get_hash().begin() + 5, I.get_hash().end());
+            state.bid_sequence = I.get_hash().substr(5);
             state.player_to_move = I.player;
             states.push_back(state);
         }
         else {
             PokerTable state = PokerTable(draw);
-            state.bid_sequence = std::string(I.get_hash().begin() + 5, I.get_hash().end());
+            state.bid_sequence = I.get_hash().substr(5);
             state.player_to_move = toggle_player(I.player);
             if (I.bid_sequence.back() == 'c') {
                 if (I.bid_sequence.find('d') == std::string::npos) {
@@ -150,11 +150,11 @@ void get_cohort(InformationSet I, int action, std::unordered_set<std::string> &c
         if (I.get_index() != -1) {
             cohort.insert(I.get_hash());
         }
-        return;
     }
     else {
         std::vector<PokerTable> states;
         get_states_in_infoset(I, states);
+
         for (PokerTable &state : states) {
             InformationSet new_I = I;
             new_I.simulate_sense(action, state);
@@ -165,6 +165,15 @@ void get_cohort(InformationSet I, int action, std::unordered_set<std::string> &c
             }
         }
     }
+
+    // std::cout << "Infoset: " << I.get_hash() << " Action: " << action << std::endl;
+    // std::cout << "Cohort: " << std::endl;
+    // for (std::string hash : cohort) {
+    //     std::cout << hash << " ";
+    // }
+    // std::cout << std::endl;
+
+    return;
 }
 
 
@@ -475,7 +484,7 @@ double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::ve
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
-    double infoset_value = -4.0;
+    double infoset_value = -7.0;
     // std::cout << "Building policy for infoset: " << I.get_hash() << std::endl;
 
     for (int a : legal_actions){
@@ -499,7 +508,7 @@ double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::ve
             action_values[a] /= norm;
         }
         else {
-            action_values[a] = -4.0;
+            action_values[a] = -7.0;
         }
     }
 
@@ -559,7 +568,7 @@ double build_max_reward_policy_parallel(PolicyVec& policy_obj, InformationSet&I,
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
-    double infoset_value = -4.0;
+    double infoset_value = -7.0;
  
     #pragma omp parallel for num_threads(NUMBER_THREADS)
     for (int a : legal_actions){
@@ -584,7 +593,7 @@ double build_max_reward_policy_parallel(PolicyVec& policy_obj, InformationSet&I,
             action_values[a] /= norm;
         }
         else {
-            action_values[a] = -4.0;
+            action_values[a] = -7.0;
         }
     }
 
@@ -666,7 +675,7 @@ void update_max_reward_policy_given_history(InformationSet& I, PokerTable& true_
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         std::vector<double> action_values(6, 0.0);
-        double infoset_value = -4.0;
+        double infoset_value = -7.0;
 
         for (int a : legal_actions){
             std::unordered_set<std::string> cohort;
@@ -692,7 +701,7 @@ void update_max_reward_policy_given_history(InformationSet& I, PokerTable& true_
                 action_values[a] /= norm;
             }
             else {
-                action_values[a] = -4.0;
+                action_values[a] = -7.0;
             }
         }
 
@@ -761,7 +770,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(6, 0.0);
-    double max_ucb = -4.0;
+    double max_ucb = -7.0;
 
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
@@ -814,7 +823,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
             infoset_time_step[I.get_index()] += 1;
         }
         else {
-            action_ucb_values[a] = 1.0;
+            action_ucb_values[a] = 7.0;
         }
     }
 
@@ -891,7 +900,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(6, 0.0);
-    double max_ucb = -4.0;
+    double max_ucb = -7.0;
 
     #pragma omp parallel for num_threads(NUMBER_THREADS)
     for (int a : legal_actions){
@@ -942,7 +951,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
             infoset_time_step[I.get_index()] += 1;
         }
         else {
-            action_ucb_values[a] = 1.0;
+            action_ucb_values[a] = 7.0;
         }
     }
 
@@ -1041,7 +1050,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         std::vector<double> action_ucb_values(6, 0.0);
-        double max_ucb = -4.0;
+        double max_ucb = -7.0;
         std::vector<int> success_metrics{0, 0, 0};
 
         for (int a : legal_actions){
@@ -1092,7 +1101,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
                 infoset_time_step[I.get_index()] += 1;
             }
             else {
-                action_ucb_values[a] = 1.0;
+                action_ucb_values[a] = 7.0;
             }
         }
 
@@ -1433,7 +1442,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
 
     std::cout << "Saving exploitability log" << std::endl;
-    std::string file_name = "data/" + std::string(1, br_player) + "_C=" + std::to_string(C) + "_LUCB_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/" + std::string(1, br_player) + "_C=" + std::to_string(C) + "_poker_LUCB_exploitability_log_" + std::to_string(experiment_number) + ".txt";
 
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++) {
@@ -1445,7 +1454,9 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
 
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
-    int bypass_input = std::stoi(argv[1]);
+    std::string file_path_1 = argv[1]; // start policy P1
+    std::string file_path_2 = argv[2]; // start policy P2
+    int bypass_input = std::stoi(argv[3]);
 
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -1475,8 +1486,8 @@ int main(int argc, char* argv[]) {
 
     // load policies
     std::cout << "Loading policies" << std::endl;
-    PolicyVec policy_obj_x('x', P1_information_sets);
-    PolicyVec policy_obj_o('o', P2_information_sets);
+    PolicyVec policy_obj_x('x', file_path_1, true);
+    PolicyVec policy_obj_o('o', file_path_2, true);
 
     // compute epsilon best response
     char continue_exp = 'y';
@@ -1508,7 +1519,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "Continue experiments? (" << experiment_num << " experiments done) (y/n): ";
-        // std::cin >> continue_exp;
+        std::cin >> continue_exp;
         experiment_num += 1;
     }
 }
