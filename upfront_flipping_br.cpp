@@ -243,7 +243,8 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
         for (int i = 0; i < start_history.history.size(); i++) {
             std::cout << start_history.history[i] << " ";
         }
-        std::cout << "============================================================" << std::endl;
+        std::cout << std::endl << "explore_or_exploit" << explore_or_exploit << std::endl;
+        std::cout << std::endl << "============================================================" << std::endl;
 
         if (t % step_size == 0 && t != 0) {
             double expected_utility = 0.0;
