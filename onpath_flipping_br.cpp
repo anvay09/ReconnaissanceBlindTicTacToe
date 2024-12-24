@@ -199,7 +199,7 @@ void compute_regrets_along_history_wrapper(PolicyVec& player_br_policy, PolicyVe
 
 } 
 
-void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, PolicyVec& player_uniform_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, double eps, long int step_size, double exact_br_value, int experiment_number) {
+void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, PolicyVec& player_uniform_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, long int step_size, double exact_br_value, int experiment_number) {
     std::vector<std::vector<double>> regret_list;
     std::vector<long int> markers;
     PolicyVec cumulative_strategy;
@@ -219,6 +219,7 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
         double reward = 0;
+        double eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0);
 
         if (br_player == 'x') {
             q_z = sample_terminal_history_wrapper(player_br_policy, opponent_policy, player_uniform_policy, start_history, reward, br_player, eps);
@@ -299,11 +300,11 @@ int main(int argc, char* argv[]) {
 
     char continue_exp = 'y';
     while (continue_exp == 'y') {
-        double eps = 0.0;
         long int num_iterations = 0;
         long int step_size = 0;
         char player;
         int experiment_number = 1;
+        int num_experiments = 0;
 
         std::cout << "Enter number of iterations: ";
         std::cin >> num_iterations;
@@ -311,8 +312,8 @@ int main(int argc, char* argv[]) {
         std::cin >> step_size;
         std::cout << "Enter the player for whom the best response is to be computed (x/o):";
         std::cin >> player;
-        std::cout << "Enter value of epsilon:";
-        std::cin >> eps;
+        std::cout << "Enter the number of experiments: ";
+        std::cin >> num_experiments;
 
         double expected_utility = 0.0;
         if (player == 'x'){
@@ -322,14 +323,14 @@ int main(int argc, char* argv[]) {
             expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
         }
 
-        while (experiment_number <= 25){
+        while (experiment_number <= num_experiments){
             if (player == 'x'){
                 PolicyVec player_br_policy = policy_obj_x;
-                upfront_flipping_best_response(policy_obj_o, player_br_policy, uniform_policy_obj_x, 'x', P1_information_sets,  num_iterations, eps, step_size, expected_utility, experiment_number);
+                upfront_flipping_best_response(policy_obj_o, player_br_policy, uniform_policy_obj_x, 'x', P1_information_sets,  num_iterations, step_size, expected_utility, experiment_number);
             }
             else if (player == 'o'){
                 PolicyVec player_br_policy = policy_obj_o;
-                upfront_flipping_best_response(policy_obj_x, player_br_policy, uniform_policy_obj_o, 'o', P2_information_sets, num_iterations, eps, step_size, expected_utility, experiment_number);
+                upfront_flipping_best_response(policy_obj_x, player_br_policy, uniform_policy_obj_o, 'o', P2_information_sets, num_iterations, step_size, expected_utility, experiment_number);
             }
             experiment_number += 1;
         }

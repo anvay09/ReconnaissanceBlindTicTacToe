@@ -195,7 +195,7 @@ void compute_regrets_along_history_wrapper(PolicyVec& player_br_policy, PolicyVe
 
 } 
 
-void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, PolicyVec& player_uniform_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, double eps, long int step_size, double exact_br_value, int experiment_number) {
+void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, PolicyVec& player_uniform_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, long int step_size, double exact_br_value, int experiment_number) {
     std::vector<std::vector<double>> regret_list;
     std::vector<long int> markers;
     PolicyVec cumulative_strategy;
@@ -213,7 +213,7 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
     }
 
     for (int t = 0; t < T; t++) {
-        eps = 1/((t/step_size)+1);
+        double eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0);
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
@@ -309,7 +309,6 @@ int main(int argc, char* argv[]) {
 
     char continue_exp = 'y';
     while (continue_exp == 'y') {
-        double eps = 0.0;
         long int num_iterations = 0;
         long int step_size = 0;
         char player;
@@ -322,8 +321,6 @@ int main(int argc, char* argv[]) {
         std::cin >> step_size;
         std::cout << "Enter the player for whom the best response is to be computed (x/o):";
         std::cin >> player;
-        std::cout << "Enter value of epsilon:";
-        std::cin >> eps;
         std::cout << "Enter number of experiments: ";
         std::cin >> num_experiments;
 
@@ -338,11 +335,11 @@ int main(int argc, char* argv[]) {
         while (experiment_number <= num_experiments){
             if (player == 'x'){
                 PolicyVec player_br_policy = policy_obj_x;
-                upfront_flipping_best_response(policy_obj_o, player_br_policy, uniform_policy_obj_x, 'x', P1_information_sets,  num_iterations, eps, step_size, expected_utility, experiment_number);
+                upfront_flipping_best_response(policy_obj_o, player_br_policy, uniform_policy_obj_x, 'x', P1_information_sets,  num_iterations, step_size, expected_utility, experiment_number);
             }
             else if (player == 'o'){
                 PolicyVec player_br_policy = policy_obj_o;
-                upfront_flipping_best_response(policy_obj_x, player_br_policy, uniform_policy_obj_o, 'o', P2_information_sets, num_iterations, eps, step_size, expected_utility, experiment_number);
+                upfront_flipping_best_response(policy_obj_x, player_br_policy, uniform_policy_obj_o, 'o', P2_information_sets, num_iterations, step_size, expected_utility, experiment_number);
             }
             experiment_number += 1;
         }
