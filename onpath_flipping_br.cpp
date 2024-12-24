@@ -232,7 +232,6 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
         if (t % step_size == 0 && t != 0) {
             double expected_utility = 0.0;
             std::cout << "############################################################" << std::endl;
-            double expected_utility = 0.0;
             if (br_player == 'x'){
                 expected_utility = get_expected_utility_wrapper(player_br_policy, opponent_policy);
                 exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
