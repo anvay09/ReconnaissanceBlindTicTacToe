@@ -321,6 +321,7 @@ int main(int argc, char* argv[]) {
         long int step_size = 0;
         char player;
         int experiment_number = 1;
+        int num_experiments = 0;
 
         std::cout << "Enter number of iterations: ";
         std::cin >> num_iterations;
@@ -330,6 +331,8 @@ int main(int argc, char* argv[]) {
         std::cin >> player;
         std::cout << "Enter value of epsilon:";
         std::cin >> eps;
+        std::cout << "Enter number of experiments: ";
+        std::cin >> num_experiments;
 
         double expected_utility = 0.0;
         if (player == 'x'){
@@ -339,7 +342,7 @@ int main(int argc, char* argv[]) {
             expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
         }
 
-        while (experiment_number <= 25){
+        while (experiment_number <= num_experiments){
             if (player == 'x'){
                 PolicyVec player_br_policy = policy_obj_x;
                 upfront_flipping_best_response(policy_obj_o, player_br_policy, uniform_policy_obj_x, 'x', P1_information_sets,  num_iterations, eps, step_size, expected_utility, experiment_number);
