@@ -322,8 +322,6 @@ int main(int argc, char* argv[]) {
         std::cin >> player;
         std::cout << "Enter value of epsilon:";
         std::cin >> eps;
-        std::cout << "Enter experiment number: ";
-        std::cin >> experiment_number;
 
         double expected_utility = 0.0;
         if (player == 'x'){
@@ -342,6 +340,7 @@ int main(int argc, char* argv[]) {
                 PolicyVec player_br_policy = policy_obj_o;
                 upfront_flipping_best_response(policy_obj_x, player_br_policy, uniform_policy_obj_o, 'o', P2_information_sets, num_iterations, eps, step_size, expected_utility, experiment_number);
             }
+            experiment_number += 1;
         }
        
         std::cout << "Continue experiments? (y/n): ";
