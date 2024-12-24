@@ -200,6 +200,8 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
     std::vector<long int> markers;
     PolicyVec cumulative_strategy;
     cumulative_strategy.player = br_player;
+    long int explore_count = 0;
+    long int exploit_count = 0;
     
     for (long int i = 0; i < player_information_sets.size(); i++) {
         regret_list.push_back(std::vector<double>(13, 0.0));
@@ -219,6 +221,10 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
         std::vector<double> eps_prob_dist = {eps, 1-eps};
         if (sampleIndex(eps_prob_dist)){
             explore_or_exploit = 1;
+            exploit_count += 1;
+        }
+        else{
+            explore_count += 1;
         }
 
         if (br_player == 'x') {
@@ -249,6 +255,10 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
                     std::cout << root_regrets[i] << " ";
                 }
             }
+            std::cout << std::endl;
+            std::cout << std::endl;
+            std::cout << "Number of times explore was chosen: " << explore_count << std::endl;
+            std::cout << "Number of times exploit was chosen: " << exploit_count << std::endl;
 
             PolicyVec average_strategy = cumulative_strategy;
             // normalize the cumulative strategy
