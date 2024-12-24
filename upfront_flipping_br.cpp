@@ -10,7 +10,7 @@ int sampleIndex(const std::vector<double>& probabilities) {
     return distribution(generator);
 }
 
-void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, char player, double& reward, char update_player, double eps, double& reach_probability_explore, double& reach_probability_exploit, int explore_or_exploit_flag) {
+void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, char player, double& reward, char update_player, double& eps, double& reach_probability_explore, double& reach_probability_exploit, int& explore_or_exploit_flag) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
@@ -228,7 +228,8 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
 
         if (br_player == 'x') {
             q_z = sample_terminal_history_wrapper(player_br_policy, opponent_policy, player_uniform_policy, start_history, reward, br_player, eps, explore_or_exploit);
-        } else {
+        } 
+        else {
             q_z = sample_terminal_history_wrapper(opponent_policy, player_br_policy, player_uniform_policy, start_history, reward, br_player, eps, explore_or_exploit);
         }
 
@@ -236,8 +237,7 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
         compute_regrets_along_history_wrapper(player_br_policy, cumulative_strategy, br_player, t, regret_list, markers, start_history, q_z, reward);
         
         if (t % step_size == 0 && t != 0) {
-            // overridde eps based on step size.
-            // eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0);
+
 
             PolicyVec average_strategy = cumulative_strategy;
             // normalize the cumulative strategy
