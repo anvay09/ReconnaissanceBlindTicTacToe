@@ -10,7 +10,7 @@ int sampleIndex(const std::vector<double>& probabilities) {
     return distribution(generator);
 }
 
-void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, char player, double probability, double& reward, char update_player, double eps, double& action_selection_probability_explore, double& action_selection_probability_exploit) {
+double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, char player, double probability, double& reward, char update_player, double eps, double& action_selection_probability_explore, double& action_selection_probability_exploit) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
@@ -20,16 +20,19 @@ void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToe
     if (player == update_player) { // explore with a small epsilon
         std::vector<int> actions;
         I.get_actions(actions);
-        std::vector<double> eps_prob_dist = {eps*action_selection_probability_explore, 1-eps*action_selection_probability_exploit};
-        if (sampleIndex(eps_prob_dist)){
-            action = sampleIndex(prob_dist);
+        std::vector<double> pick_prob_dist(13, 0.0);
+        double sum = 0.0;
+        for (int i = 0; i < actions.size(); i++) {
+            pick_prob_dist[actions[i]] = eps*action_selection_probability_explore*uniform_prob_dist[actions[i]] + (1-eps)*action_selection_probability_exploit*prob_dist[actions[i]];
+            sum += pick_prob_dist[actions[i]];
         }
-        else{
-            action = sampleIndex(uniform_prob_dist);
+        for (int i = 0; i < actions.size(); i++) {
+            pick_prob_dist[actions[i]] /= sum;
         }
-        
+        action = sampleIndex(pick_prob_dist);
         action_selection_probability_exploit *= prob_dist[action];
         action_selection_probability_explore *= uniform_prob_dist[action];
+        probability *= pick_prob_dist[action];
     }
     else{
         action = sampleIndex(prob_dist);
@@ -71,6 +74,7 @@ void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToe
             sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'o', probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
         }
     }
+    return probability;
 }
 
 
@@ -83,8 +87,7 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
     InformationSet I_2 = InformationSet('o', false, hash_2);
     double action_selection_probability_explore = 1.0;
     double action_selection_probability_exploit = 1.0;
-    sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', 1.0, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
-    return (1-eps)*action_selection_probability_exploit + eps*action_selection_probability_explore;
+    return sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', 1.0, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
 }
 
 
@@ -137,12 +140,7 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
 
         for (int i = 0; i < actions.size(); i++) {
             if (actions[i] == action) {
-                if (played_action_prob > 0) {
-                    regret_I[actions[i]] += (reward * reach_prob * (1 - played_action_prob)) / q_z;
-                }
-                else {
-                    regret_I[actions[i]] += (reward * reach_prob) / (q_z);
-                }
+                regret_I[actions[i]] += (reward * reach_prob * (1 - played_action_prob)) / q_z;
             } 
             else {
                 regret_I[actions[i]] += -reward * reach_prob * played_action_prob / q_z;
@@ -231,8 +229,23 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
         compute_regrets_along_history_wrapper(player_br_policy, cumulative_strategy, br_player, t, regret_list, markers, start_history, q_z, reward);
         
         if (t % step_size == 0 && t != 0) {
-            // overridde eps based on step size.
-            // eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0);
+
+            std::cout << "Regrets at root information set" << std::endl;
+            std::string hash = "";
+            if (br_player == 'x') {
+                InformationSet root_I(br_player, true, hash);
+                std::vector<double>& root_regrets = regret_list[root_I.get_index()];
+                for (int i = 0; i < 13; i++) {
+                    std::cout << root_regrets[i] << " ";
+            }
+            }
+            else {
+                InformationSet root_I(br_player, false, hash);
+                std::vector<double>& root_regrets = regret_list[root_I.get_index()];
+                for (int i = 0; i < 13; i++) {
+                    std::cout << root_regrets[i] << " ";
+                }
+            }
 
             PolicyVec average_strategy = cumulative_strategy;
             // normalize the cumulative strategy
