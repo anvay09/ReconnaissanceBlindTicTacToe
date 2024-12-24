@@ -74,7 +74,7 @@ void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToe
 }
 
 
-double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, double& reward, char update_player, double eps) {
+double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, double& reward, char update_player, double& eps) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";

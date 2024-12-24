@@ -233,6 +233,22 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
         
         if (t % step_size == 0 && t != 0) {
 
+            std::cout << "Regrets at root information set" << std::endl;
+            std::string hash = "";
+            if (br_player == 'x') {
+                InformationSet root_I(br_player, true, hash);
+                std::vector<double>& root_regrets = regret_list[root_I.get_index()];
+                for (int i = 0; i < 13; i++) {
+                    std::cout << root_regrets[i] << " ";
+            }
+            }
+            else {
+                InformationSet root_I(br_player, false, hash);
+                std::vector<double>& root_regrets = regret_list[root_I.get_index()];
+                for (int i = 0; i < 13; i++) {
+                    std::cout << root_regrets[i] << " ";
+                }
+            }
 
             PolicyVec average_strategy = cumulative_strategy;
             // normalize the cumulative strategy
