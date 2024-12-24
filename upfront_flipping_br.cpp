@@ -213,6 +213,7 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
     }
 
     for (int t = 0; t < T; t++) {
+        eps = 1/((t/step_size)+1);
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
@@ -237,14 +238,6 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
 
         // traverse history and update regrets
         compute_regrets_along_history_wrapper(player_br_policy, cumulative_strategy, br_player, t, regret_list, markers, start_history, q_z, reward);
-        
-        std::cout << "Sampled history" << std::endl;
-        std::cout << "============================================================" << std::endl;
-        for (int i = 0; i < start_history.history.size(); i++) {
-            std::cout << start_history.history[i] << " ";
-        }
-        std::cout << std::endl << "explore_or_exploit" << explore_or_exploit << std::endl;
-        std::cout << std::endl << "============================================================" << std::endl;
 
         if (t % step_size == 0 && t != 0) {
             double expected_utility = 0.0;
