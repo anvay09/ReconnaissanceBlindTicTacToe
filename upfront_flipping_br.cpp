@@ -136,12 +136,7 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
 
         for (int i = 0; i < actions.size(); i++) {
             if (actions[i] == action) {
-                if (played_action_prob > 0) {
-                    regret_I[actions[i]] += (reward * reach_prob * (1 - played_action_prob)) / q_z;
-                }
-                else {
-                    regret_I[actions[i]] += (reward * reach_prob) / (q_z);
-                }
+                regret_I[actions[i]] += (reward * reach_prob * (1 - played_action_prob)) / q_z;
             } 
             else {
                 regret_I[actions[i]] += -reward * reach_prob * played_action_prob / q_z;
