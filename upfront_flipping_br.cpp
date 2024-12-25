@@ -275,7 +275,11 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
                 exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
 
             }
-            std::cout << "############################################################" << std::endl;
+            std::cout << "Checking latest sampled history..." << std::endl;
+            for (int i = 0; i < start_history.history.size(); i++) {
+                std::cout << start_history.history[i] << " ";
+            }
+            std::cout << std::endl << "############################################################" << std::endl;
         }
     }
 
