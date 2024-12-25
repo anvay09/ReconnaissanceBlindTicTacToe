@@ -233,15 +233,39 @@ void onpath_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player
         if (t % log_size == 0 && t != 0) {
             double expected_utility = 0.0;
             std::cout << "############################################################" << std::endl;
+            PolicyVec average_strategy = cumulative_strategy;
+            // normalize the cumulative strategy
+            #pragma omp parallel for num_threads(NUM_THREADS)
+            for (long int i = 0; i < player_information_sets.size(); i++) {
+                std::vector<double>& cumulative_prob_table = average_strategy.policy_dict[i];
+                double sum = 0.0;
+
+                for (int j = 0; j < 13; j++) {
+                    sum += cumulative_prob_table[j];
+                }
+
+                if (sum > 0) {
+                    for (int j = 0; j < 13; j++) {
+                        cumulative_prob_table[j] /= sum;
+                    }
+                }
+            }
+
             if (br_player == 'x'){
                 expected_utility = get_expected_utility_wrapper(player_br_policy, opponent_policy);
-                exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
                 std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
+                expected_utility = get_expected_utility_wrapper(average_strategy, opponent_policy);
+                std::cout << "Expected utility after averaging: " << expected_utility << std::endl;
+                exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
+
             }
             else {
                 expected_utility = get_expected_utility_wrapper(opponent_policy, player_br_policy);
-                exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
                 std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
+                expected_utility = get_expected_utility_wrapper(opponent_policy, average_strategy);
+                std::cout << "Expected utility after averaging: " << expected_utility << std::endl;
+                exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
+
             }
             std::cout << "############################################################" << std::endl;
         }
