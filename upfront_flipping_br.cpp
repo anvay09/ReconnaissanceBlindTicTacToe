@@ -195,7 +195,7 @@ void compute_regrets_along_history_wrapper(PolicyVec& player_br_policy, PolicyVe
 
 } 
 
-void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, PolicyVec& player_uniform_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, long int step_size, double exact_br_value, int experiment_number) {
+void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, PolicyVec& player_uniform_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, long int step_size, double exact_br_value, int experiment_number, long int log_size) {
     std::vector<std::vector<double>> regret_list;
     std::vector<long int> markers;
     PolicyVec cumulative_strategy;
@@ -239,7 +239,7 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
         // traverse history and update regrets
         compute_regrets_along_history_wrapper(player_br_policy, cumulative_strategy, br_player, t, regret_list, markers, start_history, q_z, reward);
 
-        if (t % step_size == 0 && t != 0) {
+        if (t % log_size == 0 && t != 0) {
             double expected_utility = 0.0;
             std::cout << "############################################################" << std::endl;
             if (br_player == 'x'){
@@ -314,11 +314,14 @@ int main(int argc, char* argv[]) {
         char player;
         int experiment_number = 1;
         int num_experiments = 0;
+        long int log_size = 1;
 
         std::cout << "Enter number of iterations: ";
         std::cin >> num_iterations;
-        std::cout << "Enter the number of iterations after which progress is to be checked: ";
+        std:: cout << "Enter step size for eps decay";
         std::cin >> step_size;
+        std::cout << "Enter the number of iterations after which progress is to be checked: ";
+        std::cin >> log_size;
         std::cout << "Enter the player for whom the best response is to be computed (x/o):";
         std::cin >> player;
         std::cout << "Enter number of experiments: ";
@@ -335,11 +338,11 @@ int main(int argc, char* argv[]) {
         while (experiment_number <= num_experiments){
             if (player == 'x'){
                 PolicyVec player_br_policy = policy_obj_x;
-                upfront_flipping_best_response(policy_obj_o, player_br_policy, uniform_policy_obj_x, 'x', P1_information_sets,  num_iterations, step_size, expected_utility, experiment_number);
+                upfront_flipping_best_response(policy_obj_o, player_br_policy, uniform_policy_obj_x, 'x', P1_information_sets,  num_iterations, step_size, expected_utility, experiment_number, log_size);
             }
             else if (player == 'o'){
                 PolicyVec player_br_policy = policy_obj_o;
-                upfront_flipping_best_response(policy_obj_x, player_br_policy, uniform_policy_obj_o, 'o', P2_information_sets, num_iterations, step_size, expected_utility, experiment_number);
+                upfront_flipping_best_response(policy_obj_x, player_br_policy, uniform_policy_obj_o, 'o', P2_information_sets, num_iterations, step_size, expected_utility, experiment_number, log_size);
             }
             experiment_number += 1;
         }
