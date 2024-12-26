@@ -484,7 +484,7 @@ double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::ve
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
-    double infoset_value = -7.0;
+    double infoset_value = -13.0;
     // std::cout << "Building policy for infoset: " << I.get_hash() << std::endl;
 
     for (int a : legal_actions){
@@ -508,7 +508,7 @@ double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::ve
             action_values[a] /= norm;
         }
         else {
-            action_values[a] = -7.0;
+            action_values[a] = -13.0;
         }
     }
 
@@ -568,7 +568,7 @@ double build_max_reward_policy_parallel(PolicyVec& policy_obj, InformationSet&I,
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
-    double infoset_value = -7.0;
+    double infoset_value = -13.0;
  
     #pragma omp parallel for num_threads(NUMBER_THREADS)
     for (int a : legal_actions){
@@ -593,7 +593,7 @@ double build_max_reward_policy_parallel(PolicyVec& policy_obj, InformationSet&I,
             action_values[a] /= norm;
         }
         else {
-            action_values[a] = -7.0;
+            action_values[a] = -13.0;
         }
     }
 
@@ -675,7 +675,7 @@ void update_max_reward_policy_given_history(InformationSet& I, PokerTable& true_
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         std::vector<double> action_values(6, 0.0);
-        double infoset_value = -7.0;
+        double infoset_value = -13.0;
 
         for (int a : legal_actions){
             std::unordered_set<std::string> cohort;
@@ -701,7 +701,7 @@ void update_max_reward_policy_given_history(InformationSet& I, PokerTable& true_
                 action_values[a] /= norm;
             }
             else {
-                action_values[a] = -7.0;
+                action_values[a] = -13.0;
             }
         }
 
@@ -770,7 +770,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(6, 0.0);
-    double max_ucb = -7.0;
+    double max_ucb = -13.0;
 
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
@@ -823,7 +823,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
             infoset_time_step[I.get_index()] += 1;
         }
         else {
-            action_ucb_values[a] = 7.0;
+            action_ucb_values[a] = 13.0;
         }
     }
 
@@ -900,7 +900,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(6, 0.0);
-    double max_ucb = -7.0;
+    double max_ucb = -13.0;
 
     #pragma omp parallel for num_threads(NUMBER_THREADS)
     for (int a : legal_actions){
@@ -951,7 +951,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
             infoset_time_step[I.get_index()] += 1;
         }
         else {
-            action_ucb_values[a] = 7.0;
+            action_ucb_values[a] = 13.0;
         }
     }
 
@@ -1050,7 +1050,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         std::vector<double> action_ucb_values(6, 0.0);
-        double max_ucb = -7.0;
+        double max_ucb = -13.0;
         std::vector<int> success_metrics{0, 0, 0};
 
         for (int a : legal_actions){
@@ -1101,7 +1101,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
                 infoset_time_step[I.get_index()] += 1;
             }
             else {
-                action_ucb_values[a] = 7.0;
+                action_ucb_values[a] = 13.0;
             }
         }
 

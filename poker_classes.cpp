@@ -486,8 +486,9 @@ char History::other_player(char player) {
     return (player == 'x') ? 'o' : 'x';
 }
 
-double History::update_true_cards_given_history(PokerTable &true_cards) {
-    double half_pot = 1.0;
+std::vector<double> History::update_true_cards_given_history(PokerTable &true_cards) {
+    double investment_x = 1.0;
+    double investment_o = 1.0;
     bool preflop = true;
     std::vector<char> action_to_char = {'x', 'b', 'c', 'r', 'f'};
     true_cards.cards[0] = this->history[0];
@@ -496,39 +497,70 @@ double History::update_true_cards_given_history(PokerTable &true_cards) {
  
     for (int action : this->history) {
         if (action < 5) {
+            if (action == 1) { // bet
+                if (preflop) {
+                    if (true_cards.player_to_move == 'x'){
+                        investment_x += 2.0;
+                    }
+                    else {
+                        investment_o += 2.0;
+                    }
+                }
+                else {
+                    if (true_cards.player_to_move == 'x'){
+                        investment_x += 4.0;
+                    }
+                    else {
+                        investment_o += 4.0;
+                    }
+                }
+            }
+            else if (action == 2) { // call
+                if (preflop) {
+                    if (true_cards.player_to_move == 'x'){
+                        investment_x = investment_o;
+                    }
+                    else {
+                        investment_o = investment_x;
+                    }
+                }
+                else {
+                    if (true_cards.player_to_move == 'x'){
+                        investment_x = investment_o;
+                    }
+                    else {
+                        investment_o = investment_x;
+                    }
+                }
+            }
+            else if (action == 3) { // raise
+                if (preflop) {
+                    if (true_cards.player_to_move == 'x'){
+                        investment_x += 4.0;
+                    }
+                    else {
+                        investment_o += 4.0;
+                    }
+                }
+                else {
+                    if (true_cards.player_to_move == 'x'){
+                        investment_x += 8.0;
+                    }
+                    else {
+                        investment_o += 8.0;
+                    }
+                }
+            }
+            
             true_cards.update_move(action);
             if (true_cards.bid_sequence.back() == 'd') {
                 preflop = false;
             }
-
-            if (action == 1) {
-                if (preflop) {
-                    half_pot += 1.0;
-                }
-                else {
-                    half_pot += 2.0;
-                }
-            }
-            else if (action == 3) {
-                if (preflop) {
-                    half_pot += 1.0;
-                }
-                else {
-                    half_pot += 2.0;
-                }
-            }
-            else if (action == 4) {
-                if (preflop) {
-                    half_pot -= 1.0;
-                }
-                else {
-                    half_pot -= 2.0;
-                }
-            }
         }
     }
 
-    return half_pot;
+    std::vector<double> investments = {investment_x, investment_o};
+    return investments;
 }
 
 void History::get_information_sets(InformationSet &I_1, InformationSet &I_2) {
@@ -578,16 +610,16 @@ TerminalHistory TerminalHistory::copy() {
 
 void TerminalHistory::set_reward() { 
     PokerTable true_cards;
-    double half_pot = this->update_true_cards_given_history(true_cards);
+    std::vector<double> investments = this->update_true_cards_given_history(true_cards);
     char winner;
     
     if (true_cards.is_win(winner)) {
         if (winner == 'x') {
-            this->reward[0] = half_pot;
-            this->reward[1] = -half_pot;
+            this->reward[0] = investments[1];
+            this->reward[1] = - investments[1];
         } else {
-            this->reward[0] = -half_pot;
-            this->reward[1] = half_pot;
+            this->reward[0] = - investments[0];
+            this->reward[1] = investments[0];
         }
     }
 }

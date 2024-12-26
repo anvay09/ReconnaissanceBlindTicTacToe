@@ -118,7 +118,7 @@ void save_output(std::string output_policy_file, std::string output_regret_file,
 
 // prob
 void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, History& current_history, InformationSet& end_I,
-                               int current_action_index, int other_player_turn_index, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
+                               PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
     InformationSet& I = true_cards.player_to_move == 'x' ? I_1 : I_2;
     std::vector<int> actions;
 
@@ -148,10 +148,10 @@ void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2, PokerTa
                 new_I.update_move(action);
 
                 if (I.player == 'x') {
-                    valid_histories_play_prob(new_I, I_2, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
+                    valid_histories_play_prob(new_I, I_2, new_true_cards, new_history, end_I, policy_obj_x, policy_obj_o, valid_histories_list);
                 }
                 else {
-                    valid_histories_play_prob(I_1, new_I, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
+                    valid_histories_play_prob(I_1, new_I, new_true_cards, new_history, end_I, policy_obj_x, policy_obj_o, valid_histories_list);
                 }
             }
         }
@@ -166,10 +166,10 @@ void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2, PokerTa
             new_history.history.push_back(action);
 
             if (I.player == 'x') {
-                valid_histories_play_prob(new_I, I_2, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
+                valid_histories_play_prob(new_I, I_2, new_true_cards, new_history, end_I, policy_obj_x, policy_obj_o, valid_histories_list);
             }
             else {
-                valid_histories_play_prob(I_1, new_I, new_true_cards, new_history, end_I, current_action_index, other_player_turn_index, policy_obj_x, policy_obj_o, valid_histories_list);
+                valid_histories_play_prob(I_1, new_I, new_true_cards, new_history, end_I, policy_obj_x, policy_obj_o, valid_histories_list);
             }
         }
     }
@@ -196,7 +196,7 @@ void upgraded_get_histories_given_I_prob(InformationSet& I, PolicyVec& policy_ob
         h.push_back(draw[2]);
         NonTerminalHistory current_history(h);
 
-        valid_histories_play_prob(I_1, I_2, true_cards, current_history, I, 0, 0, policy_obj_x, policy_obj_o, valid_histories_list);
+        valid_histories_play_prob(I_1, I_2, true_cards, current_history, I, policy_obj_x, policy_obj_o, valid_histories_list);
     }
     return;
 }
@@ -289,7 +289,8 @@ void get_probability_of_reaching_all_h_prob(InformationSet& I, PolicyVec& policy
         InformationSet I_1('x', true, hash_1);
         InformationSet I_2('o', false, hash_2);
         PokerTable true_cards = PokerTable(cards);
-        double probability_reaching_h = get_prob_h_given_policy_wrapper_prob(I_1, I_2, true_cards, h[3], policy_obj_x, policy_obj_o, h_object, I, initial_player);
+        h_object.track_traversal_index = 3;
+        double probability_reaching_h = get_prob_h_given_policy_wrapper_prob(I_1, I_2, true_cards, h_object.history[3], policy_obj_x, policy_obj_o, h_object, I, initial_player);
         prob_reaching_h_list_all.push_back(probability_reaching_h);
     }
 }
