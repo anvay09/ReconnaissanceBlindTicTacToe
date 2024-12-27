@@ -283,7 +283,15 @@ void onpath_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player
     std::cout << "Saving exploitability logs" << std::endl;
     std::string file_name = "data/" + std::string(1, br_player) + "onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
     std::string file_name_average = "data/" + std::string(1, br_player) + "average_onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    if (decay_flag) {
+        file_name = "data/eps_decay/step_size=" + std::to_string(step_size) + "/" + std::string(1, br_player) + "onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+        file_name_average = "data/eps_decay/step_size=" + std::to_string(step_size) + "/" + std::string(1, br_player) + "average_onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
 
+    }
+    else {
+        file_name = "data/eps_constant/eps=" + std::to_string(eps) + "/" + std::string(1, br_player) + "onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+        file_name_average = "data/eps_constant/eps=" + std::to_string(eps) + "/" + std::string(1, br_player) + "average_onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    }
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++) {
         f << exploitability_log[i].first << " " << exploitability_log[i].second << std::endl;
