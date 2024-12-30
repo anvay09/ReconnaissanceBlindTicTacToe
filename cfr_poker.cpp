@@ -21,7 +21,7 @@ void save_map_json(std::string output_file, std::vector<std::vector<double>>& ma
 
 //cfr
 void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char player, std::string base_path){
-    std::cout << "Starting iteration " << T << " for player " << player << "..." << std::endl;
+    // std::cout << "Starting iteration " << T << " for player " << player << "..." << std::endl;
 
     #pragma omp parallel for num_threads(NUMBER_THREADS) shared(regret_list, policy_obj_x, policy_obj_o)
     for (int i = 0; i < information_sets.size(); i++) {
@@ -425,8 +425,6 @@ int main(int argc, char* argv[])  {
     }
 
     for (int T = start_iter; T <= end_iter; T++) {
-        double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
-        std::cout << "Expected utility: " << expected_utility << std::endl; 
         run_cfr(T, P1_information_sets, regret_list_x, policy_obj_x, policy_obj_o, 'x', base_path);
         run_cfr(T, P2_information_sets, regret_list_o, policy_obj_x, policy_obj_o, 'o', base_path);
         get_prob_reaching(P1_information_sets, prob_reaching_list_x, 'x', policy_obj_x, policy_obj_o);
@@ -438,8 +436,39 @@ int main(int argc, char* argv[])  {
         std::string output_policy_file_o = base_path + "/cfr" + "/P2_iteration_" + std::to_string(end_iter) + "_cfr_policy_cpp.json";
         save_map_json(output_policy_file_x, policy_obj_x.policy_dict, P1_information_sets);
         save_map_json(output_policy_file_o, policy_obj_o.policy_dict, P2_information_sets);
-    }
 
+        if (T % 100 == 0){
+            std::cout << "Finished iteration " << T << std::endl;
+            double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
+            std::cout << "Expected utility of iteration policies: " << expected_utility << std::endl; 
+
+            calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
+            calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o');
+
+            expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, avg_policy_obj_o);
+            std::cout << "Expected utility of average policies: " << expected_utility << std::endl;
+
+            // best response
+            double exploitability = 0.0;
+            PolicyVec br_x('x', P1_information_sets);
+            PolicyVec br_o('o', P2_information_sets);
+
+            std::cout << "Computing best response for player x" << std::endl;
+            expected_utility = compute_best_response_wrapper(avg_policy_obj_o, br_x, 'x');
+            expected_utility = get_expected_utility_wrapper(br_x, avg_policy_obj_o);
+            exploitability += expected_utility;
+            std::cout << "Expected utility of br_x: " << expected_utility << std::endl;
+
+            std::cout << "Computing best response for player o" << std::endl;
+            expected_utility = compute_best_response_wrapper(avg_policy_obj_x, br_o, 'o');
+            expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, br_o);
+            exploitability -= expected_utility;
+            std::cout << "Expected utility of br_o: " << expected_utility << std::endl;
+
+            std::cout << "Exploitability: " << exploitability << std::endl;
+
+        }
+    }
 
     calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
     calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o');
