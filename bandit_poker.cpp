@@ -96,9 +96,15 @@ void get_states_in_infoset(InformationSet &I, std::vector<PokerTable> &states) {
             PokerTable state = PokerTable(draw);
             state.bid_sequence = I.get_hash().substr(5);
             state.player_to_move = toggle_player(I.player);
-            if (I.bid_sequence.back() == 'c') {
-                if (I.bid_sequence.find('d') == std::string::npos) {
+
+            if (I.get_hash().back() == 'c') {
+                if (I.get_hash().find('d') == std::string::npos) {
                     state.bid_sequence += "d";
+                    state.player_to_move = 'x';
+                    if (I.player == 'x'){
+                        states.push_back(state);
+                        continue;
+                    }
                 }
                 else { 
                     state.bid_sequence += "s";
@@ -165,13 +171,6 @@ void get_cohort(InformationSet I, int action, std::unordered_set<std::string> &c
             }
         }
     }
-
-    // std::cout << "Infoset: " << I.get_hash() << " Action: " << action << std::endl;
-    // std::cout << "Cohort: " << std::endl;
-    // for (std::string hash : cohort) {
-    //     std::cout << hash << " ";
-    // }
-    // std::cout << std::endl;
 
     return;
 }
@@ -485,7 +484,6 @@ double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::ve
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
     double infoset_value = -13.0;
-    // std::cout << "Building policy for infoset: " << I.get_hash() << std::endl;
 
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
@@ -656,7 +654,6 @@ void update_max_reward_policy_given_history(InformationSet& I, PokerTable& true_
     
     int action = game.history[traversal_index];
     char curr_player = true_cards.player_to_move;
-    // std::cout << "Infoset: " << I.get_hash() << " Action: " << action << " Index: " << I.get_index() << " Opponent infoset: " << opponent_I.get_hash() << " Index: " << opponent_I.get_index() << std::endl;
 
     if (curr_player == br_player){
         if (I.move_flag) {
@@ -680,11 +677,8 @@ void update_max_reward_policy_given_history(InformationSet& I, PokerTable& true_
         for (int a : legal_actions){
             std::unordered_set<std::string> cohort;
             std::unordered_map<std::string, double> cohort_values;
-            // std::cout << "Infoset: " << I.get_hash() << ", Getting cohort for action: " << a << std::endl;
             get_cohort(I, a, cohort);
-            // for (std::string I_prime_hash : cohort){
-            //     std::cout << "Cohort infoset: " << I_prime_hash << std::endl;
-            // }
+
             int norm = 0;
             int terminal_reach_count = action_terminal_reach_count[I.get_index()][a];
 
@@ -695,6 +689,7 @@ void update_max_reward_policy_given_history(InformationSet& I, PokerTable& true_
                 norm += infoset_reach_count[I_prime.get_index()];
                 action_values[a] += cohort_values[I_prime_hash] * infoset_reach_count[I_prime.get_index()]; 
             }
+
             norm += terminal_reach_count;
             action_values[a] += empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2];
             if (norm != 0){
@@ -790,6 +785,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
             if (I_tickmark[I_prime.get_index()] == 0){
                 u += infoset_reach_count[I_prime.get_index()];
                 action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
+                norm += infoset_reach_count[I_prime.get_index()];
             }
             else {
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
@@ -804,12 +800,11 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
                 }
             }
         }
-        // if infoset reach count is zero then the action and pull count is zero then the action has not been taken
-        // in that case ignore the action
 
         if (terminal_reach_count != 0){
             u += terminal_reach_count;
             action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
+            norm += terminal_reach_count;
 
             success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
             success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -818,7 +813,6 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 
         if (u != 0){
             action_ucb_values[a] /= norm;
-            // action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
             action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()]) / u);
             infoset_time_step[I.get_index()] += 1;
         }
@@ -920,6 +914,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
             if (I_tickmark[I_prime.get_index()] == 0){
                 u += infoset_reach_count[I_prime.get_index()];
                 action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
+                norm += infoset_reach_count[I_prime.get_index()];
             }
             else {
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
@@ -938,6 +933,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
         if (terminal_reach_count != 0){
             u += terminal_reach_count;
             action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
+            norm += terminal_reach_count;
 
             success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
             success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -946,7 +942,6 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
 
         if (u != 0){
             action_ucb_values[a] /= norm;
-            // action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
             action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()]) / u);
             infoset_time_step[I.get_index()] += 1;
         }
@@ -1057,6 +1052,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
             std::unordered_set<std::string> cohort;
             std::unordered_map<std::string, double> cohort_ucb_values;
             get_cohort(I, a, cohort);
+
             int u = 0;
             int norm = 0;
             int terminal_reach_count = action_terminal_reach_count[I.get_index()][a]; // number of times action led to terminal state
@@ -1070,6 +1066,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
                 if (I_tickmark[I_prime.get_index()] == 0){
                     u += infoset_reach_count[I_prime.get_index()];
                     action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
+                    norm += infoset_reach_count[I_prime.get_index()];
                 }
                 else {
                     int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
@@ -1088,6 +1085,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
             if (terminal_reach_count != 0){
                 u += terminal_reach_count;
                 action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
+                norm += terminal_reach_count;
 
                 success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
                 success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -1096,7 +1094,6 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
 
             if (u != 0){
                 action_ucb_values[a] /= norm;
-                // action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
                 action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()]) / u);
                 infoset_time_step[I.get_index()] += 1;
             }
