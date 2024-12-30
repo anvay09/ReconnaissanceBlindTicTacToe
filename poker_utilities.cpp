@@ -651,15 +651,19 @@ void simulate_opponent_turn(PokerTable& true_cards, History& history, double rea
 
 
 double get_max_Q_value_and_update_policy(std::vector<double>& Q_values, std::vector<int>& actions, PolicyVec& br, InformationSet& I) {
-    double max_Q = -1.0;
+    double max_Q = -13.0;
     int best_action = -1;
 
+    // std::cout << "Information set: " << I.get_hash() << " Player: " << I.player << std::endl;
+
     for (int a = 0; a < actions.size(); a++) {
+        // std::cout << "Action: " << actions[a] << " Q value: " << Q_values[actions[a]] << std::endl;
         if (Q_values[actions[a]] >= max_Q) {
             max_Q = Q_values[actions[a]];
             best_action = actions[a];
         }
     }
+    // std::cout << "Best action: " << best_action << std::endl;
 
     std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
     for (int k = 0; k < prob_dist.size(); k++) {
@@ -1058,16 +1062,16 @@ double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char 
                                               2*p, 2*p, 2*p, 2*p, 2*p, 2*p};
 
     std::vector<char> single_cards = {'J', 'Q', 'K'};
-    std::vector<PokerTable> true_cards_list;
-    std::vector<History> history_list;
-    std::vector<double> reach_probability_list;
-    std::vector<InformationSet> opponent_I_list;
-    double reach_sum = 0.0;
-
+    
     if (br_player == 'x') {
         for (int i = 0; i < single_cards.size(); i++){
             std::string hash_1 = "a-" + std::string(1, single_cards[i]) + "--";
             InformationSet I_1 = InformationSet('x', true, hash_1);
+            double reach_sum = 0.0;
+            std::vector<PokerTable> true_cards_list;
+            std::vector<History> history_list;
+            std::vector<double> reach_probability_list;
+            std::vector<InformationSet> opponent_I_list;
 
             for (int d = 0; d < unique_draws.size(); d++){
                 std::string cards = unique_draws[d];
@@ -1091,13 +1095,36 @@ double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char 
                     opponent_I_list.push_back(I_2);
                 }
             }
-            expected_utility += reach_sum * compute_best_response(I_1, br_player, true_cards_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+            
+            // // print true cards list
+            // for (int i = 0; i < true_cards_list.size(); i++){
+            //     std::cout << true_cards_list[i].cards << " " << true_cards_list[i].bid_sequence << std::endl;
+            // }
+            // // print reach probability list
+            // for (int i = 0; i < reach_probability_list.size(); i++){
+            //     std::cout << reach_probability_list[i] << " ";
+            // }
+            // std::cout << std::endl;
+            // // print opponent I list
+            // for (int i = 0; i < opponent_I_list.size(); i++){
+            //     std::cout << opponent_I_list[i].get_hash() << " ";
+            // }
+            // std::cout << std::endl;
+
+            double output = reach_sum * compute_best_response(I_1, br_player, true_cards_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+            // std::cout << "Reach sum: " << reach_sum << " Output: " << output << std::endl;
+            expected_utility += output;
         }
     } 
     else {
         for (int i = 0; i < single_cards.size(); i++){
             std::string hash_2 = "o-" + std::string(1, single_cards[i]) + "--";
             InformationSet I_2 = InformationSet('o', false, hash_2);
+            double reach_sum = 0.0;
+            std::vector<PokerTable> true_cards_list;
+            std::vector<History> history_list;
+            std::vector<double> reach_probability_list;
+            std::vector<InformationSet> opponent_I_list;
 
             for (int d = 0; d < unique_draws.size(); d++){
                 std::string cards = unique_draws[d];

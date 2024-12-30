@@ -38,18 +38,45 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Loading policies..." << std::endl;
     char player = 'x';
-    PolicyVec policy_obj_x('x', P1_information_sets);
-    PolicyVec policy_obj_o('o', P2_information_sets);
+    // std::string P1_policy_file = "data/Iterative_1/average/P1_iteration_5000_average_cfr_policy_cpp.json";
+    // std::string P2_policy_file = "data/Iterative_1/average/P2_iteration_5000_average_cfr_policy_cpp.json";
+    std::string P1_policy_file = "data/P1_nash_Leduc_Poker.txt";
+    std::string P2_policy_file = "data/P2_nash_Leduc_Poker.txt";
+
+    PolicyVec policy_obj_x('x', P1_policy_file, true);
+    PolicyVec policy_obj_o('o', P2_policy_file, true);
 
     std::cout << "Policies loaded." << std::endl;
     std::cout << "Getting expected utility..." << std::endl;  
 
-
+    double exploitability = 0.0;
     double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
     std::cout << "Expected utility: " << expected_utility << std::endl;
 
     PolicyVec br_x('x', P1_information_sets);
     PolicyVec br_o('o', P2_information_sets);
+
+    std::cout << "Computing best response for player x" << std::endl;
+    expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
+    
+    // std::cout << "Expected utility output of BR function: " << expected_utility << std::endl;
+    expected_utility = get_expected_utility_wrapper(br_x, policy_obj_o);
+    exploitability += expected_utility;
+    std::cout << "Expected utility: " << expected_utility << std::endl;
+
+    std::cout << "Computing best response for player o" << std::endl;
+    expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
+
+    // std::cout << "Expected utility: " << expected_utility << std::endl;
+    expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
+    exploitability -= expected_utility;
+    std::cout << "Expected utility: " << expected_utility << std::endl;
+
+    std::cout << "Exploitability: " << exploitability << std::endl;
+
+    return 0;
+}
+
 
     // std::string nash_file = "LeducNashValues.txt";
     // std::unordered_map<char, int> action_to_index = {{'x', 0}, {'b', 1}, {'c', 2}, {'r', 3}, {'f', 4}};
@@ -105,21 +132,6 @@ int main(int argc, char* argv[]) {
     // expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
     // std::cout << "Expected utility: " << expected_utility << std::endl;
 
-    // std::cout << "Computing best response for player x" << std::endl;
-    // expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
-    // std::cout << "Expected utility: " << expected_utility << std::endl;
-    // expected_utility = get_expected_utility_wrapper(br_x, policy_obj_o);
-    // std::cout << "Expected utility: " << expected_utility << std::endl;
-
-    // std::cout << "Computing best response for player o" << std::endl;
-    // expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
-    // std::cout << "Expected utility: " << expected_utility << std::endl;
-    // expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
-    // std::cout << "Expected utility: " << expected_utility << std::endl;
-
     // save policies to file
     // save_map_txt("data/P1_nash_Leduc_Poker.txt", policy_obj_x.policy_dict, P1_information_sets);
     // save_map_txt("data/P2_nash_Leduc_Poker.txt", policy_obj_o.policy_dict, P2_information_sets);
-
-    return 0;
-}
