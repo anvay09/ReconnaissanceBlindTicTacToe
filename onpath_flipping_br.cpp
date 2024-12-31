@@ -14,16 +14,16 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
-    std::vector<double> uniform_prob_dist = player_uniform_policy.policy_dict[I.get_index()];
     int action = -1;
 
     if (player == update_player) { // explore with a small epsilon
+        std::vector<double> uniform_prob_dist = player_uniform_policy.policy_dict[I.get_index()];
         std::vector<int> actions;
         I.get_actions(actions);
         std::vector<double> pick_prob_dist(13, 0.0);
         double sum = 0.0;
         for (int i = 0; i < actions.size(); i++) {
-            pick_prob_dist[actions[i]] = eps*action_selection_probability_explore*uniform_prob_dist[actions[i]] + (1-eps)*action_selection_probability_exploit*prob_dist[actions[i]];
+            pick_prob_dist[actions[i]] = eps*action_selection_probability_explore*uniform_prob_dist[actions[i]] + (1.0-eps)*action_selection_probability_exploit*prob_dist[actions[i]];
             sum += pick_prob_dist[actions[i]];
         }
         for (int i = 0; i < actions.size(); i++) {
@@ -87,7 +87,8 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
     InformationSet I_2 = InformationSet('o', false, hash_2);
     double action_selection_probability_explore = 1.0;
     double action_selection_probability_exploit = 1.0;
-    return sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', 1.0, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
+    double probability = sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', 1.0, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
+    return (1.0 - eps)*action_selection_probability_exploit + eps*action_selection_probability_explore;
 }
 
 
@@ -140,9 +141,13 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
 
         for (int i = 0; i < actions.size(); i++) {
             if (actions[i] == action) {
-                regret_I[actions[i]] += (reward * reach_prob * (1 - played_action_prob)) / q_z;
-            } 
-            else {
+                if (played_action_prob > 0) {
+                    regret_I[actions[i]] += (reward * reach_prob * (1 - played_action_prob)) / q_z;
+                }
+                else {
+                    regret_I[actions[i]] += (reward * reach_prob) / (q_z);
+                }
+            } else {
                 regret_I[actions[i]] += -reward * reach_prob * played_action_prob / q_z;
             }
 

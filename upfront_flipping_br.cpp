@@ -14,12 +14,10 @@ void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToe
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
-    std::vector<double> uniform_prob_dist = player_uniform_policy.policy_dict[I.get_index()];
     int action = -1;
 
     if (player == update_player) { // explore with a small epsilon
-        std::vector<int> actions;
-        I.get_actions(actions);
+        std::vector<double> uniform_prob_dist = player_uniform_policy.policy_dict[I.get_index()];
         if (explore_or_exploit_flag == 1){
             action = sampleIndex(prob_dist);
         }
@@ -83,7 +81,7 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
     double reach_probability_explore = 1.0;
     double reach_probability_exploit = 1.0;
     sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', reward, update_player, eps, reach_probability_explore, reach_probability_exploit, explore_or_exploit_flag);
-    return (1-eps)*reach_probability_exploit + eps*reach_probability_explore;
+    return (1.0-eps)*reach_probability_exploit + eps*reach_probability_explore;
 }
 
 
@@ -136,9 +134,13 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, T
 
         for (int i = 0; i < actions.size(); i++) {
             if (actions[i] == action) {
-                regret_I[actions[i]] += (reward * reach_prob * (1 - played_action_prob)) / q_z;
-            } 
-            else {
+                if (played_action_prob > 0) {
+                    regret_I[actions[i]] += (reward * reach_prob * (1 - played_action_prob)) / q_z;
+                }
+                else {
+                    regret_I[actions[i]] += (reward * reach_prob) / (q_z);
+                }
+            } else {
                 regret_I[actions[i]] += -reward * reach_prob * played_action_prob / q_z;
             }
 
@@ -223,7 +225,7 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
         double reward = 0;
 
         int explore_or_exploit = 0;
-        std::vector<double> eps_prob_dist = {eps, 1-eps};
+        std::vector<double> eps_prob_dist = {eps, 1.0-eps};
         if (sampleIndex(eps_prob_dist)){
             explore_or_exploit = 1;
             exploit_count += 1;
