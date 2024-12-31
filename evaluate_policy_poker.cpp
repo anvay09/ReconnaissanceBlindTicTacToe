@@ -64,15 +64,15 @@ int main(int argc, char* argv[]) {
     exploitability += expected_utility;
     std::cout << "Expected utility: " << expected_utility << std::endl;
 
-    // std::cout << "Computing best response for player o" << std::endl;
-    // expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
+    std::cout << "Computing best response for player o" << std::endl;
+    expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
 
-    // std::cout << "Expected utility output of BR function: " << expected_utility << std::endl;
-    // expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
-    // exploitability -= expected_utility;
-    // std::cout << "Expected utility: " << expected_utility << std::endl;
+    std::cout << "Expected utility output of BR function: " << expected_utility << std::endl;
+    expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
+    exploitability -= expected_utility;
+    std::cout << "Expected utility: " << expected_utility << std::endl;
 
-    // std::cout << "Exploitability: " << exploitability << std::endl;
+    std::cout << "Exploitability: " << exploitability << std::endl;
 
     return 0;
 }

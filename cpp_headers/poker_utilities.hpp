@@ -4,6 +4,10 @@ using json = nlohmann::json;
 
 char toggle_player(char player);
 
+void get_states_in_infoset(InformationSet &I, std::vector<PokerTable> &states);
+
+void get_cohort(InformationSet I, int action, std::unordered_set<std::string> &cohort);
+
 void valid_histories_play(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, History& current_history, InformationSet& end_I, std::vector<int>& played_actions, int current_action_index, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list);
 
 void upgraded_get_histories_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list);

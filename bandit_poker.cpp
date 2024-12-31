@@ -61,121 +61,6 @@ void print_histogram(std::vector<int>& visited_infosets) {
 }
 
 
-void get_states_in_infoset(InformationSet &I, std::vector<PokerTable> &states) {
-    std::vector<std::string> unique_draws = {"JJQ", "JQJ", "QJJ", "QQJ", "QJQ", "JQQ", 
-                                             "KKJ", "KJK", "JKK", "KKQ", "KQK", "QKK", 
-                                             "QQK", "QKQ", "KQQ", "JJK", "JKJ", "KJJ",
-                                             "JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
-    std::string cards = I.get_cards_from_hash();
-    
-    for (std::string draw : unique_draws) {
-        if (I.player == 'x') { // eliminate draws that are not consistent with player's cards
-            if (draw[0] != cards[0]){
-                continue;
-            }
-        }
-        else {
-            if (draw[1] != cards[0]){
-                continue;
-            }
-        }
-
-        if (cards[1] != '-'){
-            if (draw[2] != cards[1]){
-                continue;
-            }
-        }
-
-        if (I.move_flag){ // if move infoset then state is straightforward
-            PokerTable state = PokerTable(draw);
-            state.bid_sequence = I.get_hash().substr(5);
-            state.player_to_move = I.player;
-            states.push_back(state);
-        }
-        else {
-            PokerTable state = PokerTable(draw);
-            state.bid_sequence = I.get_hash().substr(5);
-            state.player_to_move = toggle_player(I.player);
-
-            if (I.get_hash().back() == 'c') {
-                if (I.get_hash().find('d') == std::string::npos) {
-                    state.bid_sequence += "d";
-                    state.player_to_move = 'x';
-                    if (I.player == 'x'){
-                        states.push_back(state);
-                        continue;
-                    }
-                }
-                else { 
-                    state.bid_sequence += "s";
-                    continue;
-                }
-            }
-            
-            char op_card = I.player == 'x' ? draw[1] : draw[0];
-            std::string opp_hash = "a-" + std::string(1, op_card) + state.bid_sequence;
-            if (cards[1] != '-') { // if player has seen card, then opponent has seen card because opponet infoset is an action infoset
-                opp_hash[3] = draw[2];
-            }
-
-            InformationSet opp_I(toggle_player(I.player), true, opp_hash);
-            std::vector<int> legal_actions;
-            opp_I.get_actions(legal_actions);
-
-            for (int a : legal_actions) {
-                PokerTable depth_1_state = state;
-                depth_1_state.update_move(a);
-                InformationSet depth_1_I = opp_I;
-                depth_1_I.update_move(a);
-                
-                if (!depth_1_state.is_over() && depth_1_state.player_to_move == opp_I.player) {
-                    InformationSet depth_2_I = depth_1_I;
-                    depth_2_I.simulate_sense(a, depth_1_state);
-
-                    std::vector<int> depth_3_legal_actions;
-                    depth_2_I.get_actions(depth_3_legal_actions);
-
-                    for (int b : depth_3_legal_actions) {
-                        PokerTable depth_3_state = depth_1_state;
-                        depth_3_state.update_move(b);
-                        states.push_back(depth_3_state);
-                    }
-                }
-                else {
-                    states.push_back(depth_1_state);
-                }
-            }
-        }
-    }
-}
-
-
-void get_cohort(InformationSet I, int action, std::unordered_set<std::string> &cohort) {
-    if (I.move_flag) {
-        I.update_move(action);
-        if (I.get_index() != -1) {
-            cohort.insert(I.get_hash());
-        }
-    }
-    else {
-        std::vector<PokerTable> states;
-        get_states_in_infoset(I, states);
-
-        for (PokerTable &state : states) {
-            InformationSet new_I = I;
-            new_I.simulate_sense(action, state);
-            if (new_I.get_index() != -1) {
-                if (cohort.find(new_I.get_hash()) == cohort.end()) {
-                    cohort.insert(new_I.get_hash());
-                }
-            }
-        }
-    }
-
-    return;
-}
-
-
 int sampleIndex(const std::vector<double>& probabilities) {
     std::random_device rd;
     std::mt19937 generator(rd());
@@ -785,7 +670,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
             if (I_tickmark[I_prime.get_index()] == 0){
                 u += infoset_reach_count[I_prime.get_index()];
                 action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
-                norm += infoset_reach_count[I_prime.get_index()];
+                // norm += infoset_reach_count[I_prime.get_index()];
             }
             else {
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
@@ -804,7 +689,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
         if (terminal_reach_count != 0){
             u += terminal_reach_count;
             action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
-            norm += terminal_reach_count;
+            // norm += terminal_reach_count;
 
             success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
             success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -914,7 +799,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
             if (I_tickmark[I_prime.get_index()] == 0){
                 u += infoset_reach_count[I_prime.get_index()];
                 action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
-                norm += infoset_reach_count[I_prime.get_index()];
+                // norm += infoset_reach_count[I_prime.get_index()];
             }
             else {
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
@@ -933,7 +818,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
         if (terminal_reach_count != 0){
             u += terminal_reach_count;
             action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
-            norm += terminal_reach_count;
+            // norm += terminal_reach_count;
 
             success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
             success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
@@ -1066,7 +951,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
                 if (I_tickmark[I_prime.get_index()] == 0){
                     u += infoset_reach_count[I_prime.get_index()];
                     action_ucb_values[a] += infoset_reach_count[I_prime.get_index()];
-                    norm += infoset_reach_count[I_prime.get_index()];
+                    // norm += infoset_reach_count[I_prime.get_index()];
                 }
                 else {
                     int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
@@ -1085,7 +970,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
             if (terminal_reach_count != 0){
                 u += terminal_reach_count;
                 action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
-                norm += terminal_reach_count;
+                // norm += terminal_reach_count;
 
                 success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
                 success_metrics[1] += empirical_action_reward[I.get_index()][a][1];
