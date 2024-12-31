@@ -41,20 +41,21 @@ def clean_data(file_name, num_experiments, num_iterations, step_size = 1000, omi
     return x, y
 
 player = 'x'
-LUCB_num_experiments = 14
+LUCB_num_experiments = 10
 MCCFR_num_experiments = 10
 C = 16
-x, y = clean_data("data/x_C=16_LUCB_exploitability_log", LUCB_num_experiments, 50, 10000, 2, 1, interpolation = False)
-x_mccfr, y_mccfr = clean_data("data/x_MCCFR_OS_exploitability_log", MCCFR_num_experiments, 50, 10000, 1, 1, interpolation = False)
+x, y = clean_data("data/leduc_poker_x_C=16_poker_LUCB_exploitability_log", LUCB_num_experiments, 100, 10000, 1, 1, interpolation = False)
+x_mccfr, y_mccfr = clean_data("data/leduc_poker_x_MCCFR_OS_exploitability_log", MCCFR_num_experiments, 100, 10000, 1, 1, interpolation = False)
 
 plt.plot(x, y, marker='', linewidth=1, color='blue', label='LUCB for player ' + player + ', C = ' + str(C) + ', against number of samples, averaged over ' + str(LUCB_num_experiments) + ' experiments')
 plt.plot(x_mccfr, y_mccfr, marker='', linewidth=1, color='red', label='MCCFR Outcome sampling for player ' + player + ', averaged over ' + str(MCCFR_num_experiments) + ' experiments')
 
 # horizontal line
 plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
-plt.yticks([0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5])
+plt.yticks([0.01, 0.05, 0.1, 0.2, 0.3])
 plt.xlabel('Number of samples')
 plt.ylabel('Exploitability')
+plt.title('Leduc Poker')
 plt.legend()
 plt.show()
 

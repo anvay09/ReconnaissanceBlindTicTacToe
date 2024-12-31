@@ -414,12 +414,12 @@ int main(int argc, char* argv[]) {
     char continue_exp = 'y';
     int num_experiments = 1;
     // while (continue_exp == 'y') {
-    while (num_experiments <= 25)
+    while (num_experiments <= 10)
     {
         double eps = 0.1;
         long int num_iterations = 1000000;
         long int step_size = 10000;
-        char player = 'x';
+        char player = 'o';
 
         if (bypass_input == 0) {
             std::cout << "Enter number of iterations: ";

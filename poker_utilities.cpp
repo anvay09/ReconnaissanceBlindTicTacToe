@@ -438,7 +438,7 @@ double get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_o
         h.push_back(true_cards.cards[2]);
         TerminalHistory start_history = TerminalHistory(h);
 
-        expected_utility += get_expected_utility_parallel(I_1, I_2, true_cards, policy_obj_x, policy_obj_o, draw_probabilities[i], start_history, 'x');
+        expected_utility += get_expected_utility(I_1, I_2, true_cards, policy_obj_x, policy_obj_o, draw_probabilities[i], start_history, 'x');
     }
 
     return expected_utility;
@@ -773,16 +773,12 @@ double get_max_Q_value_and_update_policy(std::vector<double>& Q_values, std::vec
     double max_Q = -13.0;
     int best_action = -1;
 
-    // std::cout << "Information set: " << I.get_hash() << " Player: " << I.player << std::endl;
-
     for (int a = 0; a < actions.size(); a++) {
-        // std::cout << "Action: " << actions[a] << " Q value: " << Q_values[actions[a]] << std::endl;
         if (Q_values[actions[a]] >= max_Q) {
             max_Q = Q_values[actions[a]];
             best_action = actions[a];
         }
     }
-    // std::cout << "Best action: " << best_action << std::endl;
 
     std::vector<double>& prob_dist = br.policy_dict[I.get_index()];
     for (int k = 0; k < prob_dist.size(); k++) {

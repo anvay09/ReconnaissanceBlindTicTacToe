@@ -2,7 +2,7 @@
 #include "cpp_headers/poker_utilities.hpp"
 #include <random>
 #include <cmath>
-int NUMBER_THREADS = 96;
+int NUMBER_THREADS = 4;
 
 
 void pretty_print(std::chrono::time_point<std::chrono::system_clock> start, std::chrono::time_point<std::chrono::system_clock> end, std::string msg, int flag) {
@@ -110,30 +110,30 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
     }
 
     if (I.move_flag) {
-        PokerTable new_board = true_cards;
-        bool success = new_board.update_move(action);
+        PokerTable new_cards = true_cards;
+        bool success = new_cards.update_move(action);
         current_history.history.push_back(action);
 
         char winner;
-        if (success && !new_board.is_win(winner) && !new_board.is_over()) {
+        if (success && !new_cards.is_win(winner) && !new_cards.is_over()) {
             InformationSet new_I = I;
             new_I.update_move(action);
 
             if (I.player == 'x') {
-                if (new_board.player_to_move == 'x') {
-                    is_child_infoset_ticked = explore(new_I, I_2, previous_opponent_I, prev_opponent_action, new_board, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
+                if (new_cards.player_to_move == 'x') {
+                    is_child_infoset_ticked = explore(new_I, I_2, previous_opponent_I, prev_opponent_action, new_cards, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
                 }
                 else {
-                    is_child_infoset_ticked = explore(new_I, I_2, I, action, new_board, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
+                    is_child_infoset_ticked = explore(new_I, I_2, I, action, new_cards, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
                 }
 
                 
             } else {
-                if (new_board.player_to_move == 'o') {
-                    is_child_infoset_ticked = explore(I_1, new_I, previous_opponent_I, prev_opponent_action, new_board, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
+                if (new_cards.player_to_move == 'o') {
+                    is_child_infoset_ticked = explore(I_1, new_I, previous_opponent_I, prev_opponent_action, new_cards, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
                 }
                 else {
-                    is_child_infoset_ticked = explore(I_1, new_I, I, action, new_board, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
+                    is_child_infoset_ticked = explore(I_1, new_I, I, action, new_cards, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
                 }
             }
         } else {
@@ -1145,9 +1145,9 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
 
     std::cout << "Total number of games sampled for pulling each policy " << m << " times: " << t << std::endl;
-    int iterations = 100;
-    int C = 10;
-    log_frequency = 1;
+    int iterations = 1000000;
+    int C = 16;
+    log_frequency = 10000;
 
     if (bypass_input == 0){
         std::cout << "Enter number of games to sample: ";
@@ -1225,10 +1225,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             h.push_back(cards[2]); 
             TerminalHistory start_history = TerminalHistory(h);
 
-            // std::cout << "Sampling game using max_ucb_policy" << std::endl;
             exploit_wrapper(I_1, true_cards, I_2, player_max_ucb_policy, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
-            // std::cout << "Sampled game using max_ucb_policy" << std::endl;
-            // start_history.print_history();
 
             true_cards = PokerTable(cards);
             hash_1 = "a-" + std::string(1, cards[0]) + "--";
@@ -1242,7 +1239,6 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             else {
                 update_max_reward_policy_given_history(I_2, true_cards, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, br_player, 3);
             }
-            // std::cout << "Max reward policy updated" << std::endl;
 
             true_cards = PokerTable(cards);
             hash_1 = "a-" + std::string(1, cards[0]) + "--";
@@ -1257,8 +1253,6 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
                 update_max_UCB_policy_given_history(I_2, true_cards, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, br_player, 3, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
             }
 
-            // std::cout << "Max UCB policy updated" << std::endl;
-
             max_UCB_flag = false;
         }
         else {
@@ -1266,10 +1260,8 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             std::mt19937 generator(rd());
             std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
             int draw_index = distribution(generator);
-            // std::cout << "Draw index: " << draw_index << std::endl;
 
             std::string cards = unique_draws[draw_index];
-            // std::cout << "Cards: " << cards << std::endl;
             PokerTable true_cards = PokerTable(cards);
             std::string hash_1 = "a-" + std::string(1, cards[0]) + "--";
             std::string hash_2 = "o-" + std::string(1, cards[1]) + "--";
@@ -1281,13 +1273,8 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             h.push_back(cards[1]);
             h.push_back(cards[2]); 
             TerminalHistory start_history = TerminalHistory(h);
-            // std::cout << "Start history: ";
-            // start_history.print_history();
 
-            // std::cout << "Sampling game using br policy" << std::endl;
             exploit_wrapper(I_1, true_cards, I_2, player_br, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
-            // std::cout << "Sampled game using br policy" << std::endl;
-            // start_history.print_history();
 
             true_cards = PokerTable(cards);
             hash_1 = "a-" + std::string(1, cards[0]) + "--";
@@ -1301,8 +1288,6 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             else {
                 update_max_reward_policy_given_history(I_2, true_cards, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, br_player, 3);
             }
-
-            // std::cout << "Max reward policy updated" << std::endl;
 
             true_cards = PokerTable(cards);
             hash_1 = "a-" + std::string(1, cards[0]) + "--";
@@ -1317,14 +1302,12 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
                 update_max_UCB_policy_given_history(I_2, true_cards, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, br_player, 3, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
             }
 
-            // std::cout << "Max UCB policy updated" << std::endl;
-
             max_UCB_flag = true;
         }
     }
 
     std::cout << "Saving exploitability log" << std::endl;
-    std::string file_name = "data/" + std::string(1, br_player) + "_C=" + std::to_string(C) + "_poker_LUCB_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/leduc_poker_" + std::string(1, br_player) + "_C=" + std::to_string(C) + "_poker_LUCB_exploitability_log_" + std::to_string(experiment_number) + ".txt";
 
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++) {
@@ -1375,8 +1358,8 @@ int main(int argc, char* argv[]) {
     char continue_exp = 'y';
     int experiment_num = 1;
 
-    while (continue_exp == 'y') {
-    // while (experiment_num <= 100) {
+    // while (continue_exp == 'y') {
+    while (experiment_num <= 10) {
         int log_frequency = 10;
         char player = 'x';
         int m = 1;
@@ -1401,7 +1384,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "Continue experiments? (" << experiment_num << " experiments done) (y/n): ";
-        std::cin >> continue_exp;
+        // std::cin >> continue_exp;
         experiment_num += 1;
     }
 }
