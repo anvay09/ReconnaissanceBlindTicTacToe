@@ -701,8 +701,9 @@ TerminalHistory TerminalHistory::copy() {
     return TerminalHistory(this->history, this->reward);
 }
 
-void TerminalHistory::set_reward() { 
+void TerminalHistory::set_reward(char game) { 
     PokerTable true_cards;
+    true_cards.game = game;
     std::vector<double> investments = this->update_true_cards_given_history(true_cards);
     char winner;
     

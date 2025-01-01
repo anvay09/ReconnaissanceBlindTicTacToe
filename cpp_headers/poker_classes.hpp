@@ -21,8 +21,8 @@ static std::string EMPTY_TABLE = "---"; // Player 1 card {J, Q, K}, Player 2 car
 static std::string EMPTY_HASH = "";
 static double LEDUC_MIN_UTILITY = -13.0;
 static double LEDUC_MAX_UTILITY = 13.0;
-static double KUHN_MIN_UTILITY = -4.0;
-static double KUHN_MAX_UTILITY = 4.0;
+static double KUHN_MIN_UTILITY = -2.0;
+static double KUHN_MAX_UTILITY = 2.0;
 
 static std::vector<std::string> unique_draws_leduc = {"JJQ", "JQJ", "QJJ", "QQJ", "QJQ", "JQQ", 
                                                 "KKJ", "KJK", "JKK", "KKQ", "KQK", "QKK", 
@@ -30,9 +30,9 @@ static std::vector<std::string> unique_draws_leduc = {"JJQ", "JQJ", "QJJ", "QQJ"
                                                 "JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
 static double p = 1.0/30.0;
 static std::vector<double> draw_probabilities_leduc = {p, p, p, p, p, p,
-                                                p, p, p, p, p, p,
-                                                p, p, p, p, p, p,
-                                                2*p, 2*p, 2*p, 2*p, 2*p, 2*p};
+                                                       p, p, p, p, p, p,
+                                                       p, p, p, p, p, p,
+                                                       2*p, 2*p, 2*p, 2*p, 2*p, 2*p};
 
 static std::vector<std::string> unique_draws_kuhn = {"JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
 static std::vector<double> draw_probabilities_kuhn = {1.0/6.0, 1.0/6.0, 1.0/6.0, 1.0/6.0, 1.0/6.0, 1.0/6.0};
@@ -111,7 +111,7 @@ public:
     std::vector<double> reward;
     TerminalHistory(std::vector<int>& history, std::vector<double> reward = {0.0, 0.0});
     TerminalHistory copy();
-    void set_reward();
+    void set_reward(char game);
 };
 
 class NonTerminalHistory : public History

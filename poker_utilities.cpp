@@ -254,8 +254,8 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, PokerTable
                 }
             } else {
                 TerminalHistory H_T = TerminalHistory(new_history.history);
-                H_T.set_reward();
-
+                H_T.set_reward(I.game);
+ 
                 if (initial_player == 'x'){
                     expected_utility_h += H_T.reward[0] * probability_new;
                 }
@@ -309,7 +309,7 @@ double get_expected_utility_action_version(InformationSet &I_1, InformationSet &
             }
         } else {
             TerminalHistory H_T = TerminalHistory(new_history.history);
-            H_T.set_reward();
+            H_T.set_reward(I.game);
             if (initial_player == 'x'){
                 expected_utility_h += H_T.reward[0] * probability;
             }
@@ -379,7 +379,7 @@ double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, P
                 }
             } else {
                 TerminalHistory H_T = TerminalHistory(new_history.history);
-                H_T.set_reward();
+                H_T.set_reward(I.game);
                 if (initial_player == 'x'){
                     expected_utility_h += H_T.reward[0] * probability_new;
                 }
@@ -751,7 +751,7 @@ void simulate_opponent_turn(PokerTable& true_cards, History& history, double rea
             }
             else {
                 TerminalHistory H_T = TerminalHistory(depth_3_history.history);
-                H_T.set_reward();
+                H_T.set_reward(true_cards.game);
 
                 if (br_player == 'x'){
                     Q_values[played_action] += H_T.reward[0] * depth_3_reach_probability;
@@ -827,7 +827,7 @@ double compute_best_response(InformationSet& I, char br_player, std::vector<Poke
                 }
                 else {
                     TerminalHistory H_T = TerminalHistory(depth_1_history.history);
-                    H_T.set_reward();
+                    H_T.set_reward(I.game);
 
                     if (br_player == 'x'){
                         Q_values[actions[a]] += H_T.reward[0] * depth_1_reach_probability;
@@ -925,7 +925,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
                 }
                 else {
                     TerminalHistory H_T = TerminalHistory(depth_1_history.history);
-                    H_T.set_reward();
+                    H_T.set_reward(I.game);
 
                     if (br_player == 'x'){
                         Q_values[actions[a]] += H_T.reward[0] * depth_1_reach_probability;
@@ -1110,7 +1110,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
                         }
                         else {
                             TerminalHistory H_T = TerminalHistory(depth_2_history.history);
-                            H_T.set_reward();
+                            H_T.set_reward(I.game);
 
                             if (br_player == 'x'){
                                 depth_2_Q_values[new_I.hash][depth_2_actions[new_I.hash][b]] += H_T.reward[0] * depth_2_reach_probability;
