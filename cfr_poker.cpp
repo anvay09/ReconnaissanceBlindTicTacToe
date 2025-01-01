@@ -20,14 +20,14 @@ void save_map_json(std::string output_file, std::vector<std::vector<double>>& ma
 }
 
 //cfr
-void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char player, std::string base_path){
+void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char player, std::string base_path, char game){
     // std::cout << "Starting iteration " << T << " for player " << player << "..." << std::endl;
 
     #pragma omp parallel for num_threads(NUMBER_THREADS) shared(regret_list, policy_obj_x, policy_obj_o)
     for (int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
         bool move_flag = get_move_flag(I_hash, player);
-        InformationSet I(player, move_flag, I_hash);
+        InformationSet I(player, move_flag, I_hash, game);
         calc_cfr_policy_given_I(I, policy_obj_x, policy_obj_o, T, regret_list[i]);
     }
 
@@ -35,7 +35,7 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
     for (int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
         bool move_flag = get_move_flag(I_hash, player);
-        InformationSet I(player, move_flag, I_hash);
+        InformationSet I(player, move_flag, I_hash, game);
         std::vector<double>& regret_vector = regret_list[i];
         double total_regret = 0.0;
         std::vector<int> actions;
@@ -60,9 +60,9 @@ void run_cfr(int T, std::vector<std::string>& information_sets, std::vector<std:
     }
 }
 
-void initialize_start(std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, std::vector<double>& prob_reaching_list, PolicyVec& policy_obj, PolicyVec& avg_policy_obj, std::vector<double>& avg_policy_denominator, char player) {
+void initialize_start(std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, std::vector<double>& prob_reaching_list, PolicyVec& policy_obj, PolicyVec& avg_policy_obj, std::vector<double>& avg_policy_denominator, char player, char game) {
     std::cout << "initialize_start for player " << player << std::endl;
-    policy_obj = PolicyVec(player, information_sets);
+    policy_obj = PolicyVec(player, information_sets, game);
     avg_policy_obj = policy_obj;
     
     std::ifstream f_is(information_set_file);
@@ -80,8 +80,8 @@ void initialize_start(std::string information_set_file, std::vector<std::string>
     f_is.close();
 }
 
-void initialize_continue(std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, std::vector<std::vector<double>>& regret_map, std::vector<double>& prob_reaching_list, PolicyVec& policy_obj, PolicyVec& avg_policy_obj, std::vector<double>& avg_policy_denominator, char player) {
-    policy_obj = PolicyVec(player, information_sets);
+void initialize_continue(std::string information_set_file, std::vector<std::string>& information_sets, std::vector<std::vector<double>>& regret_list, std::vector<std::vector<double>>& regret_map, std::vector<double>& prob_reaching_list, PolicyVec& policy_obj, PolicyVec& avg_policy_obj, std::vector<double>& avg_policy_denominator, char player, char game) {
+    policy_obj = PolicyVec(player, information_sets, game);
     avg_policy_obj = policy_obj;
     
     std::ifstream f_is(information_set_file);
@@ -177,13 +177,15 @@ void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2, PokerTa
 
 
 void upgraded_get_histories_given_I_prob(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){    
-    for (std::string draw : unique_draws_leduc){
+    std::vector<std::string>& unique_draws = I.game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
+    for (std::string draw : unique_draws){
         std::string hash_1 = "a-" + std::string(1, draw[0]) + "--";
         std::string hash_2 = "o-" + std::string(1, draw[1]) + "--";
     
-        InformationSet I_1('x', true, hash_1);
-        InformationSet I_2('o', false, hash_2);
+        InformationSet I_1('x', true, hash_1, I.game);
+        InformationSet I_2('o', false, hash_2, I.game);
         PokerTable true_cards = PokerTable(draw);
+        true_cards.game = I.game;
     
         std::vector<int> h = {};
         h.push_back(draw[0]);
@@ -255,16 +257,21 @@ double get_prob_h_given_policy_prob(InformationSet& I_1, InformationSet& I_2, Po
 double get_prob_h_given_policy_wrapper_prob(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards,
                                        int next_action, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o,
                                        History history_obj, InformationSet& curr_I_1, char initial_player){
-    double p = 1.0 / 30.0;
-    if (true_cards.cards[0] != true_cards.cards[1] && true_cards.cards[1] != true_cards.cards[2] && true_cards.cards[0] != true_cards.cards[2]){
-        p = 2.0 / 30.0;
+    double q = 1.0 / 30.0;
+    if (true_cards.game == 'L'){
+        if (true_cards.cards[0] != true_cards.cards[1] && true_cards.cards[1] != true_cards.cards[2] && true_cards.cards[0] != true_cards.cards[2]){
+            q = 2.0 / 30.0;
+        }
+    }
+    else if (true_cards.game == 'K'){
+        q = 1.0 / 6.0;
     }
 
     if (curr_I_1.get_hash().size() == 5){
-        return p;
+        return q;
     }
     else {
-        return p * get_prob_h_given_policy_prob(I_1, I_2, true_cards, next_action, policy_obj_x, policy_obj_o, 1.0, history_obj, initial_player);
+        return get_prob_h_given_policy_prob(I_1, I_2, true_cards, next_action, policy_obj_x, policy_obj_o, q, history_obj, initial_player);
     }
 }
 
@@ -281,14 +288,16 @@ void get_probability_of_reaching_all_h_prob(InformationSet& I, PolicyVec& policy
         
         std::string hash_1 = "a-" + std::string(1, cards[0]) + "--";
         std::string hash_2 = "o-" + std::string(1, cards[1]) + "--";
-        InformationSet I_1('x', true, hash_1);
-        InformationSet I_2('o', false, hash_2);
+        InformationSet I_1('x', true, hash_1, I.game);
+        InformationSet I_2('o', false, hash_2, I.game);
         PokerTable true_cards = PokerTable(cards);
+        true_cards.game = I.game;
         h_object.track_traversal_index = 3;
         double probability_reaching_h = get_prob_h_given_policy_wrapper_prob(I_1, I_2, true_cards, h_object.history[3], policy_obj_x, policy_obj_o, h_object, I, initial_player);
         prob_reaching_h_list_all.push_back(probability_reaching_h);
     }
 }
+
 
 double get_probability_of_reaching_I_prob(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char initial_player) {
     std::vector<std::vector<int>> starting_histories;
@@ -305,13 +314,14 @@ double get_probability_of_reaching_I_prob(InformationSet& I, PolicyVec& policy_o
     return prob_reaching;
 }
 
-void get_prob_reaching(std::vector<std::string>& information_sets, std::vector<double>& prob_reaching_list, char player, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o){
+
+void get_prob_reaching(std::vector<std::string>& information_sets, std::vector<double>& prob_reaching_list, char player, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char game){
     #pragma omp parallel for num_threads(NUMBER_THREADS) shared(policy_obj_x, policy_obj_o, prob_reaching_list)
     for (long int i = 0; i < information_sets.size(); i++) {
         prob_reaching_list[i] = 0.0;
         std::string I_hash = information_sets[i];
         bool move_flag = get_move_flag(I_hash, player);
-        InformationSet I(player, move_flag, I_hash);
+        InformationSet I(player, move_flag, I_hash, game);
 
         prob_reaching_list[i] = get_probability_of_reaching_I_prob(I, policy_obj_x, policy_obj_o, player);
     }
@@ -319,14 +329,14 @@ void get_prob_reaching(std::vector<std::string>& information_sets, std::vector<d
 //prob
 
 //avg
-void calc_average_terms(char player, std::vector<std::string>& information_sets, PolicyVec& policy_obj, std::vector<double>& prob_reaching_list, std::vector<std::vector<double>>& avg_policy_numerator, std::vector<double>& avg_policy_denominator, int T){
+void calc_average_terms(char player, std::vector<std::string>& information_sets, PolicyVec& policy_obj, std::vector<double>& prob_reaching_list, std::vector<std::vector<double>>& avg_policy_numerator, std::vector<double>& avg_policy_denominator, int T, char game){
     int weight = T > AVERAGE_DELAY ? T - AVERAGE_DELAY : 0;
     
     #pragma omp parallel for num_threads(NUMBER_THREADS) shared(avg_policy_numerator, avg_policy_denominator, policy_obj, prob_reaching_list)
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
         bool move_flag = get_move_flag(I_hash, player);
-        InformationSet I(player, move_flag, I_hash);
+        InformationSet I(player, move_flag, I_hash, game);
 
         std::vector<int> actions;
         I.get_actions(actions);
@@ -338,12 +348,12 @@ void calc_average_terms(char player, std::vector<std::string>& information_sets,
     }
 }
 
-void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& avg_policy_obj, std::vector<std::vector<double>> avg_policy_numerator, std::vector<double> avg_policy_denominator, char player){
+void calc_average_policy(std::vector<std::string>& information_sets, PolicyVec& avg_policy_obj, std::vector<std::vector<double>> avg_policy_numerator, std::vector<double> avg_policy_denominator, char player, char game){
     #pragma omp parallel for num_threads(NUMBER_THREADS) shared(avg_policy_obj, avg_policy_numerator, avg_policy_denominator)
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
         bool move_flag = get_move_flag(I_hash, player);
-        InformationSet I(player, move_flag, I_hash);
+        InformationSet I(player, move_flag, I_hash, game);
 
         std::vector<int> actions;
         I.get_actions(actions);
@@ -361,12 +371,14 @@ int main(int argc, char* argv[])  {
     std::string base_path = argv[2]; //"data/Iterative_1";
     int start_iter = std::stoi(argv[3]); //1;
     int end_iter = std::stoi(argv[4]); //1000;
+    char game = argv[5][0]; //'L';
+    int log_frequency = 10;
 
     // read information set file
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
-    std::string P1_information_sets_file = "P1_information_sets_Leduc_Poker.txt";
-    std::string P2_information_sets_file = "P2_information_sets_Leduc_Poker.txt";
+    std::string P1_information_sets_file = game == 'L' ? "P1_information_sets_Leduc_Poker.txt" : "P1_information_sets_Kuhn_Poker.txt";
+    std::string P2_information_sets_file = game == 'L' ? "P2_information_sets_Leduc_Poker.txt" : "P2_information_sets_Kuhn_Poker.txt";
 
     std::ifstream P1_f_is(P1_information_sets_file);
     std::string P1_line_is;
@@ -404,8 +416,8 @@ int main(int argc, char* argv[])  {
     std::vector<double> prob_reaching_list_o;
 
     if (start_iter == 1) {
-        initialize_start(P1_information_sets_file, P1_information_sets, regret_list_x, prob_reaching_list_x, policy_obj_x, avg_policy_obj_x, avg_policy_denominator_x, 'x');
-        initialize_start(P2_information_sets_file, P2_information_sets, regret_list_o, prob_reaching_list_o, policy_obj_o, avg_policy_obj_o, avg_policy_denominator_o, 'o');
+        initialize_start(P1_information_sets_file, P1_information_sets, regret_list_x, prob_reaching_list_x, policy_obj_x, avg_policy_obj_x, avg_policy_denominator_x, 'x', game);
+        initialize_start(P2_information_sets_file, P2_information_sets, regret_list_o, prob_reaching_list_o, policy_obj_o, avg_policy_obj_o, avg_policy_denominator_o, 'o', game);
     }
 
     else {
@@ -415,48 +427,48 @@ int main(int argc, char* argv[])  {
         std::vector<std::vector<double> > regret_map_o;
         regret_map_x = get_prev_regrets(prev_regret_file_x, 'x');
         regret_map_o = get_prev_regrets(prev_regret_file_o, 'o');
-        initialize_continue(P1_information_sets_file, P1_information_sets, regret_list_x, regret_map_x, prob_reaching_list_x, policy_obj_x, avg_policy_obj_x, avg_policy_denominator_x, 'x');
-        initialize_continue(P2_information_sets_file, P2_information_sets, regret_list_o, regret_map_o, prob_reaching_list_o, policy_obj_o, avg_policy_obj_o, avg_policy_denominator_o, 'o');
+        initialize_continue(P1_information_sets_file, P1_information_sets, regret_list_x, regret_map_x, prob_reaching_list_x, policy_obj_x, avg_policy_obj_x, avg_policy_denominator_x, 'x', game);
+        initialize_continue(P2_information_sets_file, P2_information_sets, regret_list_o, regret_map_o, prob_reaching_list_o, policy_obj_o, avg_policy_obj_o, avg_policy_denominator_o, 'o', game);
     }
 
     for (int T = start_iter; T <= end_iter; T++) {
-        run_cfr(T, P1_information_sets, regret_list_x, policy_obj_x, policy_obj_o, 'x', base_path);
-        run_cfr(T, P2_information_sets, regret_list_o, policy_obj_x, policy_obj_o, 'o', base_path);
-        get_prob_reaching(P1_information_sets, prob_reaching_list_x, 'x', policy_obj_x, policy_obj_o);
-        get_prob_reaching(P2_information_sets, prob_reaching_list_o, 'o', policy_obj_x, policy_obj_o);
-        calc_average_terms('x', P1_information_sets, policy_obj_x, prob_reaching_list_x, avg_policy_numerator_x, avg_policy_denominator_x, T);
-        calc_average_terms('o', P2_information_sets, policy_obj_o, prob_reaching_list_o, avg_policy_numerator_o, avg_policy_denominator_o, T);
+        run_cfr(T, P1_information_sets, regret_list_x, policy_obj_x, policy_obj_o, 'x', base_path, game);
+        run_cfr(T, P2_information_sets, regret_list_o, policy_obj_x, policy_obj_o, 'o', base_path, game);
+        get_prob_reaching(P1_information_sets, prob_reaching_list_x, 'x', policy_obj_x, policy_obj_o, game);
+        get_prob_reaching(P2_information_sets, prob_reaching_list_o, 'o', policy_obj_x, policy_obj_o, game);
+        calc_average_terms('x', P1_information_sets, policy_obj_x, prob_reaching_list_x, avg_policy_numerator_x, avg_policy_denominator_x, T, game);
+        calc_average_terms('o', P2_information_sets, policy_obj_o, prob_reaching_list_o, avg_policy_numerator_o, avg_policy_denominator_o, T, game);
 
         std::string output_policy_file_x = base_path + "/cfr" + "/P1_iteration_" + std::to_string(end_iter) + "_cfr_policy_cpp.json";
         std::string output_policy_file_o = base_path + "/cfr" + "/P2_iteration_" + std::to_string(end_iter) + "_cfr_policy_cpp.json";
         save_map_json(output_policy_file_x, policy_obj_x.policy_dict, P1_information_sets);
         save_map_json(output_policy_file_o, policy_obj_o.policy_dict, P2_information_sets);
 
-        if (T % 100 == 0){
+        if (T % log_frequency == 0){
             std::cout << "Finished iteration " << T << std::endl;
-            double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
+            double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o, game);
             std::cout << "Expected utility of iteration policies: " << expected_utility << std::endl; 
 
-            calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
-            calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o');
+            calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x', game);
+            calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o', game);
 
-            expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, avg_policy_obj_o);
+            expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, avg_policy_obj_o, game);
             std::cout << "Expected utility of average policies: " << expected_utility << std::endl;
 
             // best response
             double exploitability = 0.0;
-            PolicyVec br_x('x', P1_information_sets);
-            PolicyVec br_o('o', P2_information_sets);
+            PolicyVec br_x('x', P1_information_sets, game);
+            PolicyVec br_o('o', P2_information_sets, game);
 
             std::cout << "Computing best response for player x" << std::endl;
-            expected_utility = compute_best_response_wrapper(avg_policy_obj_o, br_x, 'x');
-            expected_utility = get_expected_utility_wrapper(br_x, avg_policy_obj_o);
+            expected_utility = compute_best_response_wrapper(avg_policy_obj_o, br_x, 'x', game);
+            expected_utility = get_expected_utility_wrapper(br_x, avg_policy_obj_o, game);
             exploitability += expected_utility;
             std::cout << "Expected utility of br_x: " << expected_utility << std::endl;
 
             std::cout << "Computing best response for player o" << std::endl;
-            expected_utility = compute_best_response_wrapper(avg_policy_obj_x, br_o, 'o');
-            expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, br_o);
+            expected_utility = compute_best_response_wrapper(avg_policy_obj_x, br_o, 'o', game);
+            expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, br_o, game);
             exploitability -= expected_utility;
             std::cout << "Expected utility of br_o: " << expected_utility << std::endl;
 
@@ -465,8 +477,8 @@ int main(int argc, char* argv[])  {
         }
     }
 
-    calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x');
-    calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o');
+    calc_average_policy(P1_information_sets, avg_policy_obj_x, avg_policy_numerator_x, avg_policy_denominator_x, 'x', game);
+    calc_average_policy(P2_information_sets, avg_policy_obj_o, avg_policy_numerator_o, avg_policy_denominator_o, 'o', game);
 
     std::string output_policy_file_x = base_path + "/average" + "/P1_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp.json";
     std::string output_policy_file_o = base_path + "/average" + "/P2_iteration_" + std::to_string(end_iter) + "_average_cfr_policy_cpp.json";
@@ -474,6 +486,6 @@ int main(int argc, char* argv[])  {
     std::string output_regret_file_o = base_path + "/regret/P2_iteration_" + std::to_string(end_iter) + "_regret_cpp.json";
     save_output(output_policy_file_x, output_regret_file_x, 'x', P1_information_sets, regret_list_x, avg_policy_obj_x);
     save_output(output_policy_file_o, output_regret_file_o, 'o', P2_information_sets, regret_list_o, avg_policy_obj_o);
-    double expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, avg_policy_obj_o);
+    double expected_utility = get_expected_utility_wrapper(avg_policy_obj_x, avg_policy_obj_o, game);
     std::cout << "Expected utility avg: " << expected_utility << std::endl; 
 }

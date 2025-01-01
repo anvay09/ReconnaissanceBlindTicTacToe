@@ -138,7 +138,7 @@ int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
-            H_T.set_reward();
+            H_T.set_reward(I.game);
             int r = br_player == 'x' ? H_T.reward[0] : H_T.reward[1];
             terminal_flag = 1;
 
@@ -271,7 +271,7 @@ int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
-            H_T.set_reward();
+            H_T.set_reward(I.game);
             int r = br_player == 'x' ? H_T.reward[0] : H_T.reward[1];
             terminal_flag = 1;
 
@@ -1138,7 +1138,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
 
     std::cout << "Total number of games sampled for pulling each policy " << m << " times: " << t << std::endl;
-    int iterations = 500;
+    int iterations = 1000;
     int C = 16;
     log_frequency = 5;
 
@@ -1361,9 +1361,9 @@ int main(int argc, char* argv[]) {
     int experiment_num = 1;
 
     // while (continue_exp == 'y') {
-    while (experiment_num <= 10) {
+    while (experiment_num <= 100) {
         int log_frequency = 10;
-        char player = 'x';
+        char player = 'o';
         int m = 1;
 
         if (bypass_input == 0) {

@@ -55,7 +55,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, PokerTa
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
-            H_T.set_reward();
+            H_T.set_reward(I.game);
             if (update_player == 'x'){
                 reward = (double) H_T.reward[0];
             } else {
@@ -403,10 +403,10 @@ int main(int argc, char* argv[]) {
     char continue_exp = 'y';
     int num_experiments = 1;
     // while (continue_exp == 'y') {
-    while (num_experiments <= 10)
+    while (num_experiments <= 100)
     {
         double eps = 0.1;
-        long int num_iterations = 500;
+        long int num_iterations = 1000;
         long int step_size = 5;
         char player = 'o';
 
