@@ -25,9 +25,9 @@ static double KUHN_MIN_UTILITY = -2.0;
 static double KUHN_MAX_UTILITY = 2.0;
 
 static std::vector<std::string> unique_draws_leduc = {"JJQ", "JQJ", "QJJ", "QQJ", "QJQ", "JQQ", 
-                                                "KKJ", "KJK", "JKK", "KKQ", "KQK", "QKK", 
-                                                "QQK", "QKQ", "KQQ", "JJK", "JKJ", "KJJ",
-                                                "JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
+                                                      "KKJ", "KJK", "JKK", "KKQ", "KQK", "QKK", 
+                                                      "QQK", "QKQ", "KQQ", "JJK", "JKJ", "KJJ",
+                                                      "JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
 static double p = 1.0/30.0;
 static std::vector<double> draw_probabilities_leduc = {p, p, p, p, p, p,
                                                        p, p, p, p, p, p,

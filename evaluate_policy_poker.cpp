@@ -13,6 +13,9 @@ int main(int argc, char* argv[]) {
     std::string P1_information_sets_file = "P1_information_sets_Kuhn_Poker.txt";
     std::string P2_information_sets_file = "P2_information_sets_Kuhn_Poker.txt";
     char game = 'K';
+    // std::string P1_information_sets_file = "P1_information_sets_Leduc_Poker.txt";
+    // std::string P2_information_sets_file = "P2_information_sets_Leduc_Poker.txt";
+    // char game = 'L';
 
     std::ifstream P1_f_is(P1_information_sets_file);
     std::string P1_line_is;
@@ -39,10 +42,11 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Loading policies..." << std::endl;
     char player = 'x';
-    // std::string P1_policy_file = "data/Iterative_1/average/P1_iteration_5000_average_cfr_policy_cpp.json";
-    // std::string P2_policy_file = "data/Iterative_1/average/P2_iteration_5000_average_cfr_policy_cpp.json";
     std::string P1_policy_file = "data/P1_nash_Kuhn_Poker.txt";
     std::string P2_policy_file = "data/P2_nash_Kuhn_Poker.txt";
+
+    // std::string P1_policy_file = "data/P1_nash_Leduc_Poker.txt";
+    // std::string P2_policy_file = "data/P2_nash_Leduc_Poker.txt";
 
     // PolicyVec policy_obj_x('x', P1_information_sets, game);
     // PolicyVec policy_obj_o('o', P2_information_sets, game);
@@ -79,8 +83,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Exploitability: " << exploitability << std::endl;
 
     // save policies to file
-    // save_map_txt("data/P1_uniform_Kuhn_Poker.txt", policy_obj_x.policy_dict, P1_information_sets);
-    // save_map_txt("data/P2_uniform_Kuhn_Poker.txt", policy_obj_o.policy_dict, P2_information_sets);
+    save_map_txt("br_x.txt", br_x.policy_dict, P1_information_sets);
+    save_map_txt("br_o.txt", br_o.policy_dict, P2_information_sets);
 
     return 0;
 }

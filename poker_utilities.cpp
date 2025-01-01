@@ -874,7 +874,7 @@ double compute_best_response(InformationSet& I, char br_player, std::vector<Poke
             for (int t = 0; t < infoset_set.size(); t++) {
                 std::string new_I_hash = *std::next(infoset_set.begin(), t);
                 bool move_flag = get_move_flag(new_I_hash, I.player);
-                InformationSet new_I(I.player, move_flag, new_I_hash);
+                InformationSet new_I(I.player, move_flag, new_I_hash, I.game);
   
                 if (infoset_to_history[new_I.hash].size() > 0) {
                     Q_values[actions[a]] += compute_best_response(new_I, br_player, infoset_to_true_cards[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj);
@@ -1001,7 +1001,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
         for (int t = 0; t < infoset_set.size(); t++) {
             std::string new_I_hash = *std::next(infoset_set.begin(), t);
             bool move_flag = get_move_flag(new_I_hash, I.player);
-            InformationSet new_I(I.player, move_flag, new_I_hash);
+            InformationSet new_I(I.player, move_flag, new_I_hash, I.game);
 
             int a_val = infoset_to_first_action_taken[new_I.hash];
             int b_val = infoset_to_second_action_taken[new_I.hash];
@@ -1071,7 +1071,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
 
             std::string new_I_hash = *std::next(infoset_set.begin(), t);
             bool move_flag = get_move_flag(new_I_hash, I.player);
-            InformationSet new_I(I.player, move_flag, new_I_hash);
+            InformationSet new_I(I.player, move_flag, new_I_hash, I.game);
 
             depth_2_Q_values[new_I.hash] = Q_value_vector;
             depth_2_actions[new_I.hash] = action_vector;
@@ -1080,7 +1080,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
         for (int t = 0; t < infoset_set.size(); t++) {
             std::string new_I_hash = *std::next(infoset_set.begin(), t);
             bool move_flag = get_move_flag(new_I_hash, I.player);
-            InformationSet new_I(I.player, move_flag, new_I_hash);
+            InformationSet new_I(I.player, move_flag, new_I_hash, I.game);
 
             if (infoset_to_history[new_I.hash].size() > 0) {
                 int a_val = infoset_to_action_taken[new_I.hash];
@@ -1140,7 +1140,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
         for (int t = 0; t < depth_2_infoset_set.size(); t++) {
             std::string new_I_hash = *std::next(depth_2_infoset_set.begin(), t);
             bool move_flag = get_move_flag(new_I_hash, I.player);
-            InformationSet new_I(I.player, move_flag, new_I_hash);
+            InformationSet new_I(I.player, move_flag, new_I_hash, I.game);
 
             std::string parent_hash = depth_2_infoset_to_parent[new_I.hash];
             int b_val = depth_2_infoset_to_second_action_taken[new_I.hash];
@@ -1153,7 +1153,7 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
         for (int t = 0; t < infoset_set.size(); t++) {
             std::string new_I_hash = *std::next(infoset_set.begin(), t);
             bool move_flag = get_move_flag(new_I_hash, I.player);
-            InformationSet new_I(I.player, move_flag, new_I_hash);
+            InformationSet new_I(I.player, move_flag, new_I_hash, I.game);
 
             if (infoset_to_history[new_I.hash].size() > 0) {
                 int a_val = infoset_to_action_taken[new_I.hash];
@@ -1208,7 +1208,7 @@ double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char 
                 }
             }
             
-            double output = reach_sum * compute_best_response(I_1, br_player, true_cards_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+            double output = compute_best_response(I_1, br_player, true_cards_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
             expected_utility += output;
         }
     } 
@@ -1259,7 +1259,7 @@ double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char 
                     }
                 }
             }    
-            expected_utility -= reach_sum * compute_best_response(I_2, br_player, true_cards_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
+            expected_utility -= compute_best_response(I_2, br_player, true_cards_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
         }
     }
 

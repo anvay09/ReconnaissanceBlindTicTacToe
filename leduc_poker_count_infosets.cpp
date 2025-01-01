@@ -1,16 +1,5 @@
 #include "cpp_headers/poker_classes.hpp"
-#include <random>
 
-
-void deal_cards(PokerTable& true_cards, std::vector<char>& deck){
-    std::random_device rd;
-    std::mt19937 g(rd());
-    std::shuffle(deck.begin(), deck.end(), g);
-    true_cards.cards[0] = deck[0];
-    true_cards.cards[1] = deck[1];
-    true_cards.cards[2] = deck[2];
-    deck.erase(deck.begin(), deck.begin() + 3);
-}
 
 void play(InformationSet& I_1, PokerTable& true_cards, InformationSet& I_2, History &history, std::set<std::string>& P1_information_sets, std::set<std::string>& P2_information_sets){
     InformationSet& I = true_cards.player_to_move == 'x' ? I_1 : I_2;
@@ -24,11 +13,6 @@ void play(InformationSet& I_1, PokerTable& true_cards, InformationSet& I_2, Hist
 
     std::vector<int> actions;
     I.get_actions(actions);
-
-    // std::random_device rd;
-    // std::mt19937 g(rd());
-    // std::uniform_int_distribution<int> dis(0, actions.size() - 1);
-    // int action = actions[dis(g)];
 
     if (I.move_flag){
         for (int i = 0; i < actions.size(); i++){
@@ -78,20 +62,19 @@ void play(InformationSet& I_1, PokerTable& true_cards, InformationSet& I_2, Hist
 int main() {
     std::set<std::string> P1_information_sets;
     std::set<std::string> P2_information_sets;
+    char game = 'K';
 
-    std::vector<char> deck = {'J', 'J', 'Q', 'Q', 'K', 'K'};
-    std::vector<std::string> unique_draws = {"JJQ", "JQJ", "QJJ", "QQJ", "QJQ", "JQQ", "KKJ", "KJK", "JKK", 
-                                             "KKQ", "KQK", "QKK", "QQK", "QKQ", "KQQ", "JJK", "JKJ", "KJJ",
-                                             "JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
+    std::vector<std::string> unique_draws = {"JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
 
     for (int i = 0; i < unique_draws.size(); i++){
         PokerTable true_cards;
         true_cards.cards = unique_draws[i];
+        true_cards.game = game;
 
         std::string hash_1 = "a-" + std::string(1, true_cards.cards[0]) + "--";
         std::string hash_2 = "o-" + std::string(1, true_cards.cards[1]) + "--";
-        InformationSet I_1('x', true, hash_1);
-        InformationSet I_2('o', false, hash_2);
+        InformationSet I_1('x', true, hash_1, game);
+        InformationSet I_2('o', false, hash_2, game);
 
         std::vector<int> h = {true_cards.cards[0], true_cards.cards[1], true_cards.cards[2]};
         History start_history = History(h);
@@ -100,13 +83,13 @@ int main() {
     }
    
     // write P1_information_sets and P2_information_sets to file
-    std::ofstream P1_file("P1_information_sets_Leduc_Poker.txt");
+    std::ofstream P1_file("P1_information_sets_Kuhn_Poker.txt");
     for (auto it = P1_information_sets.begin(); it != P1_information_sets.end(); it++){
         P1_file << *it << std::endl;
     }
     P1_file.close();
 
-    std::ofstream P2_file("P2_information_sets_Leduc_Poker.txt");
+    std::ofstream P2_file("P2_information_sets_Kuhn_Poker.txt");
     for (auto it = P2_information_sets.begin(); it != P2_information_sets.end(); it++){
         P2_file << *it << std::endl;
     }

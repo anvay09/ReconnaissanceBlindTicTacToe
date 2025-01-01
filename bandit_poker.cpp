@@ -1353,6 +1353,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Loading policies" << std::endl;
     PolicyVec policy_obj_x('x', file_path_1, game, true);
     PolicyVec policy_obj_o('o', file_path_2, game, true);
+    double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o, game);
+    std::cout << "Expected utility of initial policies: " << expected_utility << std::endl;
 
     // compute epsilon best response
     char continue_exp = 'y';
@@ -1361,7 +1363,7 @@ int main(int argc, char* argv[]) {
     // while (continue_exp == 'y') {
     while (experiment_num <= 10) {
         int log_frequency = 10;
-        char player = 'o';
+        char player = 'x';
         int m = 1;
 
         if (bypass_input == 0) {
