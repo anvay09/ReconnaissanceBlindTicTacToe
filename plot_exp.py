@@ -63,11 +63,11 @@ if __name__ == "__main__":
                                       1, 1, interpolation=False)
 
     plt.plot(mccfr_x[0:99], mccfr_y[0:99], marker='', linewidth=1, color='green',
-             label='mccfr eps constant for player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
+             label='mccfr:eps constant 0.1:player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
     plt.plot(onpath_x[0:99], onpath_y[0:99], marker='', linewidth=1, color='blue',
-             label='onpath eps constant for player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
+             label='onpath:eps constant 0.1:player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
     plt.plot(upfront_x[0:99], upfront_y[0:99], marker='', linewidth=1, color='red',
-             label='upfront eps constant for player ' + player + ', averaged over ' + str(upfront_num_experiments) + ' experiments')
+             label='upfront:eps constant 0.1:player ' + player + ', averaged over ' + str(upfront_num_experiments) + ' experiments')
 
     # horizontal line
     plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
@@ -101,12 +101,12 @@ if __name__ == "__main__":
     upfront_x, upfront_y = clean_data("data/eps_decay_step_size=500000_xupfront_flipping_exploitability_log", upfront_num_experiments, 99, 100000,
                                       1, 1, interpolation=False)
 
-    plt.plot(mccfr_x[0:99], mccfr_y[0:99], marker='', linewidth=1, color='darkgreen', linestyle='solid',
-             label='mccfr eps decay for player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
-    plt.plot(onpath_x[0:99], onpath_y[0:99], marker='', linewidth=1, color='darkblue', linestyle='solid',
-             label='onpath eps decay for player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
-    plt.plot(upfront_x[0:99], upfront_y[0:99], marker='', linewidth=1, color='darkred', linestyle='solid',
-             label='upfront eps decay for player ' + player + ', averaged over ' + str(upfront_num_experiments) + ' experiments')
+    plt.plot(mccfr_x[0:99], mccfr_y[0:99], marker='', linewidth=1, color='green', linestyle='solid',
+             label='mccfr:eps decay:player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
+    plt.plot(onpath_x[0:99], onpath_y[0:99], marker='', linewidth=1, color='blue', linestyle='solid',
+             label='onpath:eps decay:player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
+    plt.plot(upfront_x[0:99], upfront_y[0:99], marker='', linewidth=1, color='red', linestyle='solid',
+             label='upfront:eps decay:player ' + player + ', averaged over ' + str(upfront_num_experiments) + ' experiments')
 
     # horizontal line
     plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
@@ -127,11 +127,11 @@ if __name__ == "__main__":
                                       1, 1, interpolation=False, player='o')
 
     plt.plot(mccfr_x[0:99], mccfr_y[0:99], marker='', linewidth=1, color='green',
-             label='mccfr eps comstant for player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
+             label='mccfr:eps constant 0.1:player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
     plt.plot(onpath_x[0:99], onpath_y[0:99], marker='', linewidth=1, color='blue',
-             label='onpath eps constant for player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
+             label='onpath:eps constant 0.1:player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
     plt.plot(upfront_x[0:99], upfront_y[0:99], marker='', linewidth=1, color='red',
-             label='upfront eps constant for player ' + player + ', averaged over ' + str(upfront_num_experiments) + ' experiments')
+             label='upfront:eps constant 0.1:player ' + player + ', averaged over ' + str(upfront_num_experiments) + ' experiments')
 
     # horizontal line
     plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
@@ -139,6 +139,7 @@ if __name__ == "__main__":
     plt.xlabel('Number of samples')
     plt.ylabel('Exploitability')
     plt.legend()
+    plt.title("RBT")
     #plt.show()
     plt.savefig("player_o_eps=0.1.png")
     plt.close()
@@ -164,12 +165,12 @@ if __name__ == "__main__":
     upfront_x, upfront_y = clean_data("data/eps_decay_step_size=500000_oupfront_flipping_exploitability_log", upfront_num_experiments, 99, 100000,
                                       1, 1, interpolation=False, player='o')
 
-    plt.plot(mccfr_x[0:99], mccfr_y[0:99], marker='', linewidth=1, color='darkgreen', linestyle='solid',
-             label='mccfr decay eps for player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
-    plt.plot(onpath_x[0:99], onpath_y[0:99], marker='', linewidth=1, color='darkblue', linestyle='solid',
-             label='onpath decay eps for player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
-    plt.plot(upfront_x[0:99], upfront_y[0:99], marker='', linewidth=1, color='darkred', linestyle='solid',
-             label='upfront decay eps for player' + player + ', averaged over ' + str(upfront_num_experiments) + ' experiments')
+    plt.plot(mccfr_x[0:99], mccfr_y[0:99], marker='', linewidth=1, color='green', linestyle='solid',
+             label='mccfr:decay eps:player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
+    plt.plot(onpath_x[0:99], onpath_y[0:99], marker='', linewidth=1, color='blue', linestyle='solid',
+             label='onpath:decay eps:player ' + player + ', averaged over ' + str(onpath_num_experiments) + ' experiments')
+    plt.plot(upfront_x[0:99], upfront_y[0:99], marker='', linewidth=1, color='red', linestyle='solid',
+             label='upfront:decay eps:player ' + player + ', averaged over ' + str(upfront_num_experiments) + ' experiments')
 
     # horizontal line
     plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
@@ -177,6 +178,7 @@ if __name__ == "__main__":
     plt.xlabel('Number of samples')
     plt.ylabel('Exploitability')
     plt.legend()
+    plt.title("RBT")
     #plt.show()
     plt.savefig("player_o_eps_decay_step=500000.png")
     plt.close()
