@@ -1,5 +1,5 @@
-#ifndef RBT_CLASSES_HPP
-#define RBT_CLASSES_HPP
+#ifndef POKER_CLASSES_HPP
+#define POKER_CLASSES_HPP
 
 #include <iostream>
 #include <fstream>
@@ -19,6 +19,24 @@
 
 static std::string EMPTY_TABLE = "---"; // Player 1 card {J, Q, K}, Player 2 card {J, Q, K}, Board card {J, Q, K}
 static std::string EMPTY_HASH = "";
+static double LEDUC_MIN_UTILITY = -13.0;
+static double LEDUC_MAX_UTILITY = 13.0;
+static double KUHN_MIN_UTILITY = -4.0;
+static double KUHN_MAX_UTILITY = 4.0;
+
+static std::vector<std::string> unique_draws_leduc = {"JJQ", "JQJ", "QJJ", "QQJ", "QJQ", "JQQ", 
+                                                "KKJ", "KJK", "JKK", "KKQ", "KQK", "QKK", 
+                                                "QQK", "QKQ", "KQQ", "JJK", "JKJ", "KJJ",
+                                                "JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
+static double p = 1.0/30.0;
+static std::vector<double> draw_probabilities_leduc = {p, p, p, p, p, p,
+                                                p, p, p, p, p, p,
+                                                p, p, p, p, p, p,
+                                                2*p, 2*p, 2*p, 2*p, 2*p, 2*p};
+
+static std::vector<std::string> unique_draws_kuhn = {"JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
+static std::vector<double> draw_probabilities_kuhn = {1.0/6.0, 1.0/6.0, 1.0/6.0, 1.0/6.0, 1.0/6.0, 1.0/6.0};
+
 class Policy;
 class PolicyVec;
 
@@ -28,7 +46,8 @@ public:
     std::string cards;
     std::string bid_sequence;
     char player_to_move;
-    PokerTable(std::string& cards = EMPTY_TABLE, std::string& bid_sequence = EMPTY_HASH, char player = 'x');
+    char game;
+    PokerTable(std::string& cards = EMPTY_TABLE, std::string& bid_sequence = EMPTY_HASH, char player = 'x', char game = 'L');
     char operator[](int key) const;
     char & operator[](int key);
     void operator=(const PokerTable &other);
@@ -53,9 +72,9 @@ public:
     std::string hash;
     int index;
     InformationSet();
-    InformationSet(char player, bool move_flag, std::string& hash, std::string& cards);
-    InformationSet(char player, bool move_flag, std::string& hash, std::string& cards, int index);
-    InformationSet(char player, bool move_flag, std::string& hash = EMPTY_HASH);
+    InformationSet(char player, bool move_flag, std::string& hash, std::string& cards, char game = 'L');
+    InformationSet(char player, bool move_flag, std::string& hash, std::string& cards, int index, char game = 'L');
+    InformationSet(char player, bool move_flag, std::string& hash = EMPTY_HASH, char game = 'L');
     bool operator==(const InformationSet &other);
     char other_player();
     InformationSet copy();
@@ -111,13 +130,13 @@ public:
     char player;
     std::vector<std::vector<double> > policy_dict;
     PolicyVec();
-    PolicyVec(char player, std::vector<std::string> & information_sets);
-    PolicyVec(char player, std::string& file_path);
-    PolicyVec(char player, std::string& file_path, bool from_txt);
+    PolicyVec(char player, std::vector<std::string> & information_sets, char game);
+    PolicyVec(char player, std::string& file_path, char game);
+    PolicyVec(char player, std::string& file_path, char game, bool from_txt);
     PolicyVec(char player, std::vector<std::vector<double> >& policy_dict);
     PolicyVec copy();
-    std::vector<std::vector<double> > read_policy_from_json(std::string& file_path, char player);
-    std::vector<std::vector<double> > read_policy_from_txt(std::string& file_path, char player);
+    std::vector<std::vector<double> > read_policy_from_json(std::string& file_path, char player, char game);
+    std::vector<std::vector<double> > read_policy_from_txt(std::string& file_path, char player, char game);
 };
 
-#endif // RBT_CLASSES_HPP_
+#endif // POKER_CLASSES_HPP_

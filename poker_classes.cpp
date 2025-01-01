@@ -35,10 +35,22 @@ size_t split(const std::string &txt, std::vector<std::string> &strs, char ch)
 // s: showdown!
 // 3. Players: for compatibility with Reconnaisance Blind Tic Tac Toe, 'x' and 'o' are used 
 
-PokerTable::PokerTable(std::string& cards, std::string& bid_sequence, char player) {
+// KUHN POKER NOTATION
+// 1. Actions: 0: check (x), 1: bet (b), 2: call (c), 4: fold (f), 5: get observation (artificial sense action for compatibility with Reconnaisance Blind Tic Tac Toe)
+// 2. Bid sequence: string with actions concatenated, e.g. "bcr" for bet, call, raise
+// bid sequence can contain the alphabets 'x', 'b', 'c', 'f', 's'
+// x: check
+// b: bet
+// c: call
+// f: fold
+// s: showdown!
+// 3. Players: for compatibility with Reconnaisance Blind Tic Tac Toe, 'x' and 'o' are used 
+
+PokerTable::PokerTable(std::string& cards, std::string& bid_sequence, char player, char game) {
     this->cards = cards;
     this->bid_sequence = bid_sequence;
     this->player_to_move = player;
+    this->game = game; // 'K' for Kuhn Poker, 'L' for Leduc Poker
 }
 
 char PokerTable::operator[](int key) const {
@@ -53,52 +65,78 @@ void PokerTable::operator=(const PokerTable &other) {
     this->cards = other.cards;
     this->bid_sequence = other.bid_sequence;
     this->player_to_move = other.player_to_move;
+    this->game = other.game;
 }
 
 bool PokerTable::operator==(const PokerTable &other) {
-    return this->cards == other.cards && this->bid_sequence == other.bid_sequence && this->player_to_move == other.player_to_move;
+    return this->cards == other.cards && this->bid_sequence == other.bid_sequence && this->player_to_move == other.player_to_move && this->game == other.game;
 }
 
 PokerTable PokerTable::copy() {
-    return PokerTable(this->cards, this->bid_sequence, this->player_to_move);
+    return PokerTable(this->cards, this->bid_sequence, this->player_to_move, this->game);
 }
 
 bool PokerTable::is_win(char& winner) {
-// if bid sequence ends in f, calculate which player folded; if bid sequence ends in s, check for pairs and high cards
-    if (this->bid_sequence.back() == 'f') {
-        winner = player_to_move;
-        return true;
-    }
-    else if (this->bid_sequence.back() == 's'){
-        if (this->cards[0] == this->cards[2]){ // player 1 has a pair
-            winner = 'x';
+    if (this->game == 'L'){ // Leduc Poker
+        if (this->bid_sequence.back() == 'f') {
+            winner = this->player_to_move;
             return true;
         }
-        else if (this->cards[1] == this->cards[2]){ // player 2 has a pair
-            winner = 'o';
-            return true;
+        else if (this->bid_sequence.back() == 's'){
+            if (this->cards[0] == this->cards[2]){ // player 1 has a pair
+                winner = 'x';
+                return true;
+            }
+            else if (this->cards[1] == this->cards[2]){ // player 2 has a pair
+                winner = 'o';
+                return true;
+            }
+            else {
+                if ((this->cards[0] == 'J' && (this->cards[1] == 'Q' || this->cards[1] == 'K')) || 
+                    (this->cards[0] == 'Q' && this->cards[1] == 'K')){ // player 2 has high card
+                    winner = 'o';
+                    return true;
+                }
+                else if ((this->cards[0] == 'K' && (this->cards[1] == 'Q' || this->cards[1] == 'J')) ||
+                        (this->cards[0] == 'Q' && this->cards[1] == 'J')){ // player 1 has high card
+                    winner = 'x';
+                    return true;
+                }
+                else { // no pairs or high cards -- draw
+                    winner = '0';
+                    return false;
+                }
+            }
         }
         else {
+            winner = '0';
+            return false;
+        }
+    }
+    else if (this->game == 'K'){ // Kuhn Poker
+        if (this->bid_sequence.back() == 'f') {
+            winner = this->player_to_move;
+            return true;
+        }
+        else if (this->bid_sequence.back() == 's'){
             if ((this->cards[0] == 'J' && (this->cards[1] == 'Q' || this->cards[1] == 'K')) || 
                 (this->cards[0] == 'Q' && this->cards[1] == 'K')){ // player 2 has high card
                 winner = 'o';
                 return true;
             }
             else if ((this->cards[0] == 'K' && (this->cards[1] == 'Q' || this->cards[1] == 'J')) ||
-                     (this->cards[0] == 'Q' && this->cards[1] == 'J')){ // player 1 has high card
+                    (this->cards[0] == 'Q' && this->cards[1] == 'J')){ // player 1 has high card
                 winner = 'x';
                 return true;
             }
-            else { // no pairs or high cards -- draw
-                winner = '0';
-                return false;
-            }
+        }
+        else {
+            winner = '0';
+            return false;
         }
     }
-    else {
-        winner = '0';
-        return false;
-    }
+    winner = '0';
+    return false;
 }
 
 bool PokerTable::is_over() {
@@ -110,9 +148,13 @@ bool PokerTable::is_over() {
 }
 
 bool PokerTable::is_draw() {
-// game is a draw when the bid sequence ends in 's' and both players have the same hand
-    if (this->bid_sequence.back() == 's' && this->cards[0] == this->cards[1]) {
-        return true;
+    if (this->game == 'L') {
+        if (this->bid_sequence.back() == 's' && this->cards[0] == this->cards[1]) {
+            return true;
+        }
+    }
+    else if (this->game == 'K') {
+        return false; // Kuhn Poker has no draws
     }
     return false;
 }
@@ -139,7 +181,15 @@ bool PokerTable::is_valid_move(int action) {
             }
         }
         else if (this->bid_sequence.back() == 'b'){ // c, r, or f
-            return action == 2 || action == 3 || action == 4;
+            if (this->game == 'L') { // raise is not a valid move in Kuhn Poker
+                return action == 2 || action == 3 || action == 4;
+            }
+            else if (this->game == 'K') {
+                return action == 2 || action == 4;
+            }
+            else {
+                return false;
+            }
         }
         else if (this->bid_sequence.back() == 'c' || this->bid_sequence.back() == 'f' || this->bid_sequence.back() == 's'){
             return false;
@@ -182,8 +232,13 @@ bool PokerTable::update_move(int action) {
         }
 
         if (check_count == 2 && preflop){
-            this->bid_sequence += "d";
-            this->player_to_move = 'x';
+            if (this->game == 'L') {
+                this->bid_sequence += "d";
+                this->player_to_move = 'x';
+            }
+            else if (this->game == 'K') {
+                this->bid_sequence += "s";
+            }
         }
         else if (check_count == 2 && !preflop){
             this->bid_sequence += "s";
@@ -197,11 +252,12 @@ bool PokerTable::update_move(int action) {
 std::unordered_map<std::string, int > InformationSet::P1_hash_to_int_map = {};
 std::unordered_map<std::string, int > InformationSet::P2_hash_to_int_map = {};
 
-InformationSet::InformationSet(char player, bool move_flag, std::string& hash) : PokerTable() {
+InformationSet::InformationSet(char player, bool move_flag, std::string& hash, char game) : PokerTable() {
     this->player = player;
     this->move_flag = move_flag;
     this->hash = hash;
     this->cards = this->get_cards_from_hash();
+    this->game = game;
     
     if (player == 'x') {
         if (P1_hash_to_int_map.find(hash) == InformationSet::P1_hash_to_int_map.end()) {
@@ -220,11 +276,12 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash) :
     }
 }
 
-InformationSet::InformationSet(char player, bool move_flag, std::string& hash, std::string& cards) : PokerTable() {
+InformationSet::InformationSet(char player, bool move_flag, std::string& hash, std::string& cards, char game) : PokerTable() {
     this->player = player;
     this->move_flag = move_flag;
     this->hash = hash;
     this->cards = cards;
+    this->game = game;
     
     if (player == 'x') {
         if (P1_hash_to_int_map.find(hash) == InformationSet::P1_hash_to_int_map.end()) {
@@ -243,12 +300,13 @@ InformationSet::InformationSet(char player, bool move_flag, std::string& hash, s
     }
 }
 
-InformationSet::InformationSet(char player, bool move_flag, std::string& hash, std::string& cards, int index) : PokerTable() {
+InformationSet::InformationSet(char player, bool move_flag, std::string& hash, std::string& cards, int index, char game) : PokerTable() {
     this->player = player;
     this->move_flag = move_flag;
     this->hash = hash;
     this->cards = cards;
     this->index = index;
+    this->game = game;
 }
 
 std::string InformationSet::get_cards_from_hash() {
@@ -264,7 +322,7 @@ std::string InformationSet::get_cards_from_hash() {
 }
 
 bool InformationSet::operator==(const InformationSet &other) {
-    return this->hash == other.hash && this->player == other.player && this->move_flag == other.move_flag;
+    return this->hash == other.hash && this->player == other.player && this->move_flag == other.move_flag && this->cards == other.cards && this->index == other.index && this->game == other.game;
 }
 
 char InformationSet::other_player() {
@@ -272,7 +330,7 @@ char InformationSet::other_player() {
 }
 
 InformationSet InformationSet::copy() {
-    return InformationSet(this->player, this->move_flag, this->hash, this->cards, this->index);
+    return InformationSet(this->player, this->move_flag, this->hash, this->cards, this->index, this->game);
 }
 
 std::string InformationSet::get_hash() {
@@ -331,7 +389,11 @@ void InformationSet::get_valid_moves(std::vector<int> &actions) {
         }
         else if (this->hash.back() == 'b'){ // c, r, or f
             actions.push_back(2);
-            actions.push_back(3);
+
+            if (this->game == 'L') { // raise is not a valid move in Kuhn Poker
+                actions.push_back(3);
+            }
+
             actions.push_back(4);
             return;
         }
@@ -418,7 +480,15 @@ bool InformationSet::is_valid_move(int action) {
             }
         }
         else if (this->hash.back() == 'b'){ // c, r, or f
-            return action == 2 || action == 3 || action == 4;
+            if (this->game == 'L') {
+                return action == 2 || action == 3 || action == 4;
+            }
+            else if (this->game == 'K') {
+                return action == 2 || action == 4;
+            }
+            else {
+                return false;
+            }
         }
         else if (this->hash.back() == 'c' || this->hash.back() == 'f' || this->hash.back() == 's'){
             return false;
@@ -500,18 +570,32 @@ std::vector<double> History::update_true_cards_given_history(PokerTable &true_ca
             if (action == 1) { // bet
                 if (preflop) {
                     if (true_cards.player_to_move == 'x'){
-                        investment_x += 2.0;
+                        if (true_cards.game == 'L'){
+                            investment_x += 2.0;
+                        }
+                        else if (true_cards.game == 'K'){
+                            investment_x += 1.0;
+                        }
                     }
                     else {
-                        investment_o += 2.0;
+                        if (true_cards.game == 'L'){
+                            investment_o += 2.0;
+                        }
+                        else if (true_cards.game == 'K'){
+                            investment_o += 1.0;
+                        }
                     }
                 }
                 else {
                     if (true_cards.player_to_move == 'x'){
-                        investment_x += 4.0;
+                        if (true_cards.game == 'L'){
+                            investment_x += 4.0;
+                        }
                     }
                     else {
-                        investment_o += 4.0;
+                        if (true_cards.game == 'L'){
+                            investment_o += 4.0;
+                        }
                     }
                 }
             }
@@ -536,18 +620,26 @@ std::vector<double> History::update_true_cards_given_history(PokerTable &true_ca
             else if (action == 3) { // raise
                 if (preflop) {
                     if (true_cards.player_to_move == 'x'){
-                        investment_x += 4.0;
+                        if (true_cards.game == 'L'){
+                            investment_x += 4.0;
+                        }
                     }
                     else {
-                        investment_o += 4.0;
+                        if (true_cards.game == 'L'){
+                            investment_o += 4.0;
+                        }
                     }
                 }
                 else {
                     if (true_cards.player_to_move == 'x'){
-                        investment_x += 8.0;
+                        if (true_cards.game == 'L'){
+                            investment_x += 8.0;
+                        }
                     }
                     else {
-                        investment_o += 8.0;
+                        if (true_cards.game == 'L'){
+                            investment_o += 8.0;
+                        }
                     }
                 }
             }
@@ -565,6 +657,7 @@ std::vector<double> History::update_true_cards_given_history(PokerTable &true_ca
 
 void History::get_information_sets(InformationSet &I_1, InformationSet &I_2) {
     PokerTable true_cards;
+    true_cards.game = I_1.game;
     true_cards.cards[0] = this->history[0];
     true_cards.cards[1] = this->history[1];
     true_cards.cards[2] = this->history[2];
@@ -636,7 +729,7 @@ PolicyVec::PolicyVec() {
     this->policy_dict = std::vector< std::vector<double> >();
 }
 
-PolicyVec::PolicyVec(char player, std::vector<std::string> &information_sets) { 
+PolicyVec::PolicyVec(char player, std::vector<std::string> &information_sets, char game) { 
     this->player = player;
     std::vector< std::vector<double> > policy_list(information_sets.size());
 
@@ -651,7 +744,7 @@ PolicyVec::PolicyVec(char player, std::vector<std::string> &information_sets) {
             move_flag = player == 'x' ? true : false;
         }
 
-        InformationSet I(player, move_flag, I_hash);
+        InformationSet I(player, move_flag, I_hash, game);
         std::vector<int> actions;
         I.get_actions(actions);
 
@@ -669,18 +762,18 @@ PolicyVec::PolicyVec(char player, std::vector<std::string> &information_sets) {
     this->policy_dict = policy_list;
 }
 
-PolicyVec::PolicyVec(char player, std::string& file_path) {
+PolicyVec::PolicyVec(char player, std::string& file_path, char game) {
     this->player = player;
-    this->policy_dict = this->read_policy_from_json(file_path, player);
+    this->policy_dict = this->read_policy_from_json(file_path, player, game);
 }
 
-PolicyVec::PolicyVec(char player, std::string& file_path, bool from_txt) {
+PolicyVec::PolicyVec(char player, std::string& file_path, char game, bool from_txt) {
     this->player = player;
     if (from_txt) {
-        this->policy_dict = this->read_policy_from_txt(file_path, player);
+        this->policy_dict = this->read_policy_from_txt(file_path, player, game);
     }
     else {
-        this->policy_dict = this->read_policy_from_json(file_path, player);
+        this->policy_dict = this->read_policy_from_json(file_path, player, game);
     }
 }
 
@@ -693,7 +786,7 @@ PolicyVec PolicyVec::copy() {
     return PolicyVec(this->player, this->policy_dict);
 }
 
-std::vector< std::vector<double>> PolicyVec::read_policy_from_json(std::string& file_path, char player){ 
+std::vector< std::vector<double>> PolicyVec::read_policy_from_json(std::string& file_path, char player, char game){ 
     int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
     std::vector< std::vector<double> > policy_list(policy_size);
     
@@ -711,7 +804,7 @@ std::vector< std::vector<double>> PolicyVec::read_policy_from_json(std::string& 
             move_flag = player == 'x' ? true : false;
         }
 
-        InformationSet I(player, move_flag, I_hash);
+        InformationSet I(player, move_flag, I_hash, game);
 
         std::vector <double> probability_distribution(6);
         // initialise all values to zero
@@ -738,7 +831,7 @@ std::vector< std::vector<double>> PolicyVec::read_policy_from_json(std::string& 
     return policy_list;
 }
 
-std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& file_path, char player){
+std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& file_path, char player, char game){
     int policy_size = player == 'x' ? InformationSet::P1_hash_to_int_map.size() : InformationSet::P2_hash_to_int_map.size();
     std::vector< std::vector<double> > policy_list(policy_size);
 

@@ -9,11 +9,8 @@ char toggle_player(char player) {
 
 
 void get_states_in_infoset(InformationSet &I, std::vector<PokerTable> &states) {
-    std::vector<std::string> unique_draws = {"JJQ", "JQJ", "QJJ", "QQJ", "QJQ", "JQQ", 
-                                             "KKJ", "KJK", "JKK", "KKQ", "KQK", "QKK", 
-                                             "QQK", "QKQ", "KQQ", "JJK", "JKJ", "KJJ",
-                                             "JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
     std::string cards = I.get_cards_from_hash();
+    std::vector<std::string> &unique_draws = I.game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
     
     for (std::string draw : unique_draws) {
         if (I.player == 'x') { // eliminate draws that are not consistent with player's cards
@@ -35,21 +32,29 @@ void get_states_in_infoset(InformationSet &I, std::vector<PokerTable> &states) {
 
         if (I.move_flag){ // if move infoset then state is straightforward
             PokerTable state = PokerTable(draw);
+            state.game = I.game;
             state.bid_sequence = I.get_hash().substr(5);
             state.player_to_move = I.player;
             states.push_back(state);
         }
         else {
             PokerTable state = PokerTable(draw);
+            state.game = I.game;
             state.bid_sequence = I.get_hash().substr(5);
             state.player_to_move = toggle_player(I.player);
 
             if (I.get_hash().back() == 'c') {
                 if (I.get_hash().find('d') == std::string::npos) {
-                    state.bid_sequence += "d";
-                    state.player_to_move = 'x';
-                    if (I.player == 'x'){
-                        states.push_back(state);
+                    if (I.game == 'L'){
+                        state.bid_sequence += "d";
+                        state.player_to_move = 'x';
+                        if (I.player == 'x'){
+                            states.push_back(state);
+                            continue;
+                        }
+                    }
+                    else if (I.game == 'K'){
+                        state.bid_sequence += "s";
                         continue;
                     }
                 }
@@ -59,8 +64,14 @@ void get_states_in_infoset(InformationSet &I, std::vector<PokerTable> &states) {
                 }
             }
             else if (I.get_hash().back() == 'x' && I.get_hash()[I.get_hash().size() - 2] == 'x'){
-                state.bid_sequence += "d";
-                state.player_to_move = 'x';
+                if (I.game == 'L'){
+                    state.bid_sequence += "d";
+                    state.player_to_move = 'x';
+                }
+                else if (I.game == 'K'){
+                    state.bid_sequence += "s";
+                    continue;
+                }
             }
             
             char op_card = I.player == 'x' ? draw[1] : draw[0];
@@ -70,6 +81,8 @@ void get_states_in_infoset(InformationSet &I, std::vector<PokerTable> &states) {
             }
 
             InformationSet opp_I(toggle_player(I.player), true, opp_hash);
+            opp_I.game = I.game;
+
             std::vector<int> legal_actions;
             opp_I.get_actions(legal_actions);
 
@@ -186,19 +199,17 @@ void valid_histories_play(InformationSet& I_1, InformationSet& I_2, PokerTable& 
 }
 
 
-void upgraded_get_histories_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
-    std::vector<std::string> unique_draws = {"JJQ", "JQJ", "QJJ", "QQJ", "QJQ", "JQQ", 
-                                             "KKJ", "KJK", "JKK", "KKQ", "KQK", "QKK", 
-                                             "QQK", "QKQ", "KQQ", "JJK", "JKJ", "KJJ",
-                                             "JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
-    
+void upgraded_get_histories_given_I(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){    
+    std::vector<std::string> &unique_draws = I.game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
+
     for (std::string draw : unique_draws){
         std::string hash_1 = "a-" + std::string(1, draw[0]) + "--";
         std::string hash_2 = "o-" + std::string(1, draw[1]) + "--";
     
-        InformationSet I_1('x', true, hash_1);
-        InformationSet I_2('o', false, hash_2);
+        InformationSet I_1('x', true, hash_1, I.game);
+        InformationSet I_2('o', false, hash_2, I.game);
         PokerTable true_cards = PokerTable(draw);
+        true_cards.game = I.game;
     
         std::vector<int> h = {};
         h.push_back(draw[0]);
@@ -413,25 +424,18 @@ double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, P
 }
 
 
-double get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o){
-    std::vector<std::string> unique_draws = {"JJQ", "JQJ", "QJJ", "QQJ", "QJQ", "JQQ", 
-                                             "KKJ", "KJK", "JKK", "KKQ", "KQK", "QKK", 
-                                             "QQK", "QKQ", "KQQ", "JJK", "JKJ", "KJJ",
-                                             "JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
-    double p = 1.0/30.0;
-    std::vector<double> draw_probabilities = {p, p, p, p, p, p,
-                                              p, p, p, p, p, p,
-                                              p, p, p, p, p, p,
-                                              2*p, 2*p, 2*p, 2*p, 2*p, 2*p};
-
+double get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char game){
     double expected_utility = 0.0;
+    std::vector<std::string> &unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
+    std::vector<double> &draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
 
     for (int i = 0; i < unique_draws.size(); i++){
         PokerTable true_cards = PokerTable(unique_draws[i]);
+        true_cards.game = game;
         std::string hash_1 = "a-" + std::string(1, true_cards.cards[0]) + "--";
         std::string hash_2 = "o-" + std::string(1, true_cards.cards[1]) + "--";
-        InformationSet I_1('x', true, hash_1);
-        InformationSet I_2('o', false, hash_2);
+        InformationSet I_1('x', true, hash_1, game);
+        InformationSet I_2('o', false, hash_2, game);
         std::vector<int> h = {};
         h.push_back(true_cards.cards[0]);
         h.push_back(true_cards.cards[1]);
@@ -449,8 +453,6 @@ double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, PokerTa
                                PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, double probability, History history_obj, char initial_player, InformationSet& end_I){
     InformationSet& I = true_cards.player_to_move == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
-
-    // std::cout << "Prob: Information Set: " << I.get_hash() << " Probability: " << probability << " Player: " << I.player << " Next action: " << next_action << std::endl;
 
     if (I.move_flag) {
         PokerTable new_true_cards = true_cards;
@@ -504,9 +506,15 @@ double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, PokerTa
 
 double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, int next_action, PolicyVec& policy_obj_x, 
                                        PolicyVec& policy_obj_o, History history_obj, InformationSet& curr_I_1, char initial_player){
-    double p = 1.0 / 30.0;
-    if (true_cards.cards[0] != true_cards.cards[1] && true_cards.cards[1] != true_cards.cards[2] && true_cards.cards[0] != true_cards.cards[2]){
-        p = 2.0 / 30.0;
+    double p;
+    if (true_cards.game == 'L'){    
+        p = 1.0 / 30.0;
+        if (true_cards.cards[0] != true_cards.cards[1] && true_cards.cards[1] != true_cards.cards[2] && true_cards.cards[0] != true_cards.cards[2]){
+            p = 2.0 / 30.0;
+        }
+    }
+    else if (true_cards.game == 'K'){
+        p = 1.0 / 6.0;
     }
 
     if (curr_I_1.get_hash().size() == 5){
@@ -531,29 +539,16 @@ double get_counter_factual_utility(InformationSet& I, PolicyVec& policy_obj_x, P
 
         std::string hash_1 = "a-" + std::string(1, cards[0]) + "--";
         std::string hash_2 = "o-" + std::string(1, cards[1]) + "--";
-        InformationSet curr_I_1('x', true, hash_1);
-        InformationSet curr_I_2('o', false, hash_2);
+        InformationSet curr_I_1('x', true, hash_1, I.game);
+        InformationSet curr_I_2('o', false, hash_2, I.game);
         PokerTable true_cards = PokerTable(cards);
+        true_cards.game = I.game;
         h_object.get_information_sets(curr_I_1, curr_I_2);
         std::vector<double> investments = h_object.update_true_cards_given_history(true_cards);
-
-        // std::cout << "True cards bidding sequence: " << true_cards.bid_sequence << std::endl;
-        // std::cout << "Cards in hand: " << true_cards.cards << std::endl;
-        // std::cout << "Curr I_1: " << curr_I_1.get_hash() << std::endl;
-        // std::cout << "Curr I_2: " << curr_I_2.get_hash() << std::endl;
-        // std::cout << "I: " << I.get_hash() << std::endl;
-        // std::cout << "Action: " << action << std::endl;
-        // std::cout << "Prob reaching h: " << prob_reaching_h_list[count] << std::endl;
-        // std::cout << "History: " << std::endl;
-        // for (int i = 0; i < h.size(); i++) {
-        //     std::cout << h[i] << " ";
-        // }
-        // std::cout << std::endl;
         
         if (prob_reaching_h_list[count] > 0) {
             counter_factual_utility += get_expected_utility_action_version(curr_I_1, curr_I_2, true_cards, policy_obj_x, policy_obj_o, prob_reaching_h_list[count], h_object, I.player, action);
         }
-        // std::cout << "Counter factual utility: " << counter_factual_utility << std::endl;
 
         count += 1;
     }
@@ -573,9 +568,10 @@ void get_probability_of_reaching_all_h(InformationSet& I, PolicyVec& policy_obj_
         
         std::string hash_1 = "a-" + std::string(1, cards[0]) + "--";
         std::string hash_2 = "o-" + std::string(1, cards[1]) + "--";
-        InformationSet I_1('x', true, hash_1);
-        InformationSet I_2('o', false, hash_2);
+        InformationSet I_1('x', true, hash_1, I.game);
+        InformationSet I_2('o', false, hash_2, I.game);
         PokerTable true_cards = PokerTable(cards);
+        true_cards.game = I.game;
         h_object.track_traversal_index = 3;
         double probability_reaching_h = get_prob_h_given_policy_wrapper(I_1, I_2, true_cards, h_object.history[3], policy_obj_x, policy_obj_o, h_object, I, initial_player);
         prob_reaching_h_list_all.push_back(probability_reaching_h);
@@ -770,7 +766,14 @@ void simulate_opponent_turn(PokerTable& true_cards, History& history, double rea
 
 
 double get_max_Q_value_and_update_policy(std::vector<double>& Q_values, std::vector<int>& actions, PolicyVec& br, InformationSet& I) {
-    double max_Q = -13.0;
+    double max_Q = 0.0;
+    if (I.game == 'L') {
+        max_Q = LEDUC_MIN_UTILITY;
+    }
+    else if (I.game == 'K') {
+        max_Q = KUHN_MIN_UTILITY;
+    }
+
     int best_action = -1;
 
     for (int a = 0; a < actions.size(); a++) {
@@ -1164,25 +1167,18 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
 }
 
 
-double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player) {
-    std::vector<std::string> unique_draws = {"JJQ", "JQJ", "QJJ", "QQJ", "QJQ", "JQQ", 
-                                             "KKJ", "KJK", "JKK", "KKQ", "KQK", "QKK", 
-                                             "QQK", "QKQ", "KQQ", "JJK", "JKJ", "KJJ",
-                                             "JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
-    double p = 1.0/30.0;
+double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player, char game) {
     double expected_utility = 0.0;
-    std::vector<double> draw_probabilities = {p, p, p, p, p, p,
-                                              p, p, p, p, p, p,
-                                              p, p, p, p, p, p,
-                                              2*p, 2*p, 2*p, 2*p, 2*p, 2*p};
-
     std::vector<char> single_cards = {'J', 'Q', 'K'};
+    std::vector<std::string> &unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
+    std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
     
     if (br_player == 'x') {
         for (int i = 0; i < single_cards.size(); i++){
             std::string hash_1 = "a-" + std::string(1, single_cards[i]) + "--";
-            InformationSet I_1 = InformationSet('x', true, hash_1);
+            InformationSet I_1 = InformationSet('x', true, hash_1, game);
             double reach_sum = 0.0;
+
             std::vector<PokerTable> true_cards_list;
             std::vector<History> history_list;
             std::vector<double> reach_probability_list;
@@ -1195,8 +1191,9 @@ double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char 
                 }
                 else{
                     PokerTable true_cards = PokerTable(cards);
+                    true_cards.game = game;
                     std::string hash_2 = "o-" + std::string(1, cards[1]) + "--";
-                    InformationSet I_2 = InformationSet('o', false, hash_2);
+                    InformationSet I_2 = InformationSet('o', false, hash_2, game);
                     std::vector<int> h = {};
                     h.push_back(cards[0]);
                     h.push_back(cards[1]);
@@ -1211,30 +1208,14 @@ double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char 
                 }
             }
             
-            // // print true cards list
-            // for (int i = 0; i < true_cards_list.size(); i++){
-            //     std::cout << true_cards_list[i].cards << " " << true_cards_list[i].bid_sequence << std::endl;
-            // }
-            // // print reach probability list
-            // for (int i = 0; i < reach_probability_list.size(); i++){
-            //     std::cout << reach_probability_list[i] << " ";
-            // }
-            // std::cout << std::endl;
-            // // print opponent I list
-            // for (int i = 0; i < opponent_I_list.size(); i++){
-            //     std::cout << opponent_I_list[i].get_hash() << " ";
-            // }
-            // std::cout << std::endl;
-
             double output = reach_sum * compute_best_response(I_1, br_player, true_cards_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj);
-            // std::cout << "Reach sum: " << reach_sum << " Output: " << output << std::endl;
             expected_utility += output;
         }
     } 
     else {
         for (int i = 0; i < single_cards.size(); i++){
             std::string hash_2 = "o-" + std::string(1, single_cards[i]) + "--";
-            InformationSet I_2 = InformationSet('o', false, hash_2);
+            InformationSet I_2 = InformationSet('o', false, hash_2, game);
             double reach_sum = 0.0;
             std::vector<PokerTable> true_cards_list;
             std::vector<History> history_list;
@@ -1248,8 +1229,9 @@ double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char 
                 }
                 else{
                     PokerTable true_cards = PokerTable(cards);
+                    true_cards.game = game;
                     std::string hash_1 = "a-" + std::string(1, cards[0]) + "--";
-                    InformationSet I_1 = InformationSet('x', true, hash_1);
+                    InformationSet I_1 = InformationSet('x', true, hash_1, game);
                     std::vector<int> h = {};
                     h.push_back(cards[0]);
                     h.push_back(cards[1]);

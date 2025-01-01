@@ -16,7 +16,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, PokerTable
 
 double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, PokerTable &true_cards, PolicyVec &policy_obj_x, PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player);
 
-double get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o);
+double get_expected_utility_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char game);
 
 double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, int next_action, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, double probability, History history_obj, char initial_player, InformationSet& end_I);
     
@@ -46,6 +46,6 @@ double compute_best_response(InformationSet& I, char br_player, std::vector<Poke
 double compute_best_response_parallel(InformationSet& I, char br_player, std::vector<PokerTable>& true_cards_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj);
 
-double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player);
+double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player, char game);
 
 void save_map_txt(std::string output_file, std::vector<std::vector<double>>& map, std::vector<std::string>& Information_sets);

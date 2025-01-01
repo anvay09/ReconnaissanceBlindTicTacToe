@@ -1064,18 +1064,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
 }
 
 
-void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, int m, PolicyVec& player_br, int experiment_number, int bypass_input) {
-    std::vector<std::string> unique_draws = {"JJQ", "JQJ", "QJJ", "QQJ", "QJQ", "JQQ", 
-                                             "KKJ", "KJK", "JKK", "KKQ", "KQK", "QKK", 
-                                             "QQK", "QKQ", "KQQ", "JJK", "JKJ", "KJJ",
-                                             "JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
-    double p = 1.0/30.0;
-    std::vector<double> draw_probabilities = {p, p, p, p, p, p,
-                                              p, p, p, p, p, p,
-                                              p, p, p, p, p, p,
-                                              2*p, 2*p, 2*p, 2*p, 2*p, 2*p};
-    
-    
+void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, int m, PolicyVec& player_br, int experiment_number, int bypass_input, char game) {    
     std::vector<std::vector<int>> I_a_tickmark(player_information_sets.size(), std::vector<int>(6, 0));
     std::vector<int> I_tickmark(player_information_sets.size(), 0);
 
@@ -1090,36 +1079,40 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     std::vector<std::vector<int>> action_terminal_reach_count(player_information_sets.size(), std::vector<int>(6, 0));
     std::vector<std::vector<int>> action_explore_count(player_information_sets.size(), std::vector<int>(6, 0));
 
-    PolicyVec player_max_ucb_policy(br_player, player_information_sets);
+    PolicyVec player_max_ucb_policy(br_player, player_information_sets, game);
     std::vector<std::pair<int, double>> exploitability_log; 
+
+    std::vector<std::string>& unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
+    std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
 
     int flag = 1;
     int t = 0;
     int k = 1;
 
-    PolicyVec exact_br(br_player, player_information_sets);
-    compute_best_response_wrapper(opponent_policy, exact_br, br_player);
+    PolicyVec exact_br(br_player, player_information_sets, game);
+    compute_best_response_wrapper(opponent_policy, exact_br, br_player, game);
     double exact_br_value = 0.0;
     if (br_player == 'x') {
-        exact_br_value = get_expected_utility_wrapper(exact_br, opponent_policy);
+        exact_br_value = get_expected_utility_wrapper(exact_br, opponent_policy, game);
     } 
     else {
-        exact_br_value = get_expected_utility_wrapper(opponent_policy, exact_br);
+        exact_br_value = get_expected_utility_wrapper(opponent_policy, exact_br, game);
     }
     std::cout << "Exact best response value: " << exact_br_value << std::endl;
 
     while (flag){ 
         std::random_device rd;
         std::mt19937 generator(rd());
-        std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
+        std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities_leduc.end());
         int draw_index = distribution(generator);
 
         std::string cards = unique_draws[draw_index];
         PokerTable true_cards = PokerTable(cards);
+        true_cards.game = game;
         std::string hash_1 = "a-" + std::string(1, cards[0]) + "--";
         std::string hash_2 = "o-" + std::string(1, cards[1]) + "--";
-        InformationSet I_1 = InformationSet('x', true, hash_1);
-        InformationSet I_2 = InformationSet('o', false, hash_2);
+        InformationSet I_1 = InformationSet('x', true, hash_1, game);
+        InformationSet I_2 = InformationSet('o', false, hash_2, game);
 
         std::vector<int> h = {};
         h.push_back(cards[0]);
@@ -1131,7 +1124,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
 
         t += 1;
 
-        InformationSet I = br_player == 'x' ? InformationSet('x', true, hash_1) : InformationSet('o', false, hash_2);
+        InformationSet I = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
         if (I_tickmark[I.get_index()] == k){
             k += 1;
             if (k > m){
@@ -1163,7 +1156,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     for (int card_index = 0; card_index < player_cards.size(); card_index++){
         std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
         std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
-        InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1) : InformationSet('o', false, hash_2);
+        InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
         double root_val = build_max_reward_policy(player_br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values);    
     }
 
@@ -1172,7 +1165,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     for (int card_index = 0; card_index < player_cards.size(); card_index++){
         std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
         std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
-        InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1) : InformationSet('o', false, hash_2);
+        InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
         std::vector<int> success_metrics{0, 0, 0};
         double max_UCB = build_max_UCB_policy(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
     }
@@ -1186,11 +1179,11 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             double exploitability = 0.0;
         
             if (br_player == 'x') {
-                expected_utility = get_expected_utility_wrapper(player_br, opponent_policy);
+                expected_utility = get_expected_utility_wrapper(player_br, opponent_policy, game);
                 exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
             } 
             else {
-                expected_utility = get_expected_utility_wrapper(opponent_policy, player_br);
+                expected_utility = get_expected_utility_wrapper(opponent_policy, player_br, game);
                 exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
             }
             std::cout << "Expected utility of best response policy: " << expected_utility << std::endl;
@@ -1209,15 +1202,16 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         if (max_UCB_flag) {
             std::random_device rd;
             std::mt19937 generator(rd());
-            std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
+            std::discrete_distribution<int> distribution(draw_probabilities_leduc.begin(), draw_probabilities_leduc.end());
             int draw_index = distribution(generator);
 
-            std::string cards = unique_draws[draw_index];
+            std::string cards = unique_draws_leduc[draw_index];
             PokerTable true_cards = PokerTable(cards);
+            true_cards.game = game;
             std::string hash_1 = "a-" + std::string(1, cards[0]) + "--";
             std::string hash_2 = "o-" + std::string(1, cards[1]) + "--";
-            InformationSet I_1 = InformationSet('x', true, hash_1);
-            InformationSet I_2 = InformationSet('o', false, hash_2);
+            InformationSet I_1 = InformationSet('x', true, hash_1, game);
+            InformationSet I_2 = InformationSet('o', false, hash_2, game);
 
             std::vector<int> h = {};
             h.push_back(cards[0]);
@@ -1228,10 +1222,11 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             exploit_wrapper(I_1, true_cards, I_2, player_max_ucb_policy, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
 
             true_cards = PokerTable(cards);
+            true_cards.game = game;
             hash_1 = "a-" + std::string(1, cards[0]) + "--";
             hash_2 = "o-" + std::string(1, cards[1]) + "--";
-            I_1 = InformationSet('x', true, hash_1);
-            I_2 = InformationSet('o', false, hash_2);
+            I_1 = InformationSet('x', true, hash_1, game);
+            I_2 = InformationSet('o', false, hash_2, game);
 
             if (br_player == 'x') {
                 update_max_reward_policy_given_history(I_1, true_cards, I_2, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, br_player, 3);
@@ -1241,10 +1236,11 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             }
 
             true_cards = PokerTable(cards);
+            true_cards.game = game;
             hash_1 = "a-" + std::string(1, cards[0]) + "--";
             hash_2 = "o-" + std::string(1, cards[1]) + "--";
-            I_1 = InformationSet('x', true, hash_1);
-            I_2 = InformationSet('o', false, hash_2);
+            I_1 = InformationSet('x', true, hash_1, game);
+            I_2 = InformationSet('o', false, hash_2, game);
 
             if (br_player == 'x') {
                 update_max_UCB_policy_given_history(I_1, true_cards, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, br_player, 3, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
@@ -1263,10 +1259,11 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
 
             std::string cards = unique_draws[draw_index];
             PokerTable true_cards = PokerTable(cards);
+            true_cards.game = game;
             std::string hash_1 = "a-" + std::string(1, cards[0]) + "--";
             std::string hash_2 = "o-" + std::string(1, cards[1]) + "--";
-            InformationSet I_1 = InformationSet('x', true, hash_1);
-            InformationSet I_2 = InformationSet('o', false, hash_2);
+            InformationSet I_1 = InformationSet('x', true, hash_1, game);
+            InformationSet I_2 = InformationSet('o', false, hash_2, game);
 
             std::vector<int> h = {};
             h.push_back(cards[0]);
@@ -1277,10 +1274,11 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             exploit_wrapper(I_1, true_cards, I_2, player_br, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
 
             true_cards = PokerTable(cards);
+            true_cards.game = game;
             hash_1 = "a-" + std::string(1, cards[0]) + "--";
             hash_2 = "o-" + std::string(1, cards[1]) + "--";
-            I_1 = InformationSet('x', true, hash_1);
-            I_2 = InformationSet('o', false, hash_2);
+            I_1 = InformationSet('x', true, hash_1, game);
+            I_2 = InformationSet('o', false, hash_2, game);
 
             if (br_player == 'x') {
                 update_max_reward_policy_given_history(I_1, true_cards, I_2, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, br_player, 3);
@@ -1290,10 +1288,11 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             }
 
             true_cards = PokerTable(cards);
+            true_cards.game = game;
             hash_1 = "a-" + std::string(1, cards[0]) + "--";
             hash_2 = "o-" + std::string(1, cards[1]) + "--";
-            I_1 = InformationSet('x', true, hash_1);
-            I_2 = InformationSet('o', false, hash_2);
+            I_1 = InformationSet('x', true, hash_1, game);
+            I_2 = InformationSet('o', false, hash_2, game);
   
             if (br_player == 'x') {
                 update_max_UCB_policy_given_history(I_1, true_cards, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, br_player, 3, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
@@ -1307,7 +1306,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
 
     std::cout << "Saving exploitability log" << std::endl;
-    std::string file_name = "data/leduc_poker_" + std::string(1, br_player) + "_C=" + std::to_string(C) + "_poker_LUCB_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/" + std::string(1, game) + "_poker_" + std::string(1, br_player) + "_C=" + std::to_string(C) + "_LUCB_exploitability_log_" + std::to_string(experiment_number) + ".txt";
 
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++) {
@@ -1321,8 +1320,9 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1]; // start policy P1
     std::string file_path_2 = argv[2]; // start policy P2
-    int bypass_input = std::stoi(argv[3]);
-
+    char game = argv[3][0];
+    int bypass_input = std::stoi(argv[4]);
+    
     // load information sets
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
@@ -1351,8 +1351,8 @@ int main(int argc, char* argv[]) {
 
     // load policies
     std::cout << "Loading policies" << std::endl;
-    PolicyVec policy_obj_x('x', file_path_1, true);
-    PolicyVec policy_obj_o('o', file_path_2, true);
+    PolicyVec policy_obj_x('x', file_path_1, game, true);
+    PolicyVec policy_obj_o('o', file_path_2, game, true);
 
     // compute epsilon best response
     char continue_exp = 'y';
@@ -1375,12 +1375,12 @@ int main(int argc, char* argv[]) {
         std::cout << "Starting experiments for player " << player << " with m = " << m << " and log frequency = " << log_frequency << std::endl;
 
         if (player == 'x') {
-            PolicyVec uniform_x('x', P1_information_sets);
-            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m, uniform_x, experiment_num, bypass_input);
+            PolicyVec uniform_x('x', P1_information_sets, game);
+            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m, uniform_x, experiment_num, bypass_input, game);
         }
         else {
-            PolicyVec uniform_o('o', P2_information_sets);
-            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m, uniform_o, experiment_num, bypass_input);
+            PolicyVec uniform_o('o', P2_information_sets, game);
+            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m, uniform_o, experiment_num, bypass_input, game);
         }
 
         std::cout << "Continue experiments? (" << experiment_num << " experiments done) (y/n): ";

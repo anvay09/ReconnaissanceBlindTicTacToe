@@ -213,24 +213,14 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, P
 void compute_regrets_along_history_wrapper(PolicyVec& player_br_policy, PolicyVec& player_cumulative_strategy, char br_player, 
                                             long int t, std::vector<std::vector<double>>& regret_list, 
                                             std::vector<long int>& markers, History& start_history, double q_z, double reward){
-    std::vector<std::string> unique_draws = {"JJQ", "JQJ", "QJJ", "QQJ", "QJQ", "JQQ", 
-                                             "KKJ", "KJK", "JKK", "KKQ", "KQK", "QKK", 
-                                             "QQK", "QKQ", "KQQ", "JJK", "JKJ", "KJJ",
-                                             "JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
-    double p = 1.0/30.0;
-    std::vector<double> draw_probabilities = {p, p, p, p, p, p,
-                                              p, p, p, p, p, p,
-                                              p, p, p, p, p, p,
-                                              2*p, 2*p, 2*p, 2*p, 2*p, 2*p};
-
     std::string cards = "---";
     cards[0] = start_history.history[0];
     cards[1] = start_history.history[1];
     cards[2] = start_history.history[2];
     double draw_prob = 0.0;
-    for (int i = 0; i < unique_draws.size(); i++) {
-        if (unique_draws[i] == cards) {
-            draw_prob = draw_probabilities[i];
+    for (int i = 0; i < unique_draws_leduc.size(); i++) {
+        if (unique_draws_leduc[i] == cards) {
+            draw_prob = draw_probabilities_leduc[i];
             break;
         }
     }

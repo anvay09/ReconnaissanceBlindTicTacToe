@@ -176,13 +176,8 @@ void valid_histories_play_prob(InformationSet& I_1, InformationSet& I_2, PokerTa
 }
 
 
-void upgraded_get_histories_given_I_prob(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){
-    std::vector<std::string> unique_draws = {"JJQ", "JQJ", "QJJ", "QQJ", "QJQ", "JQQ", 
-                                             "KKJ", "KJK", "JKK", "KKQ", "KQK", "QKK", 
-                                             "QQK", "QKQ", "KQQ", "JJK", "JKJ", "KJJ",
-                                             "JQK", "JKQ", "QJK", "QKJ", "KJQ", "KQJ"};
-    
-    for (std::string draw : unique_draws){
+void upgraded_get_histories_given_I_prob(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& valid_histories_list){    
+    for (std::string draw : unique_draws_leduc){
         std::string hash_1 = "a-" + std::string(1, draw[0]) + "--";
         std::string hash_2 = "o-" + std::string(1, draw[1]) + "--";
     

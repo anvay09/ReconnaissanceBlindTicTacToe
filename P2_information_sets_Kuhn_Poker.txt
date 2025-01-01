@@ -1,0 +1,9 @@
+a-J--b
+a-J--x
+a-K--b
+a-K--x
+a-Q--b
+a-Q--x
+o-J--
+o-K--
+o-Q--
