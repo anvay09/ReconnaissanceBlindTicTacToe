@@ -368,7 +368,7 @@ double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::ve
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
-    double infoset_value = -13.0;
+    double infoset_value = I.game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
 
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
@@ -391,7 +391,7 @@ double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::ve
             action_values[a] /= norm;
         }
         else {
-            action_values[a] = -13.0;
+            action_values[a] = I.game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
         }
     }
 
@@ -451,7 +451,7 @@ double build_max_reward_policy_parallel(PolicyVec& policy_obj, InformationSet&I,
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
-    double infoset_value = -13.0;
+    double infoset_value = I.game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
  
     #pragma omp parallel for num_threads(NUMBER_THREADS)
     for (int a : legal_actions){
@@ -476,7 +476,7 @@ double build_max_reward_policy_parallel(PolicyVec& policy_obj, InformationSet&I,
             action_values[a] /= norm;
         }
         else {
-            action_values[a] = -13.0;
+            action_values[a] = I.game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
         }
     }
 
@@ -557,7 +557,7 @@ void update_max_reward_policy_given_history(InformationSet& I, PokerTable& true_
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         std::vector<double> action_values(6, 0.0);
-        double infoset_value = -13.0;
+        double infoset_value = I.game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
 
         for (int a : legal_actions){
             std::unordered_set<std::string> cohort;
@@ -581,7 +581,7 @@ void update_max_reward_policy_given_history(InformationSet& I, PokerTable& true_
                 action_values[a] /= norm;
             }
             else {
-                action_values[a] = -13.0;
+                action_values[a] = I.game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
             }
         }
 
@@ -650,7 +650,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(6, 0.0);
-    double max_ucb = -13.0;
+    double max_ucb = I.game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
 
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
@@ -702,7 +702,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
             infoset_time_step[I.get_index()] += 1;
         }
         else {
-            action_ucb_values[a] = 13.0;
+            action_ucb_values[a] = I.game == 'L'? LEDUC_MAX_UTILITY : KUHN_MAX_UTILITY;
         }
     }
 
@@ -779,7 +779,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(6, 0.0);
-    double max_ucb = -13.0;
+    double max_ucb = I.game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
 
     #pragma omp parallel for num_threads(NUMBER_THREADS)
     for (int a : legal_actions){
@@ -831,7 +831,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
             infoset_time_step[I.get_index()] += 1;
         }
         else {
-            action_ucb_values[a] = 13.0;
+            action_ucb_values[a] = I.game == 'L'? LEDUC_MAX_UTILITY : KUHN_MAX_UTILITY;
         }
     }
 
@@ -930,7 +930,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         std::vector<double> action_ucb_values(6, 0.0);
-        double max_ucb = -13.0;
+        double max_ucb = true_cards.game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
         std::vector<int> success_metrics{0, 0, 0};
 
         for (int a : legal_actions){
@@ -983,7 +983,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
                 infoset_time_step[I.get_index()] += 1;
             }
             else {
-                action_ucb_values[a] = 13.0;
+                action_ucb_values[a] = true_cards.game == 'L'? LEDUC_MAX_UTILITY : KUHN_MAX_UTILITY;
             }
         }
 
@@ -1103,9 +1103,9 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     while (flag){ 
         std::random_device rd;
         std::mt19937 generator(rd());
-        std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities_leduc.end());
+        std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
         int draw_index = distribution(generator);
-
+       
         std::string cards = unique_draws[draw_index];
         PokerTable true_cards = PokerTable(cards);
         true_cards.game = game;
@@ -1138,9 +1138,9 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
 
     std::cout << "Total number of games sampled for pulling each policy " << m << " times: " << t << std::endl;
-    int iterations = 1000000;
+    int iterations = 500;
     int C = 16;
-    log_frequency = 10000;
+    log_frequency = 5;
 
     if (bypass_input == 0){
         std::cout << "Enter number of games to sample: ";
@@ -1326,8 +1326,8 @@ int main(int argc, char* argv[]) {
     // load information sets
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
-    std::string P1_information_sets_file = "P1_information_sets_Leduc_Poker.txt";
-    std::string P2_information_sets_file = "P2_information_sets_Leduc_Poker.txt";
+    std::string P1_information_sets_file = game == 'L'? "P1_information_sets_Leduc_Poker.txt" : "P1_information_sets_Kuhn_Poker.txt";
+    std::string P2_information_sets_file = game == 'L'? "P2_information_sets_Leduc_Poker.txt" : "P2_information_sets_Kuhn_Poker.txt";
     std::ifstream P1_f_is(P1_information_sets_file);
     std::string P1_line_is;
     while (std::getline(P1_f_is, P1_line_is)) {
@@ -1361,7 +1361,7 @@ int main(int argc, char* argv[]) {
     // while (continue_exp == 'y') {
     while (experiment_num <= 10) {
         int log_frequency = 10;
-        char player = 'x';
+        char player = 'o';
         int m = 1;
 
         if (bypass_input == 0) {

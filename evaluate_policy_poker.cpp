@@ -10,8 +10,9 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> P2_information_sets;
     std::unordered_set<std::string> P1_hashes;
     std::unordered_set<std::string> P2_hashes;
-    std::string P1_information_sets_file = "P1_information_sets_Leduc_Poker.txt";
-    std::string P2_information_sets_file = "P2_information_sets_Leduc_Poker.txt";
+    std::string P1_information_sets_file = "P1_information_sets_Kuhn_Poker.txt";
+    std::string P2_information_sets_file = "P2_information_sets_Kuhn_Poker.txt";
+    char game = 'K';
 
     std::ifstream P1_f_is(P1_information_sets_file);
     std::string P1_line_is;
@@ -40,39 +41,43 @@ int main(int argc, char* argv[]) {
     char player = 'x';
     // std::string P1_policy_file = "data/Iterative_1/average/P1_iteration_5000_average_cfr_policy_cpp.json";
     // std::string P2_policy_file = "data/Iterative_1/average/P2_iteration_5000_average_cfr_policy_cpp.json";
-    std::string P1_policy_file = "data/P1_nash_Leduc_Poker.txt";
-    std::string P2_policy_file = "data/P2_nash_Leduc_Poker.txt";
+    // std::string P1_policy_file = "data/P1_nash_Leduc_Poker.txt";
+    // std::string P2_policy_file = "data/P2_nash_Leduc_Poker.txt";
 
-    PolicyVec policy_obj_x('x', P1_policy_file, true);
-    PolicyVec policy_obj_o('o', P2_policy_file, true);
+    PolicyVec policy_obj_x('x', P1_information_sets, game);
+    PolicyVec policy_obj_o('o', P2_information_sets, game);
 
     std::cout << "Policies loaded." << std::endl;
     std::cout << "Getting expected utility..." << std::endl;  
 
     double exploitability = 0.0;
-    double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
+    double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o, game);
     std::cout << "Expected utility: " << expected_utility << std::endl;
 
-    PolicyVec br_x('x', P1_information_sets);
-    PolicyVec br_o('o', P2_information_sets);
+    PolicyVec br_x('x', P1_information_sets, game);
+    PolicyVec br_o('o', P2_information_sets, game);
 
     std::cout << "Computing best response for player x" << std::endl;
-    expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
+    expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x', game);
     
     std::cout << "Expected utility output of BR function: " << expected_utility << std::endl;
-    expected_utility = get_expected_utility_wrapper(br_x, policy_obj_o);
+    expected_utility = get_expected_utility_wrapper(br_x, policy_obj_o, game);
     exploitability += expected_utility;
     std::cout << "Expected utility: " << expected_utility << std::endl;
 
     std::cout << "Computing best response for player o" << std::endl;
-    expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
+    expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o', game);
 
     std::cout << "Expected utility output of BR function: " << expected_utility << std::endl;
-    expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o);
+    expected_utility = get_expected_utility_wrapper(policy_obj_x, br_o, game);
     exploitability -= expected_utility;
     std::cout << "Expected utility: " << expected_utility << std::endl;
 
     std::cout << "Exploitability: " << exploitability << std::endl;
+
+    // save policies to file
+    save_map_txt("data/P1_uniform_Kuhn_Poker.txt", policy_obj_x.policy_dict, P1_information_sets);
+    save_map_txt("data/P2_uniform_Kuhn_Poker.txt", policy_obj_o.policy_dict, P2_information_sets);
 
     return 0;
 }
