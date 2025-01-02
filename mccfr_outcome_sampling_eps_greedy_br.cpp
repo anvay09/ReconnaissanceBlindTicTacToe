@@ -16,11 +16,11 @@ double sample_terminal_history(InformationSet &I_1, InformationSet &I_2, TicTacT
     InformationSet &I = player == 'x' ? I_1 : I_2;
     PolicyVec &policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
-    std::vector<double> uniform_prob_dist = player_uniform_policy.policy_dict[I.get_index()];
     int action = -1;
 
     if (player == update_player)
     {
+        std::vector<double> uniform_prob_dist = player_uniform_policy.policy_dict[I.get_index()];
         std::vector<double> eps_prob_dist = {eps, 1.0 - eps};
         if (sampleIndex(eps_prob_dist))
         {
@@ -30,6 +30,7 @@ double sample_terminal_history(InformationSet &I_1, InformationSet &I_2, TicTacT
         {
             action = sampleIndex(uniform_prob_dist);
         }
+        probability = probability * ((1.0 - eps) * prob_dist[action] + eps * uniform_prob_dist[action]);
     }
     else
     {
@@ -39,11 +40,6 @@ double sample_terminal_history(InformationSet &I_1, InformationSet &I_2, TicTacT
     if (I.move_flag)
     {
         bool success = true_board.update_move(action, player);
-
-        if (player == update_player)
-        { // update the probability only if the player is the one we are updating
-            probability = probability * ((1.0 - eps) * prob_dist[action] + eps * uniform_prob_dist[action]);
-        }
 
         current_history.history.push_back(action);
 
@@ -83,10 +79,6 @@ double sample_terminal_history(InformationSet &I_1, InformationSet &I_2, TicTacT
         InformationSet new_I = I;
         new_I.simulate_sense(action, true_board);
 
-        if (player == update_player)
-        { // update the probability only if the player is the one we are updating
-            probability = probability * ((1.0 - eps) * prob_dist[action] + eps * uniform_prob_dist[action]);
-        }
         current_history.history.push_back(action);
 
         if (player == 'x')
