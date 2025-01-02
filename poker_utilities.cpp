@@ -506,22 +506,22 @@ double get_prob_h_given_policy(InformationSet& I_1, InformationSet& I_2, PokerTa
 
 double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, int next_action, PolicyVec& policy_obj_x, 
                                        PolicyVec& policy_obj_o, History history_obj, InformationSet& curr_I_1, char initial_player){
-    double p;
+    double q;
     if (true_cards.game == 'L'){    
-        p = 1.0 / 30.0;
+        q = 1.0 / 30.0;
         if (true_cards.cards[0] != true_cards.cards[1] && true_cards.cards[1] != true_cards.cards[2] && true_cards.cards[0] != true_cards.cards[2]){
-            p = 2.0 / 30.0;
+            q = 2.0 / 30.0;
         }
     }
     else if (true_cards.game == 'K'){
-        p = 1.0 / 6.0;
+        q = 1.0 / 6.0;
     }
 
     if (curr_I_1.get_hash().size() == 5){
-        return p;
+        return q;
     }
     else {
-        return get_prob_h_given_policy(I_1, I_2, true_cards, next_action, policy_obj_x, policy_obj_o, p, history_obj, initial_player, curr_I_1);
+        return get_prob_h_given_policy(I_1, I_2, true_cards, next_action, policy_obj_x, policy_obj_o, q, history_obj, initial_player, curr_I_1);
     }
 }
 
@@ -529,6 +529,7 @@ double get_prob_h_given_policy_wrapper(InformationSet& I_1, InformationSet& I_2,
 double get_counter_factual_utility(InformationSet& I, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, std::vector<std::vector<int>>& starting_histories, std::vector<double>& prob_reaching_h_list, int action) {
     double counter_factual_utility = 0.0;
     int count = 0;
+
     for (std::vector<int> h : starting_histories) {
         NonTerminalHistory h_object(h);
         std::string cards = "---";

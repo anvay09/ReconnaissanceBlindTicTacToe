@@ -2,6 +2,7 @@
 #include "cpp_headers/poker_utilities.hpp"
 #include <random>
 int NUM_THREADS = 4;
+// g++-13 on_path_flipping_br_poker.cpp poker_classes.cpp poker_utilities.cpp -o on_path_p -fopenmp -O3
 
 int sampleIndex(const std::vector<double>& probabilities) {
     std::random_device rd;
@@ -10,37 +11,37 @@ int sampleIndex(const std::vector<double>& probabilities) {
     return distribution(generator);
 }
 
-double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, double probability, double& reward, char update_player, double eps) {
-    InformationSet I = true_cards.player_to_move == 'x' ? I_1 : I_2;
+
+double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, double probability, double& reward, char update_player, double eps, double& action_selection_probability_explore, double& action_selection_probability_exploit) {
+    InformationSet& I = true_cards.player_to_move == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = I.player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
+    int action = -1;
 
     if (I.player == update_player) { // explore with a small epsilon
+        std::vector<double> uniform_prob_dist = player_uniform_policy.policy_dict[I.get_index()];
         std::vector<int> actions;
         I.get_actions(actions);
-        double sum = 1.0;
-
+        std::vector<double> pick_prob_dist(6, 0.0);
+        double sum = 0.0;
         for (int i = 0; i < actions.size(); i++) {
-            if (prob_dist[actions[i]] == 0.0) {
-                prob_dist[actions[i]] = eps;
-                sum += eps;
-            }
+            pick_prob_dist[actions[i]] = eps*action_selection_probability_explore*uniform_prob_dist[actions[i]] + (1.0-eps)*action_selection_probability_exploit*prob_dist[actions[i]];
+            sum += pick_prob_dist[actions[i]];
         }
-        // renormalize
         for (int i = 0; i < actions.size(); i++) {
-            prob_dist[actions[i]] /= sum;
+            pick_prob_dist[actions[i]] /= sum;
         }
+        action = sampleIndex(pick_prob_dist);
+        action_selection_probability_exploit *= prob_dist[action];
+        action_selection_probability_explore *= uniform_prob_dist[action];
+        probability *= pick_prob_dist[action];
     }
-
-    int action = sampleIndex(prob_dist);
+    else{
+        action = sampleIndex(prob_dist);
+    }
 
     if (I.move_flag) {
         bool success = true_cards.update_move(action);
-
-        if (I.player == update_player) { // update the probability only if the player is the one we are updating
-            probability = probability * prob_dist[action];
-        }
-
         current_history.history.push_back(action);
 
         char winner;
@@ -49,9 +50,9 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, PokerTa
             new_I.update_move(action);
 
             if (I.player == 'x') {
-                return sample_terminal_history(new_I, I_2, true_cards, policy_obj_x, policy_obj_o, current_history, probability, reward, update_player, eps);
+                sample_terminal_history(new_I, I_2, true_cards, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
             } else {
-                return sample_terminal_history(I_1, new_I, true_cards, policy_obj_x, policy_obj_o, current_history, probability, reward, update_player, eps);
+                sample_terminal_history(I_1, new_I, true_cards, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
@@ -61,28 +62,24 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, PokerTa
             } else {
                 reward = (double) H_T.reward[1];
             }
-            return probability;
         }
     }
     else {
         InformationSet new_I = I;
         new_I.simulate_sense(action, true_cards);
-        
-        if (I.player == update_player) { // update the probability only if the player is the one we are updating
-            probability = probability * prob_dist[action];
-        }
         current_history.history.push_back(action);
 
         if (I.player == 'x') {
-            return sample_terminal_history(new_I, I_2, true_cards, policy_obj_x, policy_obj_o, current_history, probability, reward, update_player, eps);
+            sample_terminal_history(new_I, I_2, true_cards, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
         } else {
-            return sample_terminal_history(I_1, new_I, true_cards, policy_obj_x, policy_obj_o, current_history, probability, reward, update_player, eps);
+            sample_terminal_history(I_1, new_I, true_cards, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
         }
     }
+    return probability;
 }
 
 
-double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, History& current_history, double& reward, char update_player, double eps, char game) {
+double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, double& reward, char update_player, double& eps, char game) {
     std::vector<std::string>& unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
     std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
     
@@ -102,8 +99,11 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
     current_history.history.push_back(cards[0]);
     current_history.history.push_back(cards[1]);
     current_history.history.push_back(cards[2]);
-  
-    return sample_terminal_history(I_1, I_2, true_cards, policy_obj_x, policy_obj_o, current_history, draw_probabilities[draw_index], reward, update_player, eps);
+
+    double action_selection_probability_explore = 1.0;
+    double action_selection_probability_exploit = 1.0;
+    double probability = sample_terminal_history(I_1, I_2, true_cards, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, draw_probabilities[draw_index], reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
+    return (1.0 - eps) * action_selection_probability_exploit + eps * action_selection_probability_explore;
 }
 
 
@@ -179,7 +179,7 @@ double compute_regrets_along_history(InformationSet& I_1, InformationSet& I_2, P
             }
         }
 
-        return reach_prob * played_action_prob;
+        return reach_prob*played_action_prob;
     }
     else {
         if (I.move_flag) {
@@ -228,28 +228,17 @@ void compute_regrets_along_history_wrapper(PolicyVec& player_br_policy, PolicyVe
     std::string hash_2 = "o-" + std::string(1, cards[1]) + "--";
     InformationSet I_1 = InformationSet('x', true, hash_1, game);
     InformationSet I_2 = InformationSet('o', false, hash_2, game);
-
     compute_regrets_along_history(I_1, I_2, true_cards, player_br_policy, player_cumulative_strategy, br_player, t, draw_prob, regret_list, markers, start_history, q_z, reward, 3);        
 
 } 
 
-void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, double eps, long int step_size, int experiment_number, char game) {
+void onpath_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, PolicyVec& player_uniform_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, long int step_size, double exact_br_value, int experiment_number, long int log_size, double eps, int decay_flag, char game) {
     std::vector<std::vector<double>> regret_list;
     std::vector<long int> markers;
     PolicyVec cumulative_strategy;
     cumulative_strategy.player = br_player;
-
-    PolicyVec exact_br(br_player, player_information_sets, game);
-    double exact_br_value = compute_best_response_wrapper(opponent_policy, exact_br, br_player, game);
-    if (br_player == 'x'){
-        exact_br_value = get_expected_utility_wrapper(exact_br, opponent_policy, game);
-    }
-    else {
-        exact_br_value = get_expected_utility_wrapper(opponent_policy, exact_br, game);
-    }
-
-    std::cout << "Exact best response value: " << exact_br_value << std::endl;
-    std::vector<std::pair<int, double>> exploitability_log; 
+    std::vector<std::pair<int, double>> exploitability_log;
+    std::vector<std::pair<int, double>> exploitability_log_average;
     
     for (long int i = 0; i < player_information_sets.size(); i++) {
         regret_list.push_back(std::vector<double>(6, 0.0));
@@ -264,20 +253,22 @@ void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec&
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
         double reward = 0;
+        if (decay_flag == 1){
+            eps = 1.0 / ((( t * 1.0 ) / ( step_size * 1.0 )) + 1.0);
+        }
 
         if (br_player == 'x') {
-            q_z = sample_terminal_history_wrapper(player_br_policy, opponent_policy, start_history, reward, br_player, eps, game);
+            q_z = sample_terminal_history_wrapper(player_br_policy, opponent_policy, player_uniform_policy, start_history, reward, br_player, eps, game);
         } else {
-            q_z = sample_terminal_history_wrapper(opponent_policy, player_br_policy, start_history, reward, br_player, eps, game);
+            q_z = sample_terminal_history_wrapper(opponent_policy, player_br_policy, player_uniform_policy, start_history, reward, br_player, eps, game);
         }
 
         // traverse history and update regrets
         compute_regrets_along_history_wrapper(player_br_policy, cumulative_strategy, br_player, t, regret_list, markers, start_history, q_z, reward, game);
         
-        if (t % step_size == 0 && t != 0) {
-            // overridde eps based on step size.
-            // eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0);
-
+        if (t % log_size == 0 && t != 0) {
+            double expected_utility = 0.0;
+            std::cout << "############################################################" << std::endl;
             PolicyVec average_strategy = cumulative_strategy;
             // normalize the cumulative strategy
             #pragma omp parallel for num_threads(NUM_THREADS)
@@ -296,85 +287,70 @@ void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec&
                 }
             }
 
-            // build br policy
-            PolicyVec br_policy = player_br_policy;
-            #pragma omp parallel for num_threads(NUM_THREADS)
-            for (long int i = 0; i < player_information_sets.size(); i++) {
-                std::vector<double>& br_prob_dist = br_policy.policy_dict[i];
-                InformationSet I(br_player, get_move_flag(player_information_sets[i], br_player), player_information_sets[i], game);
-                std::vector<double>& regret_I = regret_list[I.get_index()];
-                double max_regret = game == 'L' ? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
-                int max_regret_action = -1;
-                std::vector<int> actions;
-                I.get_actions(actions);
-
-                for (int a: actions) {
-                    if (regret_I[a] > max_regret) {
-                        max_regret = regret_I[a];
-                        max_regret_action = a;
-                    }
-                }
-
-                for (int a: actions) {
-                    if (a == max_regret_action) {
-                        br_prob_dist[a] = 1.0;
-                    } else {
-                        br_prob_dist[a] = 0.0;
-                    }
-                }
-            }
-
-            double expected_utility = 0.0;
             if (br_player == 'x'){
                 expected_utility = get_expected_utility_wrapper(player_br_policy, opponent_policy, game);
                 std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
                 exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
+                expected_utility = get_expected_utility_wrapper(average_strategy, opponent_policy, game);
+                std::cout << "Expected utility after averaging: " << expected_utility << std::endl;
+                exploitability_log_average.push_back(std::make_pair(t, exact_br_value - expected_utility));
 
-                // expected_utility = get_expected_utility_wrapper(average_strategy, opponent_policy, game);
-                // std::cout << "Expected utility after averaging: " << expected_utility << std::endl;
-                // expected_utility = get_expected_utility_wrapper(br_policy, opponent_policy, game);
-                // std::cout << "Expected utility after deterministic best response: " << expected_utility << std::endl;
-                
             }
             else {
                 expected_utility = get_expected_utility_wrapper(opponent_policy, player_br_policy, game);
                 std::cout << "Expected utility after iteration " << t << ": " << expected_utility << std::endl;
                 exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
+                expected_utility = get_expected_utility_wrapper(opponent_policy, average_strategy, game);
+                std::cout << "Expected utility after averaging: " << expected_utility << std::endl;
+                exploitability_log_average.push_back(std::make_pair(t, exact_br_value - expected_utility));
 
-                // expected_utility = get_expected_utility_wrapper(opponent_policy, average_strategy, game);
-                // std::cout << "Expected utility after averaging: " << expected_utility << std::endl;
-                // expected_utility = get_expected_utility_wrapper(opponent_policy, br_policy, game);
-                // std::cout << "Expected utility after deterministic best response: " << expected_utility << std::endl;
             }
+            std::cout << "Checking latest sampled history..." << std::endl;
+            for (int i = 0; i < start_history.history.size(); i++) {
+                std::cout << start_history.history[i] << " ";
+            }
+            std::cout << std::endl << "############################################################" << std::endl;
         }
     }
 
-    std::cout << "Saving exploitability log" << std::endl;
-    std::string file_name = "data/" + std::string(1, game) + "_poker_" + std::string(1, br_player) + "_MCCFR_OS_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::cout << "Saving exploitability logs" << std::endl;
+    std::string file_name;
+    std::string file_name_average;
 
+    if (decay_flag) {
+        file_name = "data/" + std::string(1, game) + "_poker_eps_decay_step_size=" + std::to_string(step_size) + "_" + std::string(1, br_player) + "onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+        file_name_average = "data/" + std::string(1, game) + "_poker_eps_decay_step_size=" + std::to_string(step_size) + "_" + std::string(1, br_player) + "average_onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+
+    }
+    else {
+        file_name = "data/" + std::string(1, game) + "poker_eps_constant=" + std::to_string(eps) + "_" + std::string(1, br_player) + "onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+        file_name_average = "data/" + std::string(1, game) + "poker_eps_constant=" + std::to_string(eps) + "_" + std::string(1, br_player) + "average_onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    }
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++) {
         f << exploitability_log[i].first << " " << exploitability_log[i].second << std::endl;
     }
     f.close();
-
+    std::ofstream f_avg(file_name_average);
+    for (int i = 0; i < exploitability_log_average.size(); i++) {
+        f_avg << exploitability_log_average[i].first << " " << exploitability_log_average[i].second << std::endl;
+    }
+    f_avg.close();
 }
+
 
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
-    char game = argv[3][0];
-    char player = argv[4][0];
-    int iterations = std::stoi(argv[5]);
-    int log_frequency = std::stoi(argv[6]);
-    int experiments = std::stoi(argv[7]);
-    double eps = std::stod(argv[8]);
+    int decay_flag = std::stoi(argv[3]);
+    NUM_THREADS = std::stoi(argv[4]); //96;
+    char game = std::string(argv[5])[0];
 
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
-    std::string P1_information_sets_file = game == 'L'? "P1_information_sets_Leduc_Poker.txt" : "P1_information_sets_Kuhn_Poker.txt";
-    std::string P2_information_sets_file = game == 'L'? "P2_information_sets_Leduc_Poker.txt" : "P2_information_sets_Kuhn_Poker.txt";
+    std::string P1_information_sets_file = game == 'L' ? "P1_information_sets_Leduc_Poker.txt" : "P1_information_sets_Kuhn_Poker.txt";
+    std::string P2_information_sets_file = game == 'L' ? "P2_information_sets_Leduc_Poker.txt" : "P2_information_sets_Kuhn_Poker.txt";
 
     // read the P1 information sets
     std::ifstream P1_f_is(P1_information_sets_file);
@@ -402,20 +378,59 @@ int main(int argc, char* argv[]) {
     PolicyVec policy_obj_x('x', file_path_1, game, true);
     PolicyVec policy_obj_o('o', file_path_2, game, true);
     std::cout << "Start policies loaded." << std::endl;
+    PolicyVec uniform_policy_obj_x('x', P1_information_sets, game);
+    PolicyVec uniform_policy_obj_o('o', P2_information_sets, game);
+    PolicyVec br_x('x', P1_information_sets, game);
+    PolicyVec br_o('o', P2_information_sets, game);
 
-    int experiment_num = 1;
-    while (experiment_num <= experiments)
-    {
+    char continue_exp = 'y';
+    while (continue_exp == 'y') {
+        long int num_iterations = 0;
+        long int step_size = 0;
+        char player;
+        int experiment_number = 1;
+        int num_experiments = 0;
+        long int log_size = 1;
+        double eps = 0.0;
+
+        std::cout << "Enter number of iterations: ";
+        std::cin >> num_iterations;
+        std::cout << "Enter the number of iterations after which progress is to be checked: ";
+        std::cin >> log_size;
+        std::cout << "Enter the player for whom the best response is to be computed (x/o):";
+        std::cin >> player;
+        std::cout << "Enter the number of experiments: ";
+        std::cin >> num_experiments;
+        if (decay_flag == 0){
+            std::cout << "Enter epsilon value:";
+            std::cin >> eps;
+        }
+        else{
+            std:: cout << "Enter step size for eps decay:";
+            std::cin >> step_size;
+        }
+
+        double expected_utility = 0.0;
         if (player == 'x'){
-            PolicyVec player_br_policy = policy_obj_x;
-            mccfr_outcome_sampling_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, iterations, eps, log_frequency, experiment_num, game);
+            expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x', game);
         }
         else if (player == 'o'){
-            PolicyVec player_br_policy = policy_obj_o;
-            mccfr_outcome_sampling_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, iterations, eps, log_frequency, experiment_num, game);
+            expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o', game);
+        }
+
+        while (experiment_number <= num_experiments){
+            if (player == 'x'){
+                PolicyVec player_br_policy = policy_obj_x;
+                onpath_flipping_best_response(policy_obj_o, player_br_policy, uniform_policy_obj_x, 'x', P1_information_sets,  num_iterations, step_size, expected_utility, experiment_number, log_size, eps, decay_flag, game);
+            }
+            else if (player == 'o'){
+                PolicyVec player_br_policy = policy_obj_o;
+                onpath_flipping_best_response(policy_obj_x, player_br_policy, uniform_policy_obj_o, 'o', P2_information_sets, num_iterations, step_size, expected_utility, experiment_number, log_size, eps, decay_flag, game);
+            }
+            experiment_number += 1;
         }
        
-        std::cout << "(" << experiment_num << " experiments done)" << std::endl;
-        experiment_num += 1;
+        std::cout << "Continue experiments? (y/n): ";
+        std::cin >> continue_exp;
     }
 }

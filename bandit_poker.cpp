@@ -1064,7 +1064,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
 }
 
 
-void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, int m, PolicyVec& player_br, int experiment_number, int bypass_input, char game) {    
+void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, int m, PolicyVec& player_br, int experiment_number, char game, int iterations, int C) {    
     std::vector<std::vector<int>> I_a_tickmark(player_information_sets.size(), std::vector<int>(6, 0));
     std::vector<int> I_tickmark(player_information_sets.size(), 0);
 
@@ -1138,18 +1138,6 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
 
     std::cout << "Total number of games sampled for pulling each policy " << m << " times: " << t << std::endl;
-    int iterations = 1000;
-    int C = 16;
-    log_frequency = 5;
-
-    if (bypass_input == 0){
-        std::cout << "Enter number of games to sample: ";
-        std::cin >> iterations;
-        std::cout << "Enter value of C: ";
-        std::cin >> C;
-        std::cout << "Enter log frequency: ";
-        std::cin >> log_frequency;
-    }
     std::cout << "Playing " << iterations << " games with C = " << C << " and log frequency = " << log_frequency << std::endl;
 
     std::vector<char> player_cards = {'J', 'Q', 'K'};
@@ -1202,10 +1190,10 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         if (max_UCB_flag) {
             std::random_device rd;
             std::mt19937 generator(rd());
-            std::discrete_distribution<int> distribution(draw_probabilities_leduc.begin(), draw_probabilities_leduc.end());
+            std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
             int draw_index = distribution(generator);
 
-            std::string cards = unique_draws_leduc[draw_index];
+            std::string cards = unique_draws[draw_index];
             PokerTable true_cards = PokerTable(cards);
             true_cards.game = game;
             std::string hash_1 = "a-" + std::string(1, cards[0]) + "--";
@@ -1321,7 +1309,11 @@ int main(int argc, char* argv[]) {
     std::string file_path_1 = argv[1]; // start policy P1
     std::string file_path_2 = argv[2]; // start policy P2
     char game = argv[3][0];
-    int bypass_input = std::stoi(argv[4]);
+    char player = argv[4][0];
+    int iterations = std::stoi(argv[5]);
+    int log_frequency = std::stoi(argv[6]);
+    int experiments = std::stoi(argv[7]);
+    int C = std::stoi(argv[8]);
     
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -1357,36 +1349,22 @@ int main(int argc, char* argv[]) {
     std::cout << "Expected utility of initial policies: " << expected_utility << std::endl;
 
     // compute epsilon best response
-    char continue_exp = 'y';
     int experiment_num = 1;
 
-    // while (continue_exp == 'y') {
-    while (experiment_num <= 100) {
-        int log_frequency = 10;
-        char player = 'o';
+    while (experiment_num <= experiments) {
         int m = 1;
-
-        if (bypass_input == 0) {
-            std::cout << "Enter log frequency: ";
-            std::cin >> log_frequency;
-            std::cout << "Enter player for pull arms: ";
-            std::cin >> player;
-            std::cout << "Enter value of m: ";
-            std::cin >> m;
-        }
         std::cout << "Starting experiments for player " << player << " with m = " << m << " and log frequency = " << log_frequency << std::endl;
 
         if (player == 'x') {
             PolicyVec uniform_x('x', P1_information_sets, game);
-            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m, uniform_x, experiment_num, bypass_input, game);
+            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m, uniform_x, experiment_num, game, iterations, C);
         }
         else {
             PolicyVec uniform_o('o', P2_information_sets, game);
-            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m, uniform_o, experiment_num, bypass_input, game);
+            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m, uniform_o, experiment_num, game, iterations, C);
         }
 
-        std::cout << "Continue experiments? (" << experiment_num << " experiments done) (y/n): ";
-        // std::cin >> continue_exp;
+        std::cout << "(" << experiment_num << " experiments done)" << std::endl;
         experiment_num += 1;
     }
 }
