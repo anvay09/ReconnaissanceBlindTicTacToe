@@ -340,17 +340,17 @@ void mccfr_outcome_sampling_best_response(PolicyVec &opponent_policy, PolicyVec 
         }
     }
     std::cout << "Saving exploitability logs" << std::endl;
-    std::string file_name = "data/" + std::string(1, br_player) + "mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
-    std::string file_name_average = "data/" + std::string(1, br_player) + "average_mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/" + std::string(1, br_player) + "mccfr_greedy_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name_average = "data/" + std::string(1, br_player) + "average_mccfr_greedy_exploitability_log_" + std::to_string(experiment_number) + ".txt";
     if (decay_flag)
     {
-        file_name = "data/eps_decay_step_size=" + std::to_string(step_size) + "_" + std::string(1, br_player) + "mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
-        file_name_average = "data/eps_decay_step_size=" + std::to_string(step_size) + "_" + std::string(1, br_player) + "average_mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+        file_name = "data/eps_decay_step_size=" + std::to_string(step_size) + "_" + std::string(1, br_player) + "mccfr_greedy_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+        file_name_average = "data/eps_decay_step_size=" + std::to_string(step_size) + "_" + std::string(1, br_player) + "average_mccfr_greedy_exploitability_log_" + std::to_string(experiment_number) + ".txt";
     }
     else
     {
-        file_name = "data/eps_constant=" + std::to_string(eps) + "_" + std::string(1, br_player) + "mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
-        file_name_average = "data/eps_constant=" + std::to_string(eps) + "_" + std::string(1, br_player) + "average_mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+        file_name = "data/eps_constant=" + std::to_string(eps) + "_" + std::string(1, br_player) + "mccfr_greedy_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+        file_name_average = "data/eps_constant=" + std::to_string(eps) + "_" + std::string(1, br_player) + "average_mccfr_greedy_exploitability_log_" + std::to_string(experiment_number) + ".txt";
     }
 
     std::ofstream f(file_name);
