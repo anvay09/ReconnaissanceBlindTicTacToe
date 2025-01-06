@@ -119,7 +119,7 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
 }
 
 
-bool LUCB_stopping_condition(std::vector<double>& UCB, std::vector<double>& LCB, double eps, int T){
+bool LUCB_stopping_condition(std::vector<double>& UCB, std::vector<double>& LCB, double eps, int T, std::vector<PolicyVec>& P1_strategies, PolicyVec& policy_obj_o, char game){
     int max_UCB_policy_index = 0;
     int second_max_UCB_policy_index = 0;
 
@@ -138,8 +138,14 @@ bool LUCB_stopping_condition(std::vector<double>& UCB, std::vector<double>& LCB,
         std::cout << "T = " << T << std::endl;
         std::cout << "Arm with highest UCB: " << max_UCB_policy_index << std::endl;
         std::cout << "UCB: " << UCB[max_UCB_policy_index] << " LCB: " << LCB[max_UCB_policy_index] << std::endl;
+        PolicyVec& P1_strategy = P1_strategies[max_UCB_policy_index];
+        double expected_utility_arm = get_expected_utility_wrapper(P1_strategy, policy_obj_o, game);
+        std::cout << "Expected utility of highest UCB arm: " << expected_utility_arm << std::endl;
         std::cout << "Second highest UCB: " << second_max_UCB_policy_index << std::endl;
         std::cout << "UCB: " << UCB[second_max_UCB_policy_index] << " LCB: " << LCB[second_max_UCB_policy_index] << std::endl;
+        PolicyVec& P1_strategy_second = P1_strategies[second_max_UCB_policy_index];
+        double expected_utility_arm_second = get_expected_utility_wrapper(P1_strategy_second, policy_obj_o, game);
+        std::cout << "Expected utility of second highest UCB arm: " << expected_utility_arm_second << std::endl;
         return true;
     }
     return false;
@@ -230,7 +236,7 @@ int main(int argc, char* argv[]) {
     }
     
     // main loop
-    while (!LUCB_stopping_condition(UCB, LCB, eps, T)){
+    while (!LUCB_stopping_condition(UCB, LCB, eps, T, P1_strategies, policy_obj_o, game)){
         // print all indices, UCB, LCB, mean rewards, pull counts, true expected utilities
         if (T % 1000 == 0 && T != 0){
             std::cout << "T: " << T << std::endl;
