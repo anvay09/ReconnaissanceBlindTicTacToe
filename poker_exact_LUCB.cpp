@@ -200,8 +200,8 @@ int main(int argc, char* argv[]) {
     std::vector<double> UCB(P1_strategies.size(), 0.0);
     std::vector<double> LCB(P1_strategies.size(), 0.0);
     std::vector<double> total_empirical_reward(P1_strategies.size(), 0.0);
-    std::vector <int> pull_count (P1_strategies.size(), 0);
-    int T = 0;
+    std::vector <long int> pull_count (P1_strategies.size(), 0);
+    long int T = 0;
     double k = 4.0 / 5.0;
     int max_UCB_policy_index = 0;
     double max_UCB = 0.0;
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
     // main loop
     while (!LUCB_stopping_condition(UCB, LCB, eps, T)){
         // print all indices, UCB, LCB, mean rewards, pull counts, true expected utilities
-        if (T % 1000 == 0 && T != 0){
+        if (T % 100000 == 0 && T != 0){
             std::cout << "T: " << T << std::endl;
             PolicyVec& P1_strategy = P1_strategies[max_empirical_mean_policy_index];
             double expected_utility_arm = get_expected_utility_wrapper(P1_strategy, policy_obj_o, game);
