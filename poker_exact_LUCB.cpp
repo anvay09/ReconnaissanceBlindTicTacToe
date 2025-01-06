@@ -146,6 +146,7 @@ int main(int argc, char* argv[]) {
     std::string file_path_2 = argv[2]; // start policy P2
     double eps = std::stod(argv[3]); // epsilon for stopping condition
     double delta = std::stod(argv[4]); // delta for mistake probability
+    int number_of_runs = std::stoi(argv[5]); // number of runs
     char game = 'K'; // do not run this code for Leduc Poker
     
     // load information sets
@@ -189,6 +190,7 @@ int main(int argc, char* argv[]) {
 
     enumerate_all_deterministic_strategies(P1_information_sets, P1_strategies, game, 'x', 0);
     int n = P1_strategies.size();
+    int average_sample_complexity = 0;
     // enumerate_all_deterministic_strategies(P2_information_sets, P2_strategies, game, 'o', 0);
 
     std::vector <double> true_expected_utilities(P1_strategies.size(), 0.0);
@@ -196,110 +198,107 @@ int main(int argc, char* argv[]) {
         true_expected_utilities[i] = get_expected_utility_wrapper(P1_strategies[i], policy_obj_o, game);
     }
 
-    // initialize UCB, LCB, empirical mean for player 1
-    std::vector<double> UCB(P1_strategies.size(), 0.0);
-    std::vector<double> LCB(P1_strategies.size(), 0.0);
-    std::vector<double> total_empirical_reward(P1_strategies.size(), 0.0);
-    std::vector <long int> pull_count (P1_strategies.size(), 0);
-    long int T = 0;
-    double k = 4.0 / 5.0;
-    int max_UCB_policy_index = 0;
-    double max_UCB = 0.0;
-    int max_empirical_mean_policy_index = 0;
-    double max_empirical_mean = 0.0;
-    int num_samples = 0;
+    for (int j = 0; j < number_of_runs; j++){
+        // initialize UCB, LCB, empirical mean for player 1
+        std::vector<double> UCB(P1_strategies.size(), 0.0);
+        std::vector<double> LCB(P1_strategies.size(), 0.0);
+        std::vector<double> total_empirical_reward(P1_strategies.size(), 0.0);
+        std::vector <long int> pull_count (P1_strategies.size(), 0);
+        long int T = 0;
+        double k = 4.0 / 5.0;
+        int max_UCB_policy_index = 0;
+        double max_UCB = 0.0;
+        int max_empirical_mean_policy_index = 0;
+        double max_empirical_mean = 0.0;
+        int num_samples = 0;
 
-    // pull each arm once
-    for (int i = 0; i < P1_strategies.size(); i++) {
-        PolicyVec& P1_strategy = P1_strategies[i];
-        double reward = sample_terminal_history_wrapper(P1_strategy, policy_obj_o, 'x', game);
-        total_empirical_reward[i] += reward;
-        pull_count[i] += 1;
-        T += 1;
-        num_samples += 1;
-    }
+        // pull each arm once
+        for (int i = 0; i < P1_strategies.size(); i++) {
+            PolicyVec& P1_strategy = P1_strategies[i];
+            double reward = sample_terminal_history_wrapper(P1_strategy, policy_obj_o, 'x', game);
+            total_empirical_reward[i] += reward;
+            pull_count[i] += 1;
+            T += 1;
+            num_samples += 1;
+        }
 
-    // update UCB, LCB
-    for (int i = 0; i < P1_strategies.size(); i++) {
-        UCB[i] = total_empirical_reward[i] / pull_count[i] + std::sqrt(std::log(n * T / delta) / (2 * pull_count[i]));
-        LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(n * T / delta) / (2 * pull_count[i]));
-    }
-    
-    // main loop
-    while (!LUCB_stopping_condition(UCB, LCB, eps)){
-        // print all indices, UCB, LCB, mean rewards, pull counts, true expected utilities
-        if (T % 100000 == 0 && T != 0){
-            std::cout << "Number of samples: " << num_samples << std::endl;
+        // update UCB, LCB
+        for (int i = 0; i < P1_strategies.size(); i++) {
+            UCB[i] = total_empirical_reward[i] / pull_count[i] + std::sqrt(std::log(n * T / delta) / (2 * pull_count[i]));
+            LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(n * T / delta) / (2 * pull_count[i]));
+        }
+        
+        // main loop
+        while (!LUCB_stopping_condition(UCB, LCB, eps)){
+            // select arm with highest UCB
+            max_UCB_policy_index = 0;
+            max_UCB = UCB[0];
+
+            for (int i = 1; i < P1_strategies.size(); i++){
+                if (UCB[i] > max_UCB){
+                    max_UCB = UCB[i];
+                    max_UCB_policy_index = i;
+                }
+            }
+
+            // sample terminal history
+            PolicyVec& P1_strategy_UCB = P1_strategies[max_UCB_policy_index];
+            double reward_UCB = sample_terminal_history_wrapper(P1_strategy_UCB, policy_obj_o, 'x', game);
+
+            // update empirical mean, UCB, LCB
+            total_empirical_reward[max_UCB_policy_index] += reward_UCB;
+            pull_count[max_UCB_policy_index] += 1;
+            num_samples += 1;
+
+            for (int i = 0; i < P1_strategies.size(); i++) {
+                UCB[i] = total_empirical_reward[i] / pull_count[i] + std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
+                LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
+            }
+
+            // select arm with highest empirical mean
+            max_empirical_mean_policy_index = 0;
+            max_empirical_mean = total_empirical_reward[0] / pull_count[0];
+
+            for (int i = 1; i < P1_strategies.size(); i++){
+                double empirical_mean = total_empirical_reward[i] / pull_count[i];
+                if (empirical_mean > max_empirical_mean){
+                    max_empirical_mean = empirical_mean;
+                    max_empirical_mean_policy_index = i;
+                }
+            }
+
+            // sample terminal history
             PolicyVec& P1_strategy = P1_strategies[max_empirical_mean_policy_index];
-            double expected_utility_arm = get_expected_utility_wrapper(P1_strategy, policy_obj_o, game);
-            std::cout << "Expected utility of highest empirical mean arm: " << expected_utility_arm << std::endl;
-            for (int i = 0; i < P1_strategies.size(); i++){
-                std::cout << "Index: " << i << " ";
-                std::cout << "UCB: " << UCB[i] << " LCB: " << LCB[i] << " ";
-                std::cout << "Mean reward: " << total_empirical_reward[i] / pull_count[i] << " ";
-                std::cout << "Pull count: " << pull_count[i] << " ";
-                std::cout << "True expected utility: " << true_expected_utilities[i] << std::endl;
+            double reward = sample_terminal_history_wrapper(P1_strategy, policy_obj_o, 'x', game);
+
+            // update empirical mean, UCB, LCB
+            total_empirical_reward[max_empirical_mean_policy_index] += reward;
+            pull_count[max_empirical_mean_policy_index] += 1;
+            num_samples += 1;
+
+            for (int i = 0; i < P1_strategies.size(); i++) {
+                UCB[i] = total_empirical_reward[i] / pull_count[i] + std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
+                LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
             }
+
+            // update T
+            T += 1;
         }
 
-        // select arm with highest UCB
-        max_UCB_policy_index = 0;
-        max_UCB = UCB[0];
-
-        for (int i = 1; i < P1_strategies.size(); i++){
-            if (UCB[i] > max_UCB){
-                max_UCB = UCB[i];
-                max_UCB_policy_index = i;
-            }
-        }
-
-        // sample terminal history
-        PolicyVec& P1_strategy_UCB = P1_strategies[max_UCB_policy_index];
-        double reward_UCB = sample_terminal_history_wrapper(P1_strategy_UCB, policy_obj_o, 'x', game);
-
-        // update empirical mean, UCB, LCB
-        total_empirical_reward[max_UCB_policy_index] += reward_UCB;
-        pull_count[max_UCB_policy_index] += 1;
-        num_samples += 1;
-
-        for (int i = 0; i < P1_strategies.size(); i++) {
-            UCB[i] = total_empirical_reward[i] / pull_count[i] + std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
-            LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
-        }
-
-        // select arm with highest empirical mean
-        max_empirical_mean_policy_index = 0;
-        max_empirical_mean = total_empirical_reward[0] / pull_count[0];
-
-        for (int i = 1; i < P1_strategies.size(); i++){
-            double empirical_mean = total_empirical_reward[i] / pull_count[i];
-            if (empirical_mean > max_empirical_mean){
-                max_empirical_mean = empirical_mean;
-                max_empirical_mean_policy_index = i;
-            }
-        }
-
-        // sample terminal history
+        std::cout << "Stopping condition reached." << std::endl;
+        // for (int i = 0; i < P1_strategies.size(); i++){
+        //     std::cout << "Index: " << i << " ";
+        //     std::cout << "UCB: " << UCB[i] << " LCB: " << LCB[i] << " ";
+        //     std::cout << "Mean reward: " << total_empirical_reward[i] / pull_count[i] << " ";
+        //     std::cout << "Pull count: " << pull_count[i] << " ";
+        //     std::cout << "True expected utility: " << true_expected_utilities[i] << std::endl;
+        // }
+        std::cout << "Number of samples: " << num_samples << std::endl;
         PolicyVec& P1_strategy = P1_strategies[max_empirical_mean_policy_index];
-        double reward = sample_terminal_history_wrapper(P1_strategy, policy_obj_o, 'x', game);
-
-        // update empirical mean, UCB, LCB
-        total_empirical_reward[max_empirical_mean_policy_index] += reward;
-        pull_count[max_empirical_mean_policy_index] += 1;
-        num_samples += 1;
-
-        for (int i = 0; i < P1_strategies.size(); i++) {
-            UCB[i] = total_empirical_reward[i] / pull_count[i] + std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
-            LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
-        }
-
-        // update T
-        T += 1;
+        double expected_utility_arm = get_expected_utility_wrapper(P1_strategy, policy_obj_o, game);
+        std::cout << "Expected utility of highest empirical mean arm: " << expected_utility_arm << std::endl;
+        average_sample_complexity += num_samples;
     }
 
-    std::cout << "Stopping condition reached." << std::endl;
-    std::cout << "Number of samples: " << num_samples << std::endl;
-    PolicyVec& P1_strategy = P1_strategies[max_empirical_mean_policy_index];
-    double expected_utility_arm = get_expected_utility_wrapper(P1_strategy, policy_obj_o, game);
-    std::cout << "Expected utility of highest empirical mean arm: " << expected_utility_arm << std::endl;
+    std::cout << "Average sample complexity: " << (double) average_sample_complexity / number_of_runs << std::endl;
 }
