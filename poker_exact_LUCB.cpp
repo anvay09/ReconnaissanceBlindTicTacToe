@@ -151,6 +151,7 @@ int main(int argc, char* argv[]) {
     std::string file_path_1 = argv[1]; // start policy P1
     std::string file_path_2 = argv[2]; // start policy P2
     double eps = std::stod(argv[3]); // epsilon for stopping condition
+    double C = std::stod(argv[4]); // exploration parameter
     char game = 'K'; // do not run this code for Leduc Poker
     
     // load information sets
@@ -205,7 +206,6 @@ int main(int argc, char* argv[]) {
     std::vector<double> LCB(P1_strategies.size(), 0.0);
     std::vector<double> total_empirical_reward(P1_strategies.size(), 0.0);
     std::vector <int> pull_count (P1_strategies.size(), 0);
-    int C = 2;
     int T = 0;
 
     // pull each arm once
@@ -226,13 +226,15 @@ int main(int argc, char* argv[]) {
     // main loop
     while (!LUCB_stopping_condition(UCB, LCB, eps, T)){
         // print all indices, UCB, LCB, mean rewards, pull counts, true expected utilities
-        std::cout << "T: " << T << std::endl;
-        for (int i = 0; i < P1_strategies.size(); i++){
-            std::cout << "Index: " << i << " ";
-            std::cout << "UCB: " << UCB[i] << " LCB: " << LCB[i] << " ";
-            std::cout << "Mean reward: " << total_empirical_reward[i] / pull_count[i] << " ";
-            std::cout << "Pull count: " << pull_count[i] << " ";
-            std::cout << "True expected utility: " << true_expected_utilities[i] << std::endl;
+        if (T % 1000 == 0){
+            std::cout << "T: " << T << std::endl;
+            for (int i = 0; i < P1_strategies.size(); i++){
+                std::cout << "Index: " << i << " ";
+                std::cout << "UCB: " << UCB[i] << " LCB: " << LCB[i] << " ";
+                std::cout << "Mean reward: " << total_empirical_reward[i] / pull_count[i] << " ";
+                std::cout << "Pull count: " << pull_count[i] << " ";
+                std::cout << "True expected utility: " << true_expected_utilities[i] << std::endl;
+            }
         }
 
         // select arm with highest UCB
