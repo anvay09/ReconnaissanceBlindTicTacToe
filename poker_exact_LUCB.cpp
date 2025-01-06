@@ -297,11 +297,4 @@ int main(int argc, char* argv[]) {
     PolicyVec& P1_strategy = P1_strategies[max_empirical_mean_policy_index];
     double expected_utility_arm = get_expected_utility_wrapper(P1_strategy, policy_obj_o, game);
     std::cout << "Expected utility of highest empirical mean arm: " << expected_utility_arm << std::endl;
-    for (int i = 0; i < P1_strategies.size(); i++){
-        std::cout << "Index: " << i << " ";
-        std::cout << "UCB: " << UCB[i] << " LCB: " << LCB[i] << " ";
-        std::cout << "Mean reward: " << total_empirical_reward[i] / pull_count[i] << " ";
-        std::cout << "Pull count: " << pull_count[i] << " ";
-        std::cout << "True expected utility: " << true_expected_utilities[i] << std::endl;
-    }
 }
