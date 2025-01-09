@@ -40,31 +40,29 @@ def clean_data(file_name, num_experiments, num_iterations, step_size = 1000, omi
     y = [y[i] / num_experiments for i in range(len(y))]
     return x, y
 
-player = 'o'
-multiplier = -1
+player = 'x'
+multiplier = 1
 num_iterations = 200
 step_size = 5
 omit_range = 2
-LUCB_num_experiments = 10
-MCCFR_num_experiments = 10
-On_path_flipping_num_experiments = 10
+LUCB_num_experiments = 100
+MCCFR_num_experiments = 100
+On_path_flipping_num_experiments = 100
 C = 16
-x, y = clean_data("data/K_poker_" + player + "_C=16_LUCB_exploitability_log", LUCB_num_experiments, num_iterations, step_size, omit_range, multiplier, interpolation = False)
-x_mccfr, y_mccfr = clean_data("data/K_poker_" + player + "_MCCFR_OS_exploitability_log", MCCFR_num_experiments, num_iterations, step_size, omit_range, multiplier, interpolation = False)
-x_opf, y_opf = clean_data("data/Kpoker_eps_constant=0.100000_" + player + "onpath_flipping_exploitability_log", On_path_flipping_num_experiments, num_iterations, step_size, omit_range, multiplier, interpolation = False)
+x, y = clean_data("data/L_poker_" + player + "_C=16_LUCB_exploitability_log", LUCB_num_experiments, num_iterations, step_size, omit_range, multiplier, interpolation = False)
+x_mccfr, y_mccfr = clean_data("data/L_poker_" + player + "_MCCFR_OS_exploitability_log", MCCFR_num_experiments, num_iterations, step_size, omit_range, multiplier, interpolation = False)
+x_opf, y_opf = clean_data("data/Lpoker_eps_constant=0.100000_" + player + "onpath_flipping_exploitability_log", On_path_flipping_num_experiments, num_iterations, step_size, omit_range, multiplier, interpolation = False)
 
-plt.plot(x, y, marker='', linewidth=1, color='blue', label='LUCB for player ' + player + ', C = ' + str(C) + ', ' + str(LUCB_num_experiments) + ' experiments')
-plt.plot(x_mccfr, y_mccfr, marker='', linewidth=1, color='red', label='MCCFR Outcome Sampling for player ' + player + ', ' + str(MCCFR_num_experiments) + ' experiments')
-plt.plot(x_opf, y_opf, marker='', linewidth=1, color='green', label='On-Path Flipping for player ' + player + ', ' + str(On_path_flipping_num_experiments) + ' experiments')
+plt.plot(x, y, '-', linewidth=1, color='blue', label='LUCB for player ' + player + ', C = ' + str(C) + ', ' + str(LUCB_num_experiments) + ' experiments')
+plt.plot(x_mccfr, y_mccfr, '-.', linewidth=1, color='red', label='MCCFR Outcome Sampling for player ' + player + ', ' + str(MCCFR_num_experiments) + ' experiments')
+plt.plot(x_opf, y_opf, ':', linewidth=1, color='green', label='On-Path Flipping for player ' + player + ', ' + str(On_path_flipping_num_experiments) + ' experiments')
 
 # horizontal line
 plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
 plt.yticks([0.01, 0.05, 0.1, 0.2, 0.3])
 plt.xlabel('Number of samples')
 plt.ylabel('Exploitability')
-plt.title('Kuhn Poker')
+plt.title('Leduc Poker')
 plt.legend()
-plt.savefig('Kuhn_o_all_3.pdf')
+plt.savefig('Leduc_x_all_3_new.pdf')
 plt.show()
-
-
