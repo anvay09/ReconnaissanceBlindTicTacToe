@@ -1354,16 +1354,13 @@ int main(int argc, char* argv[]) {
     int experiment_num = 1;
 
     while (experiment_num <= experiments) {
-        int m = 1;
-        std::cout << "Starting experiments for player " << player << " with m = " << m << " and log frequency = " << log_frequency << std::endl;
-
         if (player == 'x') {
             PolicyVec uniform_x('x', P1_information_sets, game);
-            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m, uniform_x, experiment_num, game, iterations, C);
+            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, 1, uniform_x, experiment_num, game, iterations, C);
         }
         else {
             PolicyVec uniform_o('o', P2_information_sets, game);
-            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m, uniform_o, experiment_num, game, iterations, C);
+            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, 1, uniform_o, experiment_num, game, iterations, C);
         }
 
         std::cout << "(" << experiment_num << " experiments done)" << std::endl;

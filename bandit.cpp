@@ -748,7 +748,6 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
         std::unordered_map<std::string, double> cohort_ucb_values;
         get_cohort(I, a, cohort);
         int u = 0;
-        int norm = 0;
         int terminal_reach_count = action_terminal_reach_count[I.get_index()][a]; // number of times action led to terminal state
 
         for (std::string I_prime_hash : cohort){
@@ -766,8 +765,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                 if (denom != 0){
                     u += denom;
-                    action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
-                    norm += infoset_reach_count[I_prime.get_index()];
+                    action_ucb_values[a] += (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
                     
                     success_metrics[0] += success_metrics_prime[0];
                     success_metrics[1] += success_metrics_prime[1];
@@ -788,8 +786,6 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
         }
 
         if (u != 0){
-            action_ucb_values[a] /= norm;
-            // action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
             action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()]) / u);
             infoset_time_step[I.get_index()] += 1;
         }
@@ -879,7 +875,6 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
         std::unordered_map<std::string, double> cohort_ucb_values;
         get_cohort(I, a, cohort);
         int u = 0;
-        int norm = 0;
         int terminal_reach_count = action_terminal_reach_count[I.get_index()][a]; // number of times action led to terminal state
 
         for (std::string I_prime_hash : cohort){
@@ -896,8 +891,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                 if (denom != 0){
                     u += denom;
-                    action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
-                    norm += infoset_reach_count[I_prime.get_index()];
+                    action_ucb_values[a] += (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
 
                     success_metrics[0] += success_metrics_prime[0];
                     success_metrics[1] += success_metrics_prime[1];
@@ -918,8 +912,6 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
         }
 
         if (u != 0){
-            action_ucb_values[a] /= norm;
-            // action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
             action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()]) / u);
             infoset_time_step[I.get_index()] += 1;
         }
@@ -1031,7 +1023,6 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
             std::unordered_map<std::string, double> cohort_ucb_values;
             get_cohort(I, a, cohort);
             int u = 0;
-            int norm = 0;
             int terminal_reach_count = action_terminal_reach_count[I.get_index()][a]; // number of times action led to terminal state
 
             for (std::string I_prime_hash : cohort){
@@ -1048,8 +1039,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
                     int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                     if (denom != 0){
                         u += denom;
-                        action_ucb_values[a] += infoset_reach_count[I_prime.get_index()] * (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
-                        norm += infoset_reach_count[I_prime.get_index()];
+                        action_ucb_values[a] += (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
 
                         success_metrics[0] += success_metrics_prime[0];
                         success_metrics[1] += success_metrics_prime[1];
@@ -1068,8 +1058,6 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
             }
 
             if (u != 0){
-                action_ucb_values[a] /= norm;
-                // action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()])/action_explore_count[I.get_index()][a]);
                 action_ucb_values[a] += sqrt(C * log(infoset_time_step[I.get_index()]) / u);
                 infoset_time_step[I.get_index()] += 1;
             }
@@ -1156,7 +1144,7 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
 }
 
 
-void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, int m, PolicyVec& player_br, int experiment_number, int bypass_input) {
+void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, int m, PolicyVec& player_br, int experiment_number, int iterations, int C) {
     std::vector<std::vector<int>> I_a_tickmark(player_information_sets.size(), std::vector<int>(13, 0));
     std::vector<int> I_tickmark(player_information_sets.size(), 0);
 
@@ -1205,18 +1193,6 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
 
     std::cout << "Total number of games sampled for pulling each policy " << m << " times: " << t << std::endl;
-    int iterations = 500000;
-    int C = 16;
-    log_frequency = 10000;
-
-    if (bypass_input == 0){
-        std::cout << "Enter number of games to sample: ";
-        std::cin >> iterations;
-        std::cout << "Enter value of C: ";
-        std::cin >> C;
-        std::cout << "Enter log frequency: ";
-        std::cin >> log_frequency;
-    }
     std::cout << "Playing " << iterations << " games with C = " << C << " and log frequency = " << log_frequency << std::endl;
 
     std::string hash = "";
@@ -1343,7 +1319,11 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1]; // start policy P1
     std::string file_path_2 = argv[2]; // start policy P2
-    int bypass_input = std::stoi(argv[3]);
+    char player = argv[3][0];
+    int iterations = std::stoi(argv[4]);
+    int log_frequency = std::stoi(argv[5]);
+    int experiments = std::stoi(argv[6]);
+    int C = std::stoi(argv[7]);
 
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -1377,36 +1357,20 @@ int main(int argc, char* argv[]) {
     PolicyVec policy_obj_o('o', file_path_2, true);
 
     // compute epsilon best response
-    char continue_exp = 'y';
+
     int experiment_num = 1;
 
-    // while (continue_exp == 'y') {
-    while (experiment_num <= 100) {
-        int log_frequency = 10000;
-        char player = 'x';
-        int m = 1;
-
-        if (bypass_input == 0) {
-            std::cout << "Enter log frequency: ";
-            std::cin >> log_frequency;
-            std::cout << "Enter player for pull arms: ";
-            std::cin >> player;
-            std::cout << "Enter value of m: ";
-            std::cin >> m;
-        }
-        std::cout << "Starting experiments for player " << player << " with m = " << m << " and log frequency = " << log_frequency << std::endl;
-
+    while (experiment_num <= experiments) {
         if (player == 'x') {
             PolicyVec uniform_x('x', P1_information_sets);
-            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, m, uniform_x, experiment_num, bypass_input);
+            calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, 1, uniform_x, experiment_num, iterations, C);
         }
         else {
             PolicyVec uniform_o('o', P2_information_sets);
-            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, m, uniform_o, experiment_num, bypass_input);
+            calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, 1, uniform_o, experiment_num, iterations, C);
         }
 
-        std::cout << "Continue experiments? (" << experiment_num << " experiments done) (y/n): ";
-        // std::cin >> continue_exp;
+        std::cout << "(" << experiment_num << " experiments done)" << std::endl;
         experiment_num += 1;
     }
 }

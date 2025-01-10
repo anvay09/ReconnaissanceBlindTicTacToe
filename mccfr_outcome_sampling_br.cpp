@@ -330,8 +330,11 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
-    NUM_THREADS = std::stoi(argv[3]); //96;
-    int bypass_input = std::stoi(argv[4]);
+    char player = argv[3][0];
+    int iterations = std::stoi(argv[4]);
+    int log_frequency = std::stoi(argv[5]);
+    int experiments = std::stoi(argv[6]);
+    double eps = std::stod(argv[7]);
 
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
@@ -365,38 +368,19 @@ int main(int argc, char* argv[]) {
     PolicyVec policy_obj_o('o', file_path_2, true);
     std::cout << "Start policies loaded." << std::endl;
 
-    char continue_exp = 'y';
-    int num_experiments = 1;
-    // while (continue_exp == 'y') {
-    while (num_experiments <= 10)
+    int experiment_num = 1;
+    while (experiment_num <= experiments)
     {
-        double eps = 0.1;
-        long int num_iterations = 500000;
-        long int step_size = 10000;
-        char player = 'x';
-
-        if (bypass_input == 0) {
-            std::cout << "Enter number of iterations: ";
-            std::cin >> num_iterations;
-            std::cout << "Enter the number of iterations after which progress is to be checked: ";
-            std::cin >> step_size;
-            std::cout << "Enter the player for whom the best response is to be computed (x/o):";
-            std::cin >> player;
-            std::cout << "Enter value of epsilon:";
-            std::cin >> eps; 
-        }
-
         if (player == 'x'){
             PolicyVec player_br_policy = policy_obj_x;
-            mccfr_outcome_sampling_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets,  num_iterations, eps, step_size, num_experiments);
+            mccfr_outcome_sampling_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets,  iterations, eps, log_frequency, experiment_num);
         }
         else if (player == 'o'){
             PolicyVec player_br_policy = policy_obj_o;
-            mccfr_outcome_sampling_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, eps, step_size, num_experiments);
+            mccfr_outcome_sampling_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, iterations, eps, log_frequency, experiment_num);
         }
        
-        std::cout << "Continue experiments? (" << num_experiments << " experiments done) (y/n): ";
-        num_experiments += 1;
-        // std::cin >> continue_exp;
+        std::cout << "(" << experiment_num << " experiments done)" << std::endl;
+        experiment_num += 1;
     }
 }
