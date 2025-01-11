@@ -45,13 +45,16 @@ player = 'x'
 multiplier = 1
 num_iterations = 100
 step_size = 10000
+# num_iterations = 200
+# step_size = 5
 omit_range = 2
-LUCB_num_experiments = 100
-MCCFR_num_experiments = 100
-On_path_flipping_num_experiments = 100
+LUCB_num_experiments = 10
+MCCFR_num_experiments = 10
+On_path_flipping_num_experiments = 10
 C = 16
 eps = 0.1
-x, y = clean_data(f"data/{game}_poker_" + player + "_C=16_LUCB_exploitability_log", LUCB_num_experiments, num_iterations, step_size, omit_range, multiplier, interpolation = False)
+# x, y = clean_data(f"data/{game}_poker_" + player + "_C=16_LUCB_exploitability_log", LUCB_num_experiments, num_iterations, step_size, omit_range, multiplier, interpolation = False)
+x, y = clean_data(f"data/bandit/normalise_by_u_{game}_poker_" + player + "_C=16_LUCB_exploitability_log", LUCB_num_experiments, num_iterations, step_size, omit_range, multiplier, interpolation = False)
 x_mccfr, y_mccfr = clean_data(f"data/{game}_poker_" + player + "_MCCFR_OS_exploitability_log", MCCFR_num_experiments, num_iterations, step_size, omit_range, multiplier, interpolation = False)
 x_opf, y_opf = clean_data(f"data/{game}poker_eps_constant=0.100000_" + player + "onpath_flipping_exploitability_log", On_path_flipping_num_experiments, num_iterations, step_size, omit_range, multiplier, interpolation = False)
 
@@ -66,5 +69,5 @@ plt.xlabel('Number of samples')
 plt.ylabel('Exploitability')
 plt.title('Leduc Poker')
 plt.legend()
-plt.savefig(f'Leduc_{player}_all_3_new.pdf')
+plt.savefig(f'Leduc_{player}_normalise_by_u.pdf')
 plt.show()
