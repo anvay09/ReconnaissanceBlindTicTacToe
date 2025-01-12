@@ -161,23 +161,13 @@ void get_cohort(InformationSet I, int action, std::unordered_set<std::string> &c
 int build_balanced_exploration_policy(PolicyVec& policy_obj, InformationSet& I) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
-    std::vector<long int> action_tree_size(13, 0);
-    std::cout << "Building balanced exploration policy for information set " << I.get_hash() << ", index " << I.get_index() << "..." << std::endl;
-    std::cout << "Legal actions: ";
-    for (int a : legal_actions){
-        std::cout << a << " ";
-    }
-    std::cout << std::endl;
+    std::vector<int> action_tree_size(13, 0);
     
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
-        std::unordered_map<std::string, long int> cohort_values;
+        std::unordered_map<std::string, int> cohort_values;
         get_cohort(I, a, cohort);
-        std::cout << "Cohort size for action " << a << ": " << cohort.size() << std::endl;
-        for (std::string I_prime_hash : cohort){
-            std::cout << I_prime_hash << " ";
-        }
-        std::cout << std::endl;
+
         if (cohort.size() == 0){
             action_tree_size[a] = 1;
             continue;
@@ -191,7 +181,7 @@ int build_balanced_exploration_policy(PolicyVec& policy_obj, InformationSet& I) 
         }
     }
 
-    long int total = 0;
+    int total = 0;
     for (int a : legal_actions){
         total += action_tree_size[a];
     }
@@ -210,7 +200,6 @@ void build_balanced_exploration_policy_wrapper(PolicyVec& policy_obj, char playe
     std::string hash = "";
     InformationSet I = InformationSet(player, player == 'x', hash);
     
-    std::cout << "Building balanced exploration policy for player " << player << "..." << std::endl;
     build_balanced_exploration_policy(policy_obj, I);
 }
 
