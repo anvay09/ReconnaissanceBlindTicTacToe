@@ -172,6 +172,11 @@ int build_balanced_exploration_policy(PolicyVec& policy_obj, InformationSet& I) 
         std::unordered_set<std::string> cohort;
         std::unordered_map<std::string, int> cohort_values;
         get_cohort(I, a, cohort);
+        std::cout << "Cohort size for action " << a << ": " << cohort.size() << std::endl;
+        for (std::string I_prime_hash : cohort){
+            std::cout << I_prime_hash << " ";
+        }
+        std::cout << std::endl;
         if (cohort.size() == 0){
             action_tree_size[a] = 1;
             continue;
