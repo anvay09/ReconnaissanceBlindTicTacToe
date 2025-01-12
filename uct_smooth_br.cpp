@@ -234,6 +234,77 @@ void update_ucb(std::vector<std::vector<double>> &infoset_ucb, std::vector<std::
     }
 }
 
+void update_ucb_new(std::vector<std::vector<double>> &infoset_ucb, std::vector<std::vector<double>> &infoset_q, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u, double reward, TerminalHistory &history, char player, long int C, PolicyVec& player_br_policy)
+{
+    // TODO
+    std::string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    InformationSet I_1 = InformationSet('x', true, hash_1);
+    InformationSet I_2 = InformationSet('o', false, hash_2);
+    char curr_player = 'x';
+    double total_reward = 0.0;
+    long int total_pull = 0;
+
+    for (int action : history.history)
+    {
+
+        if (curr_player == player)
+        {
+            InformationSet I = curr_player == 'x' ? I_1 : I_2;
+
+            infoset_u[I.get_index()] += 1;
+            infoset_action_u[I.get_index()][action] += 1;
+            infoset_q[I.get_index()][action] = infoset_q[I.get_index()][action] + (reward - infoset_q[I.get_index()][action]) / infoset_action_u[I.get_index()][action];
+            std::vector<int> legal_actions;
+            I.get_actions(legal_actions);
+            for (int a : legal_actions)
+            {
+                if (infoset_action_u[I.get_index()][a] > 0)
+                {
+                    infoset_ucb[I.get_index()][a] = infoset_q[I.get_index()][a] + C * sqrt(log(infoset_u[I.get_index()]) / infoset_action_u[I.get_index()][a]);
+                }
+            }
+            for (int a : legal_actions)
+            {
+                if (infoset_u[I.get_index()] > 0)
+                {
+                    player_br_policy.policy_dict[I.get_index()][a] = infoset_action_u[I.get_index()][a]/infoset_u[I.get_index()];
+                }
+            }
+        }
+
+        if (action < 9)
+        {
+            if (curr_player == 'x')
+            {
+                I_1.update_move(action, curr_player);
+                I_1.reset_zeros();
+            }
+            else
+            {
+                I_2.update_move(action, curr_player);
+                I_2.reset_zeros();
+            }
+            true_board.update_move(action, curr_player);
+            curr_player = (curr_player == 'x') ? 'o' : 'x';
+        }
+        else
+        {
+            if (curr_player == 'x')
+            {
+                I_1.simulate_sense(action, true_board);
+            }
+            else
+            {
+                I_2.simulate_sense(action, true_board);
+            }
+        }
+    }
+}
+
+
 void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, char br_player, std::vector<std::string> &player_information_sets, long int T, long int d, double exact_br_value, int experiment_number, long int log_size, double eps, long int C, double n_0)
 {
     std::vector<double> infoset_u(player_information_sets.size(), 0.0);
@@ -251,14 +322,14 @@ void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, 
 
         reward = sample_terminal_history_wrapper(infoset_ucb, opponent_policy, start_history, br_player, eps, C, n_0, infoset_u, infoset_action_u, d);
         // update ucb values
-        update_ucb(infoset_ucb, infoset_q, infoset_u, infoset_action_u, reward, start_history, br_player, C);
+        update_ucb_new(infoset_ucb, infoset_q, infoset_u, infoset_action_u, reward, start_history, br_player, C, player_br_policy);
 
         if (t % log_size == 0 && t != 0)
         {
             double expected_utility = 0.0;
             std::cout << "############################################################" << std::endl;
-            std::cout << "Build policy" << std::endl;
-            build_policy(infoset_ucb, player_br_policy, player_information_sets, eps, n_0, infoset_u, infoset_action_u, d);
+            // std::cout << "Build policy" << std::endl;
+            // build_policy(infoset_ucb, player_br_policy, player_information_sets, eps, n_0, infoset_u, infoset_action_u, d);
             if (br_player == 'x')
             {
                 double expected_utility = get_expected_utility_wrapper(player_br_policy, opponent_policy);
