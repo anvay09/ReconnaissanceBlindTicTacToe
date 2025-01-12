@@ -1,7 +1,7 @@
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/rbt_utilities.hpp"
 
-// g++-13 -O3 countterminal_infosets.cpp rbt_classes.cpp rbt_utilities.cpp -o count_terminal_infosets
+// g++-13 -O3 count_terminal_infosets.cpp rbt_classes.cpp rbt_utilities.cpp -o count_terminal_infosets
 
 
 void save_map_json(std::string output_file, std::vector<std::vector<double>>& map, std::vector<std::string>& information_sets){
@@ -206,8 +206,8 @@ int main(int argc, char** argv) {
     char player = argv[1][0];
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
-    std::string P1_information_sets_file = "P1_information_sets_v2.txt";
-    std::string P2_information_sets_file = "P2_information_sets_v2.txt";
+    std::string P1_information_sets_file = "data/P1_information_sets_v2.txt";
+    std::string P2_information_sets_file = "data/P2_information_sets_v2.txt";
 
     std::ifstream P1_f_is(P1_information_sets_file);
     std::string P1_line_is;
