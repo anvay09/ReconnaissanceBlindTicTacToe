@@ -306,6 +306,8 @@ int main(int argc, char *argv[])
         std::cin >> player;
         std::cout << "Enter number of experiments: ";
         std::cin >> num_experiments;
+        std::cout << "Enter C value: ";
+        std::cin >> C;
 
         double expected_utility = 0.0;
         if (player == 'x')
