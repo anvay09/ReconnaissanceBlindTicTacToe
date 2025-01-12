@@ -42,8 +42,14 @@ double sample_terminal_history(InformationSet &I_1, InformationSet &I_2, TicTacT
             I.get_actions(legal_actions);
             std::vector<double> prob_dist(13, 0.0);
             for (int a : legal_actions)
-            {
-                prob_dist[a] = infoset_action_u[I.get_index()][a]/ infoset_u[I.get_index()];
+            {   if (infoset_u[I.get_index()] == 0)
+                {
+                    prob_dist[a] = 1.0/legal_actions.size();
+                }
+                else
+                {
+                    prob_dist[a] = infoset_action_u[I.get_index()][a]/ infoset_u[I.get_index()];
+                }
             }
             action = sampleIndex(prob_dist);
         }
@@ -150,8 +156,14 @@ void build_policy(std::vector<std::vector<double>> &ucb_values, PolicyVec &polic
             I.get_actions(legal_actions);
             std::vector<double> prob_dist(13, 0.0);
             for (int a : legal_actions)
-            {
-                prob_dist[a] = infoset_action_u[I.get_index()][a]/ infoset_u[I.get_index()];
+            {   if (infoset_u[I.get_index()] == 0)
+                {
+                    prob_dist[a] = 1.0/legal_actions.size();
+                }
+                else
+                {
+                    prob_dist[a] = infoset_action_u[I.get_index()][a]/ infoset_u[I.get_index()];
+                }
             }
             policy_obj.policy_dict[i] = prob_dist;
         }
