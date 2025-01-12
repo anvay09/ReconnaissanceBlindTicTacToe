@@ -354,13 +354,11 @@ int main(int argc, char* argv[]) {
     PolicyVec policy_obj_x('x', file_path_1, true);
     PolicyVec policy_obj_o('o', file_path_2, true);
     std::cout << "Start policies loaded." << std::endl;
-    if (uniform_policy_flag == 1){
-        PolicyVec uniform_policy_obj_x('x', P1_information_sets);
-        PolicyVec uniform_policy_obj_o('o', P2_information_sets);
-    }
-    else{
-        PolicyVec uniform_policy_obj_x('x', exp_file_path_1, true);
-        PolicyVec uniform_policy_obj_o('o', exp_file_path_2, true);
+    PolicyVec uniform_policy_obj_x('x', P1_information_sets);
+    PolicyVec uniform_policy_obj_o('o', P2_information_sets);
+    if (uniform_policy_flag == 0){
+        uniform_policy_obj_x = PolicyVec('x', exp_file_path_1, true);
+        uniform_policy_obj_o = PolicyVec('o', exp_file_path_2, true);
     }
     PolicyVec br_x('x', P1_information_sets);
     PolicyVec br_o('o', P2_information_sets);
