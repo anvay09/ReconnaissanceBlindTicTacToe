@@ -162,7 +162,7 @@ int build_balanced_exploration_policy(PolicyVec& policy_obj, InformationSet& I) 
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<long int> action_tree_size(13, 0);
-    std::cout << "Building balanced exploration policy for information set " << I.get_hash() << "..." << std::endl;
+    std::cout << "Building balanced exploration policy for information set " << I.get_hash() << ", index " << I.get_index() << "..." << std::endl;
     std::cout << "Legal actions: ";
     for (int a : legal_actions){
         std::cout << a << " ";
