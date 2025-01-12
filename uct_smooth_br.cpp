@@ -70,11 +70,11 @@ double sample_terminal_history(InformationSet &I_1, InformationSet &I_2, TicTacT
 
             if (player == 'x')
             {
-                return sample_terminal_history(new_I, I_2, true_board, infoset_ucb, opponent_policy, current_history, 'o', br_player, eps, C, n_0, infoset_u, infoset_action_u);
+                return sample_terminal_history(new_I, I_2, true_board, infoset_ucb, opponent_policy, current_history, 'o', br_player, eps, C, n_0, infoset_u, infoset_action_u, d);
             }
             else
             {
-                return sample_terminal_history(I_1, new_I, true_board, infoset_ucb, opponent_policy, current_history, 'x', br_player, eps, C, n_0, infoset_u, infoset_action_u);
+                return sample_terminal_history(I_1, new_I, true_board, infoset_ucb, opponent_policy, current_history, 'x', br_player, eps, C, n_0, infoset_u, infoset_action_u, d);
             }
         }
         else
@@ -93,11 +93,11 @@ double sample_terminal_history(InformationSet &I_1, InformationSet &I_2, TicTacT
 
         if (player == 'x')
         {
-            return sample_terminal_history(new_I, I_2, true_board, infoset_ucb, opponent_policy, current_history, 'x', br_player, eps, C, n_0, infoset_u, infoset_action_u);
+            return sample_terminal_history(new_I, I_2, true_board, infoset_ucb, opponent_policy, current_history, 'x', br_player, eps, C, n_0, infoset_u, infoset_action_u, d);
         }
         else
         {
-            return sample_terminal_history(I_1, new_I, true_board, infoset_ucb, opponent_policy, current_history, 'o', br_player, eps, C, n_0, infoset_u, infoset_action_u);
+            return sample_terminal_history(I_1, new_I, true_board, infoset_ucb, opponent_policy, current_history, 'o', br_player, eps, C, n_0, infoset_u, infoset_action_u, d);
         }
     }
 }
