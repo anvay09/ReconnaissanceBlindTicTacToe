@@ -259,14 +259,14 @@ void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, 
                 std::cout << "Expected utility after " << t << " iterations: " << expected_utility << std::endl;
                 exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
             }
-        }
-        std::cout << "Checking latest sampled history..." << std::endl;
-        for (int i = 0; i < start_history.history.size(); i++)
-        {
-            std::cout << start_history.history[i] << " ";
-        }
-        std::cout << std::endl
-                  << "############################################################" << std::endl;
+            std::cout << "Checking latest sampled history..." << std::endl;
+            for (int i = 0; i < start_history.history.size(); i++)
+            {
+                std::cout << start_history.history[i] << " ";
+            }
+            std::cout << std::endl
+                    << "############################################################" << std::endl;
+            }
     }
 
     std::cout << "Saving exploitability logs" << std::endl;
