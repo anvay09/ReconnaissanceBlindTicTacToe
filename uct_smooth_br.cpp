@@ -115,7 +115,7 @@ double sample_terminal_history_wrapper(std::vector<std::vector<double>> &infoset
 
 void build_policy(std::vector<std::vector<double>> &ucb_values, PolicyVec &policy_obj, std::vector<std::string> &information_sets, double eps, long int n_0, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u)
 {
-#pragma omp parallel for num_threads(NUMBER_THREADS)
+    #pragma omp parallel for num_threads(NUM_THREADS)
     for (long int i = 0; i < ucb_values.size(); i++)
     {
         std::string I_hash = information_sets[i];
