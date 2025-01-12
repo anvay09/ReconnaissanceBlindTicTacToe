@@ -196,7 +196,7 @@ void build_balanced_exploration_policy_wrapper(PolicyVec& policy_obj, char playe
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash = "";
-    InformationSet I = InformationSet(player, player == 'x', hash, board);
+    InformationSet I = InformationSet(player, player == 'x', hash);
     
     build_balanced_exploration_policy(policy_obj, I);
 }
