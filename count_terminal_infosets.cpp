@@ -198,6 +198,7 @@ void build_balanced_exploration_policy_wrapper(PolicyVec& policy_obj, char playe
     std::string hash = "";
     InformationSet I = InformationSet(player, player == 'x', hash);
     
+    std::cout << "Building balanced exploration policy for player " << player << "..." << std::endl;
     build_balanced_exploration_policy(policy_obj, I);
 }
 
