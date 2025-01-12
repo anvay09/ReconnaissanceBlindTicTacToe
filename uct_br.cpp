@@ -221,8 +221,6 @@ void update_ucb_new(std::vector<std::vector<double>> &infoset_ucb, std::vector<s
             }
 
             double max_reward = -100.0;
-            std::vector<int> legal_actions;
-            I.get_actions(legal_actions);
             int action = 0;
 
             for (int a : legal_actions)
