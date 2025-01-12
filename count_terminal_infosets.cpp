@@ -144,6 +144,7 @@ void get_cohort(InformationSet I, int action, std::unordered_set<std::string> &c
     else {
         std::vector<TicTacToeBoard> states;
         get_states_in_infoset(I, states);
+        std::cout << "States in infoset: " << states.size() << std::endl;
         for (TicTacToeBoard &state : states) {
             InformationSet new_I = I;
             new_I.simulate_sense(action, state);
@@ -170,7 +171,7 @@ int build_balanced_exploration_policy(PolicyVec& policy_obj, InformationSet& I) 
     
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
-        std::unordered_map<std::string, int> cohort_values;
+        std::unordered_map<std::string, long int> cohort_values;
         get_cohort(I, a, cohort);
         std::cout << "Cohort size for action " << a << ": " << cohort.size() << std::endl;
         for (std::string I_prime_hash : cohort){
