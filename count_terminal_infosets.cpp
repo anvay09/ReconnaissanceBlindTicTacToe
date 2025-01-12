@@ -230,8 +230,10 @@ int main(int argc, char** argv) {
         InformationSet::P2_hash_to_int_map[P2_information_sets[i]] = i;
     }
 
-    PolicyVec uniform_policy(player, P1_information_sets);
+    PolicyVec uniform_policy(player, player == 'x'? P1_information_sets : P2_information_sets);
+    std::cout << "Initialized uniform policy for player " << player << std::endl;
     build_balanced_exploration_policy_wrapper(uniform_policy, player);
+    std::cout << "Built balanced exploration policy for player " << player << std::endl;
 
     if (player == 'x') {
         save_output("P1_balanced_exploration_policy.txt", player, P1_information_sets, uniform_policy);
