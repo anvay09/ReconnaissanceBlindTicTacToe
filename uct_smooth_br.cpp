@@ -270,7 +270,7 @@ void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, 
     }
 
     std::cout << "Saving exploitability logs" << std::endl;
-    std::string file_name = "data/step_size=" + std::to_string(step_size) + "_" + "eps=" + std::to_string(eps) + "_" + "C=" + std::to_string(C) + "_" + "n0=" + std::to_string(n_0) + std::string(1, br_player) + "uct_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/step_size=" + std::to_string(step_size) + "_" + "eps=" + std::to_string(eps) + "_" + "C=" + std::to_string(C) + "_" + "n0=" + std::to_string(n_0) + std::string(1, br_player) + "uct_smooth_exploitability_log_" + std::to_string(experiment_number) + ".txt";
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++)
     {
