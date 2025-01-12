@@ -144,7 +144,7 @@ void get_cohort(InformationSet I, int action, std::unordered_set<std::string> &c
     else {
         std::vector<TicTacToeBoard> states;
         get_states_in_infoset(I, states);
-        std::cout << "States in infoset: " << states.size() << std::endl;
+
         for (TicTacToeBoard &state : states) {
             InformationSet new_I = I;
             new_I.simulate_sense(action, state);
