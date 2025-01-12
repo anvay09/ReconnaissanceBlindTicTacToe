@@ -249,10 +249,8 @@ void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, 
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
 
-        std::cout << "Sampling terminal history..." << std::endl;
         reward = sample_terminal_history_wrapper(infoset_ucb, opponent_policy, start_history, br_player, eps, C, n_0, infoset_u, infoset_action_u, d);
         // update ucb values
-        std::cout << "Updating UCB values..." << std::endl;
         update_ucb(infoset_ucb, infoset_q, infoset_u, infoset_action_u, reward, start_history, br_player, C);
 
         if (t % log_size == 0 && t != 0)
@@ -260,7 +258,6 @@ void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, 
             double expected_utility = 0.0;
             std::cout << "############################################################" << std::endl;
             std::cout << "Build policy" << std::endl;
-            std::cout << "Building policy..." << std::endl;
             build_policy(infoset_ucb, player_br_policy, player_information_sets, eps, n_0, infoset_u, infoset_action_u, d);
             if (br_player == 'x')
             {
