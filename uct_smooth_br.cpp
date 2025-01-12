@@ -12,12 +12,12 @@ int sampleIndex(const std::vector<double> &probabilities)
     return distribution(generator);
 }
 
-double sample_terminal_history(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, std::vector<std::vector<double>> &infoset_ucb, PolicyVec &opponent_policy, History &current_history, char player, char br_player, double eps, long int C, double n_0, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u)
+double sample_terminal_history(InformationSet &I_1, InformationSet &I_2, TicTacToeBoard &true_board, std::vector<std::vector<double>> &infoset_ucb, PolicyVec &opponent_policy, History &current_history, char player, char br_player, double eps, long int C, double n_0, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u, double d)
 {
     InformationSet &I = player == 'x' ? I_1 : I_2;
     int action = 0;
     if (player == br_player)
-    {   double term = n_0 * (1.0/ (1.0 + n_0 * sqrt(infoset_u[I.get_index()])));
+    {   double term = n_0 * (1.0/ (1.0 + d * sqrt(infoset_u[I.get_index()])));
         double eta = (term < eps) ? eps : term;
         std::vector<double> selection_prob = {eta, 1-eta};
         if (sampleIndex(selection_prob) == 0)
@@ -102,7 +102,7 @@ double sample_terminal_history(InformationSet &I_1, InformationSet &I_2, TicTacT
     }
 }
 
-double sample_terminal_history_wrapper(std::vector<std::vector<double>> &infoset_ucb, PolicyVec &opponent_policy, History &current_history, char br_player, double eps, long int C, double n_0, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u)
+double sample_terminal_history_wrapper(std::vector<std::vector<double>> &infoset_ucb, PolicyVec &opponent_policy, History &current_history, char br_player, double eps, long int C, double n_0, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u, double d)
 {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
@@ -110,10 +110,10 @@ double sample_terminal_history_wrapper(std::vector<std::vector<double>> &infoset
     std::string hash_2 = "";
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
-    return sample_terminal_history(I_1, I_2, true_board, infoset_ucb, opponent_policy, current_history, 'x', br_player, eps, C, n_0, infoset_u, infoset_action_u);
+    return sample_terminal_history(I_1, I_2, true_board, infoset_ucb, opponent_policy, current_history, 'x', br_player, eps, C, n_0, infoset_u, infoset_action_u, d);
 }
 
-void build_policy(std::vector<std::vector<double>> &ucb_values, PolicyVec &policy_obj, std::vector<std::string> &information_sets, double eps, long int n_0, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u)
+void build_policy(std::vector<std::vector<double>> &ucb_values, PolicyVec &policy_obj, std::vector<std::string> &information_sets, double eps, long int n_0, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u, double d)
 {
     #pragma omp parallel for num_threads(NUM_THREADS)
     for (long int i = 0; i < ucb_values.size(); i++)
@@ -121,7 +121,7 @@ void build_policy(std::vector<std::vector<double>> &ucb_values, PolicyVec &polic
         std::string I_hash = information_sets[i];
         InformationSet I(policy_obj.player, get_move_flag(I_hash, policy_obj.player), I_hash);
 
-        double term = n_0 * (1.0/ (1.0 + n_0 * sqrt(infoset_u[I.get_index()])));
+        double term = n_0 * (1.0/ (1.0 + d * sqrt(infoset_u[I.get_index()])));
         double eta = (term < eps) ? eps : term;
         std::vector<double> selection_prob = {eta, 1-eta};
         if (sampleIndex(selection_prob) == 0)
@@ -222,7 +222,7 @@ void update_ucb(std::vector<std::vector<double>> &infoset_ucb, std::vector<std::
     }
 }
 
-void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, char br_player, std::vector<std::string> &player_information_sets, long int T, long int step_size, double exact_br_value, int experiment_number, long int log_size, double eps, long int C, double n_0)
+void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, char br_player, std::vector<std::string> &player_information_sets, long int T, long int d, double exact_br_value, int experiment_number, long int log_size, double eps, long int C, double n_0)
 {
     std::vector<double> infoset_u(player_information_sets.size(), 0.0);
     std::vector<std::vector<double>> infoset_ucb(player_information_sets.size(), std::vector<double>(13, std::numeric_limits<double>::infinity()));
@@ -237,7 +237,7 @@ void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, 
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
 
-        reward = sample_terminal_history_wrapper(infoset_ucb, opponent_policy, start_history, br_player, eps, C, n_0, infoset_u, infoset_action_u);
+        reward = sample_terminal_history_wrapper(infoset_ucb, opponent_policy, start_history, br_player, eps, C, n_0, infoset_u, infoset_action_u, d);
         // update ucb values
         update_ucb(infoset_ucb, infoset_q, infoset_u, infoset_action_u, reward, start_history, br_player, C);
 
@@ -246,7 +246,7 @@ void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, 
             double expected_utility = 0.0;
             std::cout << "############################################################" << std::endl;
             std::cout << "Build policy" << std::endl;
-            build_policy(infoset_ucb, player_br_policy, player_information_sets, eps, n_0, infoset_u, infoset_action_u);
+            build_policy(infoset_ucb, player_br_policy, player_information_sets, eps, n_0, infoset_u, infoset_action_u, d);
             if (br_player == 'x')
             {
                 double expected_utility = get_expected_utility_wrapper(player_br_policy, opponent_policy);
@@ -270,7 +270,7 @@ void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, 
     }
 
     std::cout << "Saving exploitability logs" << std::endl;
-    std::string file_name = "data/step_size=" + std::to_string(step_size) + "_" + "eps=" + std::to_string(eps) + "_" + "C=" + std::to_string(C) + "_" + "n0=" + std::to_string(n_0) + std::string(1, br_player) + "uct_smooth_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/d=" + std::to_string(d) + "_" + "eps=" + std::to_string(eps) + "_" + "C=" + std::to_string(C) + "_" + "n0=" + std::to_string(n_0) + std::string(1, br_player) + "uct_smooth_exploitability_log_" + std::to_string(experiment_number) + ".txt";
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++)
     {
@@ -333,7 +333,7 @@ int main(int argc, char *argv[])
         long int log_size = 1;
         long int C = 1;
         double n_0 = 1.0;
-        long int step_size = 0;
+        double d = 0.001;
         double eps = 0.0;
 
         std::cout << "Enter number of iterations: ";
@@ -346,8 +346,8 @@ int main(int argc, char *argv[])
         std::cin >> num_experiments;
         std::cout << "Enter epsilon value:";
         std::cin >> eps;
-        std::cout << "Enter step size for eps decay:";
-        std::cin >> step_size;
+        std::cout << "Enter d for decay:";
+        std::cin >> d;
         std::cout << "Enter C value: ";
         std::cin >> C;
         std::cout << "Enter n_0 value: ";
@@ -368,12 +368,12 @@ int main(int argc, char *argv[])
             if (player == 'x')
             {
                 PolicyVec player_br_policy = policy_obj_x;
-                uct_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, num_iterations, step_size, expected_utility, experiment_number, log_size, eps, C, n_0);
+                uct_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, num_iterations, d, expected_utility, experiment_number, log_size, eps, C, n_0);
             }
             else if (player == 'o')
             {
                 PolicyVec player_br_policy = policy_obj_o;
-                uct_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, step_size, expected_utility, experiment_number, log_size, eps, C, n_0);
+                uct_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, d, expected_utility, experiment_number, log_size, eps, C, n_0);
             }
             experiment_number += 1;
         }
