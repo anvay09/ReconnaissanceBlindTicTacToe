@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import argparse
 import logging
+import numpy as np
+import math
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
@@ -52,12 +54,14 @@ def read_exploitability_log(file_name):
 
 def clean_data(player, file_name, num_experiments, num_iterations, step_size=1000, omit_range=1):
     """Format data as required."""
-    x = [step_size * i for i in range(0, num_iterations + 1)]
-    y = [0.0 for i in range(0, num_iterations + 1)]
+    x = [i for i in range(0, num_iterations, step_size)]
+    y = [0.0 for i in range(0, num_iterations, step_size)]
+    y_std_list = [[0.0 for m in range(0, num_experiments)] for i in range(0, num_iterations, step_size)]
+    y_err = [0.0 for j in range(0, num_iterations, step_size)]
 
-    for i in range(1, num_experiments + 1):
+    for i in range(1, num_experiments):
         iterations, exploitabilities = read_exploitability_log(file_name + f"_{i}.txt")
-        y_curr = [-1.0 for i in range(0, num_iterations + 1)]
+        y_curr = [-1.0 for i in range(0, num_iterations, step_size)]
         for j in range(len(iterations)):
             x_index = iterations[j] // step_size
             if player == 'x':
@@ -65,13 +69,18 @@ def clean_data(player, file_name, num_experiments, num_iterations, step_size=100
             else:
                 y_curr[x_index] = -1 * exploitabilities[j]
 
-        for j in range(0, num_iterations + 1):
+        for j in range(len(y)):
             y[j] += y_curr[j]
+            y_std_list[j][i - 1] = y_curr[j]
 
-    x = x[omit_range:num_iterations + 1]
-    y = y[omit_range:num_iterations + 1]
+    for j in range(len(y)):
+        y_err[j] = y[j] + np.std(y_std_list[j]) / math.sqrt(num_experiments)
+
+    x = x[omit_range:]
+    y = y[omit_range:]
+    y_err = y_err[omit_range:]
     y = [y[i] / num_experiments for i in range(len(y))]
-    return x, y
+    return x, y, y_err
 
 
 if __name__ == "__main__":
@@ -89,20 +98,24 @@ if __name__ == "__main__":
 
     # horizontal line
     plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
-    plt.yticks([0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5])
+    plt.yticks([0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1])
+    plt.ylim(-1,1)
     plt.xlabel('Number of samples')
     plt.ylabel('Exploitability')
     plt.title(args.game)
 
     for logfile in logfiles:
         if args.omitrange is None:
-            x, y = clean_data(args.player, logfile, args.numexperiments, args.numiterations, args.logfreq)
+            x, y, y_err = clean_data(args.player, logfile, args.numexperiments, args.numiterations,
+                                     args.logfreq)
         else:
-            x, y = clean_data(args.player, logfile, args.numexperiments, args.numiterations, args.logfreq,
-                              args.omitrange)
+            x, y, y_err = clean_data(args.player, logfile, args.numexperiments, args.numiterations,
+                                     args.logfreq, args.omitrange)
 
-        plt.plot(x[0:99], y[0:99], '-', linewidth=1, color=colors[a], linestyle=line_styles[b],
+        plt.plot(x, y, '-', linewidth=1, color=colors[a], linestyle=line_styles[b],
                  label=algorithms[a], marker=markers[c])
+        plt.fill_between(x, np.array(y) + np.array(y_err), np.array(y) - np.array(y_err), edgecolor=colors[a],
+                         facecolor=colors[a], alpha=0.2)
         a += 1
         b += 1
         if b > len(line_styles):
