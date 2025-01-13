@@ -30,8 +30,8 @@ def parse_commandline_args():
                         help='Optional argument if using UCT smooth')
     parser.add_argument('--duct', type=float, required=False,
                         help='Optional argument if using UCT smooth')
-    parser.add_argument('logfiles', nargs='+', type=str, required=True, help='List of log file names')
-    parser.add_argument('algorithms', nargs='+', type=str, required=True, help='List of algorithms')
+    parser.add_argument('--logfiles', type=str, required=True, help='List of log file names')
+    parser.add_argument('--algorithms', type=str, required=True, help='List of algorithms')
     arguments = parser.parse_args()
     return arguments
 
@@ -78,38 +78,41 @@ if __name__ == "__main__":
     args = parse_commandline_args()
     line_styles = ['solid', 'dashed', 'dotted', 'dashdot']
     colors = ['blue', 'red', 'green', 'orange', 'purple', 'brown', 'pink', 'olive']
-    markers = ['-', 'o', 'x']
-    i = 0
-    j = 0
-    k = 0
+    markers = ['', 'o', 'x']
+    a = 0
+    b = 0
+    c = 0
+    logfiles_str = args.logfiles
+    logfiles = logfiles_str.split(',')
+    algorithms_str = args.algorithms
+    algorithms = algorithms_str.split(',')
 
-    for logfile in args.logfiles:
+    # horizontal line
+    plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
+    plt.yticks([0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5])
+    plt.xlabel('Number of samples')
+    plt.ylabel('Exploitability')
+    plt.title(args.game)
+
+    for logfile in logfiles:
         if args.omitrange is None:
             x, y = clean_data(args.player, logfile, args.numexperiments, args.numiterations, args.logfreq)
         else:
             x, y = clean_data(args.player, logfile, args.numexperiments, args.numiterations, args.logfreq,
                               args.omitrange)
 
-        plt.plot(x, y, '-', linewidth=1, color=colors[i], line_style=line_styles[j],
-                 label='Our Algorithm for player ', marker=markers[k])
-        i += 1
-        j += 1
-        if j > len(line_styles):
-            j = 0
-            k += 1
-
-    # horizontal line
-    plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
-    plt.yticks([0.01, 0.05, 0.1, 0.15])
-    plt.xlabel('Number of samples')
-    plt.ylabel('Exploitability')
-    plt.title(args.game)
+        plt.plot(x[0:99], y[0:99], '-', linewidth=1, color=colors[a], linestyle=line_styles[b],
+                 label=algorithms[a], marker=markers[c])
+        a += 1
+        b += 1
+        if b > len(line_styles):
+            b = 0
+            c += 1
     plt.legend()
-    plot_path = ("./data/plot/game={game}_player={player}_numexperiments={numexperiments}_numiterations={numiterations}"
+    plot_path = ("./plots/game={game}_player={player}_numexperiments={numexperiments}_numiterations={numiterations}"
                  "_logfreq={logfreq}_cours={cours}_epsmccfr={epsmccfr}_cuct={cuct}_epsuct={epsuct}_nuct={nuct}"
                  "_duct={duct}".format(game=args.game, player=args.player, numexperiments=args.numexperiments,
                                        numiterations=args.numiterations, logfreq=args.logfreq, cours=args.cours,
                                        epsmccfr=args.epsmccfr, cuct=args.cuct, epsuct=args.epsuct, nuct=args.nuct,
                                        duct=args.duct))
     plt.savefig("{}.pdf".format(plot_path))
-    plt.show()
