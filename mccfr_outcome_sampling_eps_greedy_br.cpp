@@ -268,7 +268,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec &opponent_policy, PolicyVec 
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
-        double reward = 0;
+        double reward = 0.0;
         if (decay_flag == 1)
         {
             eps = 1.0 / (((t * 1.0) / (step_size * 1.0)) + 1.0);
@@ -290,8 +290,8 @@ void mccfr_outcome_sampling_best_response(PolicyVec &opponent_policy, PolicyVec 
         {
             std::cout << "############################################################" << std::endl;
             PolicyVec average_strategy = cumulative_strategy;
-// normalize the cumulative strategy
-#pragma omp parallel for num_threads(NUM_THREADS)
+            // normalize the cumulative strategy
+            #pragma omp parallel for num_threads(NUM_THREADS)
             for (long int i = 0; i < player_information_sets.size(); i++)
             {
                 std::vector<double> &cumulative_prob_table = average_strategy.policy_dict[i];
