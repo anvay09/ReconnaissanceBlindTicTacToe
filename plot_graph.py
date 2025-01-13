@@ -59,8 +59,11 @@ def clean_data(player, file_name, num_experiments, num_iterations, step_size=100
     y_std_list = [[0.0 for m in range(0, num_experiments)] for i in range(0, num_iterations, step_size)]
     y_err = [0.0 for j in range(0, num_iterations, step_size)]
 
-    for i in range(1, num_experiments):
+    for i in range(1, num_experiments+1):
         iterations, exploitabilities = read_exploitability_log(file_name + f"_{i}.txt")
+        iterations = iterations[:num_iterations // step_size]
+        exploitabilities = exploitabilities[:num_iterations // step_size]
+
         y_curr = [-1.0 for i in range(0, num_iterations, step_size)]
         for j in range(len(iterations)):
             x_index = iterations[j] // step_size
@@ -98,11 +101,11 @@ if __name__ == "__main__":
 
     # horizontal line
     plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
-    plt.yticks([0.01, 0.015, 0.02, 0.025, 0.03, 0.04, 0.05])
-    plt.ylim(-0.5, 0.5)
+    plt.yticks([0, 0.01, 0.02, 0.03, 0.04, 0.05])
+    plt.ylim(-0.01, 0.1)
     plt.xlabel('Number of samples')
     plt.ylabel('Exploitability')
-    plt.title(args.game)
+    plt.title(args.game + ", Player " + args.player)
 
     for logfile in logfiles:
         if args.omitrange is None:
@@ -115,14 +118,14 @@ if __name__ == "__main__":
         plt.plot(x, y, '-', linewidth=1, color=colors[a], linestyle=line_styles[b],
                  label=algorithms[a], marker=markers[c])
         plt.fill_between(x, np.array(y) + np.array(y_err), np.array(y) - np.array(y_err), edgecolor=colors[a],
-                         facecolor=colors[a], alpha=0.2)
+                         facecolor=colors[a], alpha=0.1)
         a += 1
         b += 1
         if b > len(line_styles):
             b = 0
             c += 1
     plt.legend()
-    plot_path = ("./plots/game={game}_player={player}_numexperiments={numexperiments}_numiterations={numiterations}"
+    plot_path = ("plots/game={game}_player={player}_numexperiments={numexperiments}_numiterations={numiterations}"
                  "_logfreq={logfreq}_cours={cours}_epsmccfr={epsmccfr}_cuct={cuct}_epsuct={epsuct}_nuct={nuct}"
                  "_duct={duct}".format(game=args.game, player=args.player, numexperiments=args.numexperiments,
                                        numiterations=args.numiterations, logfreq=args.logfreq, cours=args.cours,
