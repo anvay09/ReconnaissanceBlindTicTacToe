@@ -567,7 +567,21 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
+        
         explore_wrapper(I_a_tickmark, I_tickmark, reward, opponent_policy, start_history, br_player, k, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
+        std::string board = "000000000";
+        TicTacToeBoard true_board = TicTacToeBoard(board);
+        std::string hash_1 = "";
+        std::string hash_2 = "";
+        InformationSet I_1 = InformationSet('x', true, hash_1);
+        InformationSet I_2 = InformationSet('o', false, hash_2);
+
+        if (br_player == 'x') {
+            update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
+        }
+        else {
+            update_max_reward_policy_given_history(I_2, true_board, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
+        }
 
         t += 1;
 
@@ -583,11 +597,6 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         if (t % log_frequency == 0 && t != 0) { 
             double expected_utility = 0.0;
             double exploitability = 0.0;
-
-            std::string hash = "";
-            InformationSet root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
-            double root_val = build_max_reward_policy_parallel(player_br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values);
-            std::cout << "Best response policy computed" << std::endl;
         
             if (br_player == 'x') {
                 expected_utility = get_expected_utility_wrapper(player_br, opponent_policy);
