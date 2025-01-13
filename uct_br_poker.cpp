@@ -283,41 +283,39 @@ int main(int argc, char *argv[])
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
     char game = argv[3][0];
+
+// load information sets
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
-    std::string P1_information_sets_file = "data/P1_information_sets_V2.txt";
-    std::string P2_information_sets_file = "data/P2_information_sets_V2.txt";
-
-    // read the P1 information sets
+    std::string P1_information_sets_file = game == 'L'? "P1_information_sets_Leduc_Poker.txt" : "P1_information_sets_Kuhn_Poker.txt";
+    std::string P2_information_sets_file = game == 'L'? "P2_information_sets_Leduc_Poker.txt" : "P2_information_sets_Kuhn_Poker.txt";
     std::ifstream P1_f_is(P1_information_sets_file);
     std::string P1_line_is;
-    while (std::getline(P1_f_is, P1_line_is))
-    {
+    while (std::getline(P1_f_is, P1_line_is)) {
         P1_information_sets.push_back(P1_line_is);
     }
     P1_f_is.close();
-    // read the P2 information sets
     std::ifstream P2_f_is(P2_information_sets_file);
     std::string P2_line_is;
-    while (std::getline(P2_f_is, P2_line_is))
-    {
+    while (std::getline(P2_f_is, P2_line_is)) {
         P2_information_sets.push_back(P2_line_is);
     }
     P2_f_is.close();
-    // create hash to int maps (for performance reasons)
-    for (long int i = 0; i < P1_information_sets.size(); i++)
-    {
+
+    // create hash to int maps
+    for (int i = 0; i < P1_information_sets.size(); i++) {
         InformationSet::P1_hash_to_int_map[P1_information_sets[i]] = i;
     }
-    for (long int i = 0; i < P2_information_sets.size(); i++)
-    {
+    for (int i = 0; i < P2_information_sets.size(); i++) {
         InformationSet::P2_hash_to_int_map[P2_information_sets[i]] = i;
     }
 
-    std::cout << "Loading start policies..." << std::endl;
+    // load policies
+    std::cout << "Loading policies" << std::endl;
     PolicyVec policy_obj_x('x', file_path_1, game, true);
     PolicyVec policy_obj_o('o', file_path_2, game, true);
-    std::cout << "Start policies loaded." << std::endl;
+    double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o, game);
+    std::cout << "Expected utility of initial policies: " << expected_utility << std::endl;
     PolicyVec br_x('x', P1_information_sets, game);
     PolicyVec br_o('o', P2_information_sets, game);
 
@@ -356,13 +354,13 @@ int main(int argc, char *argv[])
         {
             if (player == 'x')
             {
-                PolicyVec player_br_policy = policy_obj_x;
-                uct_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, num_iterations, expected_utility, experiment_number, log_size, C, game);
+                PolicyVec uniform_x('x', P1_information_sets, game);
+                uct_best_response(policy_obj_o, uniform_x, 'x', P1_information_sets, num_iterations, expected_utility, experiment_number, log_size, C, game);
             }
             else if (player == 'o')
             {
-                PolicyVec player_br_policy = policy_obj_o;
-                uct_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, expected_utility, experiment_number, log_size, C, game);
+                PolicyVec uniform_o('o', P2_information_sets, game);
+                uct_best_response(policy_obj_x, uniform_o, 'o', P2_information_sets, num_iterations, expected_utility, experiment_number, log_size, C, game);
             }
             experiment_number += 1;
         }
