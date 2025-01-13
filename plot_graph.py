@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     # horizontal line
     plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
-    plt.yticks([0, 0.01, 0.02, 0.03, 0.04, 0.05])
+    plt.yticks([0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1])
     plt.ylim(-0.01, 0.1)
     plt.xlabel('Number of samples')
     plt.ylabel('Exploitability')
