@@ -289,13 +289,13 @@ int main(int argc, char *argv[])
         {
             if (player == 'x')
             {
-                PolicyVec player_br_policy = policy_obj_x;
-                uct_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, num_iterations, d, expected_utility, experiment_number, log_size, eps, C, n_0, game);
+                PolicyVec uniform_x('x', P1_information_sets, game);
+                uct_best_response(policy_obj_o, uniform_x, 'x', P1_information_sets, num_iterations, d, expected_utility, experiment_number, log_size, eps, C, n_0, game);
             }
             else if (player == 'o')
             {
-                PolicyVec player_br_policy = policy_obj_o;
-                uct_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, d, expected_utility, experiment_number, log_size, eps, C, n_0, game);
+                PolicyVec uniform_o('o', P2_information_sets, game);
+                uct_best_response(policy_obj_x, uniform_o, 'o', P2_information_sets, num_iterations, d, expected_utility, experiment_number, log_size, eps, C, n_0, game);
             }
             experiment_number += 1;
         }
