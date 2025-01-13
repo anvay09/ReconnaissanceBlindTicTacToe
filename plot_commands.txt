@@ -6,6 +6,6 @@ python3 plot_graph.py --game "Kuhn Poker" --player o --numexperiments 20 --numit
 
 python3 plot_graph.py --game "Kuhn Poker" --player x --numexperiments 20 --numiterations 1000 --logfreq 10 --cours 16 --epsmccfr 0.1 --logfiles "data/bandit/final_exp_K_poker_x_C=16_LUCB_exploitability_log,data/bandit/final_exp_pull250_K_poker_x_pullm_exploitability_log,data/K_poker_x_MCCFR_OS_exploitability_log" --algorithms "Our Algorithm,Pull m,MCCFR Outcome Sampling (eps = 0.1)"
 
-python3 plot_graph.py --game "Reconnaissance Blind Tic Tac Toe" --player x --numexperiments 20 --numiterations 1000000 --logfreq 10000 --cours 16 --epsmccfr 0.1 --logfiles "data/final_exp_x_C=16_LUCB_exploitability_log" --algorithms "Our Algorithm"
+python3 plot_graph.py --game "Reconnaissance Blind Tic Tac Toe" --player x --numexperiments 20 --numiterations 1000000 --logfreq 10000 --cours 16 --epsmccfr 0.1 --logfiles "data/bandit/final_exp_x_C=16_LUCB_exploitability_log,data/MCCFR/eps_constant=0.100000_xmccfr_exploitability_log" --algorithms "Our Algorithm,MCCFR Outcome Sampling (eps = 0.1)"
 
-python3 plot_graph.py --game "Reconnaissance Blind Tic Tac Toe" --player o --numexperiments 20 --numiterations 1000000 --logfreq 10000 --cours 16 --epsmccfr 0.1 --logfiles "data/final_exp_o_C=16_LUCB_exploitability_log" --algorithms "Our Algorithm"
+python3 plot_graph.py --game "Reconnaissance Blind Tic Tac Toe" --player o --numexperiments 20 --numiterations 1000000 --logfreq 10000 --cours 16 --epsmccfr 0.1 --logfiles "data/bandit/final_exp_o_C=16_LUCB_exploitability_log,data/MCCFR/eps_constant=0.100000_omccfr_exploitability_log" --algorithms "Our Algorithm,MCCFR Outcome Sampling (eps = 0.1)"
