@@ -147,7 +147,7 @@ void build_balanced_exploration_policy_wrapper(PolicyVec& policy_obj, char playe
 }
 
 
-void construct_loss_estimators(std::vector<double>& loss_obj, PolicyVec& mu_t, PolicyVec& mu_star, double gamma, double reward, std::vector<std::pair<std::string, int>>& trajectory, char update_player, char game, std::vector<double>& mu_t_reach_list, std::vector<double>& mu_star_reach_list) {
+void construct_loss_estimators(std::vector<double>& loss_obj, PolicyVec& mu_t, PolicyVec& mu_star, double gamma, double reward, std::vector<std::pair<std::string, int>>& trajectory, char update_player, char game, std::vector<double>& mu_star_reach_list) {
     int H = trajectory.size();
 
     double mu_star_reach = 1.0;
@@ -167,9 +167,8 @@ void construct_loss_estimators(std::vector<double>& loss_obj, PolicyVec& mu_t, P
         // std::cout << "Mu t reach: " << mu_t_reach << std::endl;
         // std::cout << "Mu star reach: " << mu_star_reach << std::endl;
 
-        // compute reach list for mu_star and mu_t, so it can be used later in the update policy step
+        // compute reach list for mu_star, so it can be used later in the update policy step
         mu_star_reach_list[h] = mu_star_reach;
-        mu_t_reach_list[h] = mu_t_reach;
 
         double r_h = h == H - 1 ? reward : 0.0;
 
@@ -182,36 +181,49 @@ void construct_loss_estimators(std::vector<double>& loss_obj, PolicyVec& mu_t, P
 }
 
 
-void update_policy(PolicyVec& mu_t, std::vector<double>& loss_obj, double learning_rate, std::vector<std::pair<std::string, int>>& trajectory, char update_player, char game, std::vector<double>& mu_t_reach_list, std::vector<double>& mu_star_reach_list) {
-    int H = trajectory.size() - 1;
+void update_policy(PolicyVec& mu_t, std::vector<double>& loss_obj, double learning_rate, std::vector<std::pair<std::string, int>>& trajectory, char update_player, char game, std::vector<double>& mu_star_reach_list) {
+    int H = trajectory.size();
     double Z_t = 1.0;
+    double term = 0.0;
     
-    for (int h = H; h >= 0; h--){
+    for (int h = H - 1; h >= 0; h--){
         std::string I_hash = trajectory[h].first;
         int action = trajectory[h].second;
         InformationSet I = InformationSet(update_player, get_move_flag(I_hash, update_player), I_hash, game);
-        double loss = loss_obj[h];
-        double mu_t_reach = mu_t_reach_list[h];
-        double mu_star_reach = mu_star_reach_list[h];
-        double mu_star_reach_prev = h == H ? mu_star_reach : mu_star_reach_list[h + 1];
-        double mu_t_a = mu_t.policy_dict[I.get_index()][action];
         
-        // Compute normalization constant
-        double term = -learning_rate * mu_star_reach * loss + mu_star_reach * std::log(Z_t) / mu_star_reach_prev;
-        Z_t = 1 - mu_t_a + mu_t_a * std::exp(term);
+        if (h == H - 1){
+            term = -learning_rate * mu_star_reach_list[h] * loss_obj[h];
+        }
+        else {
+            term = -learning_rate * mu_star_reach_list[h] * loss_obj[h] + mu_star_reach_list[h] * std::log(Z_t) / mu_star_reach_list[h+1];
+        }
+
+        // std::cout << "Term: " << term << std::endl;
+        
+        Z_t = 1 - mu_t.policy_dict[I.get_index()][action] + mu_t.policy_dict[I.get_index()][action] * std::exp(term);
+        // std::cout << "Z_t: " << Z_t << std::endl;
 
         // Update policy
+        double prob_sum = 0.0;
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         for (int a : legal_actions){
             if (a == action){
-                mu_t.policy_dict[I.get_index()][a] *= std::exp(term) / Z_t;
+                mu_t.policy_dict[I.get_index()][a] *= std::exp(term - std::log(Z_t));
                 // std::cout << "Setting policy for " << I_hash << " " << a << " to " << mu_t.policy_dict[I.get_index()][a] << std::endl;
+                prob_sum += mu_t.policy_dict[I.get_index()][a];
             }
             else {
-                mu_t.policy_dict[I.get_index()][a] *= 1 / Z_t;
+                mu_t.policy_dict[I.get_index()][a] *= std::exp( - std::log(Z_t));
                 // std::cout << "Setting policy for " << I_hash << " " << a << " to " << mu_t.policy_dict[I.get_index()][a] << std::endl;
+                prob_sum += mu_t.policy_dict[I.get_index()][a];
             }
+        }
+        // std::cout << "Prob sum: " << prob_sum << std::endl;
+
+        // Renormalize
+        for (int a : legal_actions){
+            mu_t.policy_dict[I.get_index()][a] /= prob_sum;
         }
     }
 }
@@ -220,7 +232,13 @@ void update_policy(PolicyVec& mu_t, std::vector<double>& loss_obj, double learni
 void balanced_OMD(PolicyVec& mu_t, PolicyVec& mu_star, char update_player, char game, double gamma, double learning_rate, int iterations, int log_frequency, PolicyVec& opp_policy){
     for (int t = 0; t <= iterations; t++){
         std::vector<std::pair<std::string, int>> trajectory;
-        double reward = sample_terminal_history_wrapper(mu_t, opp_policy, update_player, game, trajectory);
+        double reward = 0.0;
+        if (update_player == 'x'){
+            reward = sample_terminal_history_wrapper(mu_t, opp_policy, update_player, game, trajectory);
+        }
+        else {
+            reward = sample_terminal_history_wrapper(opp_policy, mu_t, update_player, game, trajectory);
+        }
 
         // fit reward between 0 and 1
         double rho_G_i = game == 'L' ? LEDUC_MAX_UTILITY : KUHN_MAX_UTILITY;
@@ -228,22 +246,23 @@ void balanced_OMD(PolicyVec& mu_t, PolicyVec& mu_star, char update_player, char 
 
         int H = trajectory.size();
         std::vector<double> loss_obj(H, 0.0);
-        std::vector<double> mu_t_reach_list(H, 0.0);
         std::vector<double> mu_star_reach_list(H, 0.0);
 
+        // std::cout << "-------------------------------- Sampled Game --------------------------------" << std::endl;
         // std::cout << "Reward: " << reward << std::endl;
         // std::cout << "Trajectory: " << trajectory.size() << std::endl;
         // for (int i = 0; i < trajectory.size(); i++){
-        //     std::cout << trajectory[i].first << " " << trajectory[i].second << std::endl;
+        //     std::cout << trajectory[i].first << " " << trajectory[i].second << " ";
         // }
+        // std::cout << std::endl;
 
-        construct_loss_estimators(loss_obj, mu_t, mu_star, gamma, reward, trajectory, update_player, game, mu_t_reach_list, mu_star_reach_list);
+        construct_loss_estimators(loss_obj, mu_t, mu_star, gamma, reward, trajectory, update_player, game, mu_star_reach_list);
         
         // for (int i = 0; i < loss_obj.size(); i++){
         //     std::cout << "Loss: " << loss_obj[i] << " " << mu_t_reach_list[i] << " " << mu_star_reach_list[i] << std::endl;
         // }
 
-        update_policy(mu_t, loss_obj, learning_rate, trajectory, update_player, game, mu_t_reach_list, mu_star_reach_list);
+        update_policy(mu_t, loss_obj, learning_rate, trajectory, update_player, game, mu_star_reach_list);
 
         if (t % log_frequency == 0){
             std::cout << "-------------------------------- Iteration " << t << " --------------------------------" << std::endl;
