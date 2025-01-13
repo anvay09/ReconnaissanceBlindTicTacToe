@@ -458,12 +458,12 @@ int main(int argc, char *argv[])
         {
             if (player == 'x')
             {
-                PolicyVec player_br_policy = policy_obj_x;
+                PolicyVec player_br_policy = uniform_policy_obj_x;
                 mccfr_outcome_sampling_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, num_iterations, eps, step_size, decay_flag, experiment_number, log_size, expected_utility, uniform_policy_obj_x);
             }
             else if (player == 'o')
             {
-                PolicyVec player_br_policy = policy_obj_o;
+                PolicyVec player_br_policy = uniform_policy_obj_o;
                 mccfr_outcome_sampling_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, eps, step_size, decay_flag, experiment_number, log_size, expected_utility, uniform_policy_obj_o);
             }
             experiment_number += 1;
