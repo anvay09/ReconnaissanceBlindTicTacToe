@@ -65,16 +65,16 @@ def clean_data(player, file_name, num_experiments, num_iterations, step_size=100
         for j in range(len(iterations)):
             x_index = iterations[j] // step_size
             if player == 'x':
-                y_curr[x_index] = exploitabilities[j]
+                y_curr[x_index-1] = exploitabilities[j]
             else:
-                y_curr[x_index] = -1 * exploitabilities[j]
+                y_curr[x_index-1] = -1 * exploitabilities[j]
 
         for j in range(len(y)):
             y[j] += y_curr[j]
             y_std_list[j][i - 1] = y_curr[j]
 
     for j in range(len(y)):
-        y_err[j] = y[j] + np.std(y_std_list[j]) / math.sqrt(num_experiments)
+        y_err[j] = np.std(y_std_list[j]) / math.sqrt(num_experiments)
 
     x = x[omit_range:]
     y = y[omit_range:]
@@ -98,8 +98,8 @@ if __name__ == "__main__":
 
     # horizontal line
     plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
-    plt.yticks([0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1])
-    plt.ylim(-1,1)
+    plt.yticks([0.01, 0.015, 0.02, 0.025, 0.03, 0.04, 0.05])
+    plt.ylim(-0.5, 0.5)
     plt.xlabel('Number of samples')
     plt.ylabel('Exploitability')
     plt.title(args.game)
