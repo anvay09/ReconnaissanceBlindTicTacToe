@@ -5,62 +5,6 @@
 int NUMBER_THREADS = 96;
 
 
-void pretty_print(std::chrono::time_point<std::chrono::system_clock> start, std::chrono::time_point<std::chrono::system_clock> end, std::string msg, int flag) {
-    if (flag) {
-    std::chrono::duration<double> elapsed_seconds = end-start;
-    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "finished " << msg << " in " << elapsed_seconds.count() << "s" << std::endl;
-    }
-}
-
-
-void print_histogram(std::vector<int>& visited_infosets) {
-    std::vector<int> buckets(10, 0);
-
-    for (int i = 0; i < visited_infosets.size(); i++) {
-        if (visited_infosets[i] == 0) {
-            buckets[0] += 1;
-        }
-        else if (visited_infosets[i] == 1) {
-            buckets[1] += 1;
-        }
-        else if (visited_infosets[i] == 2) {
-            buckets[2] += 1;
-        }
-        else if (visited_infosets[i] >= 3 && visited_infosets[i] <= 10) {
-            buckets[3] += 1;
-        }
-        else if (visited_infosets[i] >= 11 && visited_infosets[i] <= 100) {
-            buckets[4] += 1;
-        }
-        else if (visited_infosets[i] >= 101 && visited_infosets[i] <= 1000) {
-            buckets[5] += 1;
-        }
-        else if (visited_infosets[i] >= 1001 && visited_infosets[i] <= 10000) {
-            buckets[6] += 1;
-        }
-        else if (visited_infosets[i] >= 10001 && visited_infosets[i] <= 100000) {
-            buckets[7] += 1;
-        }
-        else if (visited_infosets[i] >= 100001 && visited_infosets[i] <= 1000000) {
-            buckets[8] += 1;
-        }
-        else {
-            buckets[9] += 1;
-        }
-    }
-
-    std::cout << "Histogram of visited information sets: " << std::endl;
-
-    for (int i = 0; i < 10; i++) {
-        std::cout << buckets[i] << "\t";
-    }
-    std::cout << std::endl;
-
-    std::cout << "0\t1\t2\t3-10\t11-100\t101-1k\t1k-10k\t10k-100k\t100k-1M\t1M+" << std::endl;
-}
-
-
 int get_number_of_unknown_opponent_moves(InformationSet& I) {
     std::string B = I.get_board_from_hash();
     int count_x = 0;
