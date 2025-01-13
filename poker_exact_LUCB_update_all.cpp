@@ -230,9 +230,9 @@ void logging(int num_samples, std::vector<PolicyVec>& strategies, std::vector<do
         std::cout << "Expected utility of highest empirical mean arm: " << expected_utility_arm << std::endl;
         exploitability = best_true_expected_utility - expected_utility_arm;
     } else {
-        double expected_utility_arm = get_expected_utility_wrapper(policy_obj_x, strategy, game);
+        double expected_utility_arm = - get_expected_utility_wrapper(policy_obj_x, strategy, game);
         std::cout << "Expected utility of highest empirical mean arm: " << expected_utility_arm << std::endl;
-        exploitability = -(best_true_expected_utility - expected_utility_arm);
+        exploitability = best_true_expected_utility - expected_utility_arm;
     }
 
     // append to outfile
@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
                 best_true_expected_utility = true_expected_utilities[i];
             }
         } else {
-            true_expected_utilities[i] = get_expected_utility_wrapper(policy_obj_x, strategies[i], game);
+            true_expected_utilities[i] = - get_expected_utility_wrapper(policy_obj_x, strategies[i], game);
             if (true_expected_utilities[i] > best_true_expected_utility){
                 best_true_expected_utility = true_expected_utilities[i];
             }
@@ -450,7 +450,7 @@ int main(int argc, char* argv[]) {
             double expected_utility_arm = get_expected_utility_wrapper(strategy, policy_obj_o, game);
             std::cout << "Expected utility of highest empirical mean arm: " << expected_utility_arm << std::endl;
         } else {
-            double expected_utility_arm = get_expected_utility_wrapper(policy_obj_x, strategy, game);
+            double expected_utility_arm = - get_expected_utility_wrapper(policy_obj_x, strategy, game);
             std::cout << "Expected utility of highest empirical mean arm: " << expected_utility_arm << std::endl;
         }
         average_sample_complexity += num_samples;
