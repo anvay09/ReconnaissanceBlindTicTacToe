@@ -401,12 +401,14 @@ int main(int argc, char *argv[])
         {
             if (player == 'x')
             {
-                PolicyVec player_br_policy = policy_obj_x;
+                PolicyVec uniform_policy_obj_x('x', P1_information_sets);
+                PolicyVec player_br_policy = uniform_policy_obj_x;
                 uct_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, num_iterations, expected_utility, experiment_number, log_size, C);
             }
             else if (player == 'o')
             {
-                PolicyVec player_br_policy = policy_obj_o;
+                PolicyVec uniform_policy_obj_o('o', P2_information_sets);
+                PolicyVec player_br_policy = uniform_policy_obj_o;
                 uct_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, expected_utility, experiment_number, log_size, C);
             }
             experiment_number += 1;
