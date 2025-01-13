@@ -197,12 +197,9 @@ void update_ucb_new(std::vector<std::vector<double>> &infoset_ucb, std::vector<s
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
     char curr_player = 'x';
-    double total_reward = 0.0;
-    long int total_pull = 0;
 
     for (int action : history.history)
     {
-
         if (curr_player == player)
         {
             InformationSet I = curr_player == 'x' ? I_1 : I_2;
