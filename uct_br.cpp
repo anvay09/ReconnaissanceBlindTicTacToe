@@ -206,18 +206,18 @@ void update_ucb_new(std::vector<std::vector<double>> &infoset_ucb, std::vector<s
 
             infoset_u[I.get_index()] += 1;
             infoset_action_u[I.get_index()][action] += 1;
-            infoset_q[I.get_index()][action] = infoset_q[I.get_index()][action] + (reward - infoset_q[I.get_index()][action]) / infoset_action_u[I.get_index()][action];
+            infoset_q[I.get_index()][action] = infoset_q[I.get_index()][action] + ((reward - infoset_q[I.get_index()][action]) / infoset_action_u[I.get_index()][action]);
             std::vector<int> legal_actions;
             I.get_actions(legal_actions);
             for (int a : legal_actions)
             {
                 if (infoset_action_u[I.get_index()][a] > 0)
                 {
-                    infoset_ucb[I.get_index()][a] = infoset_q[I.get_index()][a] + C * sqrt(log(infoset_u[I.get_index()]) / infoset_action_u[I.get_index()][a]);
+                    infoset_ucb[I.get_index()][a] = infoset_q[I.get_index()][a] + (C * sqrt(log(infoset_u[I.get_index()]) / infoset_action_u[I.get_index()][a]));
                 }
             }
 
-            double max_reward = -100.0;
+            double max_reward = -std::numeric_limits<double>::infinity();
             int action = 0;
 
             for (int a : legal_actions)
