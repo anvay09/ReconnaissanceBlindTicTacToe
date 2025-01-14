@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
     # horizontal line
     plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
-    low = -0.01
+    low = -args.yaxisupper/10
     high = args.yaxisupper
     num_ticks = 10
     plt.yticks(np.arange(0, high, (high) / num_ticks))
