@@ -10,7 +10,7 @@ int sampleIndex(const std::vector<double>& probabilities) {
     return distribution(generator);
 }
 
-double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, char player, double probability, double& reward, char update_player, double eps, double& action_selection_probability_explore, double& action_selection_probability_exploit) {
+double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, char player, double& probability, double& reward, char update_player, double eps, double& action_selection_probability_explore, double& action_selection_probability_exploit) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
@@ -74,7 +74,6 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             sample_terminal_history(I_1, new_I, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'o', probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
         }
     }
-    return probability;
 }
 
 
@@ -87,7 +86,8 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
     InformationSet I_2 = InformationSet('o', false, hash_2);
     double action_selection_probability_explore = 1.0;
     double action_selection_probability_exploit = 1.0;
-    double probability = sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x', 1.0, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
+    double probability = 1.0;
+    sample_terminal_history(I_1, I_2, true_board, policy_obj_x, policy_obj_o, player_uniform_policy, current_history, 'x',probability, reward, update_player, eps, action_selection_probability_explore, action_selection_probability_exploit);
     return (1.0 - eps)*action_selection_probability_exploit + eps*action_selection_probability_explore;
 }
 
@@ -224,7 +224,7 @@ void onpath_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
-        double reward = 0;
+        double reward = 0.0;
         if (decay_flag == 1){
             eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0);
         }
