@@ -101,6 +101,7 @@ if __name__ == "__main__":
     algorithms = algorithms_str.split(',')
 
     # horizontal line
+    plt.figure(figsize=(6,6))
     plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
     low = -args.yaxisupper/10
     high = args.yaxisupper
@@ -135,4 +136,5 @@ if __name__ == "__main__":
                                        numiterations=args.numiterations, logfreq=args.logfreq, cours=args.cours,
                                        epsmccfr=args.epsmccfr, cuct=args.cuct, epsuct=args.epsuct, nuct=args.nuct,
                                        duct=args.duct))
+    
     plt.savefig("{}.pdf".format(plot_path))
