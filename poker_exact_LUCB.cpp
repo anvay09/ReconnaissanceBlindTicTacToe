@@ -203,6 +203,7 @@ int main(int argc, char* argv[]) {
     char player = std::string(argv[5])[0]; // player to update
     int number_of_runs = std::stoi(argv[6]); // number of runs
     int log_freq = std::stoi(argv[7]); // logging frequency
+    std::string exp_name = argv[8]; // experiment name
     char game = 'K'; // do not run this code for Leduc Poker
     
     // load information sets
@@ -284,7 +285,7 @@ int main(int argc, char* argv[]) {
         int max_UCB_policy_index = 0;
         int max_empirical_mean_policy_index = 0;
         int num_samples = 0;
-        std::string output_file = "data/exact/Kuhn_Poker_exact_LUCB_" + std::string(1, player) + "_run_" + std::to_string(j) + ".txt";
+        std::string output_file = "data/exact/" + exp_name + "_Kuhn_Poker_exact_LUCB_" + std::string(1, player) + "_run_" + std::to_string(j) + ".txt";
         // open output file and wipe it clean
         std::ofstream outfile;
         outfile.open(output_file, std::ios::out);
