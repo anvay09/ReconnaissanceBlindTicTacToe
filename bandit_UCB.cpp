@@ -1240,81 +1240,42 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             std::cout << "Number of information sets visited: " << count << std::endl;
             std::cout << "Number of games sampled so far: " << t << std::endl;
         }
-  
-        if (max_UCB_flag) {
-            std::vector<int> h = {};
-            TerminalHistory start_history = TerminalHistory(h);
-            exploit_wrapper(player_max_ucb_policy, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
 
-            std::string board = "000000000";
-            TicTacToeBoard true_board = TicTacToeBoard(board);
-            std::string hash_1 = "";
-            std::string hash_2 = "";
-            InformationSet I_1 = InformationSet('x', true, hash_1);
-            InformationSet I_2 = InformationSet('o', false, hash_2);
+        std::vector<int> h = {};
+        TerminalHistory start_history = TerminalHistory(h);
+        exploit_wrapper(player_max_ucb_policy, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
 
-            if (br_player == 'x') {
-                update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
-            }
-            else {
-                update_max_reward_policy_given_history(I_2, true_board, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
-            }
+        std::string board = "000000000";
+        TicTacToeBoard true_board = TicTacToeBoard(board);
+        std::string hash_1 = "";
+        std::string hash_2 = "";
+        InformationSet I_1 = InformationSet('x', true, hash_1);
+        InformationSet I_2 = InformationSet('o', false, hash_2);
 
-            board = "000000000";
-            true_board = TicTacToeBoard(board);
-            hash_1 = "";
-            hash_2 = "";
-            I_1 = InformationSet('x', true, hash_1);
-            I_2 = InformationSet('o', false, hash_2);
-
-            if (br_player == 'x') {
-                update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
-            }
-            else {
-                update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
-            }
-
-            max_UCB_flag = false;
+        if (br_player == 'x') {
+            update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
         }
         else {
-            std::vector<int> h = {};
-            TerminalHistory start_history = TerminalHistory(h);
-            exploit_wrapper(player_br, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
+            update_max_reward_policy_given_history(I_2, true_board, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
+        }
 
-            std::string board = "000000000";
-            TicTacToeBoard true_board = TicTacToeBoard(board);
-            std::string hash_1 = "";
-            std::string hash_2 = "";
-            InformationSet I_1 = InformationSet('x', true, hash_1);
-            InformationSet I_2 = InformationSet('o', false, hash_2);
+        board = "000000000";
+        true_board = TicTacToeBoard(board);
+        hash_1 = "";
+        hash_2 = "";
+        I_1 = InformationSet('x', true, hash_1);
+        I_2 = InformationSet('o', false, hash_2);
 
-            if (br_player == 'x') {
-                update_max_reward_policy_given_history(I_1, true_board, I_2, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
-            }
-            else {
-                update_max_reward_policy_given_history(I_2, true_board, I_1, start_history, player_br, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, 'x', br_player, 0);
-            }
-
-            board = "000000000";
-            true_board = TicTacToeBoard(board);
-            hash_1 = "";
-            hash_2 = "";
-            I_1 = InformationSet('x', true, hash_1);
-            I_2 = InformationSet('o', false, hash_2);
-  
-            if (br_player == 'x') {
-                update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
-            }
-            else {
-                update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
-            }
-
-            max_UCB_flag = true;
+        if (br_player == 'x') {
+            update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+        }
+        else {
+            update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
         }
     }
 
     std::cout << "Saving exploitability log" << std::endl;
-    std::string file_name = "data/bandit/" + exp_name + "_" + std::string(1, br_player) + "_C=" + std::to_string(C) + "_LUCB_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/bandit/" + exp_name + "_" + std::string(1, br_player) + "_C=" + std::to_string(C) + "_UCB_exploitability_log_" + std::to_string(experiment_number) + ".txt";
 
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++) {
