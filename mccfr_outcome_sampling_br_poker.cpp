@@ -278,51 +278,23 @@ void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec&
             // overridde eps based on step size.
             // eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0);
 
-            PolicyVec average_strategy = cumulative_strategy;
-            // normalize the cumulative strategy
-            #pragma omp parallel for num_threads(NUM_THREADS)
-            for (long int i = 0; i < player_information_sets.size(); i++) {
-                std::vector<double>& cumulative_prob_table = average_strategy.policy_dict[i];
-                double sum = 0.0;
+            // PolicyVec average_strategy = cumulative_strategy;
+            // // normalize the cumulative strategy
+            // #pragma omp parallel for num_threads(NUM_THREADS)
+            // for (long int i = 0; i < player_information_sets.size(); i++) {
+            //     std::vector<double>& cumulative_prob_table = average_strategy.policy_dict[i];
+            //     double sum = 0.0;
 
-                for (int j = 0; j < 6; j++) {
-                    sum += cumulative_prob_table[j];
-                }
+            //     for (int j = 0; j < 6; j++) {
+            //         sum += cumulative_prob_table[j];
+            //     }
 
-                if (sum > 0) {
-                    for (int j = 0; j < 6; j++) {
-                        cumulative_prob_table[j] /= sum;
-                    }
-                }
-            }
-
-            // build br policy
-            PolicyVec br_policy = player_br_policy;
-            #pragma omp parallel for num_threads(NUM_THREADS)
-            for (long int i = 0; i < player_information_sets.size(); i++) {
-                std::vector<double>& br_prob_dist = br_policy.policy_dict[i];
-                InformationSet I(br_player, get_move_flag(player_information_sets[i], br_player), player_information_sets[i], game);
-                std::vector<double>& regret_I = regret_list[I.get_index()];
-                double max_regret = game == 'L' ? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
-                int max_regret_action = -1;
-                std::vector<int> actions;
-                I.get_actions(actions);
-
-                for (int a: actions) {
-                    if (regret_I[a] > max_regret) {
-                        max_regret = regret_I[a];
-                        max_regret_action = a;
-                    }
-                }
-
-                for (int a: actions) {
-                    if (a == max_regret_action) {
-                        br_prob_dist[a] = 1.0;
-                    } else {
-                        br_prob_dist[a] = 0.0;
-                    }
-                }
-            }
+            //     if (sum > 0) {
+            //         for (int j = 0; j < 6; j++) {
+            //             cumulative_prob_table[j] /= sum;
+            //         }
+            //     }
+            // }
 
             double expected_utility = 0.0;
             if (br_player == 'x'){
@@ -332,9 +304,6 @@ void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec&
 
                 // expected_utility = get_expected_utility_wrapper(average_strategy, opponent_policy, game);
                 // std::cout << "Expected utility after averaging: " << expected_utility << std::endl;
-                // expected_utility = get_expected_utility_wrapper(br_policy, opponent_policy, game);
-                // std::cout << "Expected utility after deterministic best response: " << expected_utility << std::endl;
-                
             }
             else {
                 expected_utility = get_expected_utility_wrapper(opponent_policy, player_br_policy, game);
@@ -343,8 +312,6 @@ void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec&
 
                 // expected_utility = get_expected_utility_wrapper(opponent_policy, average_strategy, game);
                 // std::cout << "Expected utility after averaging: " << expected_utility << std::endl;
-                // expected_utility = get_expected_utility_wrapper(opponent_policy, br_policy, game);
-                // std::cout << "Expected utility after deterministic best response: " << expected_utility << std::endl;
             }
         }
     }
@@ -407,11 +374,13 @@ int main(int argc, char* argv[]) {
     while (experiment_num <= experiments)
     {
         if (player == 'x'){
-            PolicyVec player_br_policy = policy_obj_x;
+            PolicyVec uniform_policy_obj_x('x', P1_information_sets, game);
+            PolicyVec player_br_policy = uniform_policy_obj_x;
             mccfr_outcome_sampling_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, iterations, eps, log_frequency, experiment_num, game);
         }
         else if (player == 'o'){
-            PolicyVec player_br_policy = policy_obj_o;
+            PolicyVec uniform_policy_obj_o('o', P2_information_sets, game);
+            PolicyVec player_br_policy = uniform_policy_obj_o;
             mccfr_outcome_sampling_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, iterations, eps, log_frequency, experiment_num, game);
         }
        

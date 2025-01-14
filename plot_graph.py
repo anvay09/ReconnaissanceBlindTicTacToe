@@ -34,6 +34,7 @@ def parse_commandline_args():
                         help='Optional argument if using UCT smooth')
     parser.add_argument('--logfiles', type=str, required=True, help='List of log file names')
     parser.add_argument('--algorithms', type=str, required=True, help='List of algorithms')
+    parser.add_argument('--yaxisupper', type=float, required=True, help='Upper limit of y-axis')
     arguments = parser.parse_args()
     return arguments
 
@@ -88,7 +89,7 @@ def clean_data(player, file_name, num_experiments, num_iterations, step_size=100
 
 if __name__ == "__main__":
     args = parse_commandline_args()
-    line_styles = ['solid', 'dashed', 'dotted', 'dashdot']
+    line_styles = ['solid', 'dashed', 'dotted', 'dashdot', 'solid', 'dashed', 'dotted', 'dashdot']
     colors = ['blue', 'red', 'green', 'orange', 'purple', 'brown', 'pink', 'olive']
     markers = ['', 'o', 'x']
     a = 0
@@ -102,7 +103,7 @@ if __name__ == "__main__":
     # horizontal line
     plt.axhline(y=0, color='black', linestyle='--', linewidth=0.4)
     low = -0.01
-    high = 0.1
+    high = args.yaxisupper
     num_ticks = 10
     plt.yticks(np.arange(0, high, (high) / num_ticks))
     plt.ylim(low, high)
