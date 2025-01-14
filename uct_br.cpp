@@ -218,19 +218,19 @@ void update_ucb_new(std::vector<std::vector<double>> &infoset_ucb, std::vector<s
             }
 
             double max_reward = -std::numeric_limits<double>::infinity();
-            int action = 0;
+            int action_new = 0;
 
             for (int a : legal_actions)
             {
                 if (infoset_ucb[I.get_index()][a] >= max_reward)
                 {
                     max_reward = infoset_ucb[I.get_index()][a];
-                    action = a;
+                    action_new = a;
                 }
             }
 
             std::vector<double> best_arms(13, 0.0);
-            best_arms[action] = 1.0;
+            best_arms[action_new] = 1.0;
             player_br_policy.policy_dict[I.get_index()] = best_arms;
 
         }
