@@ -10,7 +10,7 @@ int sampleIndex(const std::vector<double>& probabilities) {
     return distribution(generator);
 }
 
-double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, char player, double& probability, double& reward, char update_player, double eps, double& action_selection_probability_explore, double& action_selection_probability_exploit) {
+void sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, PolicyVec& player_uniform_policy, History& current_history, char player, double& probability, double& reward, char update_player, double eps, double& action_selection_probability_explore, double& action_selection_probability_exploit) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     PolicyVec& policy_obj = player == 'x' ? policy_obj_x : policy_obj_o;
     std::vector<double> prob_dist = policy_obj.policy_dict[I.get_index()];
