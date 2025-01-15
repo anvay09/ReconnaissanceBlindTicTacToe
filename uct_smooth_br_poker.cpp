@@ -13,8 +13,8 @@ int sampleIndex(const std::vector<double> &probabilities)
 }
 
 
-double sample_terminal_history(InformationSet &I_1, InformationSet &I_2, PokerTable &true_cards, std::vector<std::vector<double>> &infoset_ucb, PolicyVec &opponent_policy, History &current_history, char br_player, double eps, long int C, double n_0, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u, double d, char game) {
-    InformationSet I = true_cards.player_to_move == 'x' ? I_1 : I_2;
+double sample_terminal_history(InformationSet &I_1, InformationSet &I_2, PokerTable &true_cards, std::vector<std::vector<double>> &infoset_ucb, PolicyVec &opponent_policy, History &current_history, char br_player, double eps, double C, double n_0, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u, double d, char game) {
+    InformationSet& I = true_cards.player_to_move == 'x' ? I_1 : I_2;
     int action = 0;
     if (I.player == br_player) {    
         double term = n_0 * (1.0/ (1.0 + d * sqrt(infoset_u[I.get_index()])));
@@ -84,7 +84,7 @@ double sample_terminal_history(InformationSet &I_1, InformationSet &I_2, PokerTa
 }
 
 
-double sample_terminal_history_wrapper(std::vector<std::vector<double>> &infoset_ucb, PolicyVec &opponent_policy, History &current_history, char br_player, double eps, long int C, double n_0, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u, double d, char game) {
+double sample_terminal_history_wrapper(std::vector<std::vector<double>> &infoset_ucb, PolicyVec &opponent_policy, History &current_history, char br_player, double eps, double C, double n_0, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u, double d, char game) {
     std::vector<std::string>& unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
     std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
 
@@ -109,7 +109,7 @@ double sample_terminal_history_wrapper(std::vector<std::vector<double>> &infoset
 }
 
 
-void update_ucb_new(std::vector<std::vector<double>> &infoset_ucb, std::vector<std::vector<double>> &infoset_q, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u, double reward, TerminalHistory &history, char br_player, long int C, PolicyVec& player_br_policy, char game) {
+void update_ucb_new(std::vector<std::vector<double>> &infoset_ucb, std::vector<std::vector<double>> &infoset_q, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u, double reward, TerminalHistory &history, char br_player, double C, PolicyVec& player_br_policy, char game) {
     std::string cards = "---";
     cards[0] = history.history[0];
     cards[1] = history.history[1];
@@ -123,23 +123,27 @@ void update_ucb_new(std::vector<std::vector<double>> &infoset_ucb, std::vector<s
     InformationSet I_2 = InformationSet('o', false, hash_2, game);
 
     for (int i = 3; i < history.history.size(); i++) {  
-        InformationSet I = true_cards.player_to_move == 'x' ? I_1 : I_2;
+        InformationSet& I = true_cards.player_to_move == 'x' ? I_1 : I_2;
         int action = history.history[i];
 
-        infoset_u[I.get_index()] += 1;
-        infoset_action_u[I.get_index()][action] += 1;
-        infoset_q[I.get_index()][action] = infoset_q[I.get_index()][action] + (reward - infoset_q[I.get_index()][action]) / infoset_action_u[I.get_index()][action];
-        
-        std::vector<int> legal_actions;
-        I.get_actions(legal_actions);
-        for (int a : legal_actions) {
-            if (infoset_action_u[I.get_index()][a] > 0) {
-                infoset_ucb[I.get_index()][a] = infoset_q[I.get_index()][a] + C * sqrt(log(infoset_u[I.get_index()]) / infoset_action_u[I.get_index()][a]);
+        if (I.player == br_player){
+            infoset_u[I.get_index()] += 1;
+            infoset_action_u[I.get_index()][action] += 1;
+
+            infoset_q[I.get_index()][action] = infoset_q[I.get_index()][action] + (reward - infoset_q[I.get_index()][action]) / infoset_action_u[I.get_index()][action];
+            
+            std::vector<int> legal_actions;
+            I.get_actions(legal_actions);
+
+            for (int a : legal_actions) {
+                if (infoset_action_u[I.get_index()][a] > 0) {
+                    infoset_ucb[I.get_index()][a] = infoset_q[I.get_index()][a] + C * sqrt(log(infoset_u[I.get_index()]) / infoset_action_u[I.get_index()][a]);
+                }
             }
-        }
-        for (int a : legal_actions) {
-            if (infoset_u[I.get_index()] > 0) {
-                player_br_policy.policy_dict[I.get_index()][a] = infoset_action_u[I.get_index()][a]/infoset_u[I.get_index()];
+            for (int a : legal_actions) {
+                if (infoset_u[I.get_index()] > 0) {
+                    player_br_policy.policy_dict[I.get_index()][a] = infoset_action_u[I.get_index()][a]/infoset_u[I.get_index()];
+                }
             }
         }
 
@@ -153,7 +157,7 @@ void update_ucb_new(std::vector<std::vector<double>> &infoset_ucb, std::vector<s
 }
 
 
-void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, char br_player, std::vector<std::string> &player_information_sets, long int T, long int d, double exact_br_value, int experiment_number, long int log_size, double eps, long int C, double n_0, char game)
+void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, char br_player, std::vector<std::string> &player_information_sets, long int T, long int d, double exact_br_value, int experiment_number, long int log_size, double eps, double C, double n_0, char game)
 {
     std::vector<double> infoset_u(player_information_sets.size(), 0.0);
     std::vector<std::vector<double>> infoset_ucb(player_information_sets.size(), std::vector<double>(6, std::numeric_limits<double>::infinity()));
@@ -162,7 +166,6 @@ void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, 
     std::vector<std::pair<int, double>> exploitability_log;
 
     for (long int t = 0; t <= T; t++) {
-        // sample terminal history
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double reward = 0.0;
@@ -189,11 +192,11 @@ void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, 
                 std::cout << start_history.history[i] << " ";
             }
             std::cout << std::endl << "############################################################" << std::endl;
-            }
+        }
     }
 
     std::cout << "Saving exploitability logs" << std::endl;
-    std::string file_name = "data/d=" + std::to_string(d) + "_" + "eps=" + std::to_string(eps) + "_" + "C=" + std::to_string(C) + "_" + "n0=" + std::to_string(n_0) + std::string(1, br_player) + "_" + std::string(1, game) + "poker_uct_smooth_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/smooth_uct/d=" + std::to_string(d) + "_" + "eps=" + std::to_string(eps) + "_" + "C=" + std::to_string(C) + "_" + "n0=" + std::to_string(n_0) + std::string(1, br_player) + "_" + std::string(1, game) + "poker_uct_smooth_exploitability_log_" + std::to_string(experiment_number) + ".txt";
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++)
     {
@@ -209,6 +212,14 @@ int main(int argc, char *argv[])
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
     char game = argv[3][0];
+    int num_iterations = std::stoi(argv[4]);
+    int log_size = std::stoi(argv[5]);
+    int num_experiments = std::stoi(argv[6]);
+    char player = argv[7][0];
+    double C = std::stod(argv[8]);
+    double n_0 = std::stod(argv[9]);
+    double d = std::stod(argv[10]);
+    double eps = std::stod(argv[11]);
 
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -248,41 +259,17 @@ int main(int argc, char *argv[])
     char continue_exp = 'y';
     while (continue_exp == 'y')
     {
-        long int num_iterations = 0;
-        char player;
         int experiment_number = 1;
-        int num_experiments = 0;
-        long int log_size = 1;
-        long int C = 1;
-        double n_0 = 1.0;
-        double d = 0.001;
-        double eps = 0.0;
-
-        std::cout << "Enter number of iterations: ";
-        std::cin >> num_iterations;
-        std::cout << "Enter the number of iterations after which progress is to be checked: ";
-        std::cin >> log_size;
-        std::cout << "Enter the player for whom the best response is to be computed (x/o):";
-        std::cin >> player;
-        std::cout << "Enter number of experiments: ";
-        std::cin >> num_experiments;
-        std::cout << "Enter epsilon value:";
-        std::cin >> eps;
-        std::cout << "Enter d for decay:";
-        std::cin >> d;
-        std::cout << "Enter C value: ";
-        std::cin >> C;
-        std::cout << "Enter n_0 value: ";
-        std::cin >> n_0;
-
         double expected_utility = 0.0;
         if (player == 'x')
         {
             expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x', game);
+            std::cout << "Expected utility of best response: " << expected_utility << std::endl;
         }
         else if (player == 'o')
         {
             expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o', game);
+            std::cout << "Expected utility of best response: " << expected_utility << std::endl;
         }
 
         while (experiment_number <= num_experiments)
