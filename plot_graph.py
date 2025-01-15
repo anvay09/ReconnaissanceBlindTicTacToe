@@ -89,7 +89,7 @@ def clean_data(player, file_name, num_experiments, num_iterations, step_size=100
 
 if __name__ == "__main__":
     args = parse_commandline_args()
-    line_styles = ['solid', 'dashed', 'dotted', 'dashdot', 'solid', 'dashed', 'dotted', 'dashdot', 'solid', 'dashed']
+    line_styles = ['solid', 'dashed', 'dotted', 'dashdot', (0, (3, 1, 1, 1, 1, 1)), 'dashed', 'dotted', 'dashdot', 'solid', 'dashed']
     colors = ['blue', 'red', 'green', 'orange', 'purple', 'brown', 'pink', 'olive', 'black', 'magenta']
     markers = ['', 'o', 'x']
     a = 0

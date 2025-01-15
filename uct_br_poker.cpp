@@ -100,77 +100,7 @@ double sample_terminal_history_wrapper(std::vector<std::vector<double>> &infoset
 }
 
 
-void build_policy(std::vector<std::vector<double>> &ucb_values, PolicyVec &policy_obj, std::vector<std::string> &information_sets, char game) {
-    #pragma omp parallel for num_threads(NUM_THREADS)
-    for (long int i = 0; i < ucb_values.size(); i++) {
-        std::vector<double> &action_ucbs = ucb_values[i];
-        double max_reward = game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
-        
-        std::string I_hash = information_sets[i];
-        InformationSet I(policy_obj.player, get_move_flag(I_hash, policy_obj.player), I_hash, game);
-        
-        std::vector<int> legal_actions;
-        I.get_actions(legal_actions);
-        int action = 0;
-
-        for (int a : legal_actions) {
-            if (action_ucbs[a] >= max_reward) {
-                max_reward = action_ucbs[a];
-                action = a;
-            }
-        }
-
-        std::vector<double> best_arms(6, 0.0);
-        best_arms[action] = 1.0;
-        policy_obj.policy_dict[i] = best_arms;
-    }
-}
-
-
-void update_ucb(std::vector<std::vector<double>> &infoset_ucb, std::vector<std::vector<double>> &infoset_q, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u, double reward, TerminalHistory &history, char br_player, long int C, char game) {
-    std::string cards = "---";
-    cards[0] = history.history[0];
-    cards[1] = history.history[1];
-    cards[2] = history.history[2];
-
-    PokerTable true_cards = PokerTable(cards);
-    true_cards.game = game;
-    std::string hash_1 = "a-" + std::string(1, cards[0]) + "--";
-    std::string hash_2 = "o-" + std::string(1, cards[1]) + "--";
-    InformationSet I_1 = InformationSet('x', true, hash_1, game);
-    InformationSet I_2 = InformationSet('o', false, hash_2, game);
-
-    double total_reward = 0.0;
-    long int total_pull = 0;
-    
-    for (int a = 3; a < history.history.size(); a++) {
-        InformationSet I = true_cards.player_to_move == 'x' ? I_1 : I_2;
-        int action = history.history[a];
-
-        if (I.player == br_player) {
-            infoset_u[I.get_index()] += 1;
-            infoset_action_u[I.get_index()][action] += 1;
-            infoset_q[I.get_index()][action] = infoset_q[I.get_index()][action] + (reward - infoset_q[I.get_index()][action]) / infoset_action_u[I.get_index()][action];
-            std::vector<int> legal_actions;
-            I.get_actions(legal_actions);
-            for (int a : legal_actions) {
-                if (infoset_action_u[I.get_index()][a] > 0) {
-                    infoset_ucb[I.get_index()][a] = infoset_q[I.get_index()][a] + C * sqrt(log(infoset_u[I.get_index()]) / infoset_action_u[I.get_index()][a]);
-                }
-            }
-        }
-
-        if (action < 5) {
-            I.update_move(action);
-            true_cards.update_move(action);
-        } else {
-            I.simulate_sense(action, true_cards);
-        }
-    }
-}
-
-
-void update_ucb_new(std::vector<std::vector<double>> &infoset_ucb, std::vector<std::vector<double>> &infoset_q, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u, double reward, TerminalHistory &history, char br_player, long int C, PolicyVec& player_br_policy, char game) {
+void update_ucb_new(std::vector<std::vector<double>> &infoset_ucb, std::vector<std::vector<double>> &infoset_q, std::vector<double> &infoset_u, std::vector<std::vector<double>> &infoset_action_u, double reward, TerminalHistory &history, char br_player, double C, PolicyVec& player_br_policy, char game) {
     std::string cards = "---";
     cards[0] = history.history[0];
     cards[1] = history.history[1];
@@ -184,7 +114,7 @@ void update_ucb_new(std::vector<std::vector<double>> &infoset_ucb, std::vector<s
     InformationSet I_2 = InformationSet('o', false, hash_2, game);
 
     for (int i = 3; i < history.history.size(); i++) {
-        InformationSet I = true_cards.player_to_move == 'x' ? I_1 : I_2;
+        InformationSet& I = true_cards.player_to_move == 'x' ? I_1 : I_2;
         int action = history.history[i];
 
         if (I.player == br_player) {
@@ -225,7 +155,7 @@ void update_ucb_new(std::vector<std::vector<double>> &infoset_ucb, std::vector<s
 }
 
 
-void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, char br_player, std::vector<std::string> &player_information_sets, long int T, double exact_br_value, int experiment_number, long int log_size, long int C, char game)
+void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, char br_player, std::vector<std::string> &player_information_sets, long int T, double exact_br_value, int experiment_number, long int log_size, double C, char game)
 {
     std::vector<double> infoset_u(player_information_sets.size(), 0.0);
     std::vector<std::vector<double>> infoset_ucb(player_information_sets.size(), std::vector<double>(6, std::numeric_limits<double>::infinity()));
@@ -267,7 +197,7 @@ void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, 
     }
 
     std::cout << "Saving exploitability logs" << std::endl;
-    std::string file_name = "data/C=" + std::to_string(C) + "_" + std::string(1, br_player) + "_" + std::string(1, game) + "poker_uct_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/uct/C=" + std::to_string(C) + "_" + std::string(1, br_player) + "_" + std::string(1, game) + "poker_uct_exploitability_log_" + std::to_string(experiment_number) + ".txt";
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++)
     {
@@ -327,7 +257,7 @@ int main(int argc, char *argv[])
         int experiment_number = 1;
         int num_experiments = 0;
         long int log_size = 1;
-        long int C = 1;
+        double C = 1;
 
         std::cout << "Enter number of iterations: ";
         std::cin >> num_iterations;
