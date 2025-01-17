@@ -206,7 +206,7 @@ void compute_regrets_along_history_wrapper(PolicyVec& player_br_policy, PolicyVe
 
 } 
 
-void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, double eps, long int step_size, int decay_flag, int experiment_number, long int log_size, double exact_br_value) {
+void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, double eps, long int step_size, int decay_flag, int experiment_number, long int log_size, double exact_br_value, std::string exp_name) {
     std::vector<std::vector<double>> regret_list;
     std::vector<long int> markers;
     PolicyVec cumulative_strategy;
@@ -285,16 +285,16 @@ void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec&
         }
     }
     std::cout << "Saving exploitability logs" << std::endl;
-    std::string file_name = "data/" + std::string(1, br_player) + "mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
-    std::string file_name_average = "data/" + std::string(1, br_player) + "average_mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/MCCFR/" + exp_name + "_" + std::string(1, br_player) + "mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name_average = "data/MCCFR/" + exp_name + "_" + std::string(1, br_player) + "average_mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
     if (decay_flag) {
-        file_name = "data/eps_decay_step_size=" + std::to_string(step_size) + "_" + std::string(1, br_player) + "mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
-        file_name_average = "data/eps_decay_step_size=" + std::to_string(step_size) + "_" + std::string(1, br_player) + "average_mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+        file_name = "data/MCCFR/" + exp_name + "_eps_decay_step_size=" + std::to_string(step_size) + "_" + std::string(1, br_player) + "mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+        file_name_average = "data/MCCFR/" + exp_name + "_eps_decay_step_size=" + std::to_string(step_size) + "_" + std::string(1, br_player) + "average_mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
 
     }
     else {
-        file_name = "data/eps_constant=" + std::to_string(eps) + "_" + std::string(1, br_player) + "mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
-        file_name_average = "data/eps_constant=" + std::to_string(eps) + "_" + std::string(1, br_player) + "average_mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+        file_name = "data/MCCFR/" + exp_name + "_eps_constant=" + std::to_string(eps) + "_" + std::string(1, br_player) + "mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+        file_name_average = "data/MCCFR/" + exp_name + "_eps_constant=" + std::to_string(eps) + "_" + std::string(1, br_player) + "average_mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
     }
     
     std::ofstream f(file_name);
@@ -315,6 +315,8 @@ int main(int argc, char* argv[]) {
     std::string file_path_2 = argv[2];
     int decay_flag = std::stoi(argv[3]);
     NUM_THREADS = std::stoi(argv[4]); //96;
+    std::string exp_name = argv[5];
+
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
     std::string P1_information_sets_file = "data/P1_information_sets_V2.txt";
@@ -388,12 +390,12 @@ int main(int argc, char* argv[]) {
             if (player == 'x'){
                 PolicyVec uniform_policy_obj_x('x', P1_information_sets);
                 PolicyVec player_br_policy = uniform_policy_obj_x;
-                mccfr_outcome_sampling_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, num_iterations, eps, step_size, decay_flag, experiment_number, log_size, expected_utility);    
+                mccfr_outcome_sampling_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, num_iterations, eps, step_size, decay_flag, experiment_number, log_size, expected_utility, exp_name);    
             }
             else if (player == 'o'){
                 PolicyVec uniform_policy_obj_o('o', P2_information_sets);
                 PolicyVec player_br_policy = uniform_policy_obj_o;
-                mccfr_outcome_sampling_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, eps, step_size, decay_flag, experiment_number, log_size, expected_utility);    
+                mccfr_outcome_sampling_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, eps, step_size, decay_flag, experiment_number, log_size, expected_utility, exp_name);    
             }
             experiment_number += 1;
         }
