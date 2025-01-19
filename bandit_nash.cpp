@@ -334,7 +334,7 @@ void explore_wrapper(std::vector<std::vector<int>>& I_a_tickmark, std::vector<in
 
 int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_opponent_I, TicTacToeBoard& true_board, History& current_history, char curr_player, char br_player, 
             PolicyVec& policy_obj, PolicyVec& opponent_policy, std::vector<int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, 
-            std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<int>& I_tickmark, std::vector<std::vector<int>>& I_a_tickmark, std::vector<std::vector<int>>& action_explore_count) {
+            std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<int>& I_tickmark, std::vector<std::vector<int>>& I_a_tickmark) {
     InformationSet I = curr_player == 'x' ? I_1 : I_2;
     int action = 0;
     int terminal_flag = 0;
@@ -344,7 +344,6 @@ int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
         infoset_reach_count[I.get_index()] += 1;
         std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
         action = sampleIndex(prob_dist);
-        action_explore_count[I.get_index()][action] += 1;
     }
     else {
         std::vector<double>& prob_dist = opponent_policy.policy_dict[I.get_index()];
@@ -363,9 +362,9 @@ int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
             new_I.reset_zeros();
 
             if (curr_player == 'x') {
-                is_child_infoset_ticked = exploit(new_I, I_2, I, new_board, current_history, 'o', br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
+                is_child_infoset_ticked = exploit(new_I, I_2, I, new_board, current_history, 'o', br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
             } else {
-                is_child_infoset_ticked = exploit(I_1, new_I, I, new_board, current_history, 'x', br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
+                is_child_infoset_ticked = exploit(I_1, new_I, I, new_board, current_history, 'x', br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
@@ -410,9 +409,9 @@ int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
         current_history.history.push_back(action);
 
         if (curr_player == 'x') {
-            is_child_infoset_ticked = exploit(new_I, I_2, previous_opponent_I, new_board, current_history, 'x', br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
+            is_child_infoset_ticked = exploit(new_I, I_2, previous_opponent_I, new_board, current_history, 'x', br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
         } else {
-            is_child_infoset_ticked = exploit(I_1, new_I, previous_opponent_I, new_board, current_history, 'o', br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
+            is_child_infoset_ticked = exploit(I_1, new_I, previous_opponent_I, new_board, current_history, 'o', br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
         }
     }
 
@@ -452,7 +451,7 @@ int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
 
 void exploit_wrapper(PolicyVec& policy_obj, PolicyVec& opponent_policy, History& current_history, char br_player, 
                      std::vector<int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, 
-                     std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<int>& I_tickmark, std::vector<std::vector<int>>& I_a_tickmark, std::vector<std::vector<int>>& action_explore_count) {
+                     std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<int>& I_tickmark, std::vector<std::vector<int>>& I_a_tickmark) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
@@ -460,10 +459,10 @@ void exploit_wrapper(PolicyVec& policy_obj, PolicyVec& opponent_policy, History&
     InformationSet I_1 = InformationSet('x', true, hash_1);
     InformationSet I_2 = InformationSet('o', false, hash_2);
     if (br_player == 'x'){
-        exploit(I_1, I_2, I_2, true_board, current_history, 'x', br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
+        exploit(I_1, I_2, I_2, true_board, current_history, 'x', br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
     }
     else {
-        exploit(I_1, I_2, I_1, true_board, current_history, 'x', br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
+        exploit(I_1, I_2, I_1, true_board, current_history, 'x', br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
     }
 }
 
@@ -860,7 +859,7 @@ void update_max_reward_policy_given_history(InformationSet& I, TicTacToeBoard& t
 
 double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, std::vector<int>& I_tickmark, 
                             std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_terminal_reach_count, 
-                            std::vector<int>& infoset_time_step, int C, std::vector<int>& success_metrics, std::vector<double>& infoset_ucb_values, std::vector<std::vector<int>>& success_metrics_pi_hat, std::vector<std::vector<int>>& action_explore_count){
+                            std::vector<int>& infoset_time_step, int C, std::vector<int>& success_metrics, std::vector<double>& infoset_ucb_values, std::vector<std::vector<int>>& success_metrics_pi_hat){
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(13, 0.0);
@@ -877,7 +876,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
             std::vector<int> success_metrics_prime{0, 0, 0}; // wins, draws, losses
 
-            cohort_ucb_values[I_prime_hash] = build_max_UCB_policy(policy_obj, I_prime, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics_prime, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
+            cohort_ucb_values[I_prime_hash] = build_max_UCB_policy(policy_obj, I_prime, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics_prime, infoset_ucb_values, success_metrics_pi_hat);
 
 
             if (I_tickmark[I_prime.get_index()] == 0){
@@ -897,12 +896,9 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
                 }
             }
         }
-        // if infoset reach count is zero then the action and pull count is zero then the action has not been taken
-        // in that case ignore the action
 
         if (terminal_reach_count != 0){
             u += terminal_reach_count;
-            // action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
             action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]);
 
             success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
@@ -989,7 +985,7 @@ double build_max_UCB_policy(PolicyVec& policy_obj, InformationSet& I, std::vecto
 
 double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, std::vector<int>& I_tickmark, 
                                      std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_terminal_reach_count, 
-                                     std::vector<int>& infoset_time_step, int C, std::vector<int>& success_metrics, std::vector<double>& infoset_ucb_values, std::vector<std::vector<int>>& success_metrics_pi_hat, std::vector<std::vector<int>>& action_explore_count){
+                                     std::vector<int>& infoset_time_step, int C, std::vector<int>& success_metrics, std::vector<double>& infoset_ucb_values, std::vector<std::vector<int>>& success_metrics_pi_hat){
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_ucb_values(13, 0.0);
@@ -1007,7 +1003,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
             std::vector<int> success_metrics_prime{0, 0, 0}; // wins, draws, losses
 
-            cohort_ucb_values[I_prime_hash] = build_max_UCB_policy(policy_obj, I_prime, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics_prime, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
+            cohort_ucb_values[I_prime_hash] = build_max_UCB_policy(policy_obj, I_prime, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics_prime, infoset_ucb_values, success_metrics_pi_hat);
 
             if (I_tickmark[I_prime.get_index()] == 0){
                 u += infoset_reach_count[I_prime.get_index()];
@@ -1017,7 +1013,6 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
                 int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                 if (denom != 0){
                     u += denom;
-                    // action_ucb_values[a] += (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
                     action_ucb_values[a] += (success_metrics_prime[0] - success_metrics_prime[2]);
 
                     success_metrics[0] += success_metrics_prime[0];
@@ -1026,12 +1021,9 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
                 }
             }
         }
-        // if infoset reach count is zero then the action and pull count is zero then the action has not been taken
-        // in that case ignore the action
 
         if (terminal_reach_count != 0){
             u += terminal_reach_count;
-            // action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
             action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]);
 
             success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
@@ -1119,7 +1111,7 @@ double build_max_UCB_policy_parallel(PolicyVec& policy_obj, InformationSet& I, s
 void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true_board, InformationSet& opponent_I, History& game, PolicyVec& max_UCB_policy, std::vector<int>& infoset_reach_count, 
                                          std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_terminal_reach_count, 
                                          std::vector<double>& infoset_ucb_values, char curr_player, char br_player, int traversal_index, std::vector<int>& infoset_time_step, 
-                                         int C, std::vector<int>& I_tickmark, std::vector<std::vector<int>>& success_metrics_pi_hat, std::vector<std::vector<int>>& action_explore_count) {
+                                         int C, std::vector<int>& I_tickmark, std::vector<std::vector<int>>& success_metrics_pi_hat) {
     if (traversal_index == game.history.size()){
         return;
     }
@@ -1133,12 +1125,12 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
             new_I.update_move(action, I.player);
             new_I.reset_zeros();
             new_board.update_move(action, I.player);
-            update_max_UCB_policy_given_history(new_I, new_board, opponent_I, game, max_UCB_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, toggle_player(curr_player), br_player, traversal_index + 1, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+            update_max_UCB_policy_given_history(new_I, new_board, opponent_I, game, max_UCB_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, toggle_player(curr_player), br_player, traversal_index + 1, infoset_time_step, C, I_tickmark, success_metrics_pi_hat);
         }
         else {
             InformationSet new_I = I;
             new_I.simulate_sense(action, true_board);
-            update_max_UCB_policy_given_history(new_I, true_board, opponent_I, game, max_UCB_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, curr_player, br_player, traversal_index + 1, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+            update_max_UCB_policy_given_history(new_I, true_board, opponent_I, game, max_UCB_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, curr_player, br_player, traversal_index + 1, infoset_time_step, C, I_tickmark, success_metrics_pi_hat);
         }   
 
         std::vector<int> legal_actions;
@@ -1168,7 +1160,6 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
                     int denom = success_metrics_prime[0] + success_metrics_prime[1] + success_metrics_prime[2];
                     if (denom != 0){
                         u += denom;
-                        // action_ucb_values[a] += (success_metrics_prime[0] - success_metrics_prime[2]) / denom;
                         action_ucb_values[a] += (success_metrics_prime[0] - success_metrics_prime[2]);
 
                         success_metrics[0] += success_metrics_prime[0];
@@ -1180,7 +1171,6 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
 
             if (terminal_reach_count != 0){
                 u += terminal_reach_count;
-                // action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) / terminal_reach_count;
                 action_ucb_values[a] += (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]);
 
                 success_metrics[0] += empirical_action_reward[I.get_index()][a][0];
@@ -1266,30 +1256,24 @@ void update_max_UCB_policy_given_history(InformationSet& I, TicTacToeBoard& true
             opponent_I.update_move(action, opponent_I.player);
             opponent_I.reset_zeros();
             true_board.update_move(action, opponent_I.player);
-            update_max_UCB_policy_given_history(I, true_board, opponent_I, game, max_UCB_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, toggle_player(curr_player), br_player, traversal_index + 1, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+            update_max_UCB_policy_given_history(I, true_board, opponent_I, game, max_UCB_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, toggle_player(curr_player), br_player, traversal_index + 1, infoset_time_step, C, I_tickmark, success_metrics_pi_hat);
         }
         else {
             opponent_I.simulate_sense(action, true_board);
-            update_max_UCB_policy_given_history(I, true_board, opponent_I, game, max_UCB_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, curr_player, br_player, traversal_index + 1, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+            update_max_UCB_policy_given_history(I, true_board, opponent_I, game, max_UCB_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, curr_player, br_player, traversal_index + 1, infoset_time_step, C, I_tickmark, success_metrics_pi_hat);
         }
     }
 }
 
 
-void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, int m, PolicyVec& player_br, int experiment_number, int iterations, int C, std::string& exp_name) {
+void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, int m, PolicyVec& player_br, int experiment_number, int iterations, int C, std::string& exp_name,
+             std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<int>& infoset_reach_count, std::vector<std::vector<int>>& success_metrics_pi_hat) {
     std::vector<std::vector<int>> I_a_tickmark(player_information_sets.size(), std::vector<int>(13, 0));
     std::vector<int> I_tickmark(player_information_sets.size(), 0);
 
-    std::vector<int> infoset_reach_count(player_information_sets.size(), 0);
     std::vector<int> infoset_time_step(player_information_sets.size(), 1);
     std::vector<double> infoset_values(player_information_sets.size(), 0.0);
     std::vector<double> infoset_ucb_values(player_information_sets.size(), 0.0);
-
-    std::vector<std::vector<int>> success_metrics_pi_hat(player_information_sets.size(), std::vector<int>(3, 0));
-
-    std::vector<std::vector<std::vector<int>>> empirical_action_reward(player_information_sets.size(), std::vector<std::vector<int>>(13, std::vector<int>(3, 0)));
-    std::vector<std::vector<int>> action_terminal_reach_count(player_information_sets.size(), std::vector<int>(13, 0));
-    std::vector<std::vector<int>> action_explore_count(player_information_sets.size(), std::vector<int>(13, 0));
 
     PolicyVec player_max_ucb_policy(br_player, player_information_sets);
     std::vector<std::pair<int, double>> exploitability_log; 
@@ -1334,7 +1318,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
 
     root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
     std::vector<int> success_metrics{0, 0, 0};
-    double max_UCB = build_max_UCB_policy_parallel(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics, infoset_ucb_values, success_metrics_pi_hat, action_explore_count);
+    double max_UCB = build_max_UCB_policy_parallel(player_max_ucb_policy, root, infoset_reach_count, I_tickmark, empirical_action_reward, action_terminal_reach_count, infoset_time_step, C, success_metrics, infoset_ucb_values, success_metrics_pi_hat);
     std::cout << "Max UCB policy computed" << std::endl;
 
     bool max_UCB_flag = true;
@@ -1367,7 +1351,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         if (max_UCB_flag) {
             std::vector<int> h = {};
             TerminalHistory start_history = TerminalHistory(h);
-            exploit_wrapper(player_max_ucb_policy, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
+            exploit_wrapper(player_max_ucb_policy, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
 
             std::string board = "000000000";
             TicTacToeBoard true_board = TicTacToeBoard(board);
@@ -1391,10 +1375,10 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             I_2 = InformationSet('o', false, hash_2);
 
             if (br_player == 'x') {
-                update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+                update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat);
             }
             else {
-                update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+                update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat);
             }
 
             max_UCB_flag = false;
@@ -1402,7 +1386,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         else {
             std::vector<int> h = {};
             TerminalHistory start_history = TerminalHistory(h);
-            exploit_wrapper(player_br, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark, action_explore_count);
+            exploit_wrapper(player_br, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
 
             std::string board = "000000000";
             TicTacToeBoard true_board = TicTacToeBoard(board);
@@ -1426,10 +1410,10 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             I_2 = InformationSet('o', false, hash_2);
   
             if (br_player == 'x') {
-                update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+                update_max_UCB_policy_given_history(I_1, true_board, I_2, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat);
             }
             else {
-                update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat, action_explore_count);
+                update_max_UCB_policy_given_history(I_2, true_board, I_1, start_history, player_max_ucb_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_ucb_values, 'x', br_player, 0, infoset_time_step, C, I_tickmark, success_metrics_pi_hat);
             }
 
             max_UCB_flag = true;
@@ -1453,10 +1437,13 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
 
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
-    int iterations = std::stoi(argv[1]);
-    int log_frequency = std::stoi(argv[2]);
-    int C = std::stoi(argv[3]);
-    int T = std::stoi(argv[4]);
+    std::string file_path_1 = argv[1]; // start policy P1
+    std::string file_path_2 = argv[2]; // start policy P2
+    int iterations = std::stoi(argv[3]);
+    int log_frequency = std::stoi(argv[4]);
+    int C = std::stoi(argv[5]);
+    int T = std::stoi(argv[6]);
+
     std::string exp_name = "nash";
 
     // load information sets
@@ -1494,10 +1481,22 @@ int main(int argc, char* argv[]) {
     PolicyVec br_x('x', P1_information_sets);
     PolicyVec br_o('o', P2_information_sets);
 
+
+    std::vector<int> P1_infoset_reach_count(P1_information_sets.size(), 0);
+    std::vector<std::vector<int>> P1_success_metrics_pi_hat(P1_information_sets.size(), std::vector<int>(3, 0));
+    std::vector<std::vector<std::vector<int>>> P1_empirical_action_reward(P1_information_sets.size(), std::vector<std::vector<int>>(13, std::vector<int>(3, 0)));
+    std::vector<std::vector<int>> P1_action_terminal_reach_count(P1_information_sets.size(), std::vector<int>(13, 0));
+
+    std::vector<int> P2_infoset_reach_count(P2_information_sets.size(), 0);
+    std::vector<std::vector<int>> P2_success_metrics_pi_hat(P2_information_sets.size(), std::vector<int>(3, 0));
+    std::vector<std::vector<std::vector<int>>> P2_empirical_action_reward(P2_information_sets.size(), std::vector<std::vector<int>>(13, std::vector<int>(3, 0)));
+    std::vector<std::vector<int>> P2_action_terminal_reach_count(P2_information_sets.size(), std::vector<int>(13, 0));
+ 
+
     for (int t = 0; t < T; t++) {
         std::cout << "---------------- Iteration " << t << " ----------------" << std::endl;
         std::cout << "---------------- Starting player x ----------------" << std::endl;
-        calc_br(p_o, 'x', P1_information_sets, log_frequency, 1, p_x, experiment_num, iterations, C, exp_name);
+        calc_br(p_o, 'x', P1_information_sets, log_frequency, 1, p_x, experiment_num, iterations, C, exp_name, P1_empirical_action_reward, P1_action_terminal_reach_count, P1_infoset_reach_count, P1_success_metrics_pi_hat);
         double expected_utility = get_expected_utility_wrapper(p_x, p_o);
         std::cout << "Expected utility: " << expected_utility << std::endl;
         double exploitability = 0.0;
@@ -1506,7 +1505,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Exploitability: " << exploitability << std::endl;
         
         std::cout << "---------------- Starting player o ----------------" << std::endl;
-        calc_br(p_x, 'o', P2_information_sets, log_frequency, 1, p_o, experiment_num, iterations, C, exp_name);
+        calc_br(p_x, 'o', P2_information_sets, log_frequency, 1, p_o, experiment_num, iterations, C, exp_name, P2_empirical_action_reward, P2_action_terminal_reach_count, P2_infoset_reach_count, P2_success_metrics_pi_hat);
         expected_utility = get_expected_utility_wrapper(p_x, p_o);
         std::cout << "Expected utility: " << expected_utility << std::endl;
         exploitability = 0.0;
