@@ -65,9 +65,11 @@ def clean_data(player, file_name, num_experiments, num_iterations, step_size=100
         iterations = iterations[:num_iterations // step_size]
         exploitabilities = exploitabilities[:num_iterations // step_size]
 
-        y_curr = [-1.0 for i in range(0, num_iterations, step_size)]
+        y_curr = [-1.0 for i in range(0, num_iterations+1, step_size)]
+
         for j in range(len(iterations)):
             x_index = iterations[j] // step_size
+
             if player == 'x':
                 y_curr[x_index-1] = exploitabilities[j]
             else:
