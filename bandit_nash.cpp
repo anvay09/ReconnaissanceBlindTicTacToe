@@ -1476,11 +1476,11 @@ int main(int argc, char* argv[]) {
 
     int experiment_num = 1;
 
-    PolicyVec p_x('x', P1_information_sets);
-    PolicyVec p_o('o', P2_information_sets);
+    std::cout << "Reading in policies" << std::endl;
+    PolicyVec p_x('x', file_path_1, true);
+    PolicyVec p_o('o', file_path_2, true);
     PolicyVec br_x('x', P1_information_sets);
     PolicyVec br_o('o', P2_information_sets);
-
 
     std::vector<int> P1_infoset_reach_count(P1_information_sets.size(), 0);
     std::vector<std::vector<int>> P1_success_metrics_pi_hat(P1_information_sets.size(), std::vector<int>(3, 0));
