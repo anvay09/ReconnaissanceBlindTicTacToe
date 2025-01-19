@@ -1453,10 +1453,10 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
 
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
-    int iterations = std::stoi(argv[0]);
-    int log_frequency = std::stoi(argv[1]);
-    int C = std::stoi(argv[2]);
-    int T = std::stoi(argv[3]);
+    int iterations = std::stoi(argv[1]);
+    int log_frequency = std::stoi(argv[2]);
+    int C = std::stoi(argv[3]);
+    int T = std::stoi(argv[4]);
     std::string exp_name = "nash";
 
     // load information sets
