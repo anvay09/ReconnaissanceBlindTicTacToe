@@ -164,17 +164,36 @@ int sampleIndex(const std::vector<double>& probabilities) {
 double set_prob_to_softmax(std::vector<double>& prob_dist, std::vector<double>& values, std::vector<int>& legal_actions) {
     double sum = 0.0;
     double value = 0.0;
+
     for (int a : legal_actions) {
         prob_dist[a] = exp(values[a]);
         sum += prob_dist[a];
-        value = values[a] * prob_dist[a];
     }
 
     for (int a : legal_actions) {
         prob_dist[a] /= sum;
     }
 
-    value = value / sum;
+    // if prob is less than 0.01 then set it to 0 
+    for (int a : legal_actions) {
+        if (prob_dist[a] < 0.01) {
+            prob_dist[a] = 0.0;
+        }
+    }
+    // renormalize
+    sum = 0.0;
+    for (int a : legal_actions) {
+        sum += prob_dist[a];
+    }
+
+    for (int a : legal_actions) {
+        prob_dist[a] = prob_dist[a] / sum;
+    }
+
+    for (int a : legal_actions) {
+        value += prob_dist[a] * values[a];
+    }
+
     return value;
 }
 
@@ -1511,5 +1530,6 @@ int main(int argc, char* argv[]) {
         exploitability = 0.0;
         exploitability += compute_best_response_wrapper(p_o, br_x, 'x');
         exploitability -= compute_best_response_wrapper(p_x, br_o, 'o');
+        std::cout << "Exploitability: " << exploitability << std::endl;
     }
 }
