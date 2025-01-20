@@ -313,8 +313,8 @@ int main(int argc, char* argv[]) {
 
         // update UCB, LCB
         for (int i = 0; i < strategies.size(); i++) {
-            UCB[i] = total_empirical_reward[i] / pull_count[i] + std::sqrt(std::log(n * T / delta) / (2 * pull_count[i]));
-            LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(n * T / delta) / (2 * pull_count[i]));
+            UCB[i] = total_empirical_reward[i] / pull_count[i] + std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
+            LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
         }
         
         // main loop
