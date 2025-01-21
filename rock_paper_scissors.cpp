@@ -286,15 +286,22 @@ void update_policy(std::vector<double>& mu_t, std::vector<double>& mu_star, doub
     double term = 0.0;
         
     term = -learning_rate * mu_star[trajectory] * loss_obj;
-    Z_t = 1 - mu_t[trajectory] + mu_t[trajectory] * std::exp(term);
+    Z_t = 1.0 - mu_t[trajectory] + mu_t[trajectory] * std::exp(term);
+    double prob_sum = 0.0;
 
     for (int i = 0; i < 3; i++){
         if (i == trajectory){
             mu_t[i] *= std::exp(term - std::log(Z_t));
+            prob_sum += mu_t[i];
         }
         else {
             mu_t[i] *= std::exp( - std::log(Z_t));
+            prob_sum += mu_t[i];
         }
+    }
+
+    for (int i = 0; i < 3; i++){
+        mu_t[i] /= prob_sum;
     }
 }
 
@@ -349,6 +356,8 @@ void balanced_OMD(std::vector<double>& mu_t, std::vector<double>& mu_star, char 
         if (t % log_frequency == 0){
             std::cout << "-------------------------------- Iteration " << t << " --------------------------------" << std::endl;
             double expected_utility = 0.0;
+            std::cout << "--------- Strategy: " << mu_t[0] << " " << mu_t[1] << " " << mu_t[2] << " ---------" << std::endl;
+            std::cout << "Sum of strategy: " << mu_t[0] + mu_t[1] + mu_t[2] << std::endl;
 
             if (br_player == 'x') {
                 expected_utility = get_expected_utility(mu_t, opp_policy);
