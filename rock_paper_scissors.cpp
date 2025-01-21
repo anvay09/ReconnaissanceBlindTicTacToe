@@ -270,15 +270,115 @@ void LUCB(std::vector<double>& strategy_x, std::vector<double>& strategy_o, char
 }
 
 
+double construct_loss_estimator(std::vector<double>& mu_t, std::vector<double>& mu_star, double gamma, double reward, int trajectory) {
+    double mu_star_reach = 1.0;
+    double mu_t_reach = 1.0;
+
+    mu_star_reach *= mu_star[trajectory];
+    mu_t_reach *= mu_t[trajectory];
+    double loss_obj = ((1.0 - reward) / (mu_t_reach + gamma * mu_star_reach));
+    return loss_obj;
+}
+
+
+void update_policy(std::vector<double>& mu_t, std::vector<double>& mu_star, double loss_obj, double learning_rate, int trajectory) {
+    double Z_t = 1.0;
+    double term = 0.0;
+        
+    term = -learning_rate * mu_star[trajectory] * loss_obj;
+    Z_t = 1 - mu_t[trajectory] + mu_t[trajectory] * std::exp(term);
+
+    for (int i = 0; i < 3; i++){
+        if (i == trajectory){
+            mu_t[i] *= std::exp(term - std::log(Z_t));
+        }
+        else {
+            mu_t[i] *= std::exp( - std::log(Z_t));
+        }
+    }
+}
+
+
+void balanced_OMD(std::vector<double>& mu_t, std::vector<double>& mu_star, char br_player, double gamma, double learning_rate, int iterations, int log_frequency, std::vector<double>& opp_policy){
+    // compute best expected utility
+    std::vector<std::vector<double>> arms = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
+    std::vector<double> true_expected_utilities(3, 0.0);
+    double best_true_expected_utility = br_player == 'x' ? -1.0 : 1.0;
+
+    for (int i = 0; i < 3; i++){
+        if (br_player == 'x'){
+            true_expected_utilities[i] = get_expected_utility(arms[i], opp_policy);
+            std::cout << "Arm " << i << " true expected utility: " << true_expected_utilities[i] << std::endl;
+            std::cout << "Strategy: " << arms[i][0] << " " << arms[i][1] << " " << arms[i][2] << std::endl;
+            if (true_expected_utilities[i] > best_true_expected_utility){
+                best_true_expected_utility = true_expected_utilities[i];
+            }
+        }
+        else{
+            true_expected_utilities[i] = get_expected_utility(opp_policy, arms[i]);
+            std::cout << "Arm " << i << " true expected utility: " << true_expected_utilities[i] << std::endl;
+            std::cout << "Strategy: " << arms[i][0] << " " << arms[i][1] << " " << arms[i][2] << std::endl;
+            if (true_expected_utilities[i] < best_true_expected_utility){
+                best_true_expected_utility = true_expected_utilities[i];
+            }
+        }
+    }
+
+    std::cout << "Best true expected utility: " << best_true_expected_utility << std::endl;
+    std::cout << "Starting balanced OMD..." << std::endl;
+    
+    for (int t = 0; t <= iterations; t++){
+        std::pair<int, int> game;
+        int trajectory = 0;
+        double reward = 0.0;
+        if (br_player == 'x'){
+            reward = sample_game(mu_t, opp_policy, game);
+            trajectory = game.first;
+        }
+        else {
+            reward = sample_game(opp_policy, mu_t, game);
+            trajectory = game.second;
+        }
+
+        // fit reward between 0 and 1
+        reward = (reward + 1.0) / (2.0);
+
+        double loss_obj = construct_loss_estimator(mu_t, mu_star, gamma, reward, trajectory);
+        update_policy(mu_t, mu_star, loss_obj, learning_rate, trajectory);
+
+        if (t % log_frequency == 0){
+            std::cout << "-------------------------------- Iteration " << t << " --------------------------------" << std::endl;
+            double expected_utility = 0.0;
+
+            if (br_player == 'x') {
+                expected_utility = get_expected_utility(mu_t, opp_policy);
+            } else {
+                expected_utility = get_expected_utility(opp_policy, mu_t);
+            }
+
+            std::cout << "Expected utility: " << expected_utility << std::endl;
+        }
+    }
+}
+
+
 int main(int argc, char* argv[]){
-    double eps = std::stod(argv[1]);
-    double delta = std::stod(argv[2]);
+    double eps = std::stod(argv[1]); // also can be used as gamma
+    double delta = std::stod(argv[2]); // also can be used as learning rate
     int log_freq = std::stoi(argv[3]);
+    int iterations = std::stoi(argv[4]);
+    std::string algorithm = argv[5];
 
     std::vector<double> strategy_x = {0.5, 0.3, 0.2};
     std::vector<double> strategy_o = {0.33, 0.32, 0.35};
 
-    LUCB(strategy_x, strategy_o, 'x', eps, delta, "data/RPS/trial.txt", log_freq);
+    if (algorithm == "LUCB") {
+        LUCB(strategy_x, strategy_o, 'x', eps, delta, "data/RPS/trial.txt", log_freq);
+    }
+    else if (algorithm == "OMD") {
+        std::vector<double> mu_star = {0.333333, 0.333333, 0.333334};
+        balanced_OMD(strategy_x, mu_star, 'x', eps, delta, iterations, log_freq, strategy_o);
+    }
 
     return 0;
 }
