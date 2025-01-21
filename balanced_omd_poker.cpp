@@ -147,6 +147,58 @@ void build_balanced_exploration_policy_wrapper(PolicyVec& policy_obj, char playe
 }
 
 
+void update_average_policy_terms(PolicyVec& policy_obj, PolicyVec& average_numerator, PolicyVec& average_denominator, InformationSet& I, double reach) {
+    std::vector<int> legal_actions;
+    I.get_actions(legal_actions);
+
+    for (int a : legal_actions){
+        std::unordered_set<std::string> cohort;
+        get_cohort(I, a, cohort);
+        double new_reach = reach * policy_obj.policy_dict[I.get_index()][a];
+        
+        if (reach > 0.0){
+            average_numerator.policy_dict[I.get_index()][a] += new_reach;
+            average_denominator.policy_dict[I.get_index()][a] += reach;
+        }
+
+        if (cohort.size() == 0){
+            continue;
+        }
+
+        for (std::string I_prime_hash : cohort){
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+            update_average_policy_terms(policy_obj, average_numerator, average_denominator, I_prime, new_reach);
+        }
+    }
+}
+
+
+void update_average_policy_wrapper(PolicyVec& policy_obj, PolicyVec& average_policy, PolicyVec& average_numerator, PolicyVec& average_denominator, char player, char game, std::vector<std::string>& player_information_sets) {
+    std::vector<char> player_cards = {'J', 'Q', 'K'};
+    for (int card_index = 0; card_index < player_cards.size(); card_index++){
+        std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
+        std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
+        InformationSet root = player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
+        update_average_policy_terms(policy_obj, average_numerator, average_denominator, root, 1.0/3.0);
+    }
+
+    for (int i = 0; i < player_information_sets.size(); i++){
+        InformationSet I(player, get_move_flag(player_information_sets[i], player), player_information_sets[i], game);
+        std::vector<int> legal_actions;
+        I.get_actions(legal_actions);
+
+        for (int a : legal_actions){
+            if (average_denominator.policy_dict[I.get_index()][a] > 0.0){
+                average_policy.policy_dict[I.get_index()][a] = average_numerator.policy_dict[I.get_index()][a] / average_denominator.policy_dict[I.get_index()][a];
+            }
+            else {
+                average_policy.policy_dict[I.get_index()][a] = 1.0 / legal_actions.size();
+            }
+        }
+    }
+}
+
+
 void construct_loss_estimators(std::vector<double>& loss_obj, PolicyVec& mu_t, PolicyVec& mu_star, double gamma, double reward, std::vector<std::pair<std::string, int>>& trajectory, char update_player, char game, std::vector<double>& mu_star_reach_list) {
     int H = trajectory.size();
 
@@ -211,8 +263,22 @@ void update_policy(PolicyVec& mu_t, std::vector<double>& loss_obj, double learni
 }
 
 
-void balanced_OMD(PolicyVec& mu_t, PolicyVec& mu_star, char update_player, char game, double gamma, double learning_rate, int iterations, int log_frequency, PolicyVec& opp_policy){
-    for (int t = 0; t <= iterations; t++){
+void balanced_OMD(PolicyVec& mu_t, PolicyVec& mu_star, char update_player, char game, double gamma, double learning_rate, int iterations, int log_frequency, PolicyVec& opp_policy, std::vector<std::string>& player_information_sets) {
+    PolicyVec average_numerator(update_player, player_information_sets, game);
+    PolicyVec average_denominator(update_player, player_information_sets, game);
+    PolicyVec average_policy(update_player, player_information_sets, game);
+
+    // initialize numerator and denominator terms to 0
+    for (int i = 0; i < player_information_sets.size(); i++){
+        for (int j = 0; j < average_numerator.policy_dict[i].size(); j++){
+            average_numerator.policy_dict[i][j] = 0.0;
+            average_denominator.policy_dict[i][j] = 0.0;
+        }
+    }
+
+    std::cout << "Starting balanced OMD..." << std::endl;
+
+    for (int t = 1; t <= iterations; t++){
         std::vector<std::pair<std::string, int>> trajectory;
         double reward = 0.0;
         if (update_player == 'x'){
@@ -232,6 +298,7 @@ void balanced_OMD(PolicyVec& mu_t, PolicyVec& mu_star, char update_player, char 
 
         construct_loss_estimators(loss_obj, mu_t, mu_star, gamma, reward, trajectory, update_player, game, mu_star_reach_list);
         update_policy(mu_t, loss_obj, learning_rate, trajectory, update_player, game, mu_star_reach_list);
+        update_average_policy_wrapper(mu_t, average_policy, average_numerator, average_denominator, update_player, game, player_information_sets);
 
         if (t % log_frequency == 0){
             std::cout << "-------------------------------- Iteration " << t << " --------------------------------" << std::endl;
@@ -243,7 +310,15 @@ void balanced_OMD(PolicyVec& mu_t, PolicyVec& mu_star, char update_player, char 
                 expected_utility = get_expected_utility_wrapper(opp_policy, mu_t, game);
             }
 
-            std::cout << "Expected utility: " << expected_utility << std::endl;
+            std::cout << "Expected utility of per iteration strategy: " << expected_utility << std::endl;
+
+            if (update_player == 'x') {
+                expected_utility = get_expected_utility_wrapper(average_policy, opp_policy, game);
+            } else {
+                expected_utility = get_expected_utility_wrapper(opp_policy, average_policy, game);
+            }
+
+            std::cout << "Expected utility of average strategy: " << expected_utility << std::endl;
         }
     }
 }
@@ -304,14 +379,14 @@ int main(int argc, char* argv[]) {
             PolicyVec balanced_x('x', P1_information_sets, game);
             build_balanced_exploration_policy_wrapper(balanced_x, 'x', game);  
             std::cout << "Built balanced exploration policy" << std::endl;
-            balanced_OMD(uniform_x, balanced_x, 'x', game, gamma, learning_rate, iterations, log_frequency, policy_obj_o);
+            balanced_OMD(uniform_x, balanced_x, 'x', game, gamma, learning_rate, iterations, log_frequency, policy_obj_o, P1_information_sets);
         }
         else {
             PolicyVec uniform_o('o', P2_information_sets, game);
             PolicyVec balanced_o('o', P2_information_sets, game);
             build_balanced_exploration_policy_wrapper(balanced_o, 'o', game);
             std::cout << "Built balanced exploration policy" << std::endl;
-            balanced_OMD(uniform_o, balanced_o, 'o', game, gamma, learning_rate, iterations, log_frequency, policy_obj_x);
+            balanced_OMD(uniform_o, balanced_o, 'o', game, gamma, learning_rate, iterations, log_frequency, policy_obj_x, P2_information_sets);
         }
 
         std::cout << "(" << experiment_num << " experiments done)" << std::endl;
