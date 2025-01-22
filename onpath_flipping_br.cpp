@@ -204,7 +204,7 @@ void compute_regrets_along_history_wrapper(PolicyVec& player_br_policy, PolicyVe
 
 } 
 
-void onpath_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, PolicyVec& player_uniform_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, long int step_size, double exact_br_value, int experiment_number, long int log_size, double eps, int decay_flag) {
+void onpath_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, PolicyVec& player_uniform_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, double k, double exact_br_value, int experiment_number, long int log_size, double eps, int decay_flag) {
     std::vector<std::vector<double>> regret_list;
     std::vector<long int> markers;
     PolicyVec cumulative_strategy;
@@ -226,7 +226,7 @@ void onpath_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player
         double q_z = 0.0;
         double reward = 0.0;
         if (decay_flag == 1){
-            double val = step_size / (std::sqrt(std::sqrt(t)));
+            double val = k / (std::sqrt(std::sqrt(t)));
             eps = val > 1.0 ? 1.0 : val;
         }
 
@@ -290,8 +290,8 @@ void onpath_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player
     std::string file_name = "data/" + std::string(1, br_player) + "onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
     std::string file_name_average = "data/" + std::string(1, br_player) + "average_onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
     if (decay_flag) {
-        file_name = "data/eps_decay_step_size=" + std::to_string(step_size) + "_" + std::string(1, br_player) + "onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
-        file_name_average = "data/eps_decay_step_size=" + std::to_string(step_size) + "_" + std::string(1, br_player) + "average_onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+        file_name = "data/k=" + std::to_string(k) + "_" + std::string(1, br_player) + "onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+        file_name_average = "data/k=" + std::to_string(k) + "_" + std::string(1, br_player) + "average_onpath_flipping_exploitability_log_" + std::to_string(experiment_number) + ".txt";
 
     }
     else {
@@ -362,7 +362,7 @@ int main(int argc, char* argv[]) {
     char continue_exp = 'y';
     while (continue_exp == 'y') {
         long int num_iterations = 0;
-        long int k = 0;
+        double k = 0.0;
         char player;
         int experiment_number = 1;
         int num_experiments = 0;
