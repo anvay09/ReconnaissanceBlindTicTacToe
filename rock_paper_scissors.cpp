@@ -311,7 +311,7 @@ void update_policy(std::vector<double>& mu_t, std::vector<double>& mu_star, doub
 }
 
 
-void balanced_OMD(std::vector<double>& mu_t, std::vector<double>& mu_star, char br_player, double gamma, double learning_rate, int iterations, int log_frequency, std::vector<double>& opp_policy){
+void balanced_OMD(std::vector<double>& mu_t, std::vector<double>& mu_star, char br_player, double gamma, double learning_rate, int iterations, int log_frequency, std::vector<double>& opp_policy, std::string output_file){
     // compute best expected utility
     std::vector<std::vector<double>> arms = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
     std::vector<double> true_expected_utilities(3, 0.0);
@@ -368,6 +368,7 @@ void balanced_OMD(std::vector<double>& mu_t, std::vector<double>& mu_star, char 
         if (t % log_frequency == 0){
             std::cout << "-------------------------------- Iteration " << t << " --------------------------------" << std::endl;
             double expected_utility = 0.0;
+            double exploitability = 0.0;
             std::cout << "---------- Per Iteration Strategy: " << mu_t[0] << " " << mu_t[1] << " " << mu_t[2] << " ----------" << std::endl;
             std::cout << "---------- Average Strategy: " << average_strategy[0] << " " << average_strategy[1] << " " << average_strategy[2] << " ----------" << std::endl;
 
@@ -381,11 +382,19 @@ void balanced_OMD(std::vector<double>& mu_t, std::vector<double>& mu_star, char 
 
             if (br_player == 'x') {
                 expected_utility = get_expected_utility(average_strategy, opp_policy);
+                exploitability = best_true_expected_utility - expected_utility;
             } else {
                 expected_utility = get_expected_utility(opp_policy, average_strategy);
+                exploitability = expected_utility - best_true_expected_utility;
             }
 
             std::cout << "Expected utility of average strategy: " << expected_utility << std::endl;
+
+            // append to outfile
+            std::ofstream outfile;
+            outfile.open(output_file, std::ios_base::app);
+            outfile << t << " " << exploitability << std::endl;
+            outfile.close();
         }
     }
 }
@@ -399,20 +408,24 @@ int main(int argc, char* argv[]){
     std::string algorithm = argv[5];
     int num_experiments = std::stoi(argv[6]);
 
-    std::vector<double> strategy_x = {0.333333, 0.333333, 0.333334};
-    // std::vector<double> strategy_o = {0.32, 0.33, 0.35};
-    std::vector<double> strategy_o = {0.9, 0.07, 0.03};
+    std::vector<double> strategy_o = {0.32, 0.33, 0.35};
+    // std::vector<double> strategy_o = {0.9, 0.07, 0.03};
 
     if (algorithm == "LUCB") {
+        std::vector<double> strategy_x = {0.333333, 0.333333, 0.333334};
         for (int j = 1; j <= num_experiments; j++){
             std::cout << "--------------- Experiment " << j << " ---------------" << std::endl;
-            std::string output_file = "data/RPS/LUCB_easy_" + std::to_string(j) + ".txt";
+            std::string output_file = "data/RPS/LUCB_" + std::to_string(j) + ".txt";
             LUCB(strategy_x, strategy_o, 'x', eps, delta, output_file, log_freq);
         }
     }
     else if (algorithm == "OMD") {
-        std::vector<double> mu_star = {0.333333, 0.333333, 0.333334};
-        balanced_OMD(strategy_x, mu_star, 'x', eps, delta, iterations, log_freq, strategy_o);
+        std::vector<double> strategy_x = {0.333333, 0.333333, 0.333334};
+        for (int j = 1; j <= num_experiments; j++){
+            std::vector<double> mu_star = {0.333333, 0.333333, 0.333334};
+            std::string output_file = "data/RPS/OMD_" + std::to_string(j) + ".txt";
+            balanced_OMD(strategy_x, mu_star, 'x', eps, delta, iterations, log_freq, strategy_o, output_file);
+        }
     }
 
     return 0;
