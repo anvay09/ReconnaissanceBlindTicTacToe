@@ -96,12 +96,14 @@ void compute_regret(std::vector<double> &player_br_policy, std::vector<double> &
         }
 }
 
-void MCCFR(std::vector<double> &opponent_policy, std::vector<double> &player_br_policy, char br_player, long int T, double eps, long int log_size, double exact_br_value, std::vector<double> &player_uniform_policy, std::string algorithm)
+void MCCFR(std::vector<double> &opponent_policy, std::vector<double> &player_br_policy, char br_player, long int T, double eps, long int log_size, double exact_br_value, std::vector<double> &player_uniform_policy, std::string algorithm, int experiment_number)
 {
     std::vector<double> regret_list = {0.0, 0.0, 0.0};
     long int markers = 0;
     std::vector<double> cumulative_strategy = {0.0, 0.0, 0.0};
     std::vector<long int> pulls = {0, 0, 0};
+    std::vector<std::pair<int, double>> exploitability_log;
+    std::vector<std::pair<int, double>> exploitability_log_average;
 
     for (int t = 0; t < T; t++)
     {
@@ -117,7 +119,7 @@ void MCCFR(std::vector<double> &opponent_policy, std::vector<double> &player_br_
         pulls[trajectory] += 1;
 
         if (t % log_size == 0 && t != 0)
-        {
+        {   std::cout << "Experiment number" << experiment_number << std::endl;
             std::cout << "############################################################" << std::endl;
             std::vector<double> average_strategy = cumulative_strategy;
             // normalize the cumulative strategy
@@ -136,15 +138,20 @@ void MCCFR(std::vector<double> &opponent_policy, std::vector<double> &player_br_
 
             if (br_player == 'x') {
                 expected_utility = get_expected_utility(player_br_policy, opponent_policy);
+                exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
             } else {
                 expected_utility = get_expected_utility(opponent_policy, player_br_policy);
+                exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
             }
             std::cout << "Expected utility of per iteration strategy: " << expected_utility << std::endl;
+            
 
             if (br_player == 'x') {
                 expected_utility = get_expected_utility(average_strategy, opponent_policy);
+                exploitability_log_average.push_back(std::make_pair(t, exact_br_value - expected_utility));
             } else {
                 expected_utility = get_expected_utility(opponent_policy, average_strategy);
+                exploitability_log_average.push_back(std::make_pair(t, exact_br_value - expected_utility));
             }
             std::cout << "Expected utility of average strategy: " << expected_utility << std::endl;
 
@@ -154,6 +161,23 @@ void MCCFR(std::vector<double> &opponent_policy, std::vector<double> &player_br_
             }
         }
     }
+
+    std::cout << "Saving exploitability logs" << std::endl;
+    std::string file_name = "data/RPS/" + std::string(1, br_player) + algorithm + "_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name_average = "data/RPS/" + std::string(1, br_player) + algorithm + "_average_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+
+    std::ofstream f(file_name);
+    for (int i = 0; i < exploitability_log.size(); i++)
+    {
+        f << exploitability_log[i].first << " " << exploitability_log[i].second << std::endl;
+    }
+    f.close();
+    std::ofstream f_avg(file_name_average);
+    for (int i = 0; i < exploitability_log_average.size(); i++)
+    {
+        f_avg << exploitability_log_average[i].first << " " << exploitability_log_average[i].second << std::endl;
+    }
+    f_avg.close();
 }
 
 int main(int argc, char* argv[]){
@@ -169,6 +193,8 @@ int main(int argc, char* argv[]){
     std::vector<double> uniform_o = {1.0/3.0, 1.0/3.0, 1.0/3.0};
     std::vector<double> br_x = {uniform_x};
     std::vector<double> br_o = uniform_o;
+    int num_experiments = 20;
+    int experiment_number = 1;
 
     // compute best expected utility
     std::vector<std::vector<double>> arms = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
@@ -194,23 +220,25 @@ int main(int argc, char* argv[]){
     }
     std::cout << "Best true expected utility: " << best_true_expected_utility << std::endl;
 
-    if (algorithm == "mccfr") {
-        if (br_player == 'x') {
-            MCCFR(strategy_o, br_x, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_x, algorithm);
-        } else {
-            MCCFR(strategy_x, br_o, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_o, algorithm);
+    while (experiment_number <= num_experiments) {
+        if (algorithm == "mccfr") {
+            if (br_player == 'x') {
+                MCCFR(strategy_o, br_x, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_x, algorithm, experiment_number);
+            } else {
+                MCCFR(strategy_x, br_o, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_o, algorithm, experiment_number);
+            }
         }
-    }
-    else if (algorithm == "onpath"){
-        // on-path counterfactual regret minimization
-        if (br_player == 'x') {
-            MCCFR(strategy_o, br_x, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_x, algorithm);
-        } else {
-            MCCFR(strategy_x, br_o, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_o, algorithm);
+        else if (algorithm == "onpath"){
+            // on-path counterfactual regret minimization
+            if (br_player == 'x') {
+                MCCFR(strategy_o, br_x, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_x, algorithm, experiment_number);
+            } else {
+                MCCFR(strategy_x, br_o, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_o, algorithm, experiment_number);
+            }
         }
-    }
-    else{
-        std::cout << "Invalid algorithm" << std::endl;
+        else{
+            std::cout << "Invalid algorithm" << std::endl;
+        }
     }
 
     return 0;
