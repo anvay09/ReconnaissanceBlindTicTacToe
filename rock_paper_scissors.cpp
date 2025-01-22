@@ -397,12 +397,18 @@ int main(int argc, char* argv[]){
     int log_freq = std::stoi(argv[3]);
     int iterations = std::stoi(argv[4]);
     std::string algorithm = argv[5];
+    int num_experiments = std::stoi(argv[6]);
 
-    std::vector<double> strategy_x = {0.5, 0.3, 0.2};
-    std::vector<double> strategy_o = {0.32, 0.33, 0.35};
+    std::vector<double> strategy_x = {0.333333, 0.333333, 0.333334};
+    // std::vector<double> strategy_o = {0.32, 0.33, 0.35};
+    std::vector<double> strategy_o = {0.9, 0.07, 0.03};
 
     if (algorithm == "LUCB") {
-        LUCB(strategy_x, strategy_o, 'x', eps, delta, "data/RPS/trial.txt", log_freq);
+        for (int j = 1; j <= num_experiments; j++){
+            std::cout << "--------------- Experiment " << j << " ---------------" << std::endl;
+            std::string output_file = "data/RPS/LUCB_easy_" + std::to_string(j) + ".txt";
+            LUCB(strategy_x, strategy_o, 'x', eps, delta, output_file, log_freq);
+        }
     }
     else if (algorithm == "OMD") {
         std::vector<double> mu_star = {0.333333, 0.333333, 0.333334};
