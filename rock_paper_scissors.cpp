@@ -141,7 +141,7 @@ void logging(int num_samples, std::vector<std::vector<double>>& arms, std::vecto
 }
 
 
-void LUCB(std::vector<double>& strategy_x, std::vector<double>& strategy_o, char br_player, double eps, double delta, std::string output_file, int log_freq){
+void LUCB(std::vector<double>& strategy_x, std::vector<double>& strategy_o, char br_player, double eps, double delta, std::string output_file, int log_freq, int iterations){
     std::vector<std::vector<double>> arms = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
     std::vector<double> true_expected_utilities(3, 0.0);
     std::vector<double> UCB(3, 0.0);
@@ -199,7 +199,7 @@ void LUCB(std::vector<double>& strategy_x, std::vector<double>& strategy_o, char
         LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(k * 3.0 * std::pow(T, 4) / delta) / (2 * pull_count[i]));
     }
 
-    while (!LUCB_stopping_condition(UCB, LCB, eps)){
+    while (!LUCB_stopping_condition(UCB, LCB, eps) && num_samples <= iterations){
         // select arm with highest empirical mean
         max_empirical_mean_policy_index = get_arm_with_highest_empirical_mean(total_empirical_reward, pull_count);
 
@@ -404,7 +404,7 @@ int main(int argc, char* argv[]){
     double eps = std::stod(argv[1]); // also can be used as gamma
     double delta = std::stod(argv[2]); // also can be used as learning rate
     int log_freq = std::stoi(argv[3]);
-    int iterations = std::stoi(argv[4]);
+    int iterations = std::stoi(argv[4]); // force stop after this many iterations
     std::string algorithm = argv[5];
     int num_experiments = std::stoi(argv[6]);
 
@@ -416,7 +416,7 @@ int main(int argc, char* argv[]){
         for (int j = 1; j <= num_experiments; j++){
             std::cout << "--------------- Experiment " << j << " ---------------" << std::endl;
             std::string output_file = "data/RPS/LUCB_" + std::to_string(j) + ".txt";
-            LUCB(strategy_x, strategy_o, 'x', eps, delta, output_file, log_freq);
+            LUCB(strategy_x, strategy_o, 'x', eps, delta, output_file, log_freq, iterations);
         }
     }
     else if (algorithm == "OMD") {
