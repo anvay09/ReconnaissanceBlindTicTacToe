@@ -96,7 +96,7 @@ void compute_regret(std::vector<double> &player_br_policy, std::vector<double> &
         }
 }
 
-void MCCFR(std::vector<double> &opponent_policy, std::vector<double> &player_br_policy, char br_player, long int T, double eps, long int log_size, double exact_br_value, std::vector<double> &player_uniform_policy)
+void MCCFR(std::vector<double> &opponent_policy, std::vector<double> &player_br_policy, char br_player, long int T, double eps, long int log_size, double exact_br_value, std::vector<double> &player_uniform_policy, std::string algorithm)
 {
     std::vector<double> regret_list = {0.0, 0.0, 0.0};
     long int markers = 0;
@@ -107,6 +107,10 @@ void MCCFR(std::vector<double> &opponent_policy, std::vector<double> &player_br_
         int trajectory = 0;
         double q_z = 0.0;
         double payoff = 0.0;
+        if (algorithm == "onpath") {
+            double val = 5.0 / (std::sqrt(std::sqrt(t+1)));
+            eps = val > 1.0 ? 1.0 : val;
+        }
         q_z = sample_game(player_br_policy, opponent_policy, payoff, trajectory, br_player, eps, player_uniform_policy);
         compute_regret(player_br_policy, cumulative_strategy, br_player, t, regret_list, markers, trajectory, q_z, payoff);
 
@@ -183,12 +187,23 @@ int main(int argc, char* argv[]){
     }
     std::cout << "Best true expected utility: " << best_true_expected_utility << std::endl;
 
-    if (algorithm == "MCCFR") {
+    if (algorithm == "mccfr") {
         if (br_player == 'x') {
-            MCCFR(strategy_o, br_x, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_x);
+            MCCFR(strategy_o, br_x, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_x, algorithm);
         } else {
-            MCCFR(strategy_x, br_o, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_o);
+            MCCFR(strategy_x, br_o, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_o, algorithm);
         }
+    }
+    else if (algorithm == "onpath"){
+        // on-path counterfactual regret minimization
+        if (br_player == 'x') {
+            MCCFR(strategy_o, br_x, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_x, algorithm);
+        } else {
+            MCCFR(strategy_x, br_o, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_o, algorithm);
+        }
+    }
+    else{
+        std::cout << "Invalid algorithm" << std::endl;
     }
 
     return 0;
