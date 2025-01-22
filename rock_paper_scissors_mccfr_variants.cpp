@@ -187,13 +187,14 @@ int main(int argc, char* argv[]){
     int iterations = std::stoi(argv[3]);
     std::string algorithm = argv[4];
     char br_player = std::string(argv[5])[0];
+    int num_experiments = std::stoi(argv[6]);
     std::vector<double> strategy_x = {0.5, 0.3, 0.2};
     std::vector<double> strategy_o = {0.32, 0.33, 0.35};
     std::vector<double> uniform_x = {1.0/3.0, 1.0/3.0, 1.0/3.0};
     std::vector<double> uniform_o = {1.0/3.0, 1.0/3.0, 1.0/3.0};
     std::vector<double> br_x = {uniform_x};
     std::vector<double> br_o = uniform_o;
-    int num_experiments = 20;
+    
     int experiment_number = 1;
 
     // compute best expected utility
