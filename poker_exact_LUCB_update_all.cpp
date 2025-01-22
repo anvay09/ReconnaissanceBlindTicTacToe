@@ -205,11 +205,14 @@ int get_arm_with_highest_empirical_mean(std::vector<double>& total_empirical_rew
 }
 
 
-int get_arm_with_highest_UCB(std::vector<double>& UCB){
-    int max_UCB_policy_index = 0;
-    double max_UCB = UCB[0];
+int get_arm_with_highest_UCB(std::vector<double>& UCB, int index_not_to_consider = -1){
+    int max_UCB_policy_index = -1;
+    double max_UCB = -std::numeric_limits<double>::infinity(); 
 
-    for (int i = 1; i < UCB.size(); i++){
+    for (int i = 0; i < UCB.size(); i++){
+        if (i == index_not_to_consider){
+            continue;
+        }
         if (UCB[i] > max_UCB){
             max_UCB = UCB[i];
             max_UCB_policy_index = i;
@@ -375,13 +378,46 @@ int main(int argc, char* argv[]) {
         
         // main loop
         while (!LUCB_stopping_condition(UCB, LCB, eps)){
+            // select arm with highest empirical mean
+            max_empirical_mean_policy_index = get_arm_with_highest_empirical_mean(total_empirical_reward, pull_count);
+
+            // sample terminal history
+            PolicyVec& strategy = strategies[max_empirical_mean_policy_index];
+            std::vector<bool> strategies_mask(strategies.size(), true);
+            std::vector<std::pair<std::string, int>> trajectory = std::vector<std::pair<std::string, int>>();
+
+            if (player == 'x'){
+                double reward = sample_terminal_history_wrapper(strategy, policy_obj_o, 'x', game, trajectory);
+                identify_all_pulled_arms_given_sample(strategies, trajectory, strategies_mask, 'x', game);
+                update_reward_for_all_pulled_arms(strategies, strategies_mask, reward, total_empirical_reward);
+                increment_pull_count_for_all_pulled_arms(strategies, strategies_mask, pull_count);
+                // total_empirical_reward[max_empirical_mean_policy_index] += reward;
+            } else {
+                double reward = sample_terminal_history_wrapper(policy_obj_x, strategy, 'o', game, trajectory);
+                identify_all_pulled_arms_given_sample(strategies, trajectory, strategies_mask, 'o', game);
+                update_reward_for_all_pulled_arms(strategies, strategies_mask, reward, total_empirical_reward);
+                increment_pull_count_for_all_pulled_arms(strategies, strategies_mask, pull_count);
+                // total_empirical_reward[max_empirical_mean_policy_index] += reward;
+            }
+
+            // update empirical mean, UCB, LCB
+            num_samples += 1;
+            if (num_samples % log_freq == 0 && num_samples > 0){
+                logging(num_samples, strategies, total_empirical_reward, pull_count, policy_obj_x, policy_obj_o, player, game, output_file, best_true_expected_utility);
+            }
+
+            for (int i = 0; i < strategies.size(); i++) {
+                UCB[i] = total_empirical_reward[i] / pull_count[i] + std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
+                LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
+            }
+
             // select arm with highest UCB
-            max_UCB_policy_index = get_arm_with_highest_UCB(UCB);
+            max_UCB_policy_index = get_arm_with_highest_UCB(UCB, max_empirical_mean_policy_index);
 
             // sample terminal history
             PolicyVec& strategy_UCB = strategies[max_UCB_policy_index];
-            std::vector<std::pair<std::string, int>> trajectory;
-            std::vector<bool> strategies_mask(strategies.size(), true);
+            trajectory = std::vector<std::pair<std::string, int>>();
+            strategies_mask = std::vector<bool>(strategies.size(), true);
 
             if (player == 'x'){
                 double reward_UCB = sample_terminal_history_wrapper(strategy_UCB, policy_obj_o, 'x', game, trajectory);
@@ -409,39 +445,7 @@ int main(int argc, char* argv[]) {
                 LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
             }
 
-            // select arm with highest empirical mean
-            max_empirical_mean_policy_index = get_arm_with_highest_empirical_mean(total_empirical_reward, pull_count);
-
-            // sample terminal history
-            PolicyVec& strategy = strategies[max_empirical_mean_policy_index];
-            strategies_mask = std::vector<bool>(strategies.size(), true);
-            trajectory = std::vector<std::pair<std::string, int>>();
-
-            if (player == 'x'){
-                double reward = sample_terminal_history_wrapper(strategy, policy_obj_o, 'x', game, trajectory);
-                identify_all_pulled_arms_given_sample(strategies, trajectory, strategies_mask, 'x', game);
-                update_reward_for_all_pulled_arms(strategies, strategies_mask, reward, total_empirical_reward);
-                increment_pull_count_for_all_pulled_arms(strategies, strategies_mask, pull_count);
-                // total_empirical_reward[max_empirical_mean_policy_index] += reward;
-            } else {
-                double reward = sample_terminal_history_wrapper(policy_obj_x, strategy, 'o', game, trajectory);
-                identify_all_pulled_arms_given_sample(strategies, trajectory, strategies_mask, 'o', game);
-                update_reward_for_all_pulled_arms(strategies, strategies_mask, reward, total_empirical_reward);
-                increment_pull_count_for_all_pulled_arms(strategies, strategies_mask, pull_count);
-                // total_empirical_reward[max_empirical_mean_policy_index] += reward;
-            }
-
-            // update empirical mean, UCB, LCB
-            num_samples += 1;
-            if (num_samples % log_freq == 0 && num_samples > 0){
-                logging(num_samples, strategies, total_empirical_reward, pull_count, policy_obj_x, policy_obj_o, player, game, output_file, best_true_expected_utility);
-            }
-
-            for (int i = 0; i < strategies.size(); i++) {
-                UCB[i] = total_empirical_reward[i] / pull_count[i] + std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
-                LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
-            }
-
+            
             // update T
             T += 1;
         }

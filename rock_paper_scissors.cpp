@@ -95,11 +95,14 @@ int get_arm_with_highest_empirical_mean(std::vector<double>& total_empirical_rew
 }
 
 
-int get_arm_with_highest_UCB(std::vector<double>& UCB){
-    int max_UCB_policy_index = 0;
-    double max_UCB = UCB[0];
+int get_arm_with_highest_UCB(std::vector<double>& UCB, int index_not_to_consider = -1){
+    int max_UCB_policy_index = -1;
+    double max_UCB = -std::numeric_limits<double>::infinity(); 
 
-    for (int i = 1; i < UCB.size(); i++){
+    for (int i = 0; i < UCB.size(); i++){
+        if (i == index_not_to_consider){
+            continue;
+        }
         if (UCB[i] > max_UCB){
             max_UCB = UCB[i];
             max_UCB_policy_index = i;
@@ -197,34 +200,6 @@ void LUCB(std::vector<double>& strategy_x, std::vector<double>& strategy_o, char
     }
 
     while (!LUCB_stopping_condition(UCB, LCB, eps)){
-        // select arm with highest UCB
-        max_UCB_policy_index = get_arm_with_highest_UCB(UCB);
-
-        // sample terminal history
-        std::vector<double>& arm_UCB = arms[max_UCB_policy_index];
-        if (br_player == 'x'){
-            std::pair<int, int> game;
-            double reward_UCB = sample_game(arm_UCB, strategy_o, game);
-            total_empirical_reward[max_UCB_policy_index] += reward_UCB;
-        } else {
-            std::pair<int, int> game;
-            double reward_UCB = sample_game(strategy_x, arm_UCB, game);
-            total_empirical_reward[max_UCB_policy_index] += reward_UCB;
-        }
-        
-        // update empirical mean, UCB, LCB
-        pull_count[max_UCB_policy_index] += 1;
-        num_samples += 1;
-
-        if (num_samples % log_freq == 0 && num_samples > 0){
-            logging(num_samples, arms, total_empirical_reward, pull_count, strategy_x, strategy_o, br_player, output_file, best_true_expected_utility, UCB, LCB);
-        }
-
-        for (int i = 0; i < 3; i++) {
-            UCB[i] = total_empirical_reward[i] / pull_count[i] + std::sqrt(std::log(k * 3.0 * std::pow(T, 4) / delta) / (2 * pull_count[i]));
-            LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(k * 3.0 * std::pow(T, 4) / delta) / (2 * pull_count[i]));
-        }
-
         // select arm with highest empirical mean
         max_empirical_mean_policy_index = get_arm_with_highest_empirical_mean(total_empirical_reward, pull_count);
 
@@ -252,6 +227,34 @@ void LUCB(std::vector<double>& strategy_x, std::vector<double>& strategy_o, char
             LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(k * 3.0 * std::pow(T, 4) / delta) / (2 * pull_count[i]));
         }
 
+        // select arm with highest UCB
+        max_UCB_policy_index = get_arm_with_highest_UCB(UCB, max_empirical_mean_policy_index);
+
+        // sample terminal history
+        std::vector<double>& arm_UCB = arms[max_UCB_policy_index];
+        if (br_player == 'x'){
+            std::pair<int, int> game;
+            double reward_UCB = sample_game(arm_UCB, strategy_o, game);
+            total_empirical_reward[max_UCB_policy_index] += reward_UCB;
+        } else {
+            std::pair<int, int> game;
+            double reward_UCB = sample_game(strategy_x, arm_UCB, game);
+            total_empirical_reward[max_UCB_policy_index] += reward_UCB;
+        }
+        
+        // update empirical mean, UCB, LCB
+        pull_count[max_UCB_policy_index] += 1;
+        num_samples += 1;
+
+        if (num_samples % log_freq == 0 && num_samples > 0){
+            logging(num_samples, arms, total_empirical_reward, pull_count, strategy_x, strategy_o, br_player, output_file, best_true_expected_utility, UCB, LCB);
+        }
+
+        for (int i = 0; i < 3; i++) {
+            UCB[i] = total_empirical_reward[i] / pull_count[i] + std::sqrt(std::log(k * 3.0 * std::pow(T, 4) / delta) / (2 * pull_count[i]));
+            LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(k * 3.0 * std::pow(T, 4) / delta) / (2 * pull_count[i]));
+        }
+
         // update T
         T += 1;
     }
@@ -267,6 +270,8 @@ void LUCB(std::vector<double>& strategy_x, std::vector<double>& strategy_o, char
         double expected_utility_arm = get_expected_utility(strategy_x, arm);
         std::cout << "Expected utility of highest empirical mean arm: " << expected_utility_arm << std::endl;
     }
+
+    std::cout << "--------------- Pull Counts: " << pull_count[0] << " " << pull_count[1] << " " << pull_count[2] << " ---------------" << std::endl;
 }
 
 
