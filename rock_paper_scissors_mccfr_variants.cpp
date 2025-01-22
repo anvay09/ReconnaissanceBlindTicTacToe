@@ -101,6 +101,7 @@ void MCCFR(std::vector<double> &opponent_policy, std::vector<double> &player_br_
     std::vector<double> regret_list = {0.0, 0.0, 0.0};
     long int markers = 0;
     std::vector<double> cumulative_strategy = {0.0, 0.0, 0.0};
+    std::vector<long int> pulls = {0, 0, 0};
 
     for (int t = 0; t < T; t++)
     {
@@ -108,11 +109,12 @@ void MCCFR(std::vector<double> &opponent_policy, std::vector<double> &player_br_
         double q_z = 0.0;
         double payoff = 0.0;
         if (algorithm == "onpath") {
-            double val = 5.0 / (std::sqrt(std::sqrt(t+1)));
+            double val = 10.0 / (std::sqrt(std::sqrt(t+1)));
             eps = val > 1.0 ? 1.0 : val;
         }
         q_z = sample_game(player_br_policy, opponent_policy, payoff, trajectory, br_player, eps, player_uniform_policy);
         compute_regret(player_br_policy, cumulative_strategy, br_player, t, regret_list, markers, trajectory, q_z, payoff);
+        pulls[trajectory] += 1;
 
         if (t % log_size == 0 && t != 0)
         {
@@ -145,6 +147,11 @@ void MCCFR(std::vector<double> &opponent_policy, std::vector<double> &player_br_
                 expected_utility = get_expected_utility(opponent_policy, average_strategy);
             }
             std::cout << "Expected utility of average strategy: " << expected_utility << std::endl;
+
+            std::cout << "Arm pulls:" << std::endl;
+            for (int k = 0; k < 3; k++){
+                std::cout << "Arm " << k << " pulls: " << pulls[k] << std::endl;
+            }
         }
     }
 }
