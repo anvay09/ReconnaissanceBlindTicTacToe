@@ -105,13 +105,13 @@ void MCCFR(std::vector<double> &opponent_policy, std::vector<double> &player_br_
     std::vector<std::pair<int, double>> exploitability_log;
     std::vector<std::pair<int, double>> exploitability_log_average;
 
-    for (int t = 0; t < T; t++)
+    for (int t = 1; t <= T; t++)
     {
         int trajectory = 0;
         double q_z = 0.0;
         double payoff = 0.0;
         if (algorithm == "onpath") {
-            double val = 10.0 / (std::sqrt(std::sqrt(t+1)));
+            double val = 10.0 / (std::sqrt(std::sqrt(t)));
             eps = val > 1.0 ? 1.0 : val;
         }
         q_z = sample_game(player_br_policy, opponent_policy, payoff, trajectory, br_player, eps, player_uniform_policy);
