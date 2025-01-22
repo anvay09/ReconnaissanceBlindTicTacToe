@@ -239,6 +239,7 @@ int main(int argc, char* argv[]){
         else{
             std::cout << "Invalid algorithm" << std::endl;
         }
+        experiment_number += 1;
     }
 
     return 0;
