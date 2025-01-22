@@ -220,13 +220,14 @@ void onpath_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player
         markers.push_back(0);
     }
 
-    for (int t = 0; t < T; t++) {
+    for (int t = 1; t < T; t++) {
         std::vector<int> h = {};
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
         double reward = 0.0;
         if (decay_flag == 1){
-            eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0);
+            double val = step_size / (std::sqrt(std::sqrt(t)));
+            eps = val > 1.0 ? 1.0 : val;
         }
 
         if (br_player == 'x') {
@@ -361,7 +362,7 @@ int main(int argc, char* argv[]) {
     char continue_exp = 'y';
     while (continue_exp == 'y') {
         long int num_iterations = 0;
-        long int step_size = 0;
+        long int k = 0;
         char player;
         int experiment_number = 1;
         int num_experiments = 0;
@@ -381,8 +382,8 @@ int main(int argc, char* argv[]) {
             std::cin >> eps;
         }
         else{
-            std:: cout << "Enter step size for eps decay:";
-            std::cin >> step_size;
+            std:: cout << "Enter k:";
+            std::cin >> k;
         }
 
         double expected_utility = 0.0;
@@ -396,11 +397,11 @@ int main(int argc, char* argv[]) {
         while (experiment_number <= num_experiments){
             if (player == 'x'){
                 PolicyVec player_br_policy = uniform_policy_obj_x;
-                onpath_flipping_best_response(policy_obj_o, player_br_policy, uniform_policy_obj_x, 'x', P1_information_sets,  num_iterations, step_size, expected_utility, experiment_number, log_size, eps, decay_flag);
+                onpath_flipping_best_response(policy_obj_o, player_br_policy, uniform_policy_obj_x, 'x', P1_information_sets,  num_iterations, k, expected_utility, experiment_number, log_size, eps, decay_flag);
             }
             else if (player == 'o'){
                 PolicyVec player_br_policy = uniform_policy_obj_o;
-                onpath_flipping_best_response(policy_obj_x, player_br_policy, uniform_policy_obj_o, 'o', P2_information_sets, num_iterations, step_size, expected_utility, experiment_number, log_size, eps, decay_flag);
+                onpath_flipping_best_response(policy_obj_x, player_br_policy, uniform_policy_obj_o, 'o', P2_information_sets, num_iterations, k, expected_utility, experiment_number, log_size, eps, decay_flag);
             }
             experiment_number += 1;
         }
