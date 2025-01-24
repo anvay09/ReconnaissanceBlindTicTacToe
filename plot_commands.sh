@@ -37,7 +37,7 @@ python3 plot_graph.py --game "Kuhn Poker, Best Algorithms" --player o --numexper
 python3 plot_graph.py --game "Kuhn Poker, Best Algorithms" --player x --numexperiments 20 --numiterations 1000 --logfreq 10 --cours 16 --epsmccfr 0.1 --logfiles "data/bandit/final_exp_K_poker_x_C=16_LUCB_exploitability_log,data/MCCFR/K_poker_x_MCCFR_OS_exploitability_log,data/onpath_flipping/final_exp_balanced_Kpoker_eps_constant=0.100000_xonpath_flipping_exploitability_log,data/smooth_uct/d=0_eps=0.100000_C=0.500000_n0=0.900000x_Kpoker_uct_smooth_exploitability_log,data/uct/C=0.500000_x_Kpoker_uct_exploitability_log" --algorithms "Our Algorithm (LUCB),MCCFR Outcome Sampling (eps = 0.1),On Path Flipping (balanced),Smooth UCT,UCT" --yaxisupper 0.15
 
 # RPS
-python3 plot_graph.py --game "Rock Paper Scissors" --player x --numexperiments 100 --numiterations 500000 --logfreq 1000 --epsmccfr 0.1 --logfiles "data/RPS/LUCB,data/RPS/xmccfr_exploitability_log,data/RPS/xonpath_exploitability_log,data/RPS/OMD" --algorithms "IS-LUCB,MCCFR (eps = 0.1),On Path Flipping,OMD" --yaxisupper 0.01
+python3 plot_graph.py --game "Rock Paper Scissors" --player x --numexperiments 300 --numiterations 500000 --logfreq 1000 --epsmccfr 0.1 --logfiles "data/RPS/LUCB,data/RPS/xmccfr_exploitability_log,data/RPS/xonpath_exploitability_log,data/RPS/OMD" --algorithms "IS-LUCB,MCCFR (eps = 0.1),On Path Flipping,OMD (gamma = 0.0047; lr = 0.0018)" --yaxisupper 0.01
 
 # KLUCB
 

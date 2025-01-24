@@ -188,14 +188,14 @@ int main(int argc, char* argv[]){
     std::string algorithm = argv[4];
     char br_player = std::string(argv[5])[0];
     int num_experiments = std::stoi(argv[6]);
+    int start_index = std::stoi(argv[7]);
+
     std::vector<double> strategy_x = {0.5, 0.3, 0.2};
     std::vector<double> strategy_o = {0.32, 0.33, 0.35};
     std::vector<double> uniform_x = {1.0/3.0, 1.0/3.0, 1.0/3.0};
     std::vector<double> uniform_o = {1.0/3.0, 1.0/3.0, 1.0/3.0};
     std::vector<double> br_x = {uniform_x};
     std::vector<double> br_o = uniform_o;
-    
-    int experiment_number = 1;
 
     // compute best expected utility
     std::vector<std::vector<double>> arms = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
@@ -221,26 +221,25 @@ int main(int argc, char* argv[]){
     }
     std::cout << "Best true expected utility: " << best_true_expected_utility << std::endl;
 
-    while (experiment_number <= num_experiments) {
+    for (int j = start_index; j < num_experiments + start_index; j++){
         if (algorithm == "mccfr") {
             if (br_player == 'x') {
-                MCCFR(strategy_o, br_x, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_x, algorithm, experiment_number);
+                MCCFR(strategy_o, br_x, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_x, algorithm, j);
             } else {
-                MCCFR(strategy_x, br_o, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_o, algorithm, experiment_number);
+                MCCFR(strategy_x, br_o, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_o, algorithm, j);
             }
         }
         else if (algorithm == "onpath"){
             // on-path counterfactual regret minimization
             if (br_player == 'x') {
-                MCCFR(strategy_o, br_x, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_x, algorithm, experiment_number);
+                MCCFR(strategy_o, br_x, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_x, algorithm, j);
             } else {
-                MCCFR(strategy_x, br_o, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_o, algorithm, experiment_number);
+                MCCFR(strategy_x, br_o, br_player, iterations, eps, log_freq, best_true_expected_utility, uniform_o, algorithm, j);
             }
         }
         else{
             std::cout << "Invalid algorithm" << std::endl;
         }
-        experiment_number += 1;
     }
 
     return 0;

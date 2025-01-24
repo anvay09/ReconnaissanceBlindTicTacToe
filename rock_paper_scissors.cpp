@@ -401,19 +401,20 @@ void balanced_OMD(std::vector<double>& mu_t, std::vector<double>& mu_star, char 
 
 
 int main(int argc, char* argv[]){
-    double eps = std::stod(argv[1]); // also can be used as gamma
-    double delta = std::stod(argv[2]); // also can be used as learning rate
+    double eps = std::stod(argv[1]); // also can be used as gamma, for OMD, use value 0.004742
+    double delta = std::stod(argv[2]); // also can be used as learning rate, for OMD, use value 0.001815
     int log_freq = std::stoi(argv[3]);
     int iterations = std::stoi(argv[4]); // force stop after this many iterations
     std::string algorithm = argv[5];
     int num_experiments = std::stoi(argv[6]);
+    int start_index = std::stoi(argv[7]);
 
     std::vector<double> strategy_o = {0.32, 0.33, 0.35};
     // std::vector<double> strategy_o = {0.9, 0.07, 0.03};
 
     if (algorithm == "LUCB") {
         std::vector<double> strategy_x = {0.333333, 0.333333, 0.333334};
-        for (int j = 1; j <= num_experiments; j++){
+        for (int j = start_index; j < num_experiments + start_index; j++){
             std::cout << "--------------- Experiment " << j << " ---------------" << std::endl;
             std::string output_file = "data/RPS/LUCB_" + std::to_string(j) + ".txt";
             LUCB(strategy_x, strategy_o, 'x', eps, delta, output_file, log_freq, iterations);
@@ -421,7 +422,7 @@ int main(int argc, char* argv[]){
     }
     else if (algorithm == "OMD") {
         std::vector<double> strategy_x = {0.333333, 0.333333, 0.333334};
-        for (int j = 1; j <= num_experiments; j++){
+        for (int j = start_index; j < num_experiments + start_index; j++){
             std::vector<double> mu_star = {0.333333, 0.333333, 0.333334};
             std::string output_file = "data/RPS/OMD_" + std::to_string(j) + ".txt";
             balanced_OMD(strategy_x, mu_star, 'x', eps, delta, iterations, log_freq, strategy_o, output_file);
