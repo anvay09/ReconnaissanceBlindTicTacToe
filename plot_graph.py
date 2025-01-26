@@ -128,6 +128,14 @@ if __name__ == "__main__":
                  label=algorithms[a], marker=markers[c])
         plt.fill_between(x, np.array(y) + np.array(y_err), np.array(y) - np.array(y_err), edgecolor=colors[a],
                          facecolor=colors[a], alpha=0.1)
+        
+        # save x, y, y_err to file in the format x y y_err
+
+        log_name = logfile.split('/')[-1]
+        with open(f"logs/{log_name}_data.txt", 'w') as f:
+            for i in range(len(x)):
+                f.write(f"{x[i]} {y[i]} {y_err[i]}\n")
+
         a += 1
         b += 1
         if b > len(line_styles):
