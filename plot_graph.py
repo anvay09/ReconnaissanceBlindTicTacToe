@@ -129,12 +129,12 @@ if __name__ == "__main__":
         plt.fill_between(x, np.array(y) + np.array(y_err), np.array(y) - np.array(y_err), edgecolor=colors[a],
                          facecolor=colors[a], alpha=0.1)
         
-        # save x, y, y_err to file in the format x y y_err
+        # save x, y, y_err to file in the format x y y_err, up to 4 decimal places
 
         log_name = logfile.split('/')[-1]
         with open(f"logs/{log_name}_data.txt", 'w') as f:
             for i in range(len(x)):
-                f.write(f"{x[i]} {y[i]} {y_err[i]}\n")
+                f.write(f"{x[i]} ${y[i]:.4f} \pm {y_err[i]:.4f}$\n")
 
         a += 1
         b += 1
