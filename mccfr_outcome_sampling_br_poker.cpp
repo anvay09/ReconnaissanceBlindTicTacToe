@@ -317,7 +317,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec&
     }
 
     std::cout << "Saving exploitability log" << std::endl;
-    std::string file_name = "data/" + std::string(1, game) + "_poker_" + std::string(1, br_player) + "_MCCFR_OS_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/MCCFR/" + std::string(1, game) + "_poker_" + std::string(1, br_player) + "_MCCFR_OS_exploitability_log_" + std::to_string(experiment_number) + ".txt";
 
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++) {
@@ -337,6 +337,7 @@ int main(int argc, char* argv[]) {
     int log_frequency = std::stoi(argv[6]);
     int experiments = std::stoi(argv[7]);
     double eps = std::stod(argv[8]);
+    int start_index = std::stoi(argv[9]);
 
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
@@ -370,8 +371,8 @@ int main(int argc, char* argv[]) {
     PolicyVec policy_obj_o('o', file_path_2, game, true);
     std::cout << "Start policies loaded." << std::endl;
 
-    int experiment_num = 1;
-    while (experiment_num <= experiments)
+    int experiment_num = start_index;
+    while (experiment_num < experiments + start_index)
     {
         if (player == 'x'){
             PolicyVec uniform_policy_obj_x('x', P1_information_sets, game);

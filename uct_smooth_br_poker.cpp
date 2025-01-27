@@ -220,6 +220,7 @@ int main(int argc, char *argv[])
     double n_0 = std::stod(argv[9]);
     double d = std::stod(argv[10]);
     double eps = std::stod(argv[11]);
+    int start_index = std::stoi(argv[12]);
 
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -259,7 +260,7 @@ int main(int argc, char *argv[])
     char continue_exp = 'y';
     while (continue_exp == 'y')
     {
-        int experiment_number = 1;
+        int experiment_number = start_index;
         double expected_utility = 0.0;
         if (player == 'x')
         {
@@ -272,7 +273,7 @@ int main(int argc, char *argv[])
             std::cout << "Expected utility of best response: " << expected_utility << std::endl;
         }
 
-        while (experiment_number <= num_experiments)
+        while (experiment_number < num_experiments + start_index)
         {
             if (player == 'x')
             {

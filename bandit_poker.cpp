@@ -1934,6 +1934,7 @@ int main(int argc, char* argv[]) {
     int C = std::stoi(argv[8]);
     std::string exp_name = argv[9];
     std::string algorithm = argv[10];
+    int start_index = std::stoi(argv[11]);
     
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -1969,9 +1970,9 @@ int main(int argc, char* argv[]) {
     std::cout << "Expected utility of initial policies: " << expected_utility << std::endl;
 
     // compute epsilon best response
-    int experiment_num = 1;
+    int experiment_num = start_index;
 
-    while (experiment_num <= experiments) {
+    while (experiment_num < experiments + start_index) {
         if (player == 'x') {
             PolicyVec uniform_x('x', P1_information_sets, game);
             if (algorithm == "KLLUCB") {
