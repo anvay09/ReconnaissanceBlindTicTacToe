@@ -110,10 +110,10 @@ if __name__ == "__main__":
     num_ticks = 5
     plt.yticks(np.arange(0, high, (high) / num_ticks), fontsize = 17)
     plt.xticks(fontsize = 17)
-    plt.ticklabel_format(style='sci', axis='both', scilimits=(0,0))
+    plt.ticklabel_format(style='sci', axis='both', scilimits=(0,0), useMathText=True)
     plt.ylim(low, high)
-    plt.xlabel('Number of samples')
-    plt.ylabel('Exploitability')
+    # plt.xlabel('Number of samples')
+    # plt.ylabel('Exploitability')
     plt.title(args.game + ", Player " + args.player)
 
     for logfile in logfiles:
