@@ -208,6 +208,7 @@ int main(int argc, char* argv[]) {
     int log_freq = std::stoi(argv[7]); // logging frequency
     std::string exp_name = argv[8]; // experiment name
     char game = 'K'; // do not run this code for Leduc Poker
+    int stopping_iterations = 1000;
     
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -321,7 +322,7 @@ int main(int argc, char* argv[]) {
         }
         
         // main loop
-        while (!LUCB_stopping_condition(UCB, LCB, eps)){
+        while (!LUCB_stopping_condition(UCB, LCB, eps) && num_samples <= stopping_iterations){
             // select arm with highest empirical mean
             max_empirical_mean_policy_index = get_arm_with_highest_empirical_mean(total_empirical_reward, pull_count);
 

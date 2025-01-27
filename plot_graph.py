@@ -141,7 +141,7 @@ if __name__ == "__main__":
         if b > len(line_styles):
             b = 0
             c += 1
-    plt.legend()
+    plt.legend(fontsize = 17)
     plot_path = ("plots/game={game}_player={player}_numexperiments={numexperiments}_numiterations={numiterations}"
                  "_logfreq={logfreq}_cours={cours}_epsmccfr={epsmccfr}_cuct={cuct}_epsuct={epsuct}_nuct={nuct}"
                  "_duct={duct}".format(game=args.game, player=args.player, numexperiments=args.numexperiments,
