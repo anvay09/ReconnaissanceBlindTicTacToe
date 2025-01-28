@@ -11,12 +11,12 @@ g++-13 mccfr_outcome_sampling_br.cpp rbt_classes.cpp rbt_utilities.cpp -O3 -o rb
 num_iterations=10
 log_size=3
 num_experiments=1
-p1_nash_policy = "P1_nash_normalised.txt"
-p2_nash_policy = "P2_nash_normalised.txt"
-p1_start_policy = "P1_start_policy.txt"
-p2_start_policy = "P2_start_policy.txt"
-p1_balanced_policy =  "P1_balanced_exploration_policy.txt"
-p2_balanced_policy =  "P2_balanced_exploration_policy.txt"
+p1_nash_policy="P1_nash_normalised.txt"
+p2_nash_policy="P2_nash_normalised.txt"
+p1_start_policy="P1_start_policy.txt"
+p2_start_policy="P2_start_policy.txt"
+p1_balanced_policy="P1_balanced_exploration_policy.txt"
+p2_balanced_policy="P2_balanced_exploration_policy.txt"
 
 ####################### (1) Run the MCCFR
 echo "Running MCCFR"
