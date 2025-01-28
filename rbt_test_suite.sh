@@ -95,12 +95,12 @@ do
         echo "base_path: $base_path"
         # Create the base directory if it doesn't already exist
         mkdir -p "$base_path"
-        ./rbt_onpath $p1_nash_policy $p2_nash_policy 96 $p1_balanced_policy $p2_balanced_policy 1 $num_iterations $player $num_experiments $log_size $k $base_path
+        ./rbt_upfront $p1_nash_policy $p2_nash_policy 96 $p1_balanced_policy $p2_balanced_policy 1 $num_iterations $player $num_experiments $log_size $k $base_path
         base_path="data/upfront/start_policy/k_$k"
         echo "base_path: $base_path"
         # Create the base directory if it doesn't already exist
         mkdir -p "$base_path"
-        ./rbt_onpath $p1_start_policy $p2_start_policy 96 $p1_balanced_policy $p2_balanced_policy 1 $num_iterations $player $num_experiments $log_size $k $base_path
+        ./rbt_upfront $p1_start_policy $p2_start_policy 96 $p1_balanced_policy $p2_balanced_policy 1 $num_iterations $player $num_experiments $log_size $k $base_path
     done
 done
 
@@ -145,12 +145,12 @@ do
                     echo "base_path: $base_path"
                     # Create the base directory if it doesn't already exist
                     mkdir -p "$base_path"
-                    ./rbt_uct $p1_nash_policy $p2_nash_policy 96 $num_iterations $player $num_experiments $log_size $C $n0 $d $eps $base_path
+                    ./rbt_uct_smooth $p1_nash_policy $p2_nash_policy 96 $num_iterations $player $num_experiments $log_size $C $n0 $d $eps $base_path
                     base_path="data/uct_smooth/start_policy/C_$C/eps_$eps/n0_$n0/d_$d"
                     echo "base_path: $base_path"
                     # Create the base directory if it doesn't already exist
                     mkdir -p "$base_path"
-                    ./rbt_uct $p1_start_policy $p2_start_policy 96 $num_iterations $player $num_experiments $log_size $C $C $n0 $d $eps $base_path
+                    ./rbt_uct_smooth $p1_start_policy $p2_start_policy 96 $num_iterations $player $num_experiments $log_size $C $C $n0 $d $eps $base_path
                 done
             done
         done
