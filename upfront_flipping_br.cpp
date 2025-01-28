@@ -197,7 +197,7 @@ void compute_regrets_along_history_wrapper(PolicyVec& player_br_policy, PolicyVe
 
 } 
 
-void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, PolicyVec& player_uniform_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, double exact_br_value, int experiment_number, long int log_size, double eps, std::string base_path) {
+void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, PolicyVec& player_uniform_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, double exact_br_value, int experiment_number, long int log_size, double k, std::string base_path) {
     std::vector<std::vector<double>> regret_list;
     std::vector<long int> markers;
     PolicyVec cumulative_strategy;
@@ -222,6 +222,8 @@ void upfront_flipping_best_response(PolicyVec& opponent_policy, PolicyVec& playe
         double reward = 0;
 
         int explore_or_exploit = 0;
+        double val = k / (std::sqrt(std::sqrt(t)));
+        double eps = val > 1.0 ? 1.0 : val;
         std::vector<double> eps_prob_dist = {eps, 1.0-eps};
         if (sampleIndex(eps_prob_dist)){
             explore_or_exploit = 1;
@@ -316,7 +318,7 @@ int main(int argc, char* argv[]) {
     int experiment_number = 1;
     int num_experiments = std::stoi(argv[9]);
     long int log_size = std::stol(argv[10]);
-    double eps = std::stod(argv[11]);
+    double k = std::stod(argv[11]);
     std::string base_path = argv[12];
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
@@ -369,11 +371,11 @@ int main(int argc, char* argv[]) {
     while (experiment_number <= num_experiments){
         if (player == 'x'){
             PolicyVec player_br_policy = uniform_policy_obj_x;
-            upfront_flipping_best_response(policy_obj_o, player_br_policy, uniform_policy_obj_x, 'x', P1_information_sets,  num_iterations, expected_utility, experiment_number, log_size, eps, base_path);
+            upfront_flipping_best_response(policy_obj_o, player_br_policy, uniform_policy_obj_x, 'x', P1_information_sets,  num_iterations, expected_utility, experiment_number, log_size, k, base_path);
         }
         else if (player == 'o'){
             PolicyVec player_br_policy = uniform_policy_obj_o;
-            upfront_flipping_best_response(policy_obj_x, player_br_policy, uniform_policy_obj_o, 'o', P2_information_sets, num_iterations, expected_utility, experiment_number, log_size, eps, base_path);
+            upfront_flipping_best_response(policy_obj_x, player_br_policy, uniform_policy_obj_o, 'o', P2_information_sets, num_iterations, expected_utility, experiment_number, log_size, k, base_path);
         }
         experiment_number += 1;
     }
