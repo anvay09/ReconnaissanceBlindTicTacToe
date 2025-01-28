@@ -16,6 +16,10 @@
 #include <random>
 #include <cmath>
 
+
+static std::random_device rd;
+static std::mt19937 generator(rd());
+
 // g++ .\rock_paper_scissors_mccfr_variants.cpp -O -o rps
 // .\rps 0.1 1000 1000 mccfr x
 
@@ -42,8 +46,6 @@ double get_expected_utility(std::vector<double>& strategy_x, std::vector<double>
 
 int sampleIndex(const std::vector<double> &probabilities)
 {
-    std::random_device rd;
-    std::mt19937 generator(rd());
     std::discrete_distribution<int> distribution(probabilities.begin(), probabilities.end());
     return distribution(generator);
 }

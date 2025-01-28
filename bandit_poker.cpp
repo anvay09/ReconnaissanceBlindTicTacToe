@@ -4,10 +4,10 @@
 #include <cmath>
 int NUMBER_THREADS = 4;
 
+static std::random_device rd;
+static std::mt19937 generator(rd());
 
 int sampleIndex(const std::vector<double>& probabilities) {
-    std::random_device rd;
-    std::mt19937 generator(rd());
     std::discrete_distribution<int> distribution(probabilities.begin(), probabilities.end());
     return distribution(generator);
 }
@@ -1479,8 +1479,6 @@ void calc_br_IS_LUCB(PolicyVec& opponent_policy, char br_player, std::vector<std
     std::cout << "Exact best response value: " << exact_br_value << std::endl;
 
     while (flag){ 
-        std::random_device rd;
-        std::mt19937 generator(rd());
         std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
         int draw_index = distribution(generator);
        
@@ -1566,8 +1564,6 @@ void calc_br_IS_LUCB(PolicyVec& opponent_policy, char br_player, std::vector<std
         }
   
         if (max_UCB_flag) {
-            std::random_device rd;
-            std::mt19937 generator(rd());
             std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
             int draw_index = distribution(generator);
 
@@ -1618,8 +1614,6 @@ void calc_br_IS_LUCB(PolicyVec& opponent_policy, char br_player, std::vector<std
             max_UCB_flag = false;
         }
         else {
-            std::random_device rd;
-            std::mt19937 generator(rd());
             std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
             int draw_index = distribution(generator);
 
@@ -1719,8 +1713,6 @@ void calc_br_IS_KLLUCB(PolicyVec& opponent_policy, char br_player, std::vector<s
     std::cout << "Exact best response value: " << exact_br_value << std::endl;
 
     while (flag){ 
-        std::random_device rd;
-        std::mt19937 generator(rd());
         std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
         int draw_index = distribution(generator);
        
@@ -1806,8 +1798,6 @@ void calc_br_IS_KLLUCB(PolicyVec& opponent_policy, char br_player, std::vector<s
         }
   
         if (max_UCB_flag) {
-            std::random_device rd;
-            std::mt19937 generator(rd());
             std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
             int draw_index = distribution(generator);
 
@@ -1858,8 +1848,6 @@ void calc_br_IS_KLLUCB(PolicyVec& opponent_policy, char br_player, std::vector<s
             max_UCB_flag = false;
         }
         else {
-            std::random_device rd;
-            std::mt19937 generator(rd());
             std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
             int draw_index = distribution(generator);
 

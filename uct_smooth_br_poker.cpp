@@ -4,10 +4,11 @@
 #include <cmath>
 int NUM_THREADS = 4;
 
+static std::random_device rd;
+static std::mt19937 generator(rd());
+
 int sampleIndex(const std::vector<double> &probabilities)
 {
-    std::random_device rd;
-    std::mt19937 generator(rd());
     std::discrete_distribution<int> distribution(probabilities.begin(), probabilities.end());
     return distribution(generator);
 }
@@ -88,8 +89,6 @@ double sample_terminal_history_wrapper(std::vector<std::vector<double>> &infoset
     std::vector<std::string>& unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
     std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
 
-    std::random_device rd;
-    std::mt19937 generator(rd());
     std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
     int draw_index = distribution(generator);
 

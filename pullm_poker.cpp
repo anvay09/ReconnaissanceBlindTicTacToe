@@ -4,10 +4,10 @@
 #include <cmath>
 int NUMBER_THREADS = 4;
 
+static std::random_device rd;
+static std::mt19937 generator(rd());
 
 int sampleIndex(const std::vector<double>& probabilities) {
-    std::random_device rd;
-    std::mt19937 generator(rd());
     std::discrete_distribution<int> distribution(probabilities.begin(), probabilities.end());
     return distribution(generator);
 }
@@ -482,8 +482,6 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     std::cout << "Exact best response value: " << exact_br_value << std::endl;
 
     while (flag){ 
-        std::random_device rd;
-        std::mt19937 generator(rd());
         std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
         int draw_index = distribution(generator);
        

@@ -4,11 +4,29 @@
 int NUM_THREADS = 4;
 // g++-13 poker_exact_LUCB_update_all.cpp poker_classes.cpp poker_utilities.cpp -O3 -o poker_exact_LUCB_a -fopenmp
 
+static std::random_device rd;
+static std::mt19937 generator(rd());
+
 int sampleIndex(const std::vector<double>& probabilities) {
-    std::random_device rd;
-    std::mt19937 generator(rd());
     std::discrete_distribution<int> distribution(probabilities.begin(), probabilities.end());
     return distribution(generator);
+}
+
+
+void print_strategy(PolicyVec& strategy, std::vector<std::string>& information_sets){
+    for (int i = 0; i < strategy.policy_dict.size(); i++){
+        std::string I_hash = information_sets[i];
+        if (I_hash[0] == 'o'){
+            continue;
+        }
+        std::cout << I_hash << ": ";
+        for (int j = 0; j < strategy.policy_dict[i].size(); j++){
+            if (strategy.policy_dict[i][j] > 0.0){
+                std::cout << j << " ";
+            }
+        }
+    }
+    std::cout << std::endl;
 }
 
 
@@ -109,8 +127,6 @@ double sample_terminal_history_wrapper(PolicyVec& policy_obj_x, PolicyVec& polic
     std::vector<std::string>& unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
     std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
     
-    std::random_device rd;
-    std::mt19937 generator(rd());
     std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
     int draw_index = distribution(generator);
 
@@ -181,11 +197,14 @@ void update_reward_for_all_pulled_arms(std::vector<PolicyVec>& strategies, std::
 
 
 void increment_pull_count_for_all_pulled_arms(std::vector<PolicyVec>& strategies, std::vector<bool>& strategies_mask, std::vector<long int>& pull_count){
+    // int count = 0;
     for (int i = 0; i < strategies.size(); i++){
         if (strategies_mask[i]){
             pull_count[i] += 1;
+            // count += 1;
         }
     }
+    // std::cout << "Number of arms pulled: " << count << std::endl;
 }
 
 
@@ -223,7 +242,7 @@ int get_arm_with_highest_UCB(std::vector<double>& UCB, int index_not_to_consider
 }
 
 
-void logging(int num_samples, std::vector<PolicyVec>& strategies, std::vector<double>& total_empirical_reward, std::vector<long int>& pull_count, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char player, char game, std::string output_file, double best_true_expected_utility){
+void logging(int num_samples, std::vector<PolicyVec>& strategies, std::vector<double>& total_empirical_reward, std::vector<long int>& pull_count, PolicyVec& policy_obj_x, PolicyVec& policy_obj_o, char player, char game, std::string output_file, double best_true_expected_utility, std::vector<double>& true_expected_utilities, std::vector<std::string>& information_sets){
     std::cout << "--------------- Num Samples: " << num_samples << " ---------------" << std::endl;
     int max_empirical_mean_policy_index = get_arm_with_highest_empirical_mean(total_empirical_reward, pull_count);
     double exploitability = 0.0;
@@ -237,6 +256,11 @@ void logging(int num_samples, std::vector<PolicyVec>& strategies, std::vector<do
         std::cout << "Expected utility of highest empirical mean arm: " << expected_utility_arm << std::endl;
         exploitability = best_true_expected_utility - expected_utility_arm;
     }
+
+    // for (int i = 0; i < true_expected_utilities.size(); i++){
+    //     std::cout << i << ": Pull count: " << pull_count[i] << " " << "Empirical mean: " << total_empirical_reward[i] / pull_count[i] << " " << "True expected utility: " << true_expected_utilities[i] << " Strategy: ";
+    //     print_strategy(strategies[i], information_sets);
+    // }
 
     // append to outfile
     std::ofstream outfile;
@@ -257,7 +281,7 @@ int main(int argc, char* argv[]) {
     int log_freq = std::stoi(argv[7]); // log frequency
     std::string exp_name = argv[8]; // experiment name
     char game = 'K'; // do not run this code for Leduc Poker
-    int stopping_iterations = 1000;
+    int stopping_iterations = std::stoi(argv[9]); // stopping iterations
     
     // load information sets
     std::vector<std::string> P1_information_sets;
@@ -305,6 +329,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::vector<PolicyVec>& strategies = player == 'x' ? P1_strategies : P2_strategies;
+    std::vector<std::string>& information_sets = player == 'x' ? P1_information_sets : P2_information_sets;
     int n = strategies.size();
     int average_sample_complexity = 0;
     
@@ -367,7 +392,7 @@ int main(int argc, char* argv[]) {
             num_samples += 1;
 
             if (num_samples % log_freq == 0 && num_samples > 0){
-                logging(num_samples, strategies, total_empirical_reward, pull_count, policy_obj_x, policy_obj_o, player, game, output_file, best_true_expected_utility);
+                logging(num_samples, strategies, total_empirical_reward, pull_count, policy_obj_x, policy_obj_o, player, game, output_file, best_true_expected_utility, true_expected_utilities, information_sets);
             }
         }
 
@@ -403,13 +428,25 @@ int main(int argc, char* argv[]) {
 
             // update empirical mean, UCB, LCB
             num_samples += 1;
-            if (num_samples % log_freq == 0 && num_samples > 0){
-                logging(num_samples, strategies, total_empirical_reward, pull_count, policy_obj_x, policy_obj_o, player, game, output_file, best_true_expected_utility);
-            }
 
             for (int i = 0; i < strategies.size(); i++) {
                 UCB[i] = total_empirical_reward[i] / pull_count[i] + std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
                 LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
+            }
+
+            if (num_samples % log_freq == 0 && num_samples > 0){
+                // output most recent trajectory
+                for (int i = 0; i < trajectory.size(); i++){
+                    std::cout << trajectory[i].first << " " << trajectory[i].second << " ";
+                }
+                std::cout << std::endl;
+
+                // print UCB and LCB values 
+                // for (int i = 0; i < UCB.size(); i++){
+                //     std::cout << i << ": UCB: " << UCB[i] << " LCB: " << LCB[i] << std::endl;
+                // }
+
+                logging(num_samples, strategies, total_empirical_reward, pull_count, policy_obj_x, policy_obj_o, player, game, output_file, best_true_expected_utility, true_expected_utilities, information_sets);
             }
 
             // select arm with highest UCB
@@ -437,16 +474,26 @@ int main(int argc, char* argv[]) {
             // update empirical mean, UCB, LCB
             num_samples += 1;
 
-            if (num_samples % log_freq == 0 && num_samples > 0){
-                logging(num_samples, strategies, total_empirical_reward, pull_count, policy_obj_x, policy_obj_o, player, game, output_file, best_true_expected_utility);
-            }
-
             for (int i = 0; i < strategies.size(); i++) {
                 UCB[i] = total_empirical_reward[i] / pull_count[i] + std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
                 LCB[i] = total_empirical_reward[i] / pull_count[i] - std::sqrt(std::log(k * n * std::pow(T, 4) / delta) / (2 * pull_count[i]));
             }
 
-            
+            if (num_samples % log_freq == 0 && num_samples > 0){
+                // output most recent trajectory
+                for (int i = 0; i < trajectory.size(); i++){
+                    std::cout << trajectory[i].first << " " << trajectory[i].second << " ";
+                }
+                std::cout << std::endl;
+
+                // print UCB and LCB values 
+                // for (int i = 0; i < UCB.size(); i++){
+                //     std::cout << i << ": UCB: " << UCB[i] << " LCB: " << LCB[i] << std::endl;
+                // }
+
+                logging(num_samples, strategies, total_empirical_reward, pull_count, policy_obj_x, policy_obj_o, player, game, output_file, best_true_expected_utility, true_expected_utilities, information_sets);
+            }
+
             // update T
             T += 1;
         }

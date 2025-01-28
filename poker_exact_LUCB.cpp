@@ -208,7 +208,7 @@ int main(int argc, char* argv[]) {
     int log_freq = std::stoi(argv[7]); // logging frequency
     std::string exp_name = argv[8]; // experiment name
     char game = 'K'; // do not run this code for Leduc Poker
-    int stopping_iterations = 1000;
+    int stopping_iterations = std::stoi(argv[9]); // stopping iterations
     
     // load information sets
     std::vector<std::string> P1_information_sets;

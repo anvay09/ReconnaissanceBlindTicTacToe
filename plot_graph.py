@@ -1,3 +1,4 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import argparse
 import logging
@@ -102,19 +103,20 @@ if __name__ == "__main__":
     algorithms_str = args.algorithms
     algorithms = algorithms_str.split(',')
 
+    matplotlib.rcParams['font.size']=18.5
     # horizontal line
     plt.figure(figsize=(6,6))
     plt.grid(True, which='both', linestyle='-.', linewidth=0.3)
     low = -args.yaxisupper/20
     high = args.yaxisupper
     num_ticks = 5
-    plt.yticks(np.arange(0, high, (high) / num_ticks), fontsize = 17)
-    plt.xticks(fontsize = 17)
+    plt.yticks(np.arange(0, high, (high) / num_ticks))
     plt.ticklabel_format(style='sci', axis='both', scilimits=(0,0), useMathText=True)
+
     plt.ylim(low, high)
     # plt.xlabel('Number of samples')
     # plt.ylabel('Exploitability')
-    plt.title(args.game + ", Player " + args.player)
+    # plt.title(args.game + ", Player " + args.player)
 
     for logfile in logfiles:
         if args.omitrange is None:
@@ -141,7 +143,7 @@ if __name__ == "__main__":
         if b > len(line_styles):
             b = 0
             c += 1
-    plt.legend(fontsize = 17)
+    plt.legend()
     plot_path = ("plots/game={game}_player={player}_numexperiments={numexperiments}_numiterations={numiterations}"
                  "_logfreq={logfreq}_cours={cours}_epsmccfr={epsmccfr}_cuct={cuct}_epsuct={epsuct}_nuct={nuct}"
                  "_duct={duct}".format(game=args.game, player=args.player, numexperiments=args.numexperiments,

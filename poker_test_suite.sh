@@ -19,10 +19,10 @@ g++-13 poker_exact_LUCB.cpp poker_classes.cpp poker_utilities.cpp -O3 -o poker_e
 ./uct_smooth_poker data/P1_nash_Kuhn_Poker.txt data/P2_nash_Kuhn_Poker.txt K 1000 10 100 x 0.5 0.9 0 0.1 1
 ./uct_smooth_poker data/P1_nash_Kuhn_Poker.txt data/P2_nash_Kuhn_Poker.txt K 1000 10 100 o 0.5 0.9 0 0.1 1
 ./uct_poker data/P1_nash_Kuhn_Poker.txt data/P2_nash_Kuhn_Poker.txt K
-./poker_exact_LUCB data/P1_nash_Kuhn_Poker.txt data/P2_nash_Kuhn_Poker.txt 0.01 0.01 x 100 10 final_exp
-./poker_exact_LUCB data/P1_nash_Kuhn_Poker.txt data/P2_nash_Kuhn_Poker.txt 0.01 0.01 o 100 10 final_exp
-./poker_exact_LUCB_a data/P1_nash_Kuhn_Poker.txt data/P2_nash_Kuhn_Poker.txt 0.01 0.01 x 100 10 final_exp
-./poker_exact_LUCB_a data/P1_nash_Kuhn_Poker.txt data/P2_nash_Kuhn_Poker.txt 0.01 0.01 o 100 10 final_exp
+./poker_exact_LUCB data/P1_nash_Kuhn_Poker.txt data/P2_nash_Kuhn_Poker.txt 0.01 0.01 x 100 10 final_exp 1000
+./poker_exact_LUCB data/P1_nash_Kuhn_Poker.txt data/P2_nash_Kuhn_Poker.txt 0.01 0.01 o 100 10 final_exp 1000
+./poker_exact_LUCB_a data/P1_nash_Kuhn_Poker.txt data/P2_nash_Kuhn_Poker.txt 0.01 0.01 x 100 10 final_exp 1000
+./poker_exact_LUCB_a data/P1_nash_Kuhn_Poker.txt data/P2_nash_Kuhn_Poker.txt 0.01 0.01 o 100 10 final_exp 1000
 
 # Run the poker test suite for Kuhn Poker
 
