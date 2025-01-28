@@ -30,7 +30,8 @@ do
         echo "base_path: $base_path"
         # Create the base directory if it doesn't already exist
         mkdir -p "$base_path"
-        ./rbt_mccfr "$p1_nash_policy" "$p2_nash_policy" 96 "$num_iterations" '$player' "$num_experiments" "$log_size" "$eps" "$base_path"
+        echo "./rbt_mccfr $p1_nash_policy $p2_nash_policy 96 $num_iterations $player $num_experiments $log_size $eps $base_path"
+        ./rbt_mccfr "$p1_nash_policy" "$p2_nash_policy" 96 "$num_iterations" "$player" "$num_experiments" "$log_size" "$eps" "$base_path"
         base_path="data/mccfr/start_policy/eps_$eps"
         echo "base_path: $base_path"
         # Create the base directory if it doesn't already exist
