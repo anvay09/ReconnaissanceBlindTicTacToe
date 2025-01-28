@@ -3,11 +3,11 @@
 #include <random>
 #include <cmath>
 int NUM_THREADS = 96;
+static std::random_device rd;
+static std::mt19937 generator(rd());
 
 int sampleIndex(const std::vector<double> &probabilities)
 {
-    std::random_device rd;
-    std::mt19937 generator(rd());
     std::discrete_distribution<int> distribution(probabilities.begin(), probabilities.end());
     return distribution(generator);
 }
@@ -305,7 +305,7 @@ void update_ucb_new(std::vector<std::vector<double>> &infoset_ucb, std::vector<s
 }
 
 
-void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, char br_player, std::vector<std::string> &player_information_sets, long int T, long int d, double exact_br_value, int experiment_number, long int log_size, double eps, long int C, double n_0)
+void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, char br_player, std::vector<std::string> &player_information_sets, long int T, long int d, double exact_br_value, int experiment_number, long int log_size, double eps, long int C, double n_0, std::string base_path)
 {
     std::vector<double> infoset_u(player_information_sets.size(), 0.0);
     std::vector<std::vector<double>> infoset_ucb(player_information_sets.size(), std::vector<double>(13, std::numeric_limits<double>::infinity()));
@@ -353,7 +353,7 @@ void uct_best_response(PolicyVec &opponent_policy, PolicyVec &player_br_policy, 
     }
 
     std::cout << "Saving exploitability logs" << std::endl;
-    std::string file_name = "data/d=" + std::to_string(d) + "_" + "eps=" + std::to_string(eps) + "_" + "C=" + std::to_string(C) + "_" + "n0=" + std::to_string(n_0) + std::string(1, br_player) + "uct_smooth_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = base_path + "/" + std::string(1, br_player) + "_uct_smooth_" + std::to_string(experiment_number) + ".txt";
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++)
     {
@@ -368,6 +368,16 @@ int main(int argc, char *argv[])
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
     NUM_THREADS = std::stoi(argv[3]); // 96;
+    long int num_iterations = std::stol(argv[4]);
+    char player = argv[5][0];
+    int num_experiments = std::stoi(argv[6]);
+    long int log_size = std::stol(argv[7]);
+    long int C = std::stol(argv[8]);
+    double n_0 = std::stod(argv[9]);;
+    double d = std::stod(argv[10]);
+    double eps = std::stod(argv[11]);
+    std::string base_path = argv[12];
+    int experiment_number = 1;
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
     std::string P1_information_sets_file = "data/P1_information_sets_V2.txt";
@@ -406,62 +416,28 @@ int main(int argc, char *argv[])
     PolicyVec br_x('x', P1_information_sets);
     PolicyVec br_o('o', P2_information_sets);
 
-    char continue_exp = 'y';
-    while (continue_exp == 'y')
+    double expected_utility = 0.0;
+    if (player == 'x')
     {
-        long int num_iterations = 0;
-        char player;
-        int experiment_number = 1;
-        int num_experiments = 0;
-        long int log_size = 1;
-        long int C = 1;
-        double n_0 = 1.0;
-        double d = 0.001;
-        double eps = 0.0;
+        expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
+    }
+    else if (player == 'o')
+    {
+        expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
+    }
 
-        std::cout << "Enter number of iterations: ";
-        std::cin >> num_iterations;
-        std::cout << "Enter the number of iterations after which progress is to be checked: ";
-        std::cin >> log_size;
-        std::cout << "Enter the player for whom the best response is to be computed (x/o):";
-        std::cin >> player;
-        std::cout << "Enter number of experiments: ";
-        std::cin >> num_experiments;
-        std::cout << "Enter epsilon value:";
-        std::cin >> eps;
-        std::cout << "Enter d for decay:";
-        std::cin >> d;
-        std::cout << "Enter C value: ";
-        std::cin >> C;
-        std::cout << "Enter n_0 value: ";
-        std::cin >> n_0;
-
-        double expected_utility = 0.0;
+    while (experiment_number <= num_experiments)
+    {
         if (player == 'x')
-        {
-            expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
+        {   PolicyVec uniform_policy_obj_x('x', P1_information_sets);
+            PolicyVec player_br_policy = uniform_policy_obj_x;
+            uct_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, num_iterations, d, expected_utility, experiment_number, log_size, eps, C, n_0, base_path);
         }
         else if (player == 'o')
-        {
-            expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
+        {   PolicyVec uniform_policy_obj_o('o', P2_information_sets);
+            PolicyVec player_br_policy = uniform_policy_obj_o;
+            uct_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, d, expected_utility, experiment_number, log_size, eps, C, n_0, base_path);
         }
-
-        while (experiment_number <= num_experiments)
-        {
-            if (player == 'x')
-            {   PolicyVec uniform_policy_obj_x('x', P1_information_sets);
-                PolicyVec player_br_policy = uniform_policy_obj_x;
-                uct_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, num_iterations, d, expected_utility, experiment_number, log_size, eps, C, n_0);
-            }
-            else if (player == 'o')
-            {   PolicyVec uniform_policy_obj_o('o', P2_information_sets);
-                PolicyVec player_br_policy = uniform_policy_obj_o;
-                uct_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, d, expected_utility, experiment_number, log_size, eps, C, n_0);
-            }
-            experiment_number += 1;
-        }
-
-        std::cout << "Continue experiments? (y/n): ";
-        std::cin >> continue_exp;
+        experiment_number += 1;
     }
 }

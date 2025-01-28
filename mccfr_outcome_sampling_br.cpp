@@ -2,10 +2,10 @@
 #include "cpp_headers/rbt_utilities.hpp"
 #include <random>
 int NUM_THREADS = 96;
+static std::random_device rd;
+static std::mt19937 generator(rd());
 
 int sampleIndex(const std::vector<double>& probabilities) {
-    std::random_device rd;
-    std::mt19937 generator(rd());
     std::discrete_distribution<int> distribution(probabilities.begin(), probabilities.end());
     return distribution(generator);
 }
@@ -206,7 +206,7 @@ void compute_regrets_along_history_wrapper(PolicyVec& player_br_policy, PolicyVe
 
 } 
 
-void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, double eps, long int step_size, int decay_flag, int experiment_number, long int log_size, double exact_br_value, std::string exp_name) {
+void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec& player_br_policy, char br_player, std::vector<std::string>& player_information_sets, long int T, double eps, int experiment_number, long int log_size, double exact_br_value, std::string base_path) {
     std::vector<std::vector<double>> regret_list;
     std::vector<long int> markers;
     PolicyVec cumulative_strategy;
@@ -227,9 +227,6 @@ void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec&
         TerminalHistory start_history = TerminalHistory(h);
         double q_z = 0.0;
         double reward = 0;
-        if (decay_flag == 1){
-            eps = 1.0/(((t*1.0)/(step_size*1.0))+1.0);
-        }
 
         if (br_player == 'x') {
             q_z = sample_terminal_history_wrapper(player_br_policy, opponent_policy, start_history, reward, br_player, eps);
@@ -285,17 +282,8 @@ void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec&
         }
     }
     std::cout << "Saving exploitability logs" << std::endl;
-    std::string file_name = "data/MCCFR/" + exp_name + "_" + std::string(1, br_player) + "mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
-    std::string file_name_average = "data/MCCFR/" + exp_name + "_" + std::string(1, br_player) + "average_mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
-    if (decay_flag) {
-        file_name = "data/MCCFR/" + exp_name + "_eps_decay_step_size=" + std::to_string(step_size) + "_" + std::string(1, br_player) + "mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
-        file_name_average = "data/MCCFR/" + exp_name + "_eps_decay_step_size=" + std::to_string(step_size) + "_" + std::string(1, br_player) + "average_mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
-
-    }
-    else {
-        file_name = "data/MCCFR/" + exp_name + "_eps_constant=" + std::to_string(eps) + "_" + std::string(1, br_player) + "mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
-        file_name_average = "data/MCCFR/" + exp_name + "_eps_constant=" + std::to_string(eps) + "_" + std::string(1, br_player) + "average_mccfr_exploitability_log_" + std::to_string(experiment_number) + ".txt";
-    }
+    std::string file_name = base_path + "/" + std::string(1, br_player) + "_mccfr_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name_average = base_path + "/" + std::string(1, br_player) + "_average_mccfr_" + std::to_string(experiment_number) + ".txt";
     
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++) {
@@ -313,9 +301,14 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1];
     std::string file_path_2 = argv[2];
-    int decay_flag = std::stoi(argv[3]);
-    NUM_THREADS = std::stoi(argv[4]); //96;
-    std::string exp_name = argv[5];
+    NUM_THREADS = std::stoi(argv[3]); //96;
+    long int num_iterations = std::stol(argv[4]);
+    char player = argv[5][0];
+    int experiment_number = 1;
+    int num_experiments = std::stoi(argv[6]);
+    long int log_size = std::stol(argv[7]);
+    double eps = std::stod(argv[8]);
+    std::string base_path = argv[9];
 
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
@@ -351,57 +344,26 @@ int main(int argc, char* argv[]) {
     PolicyVec br_x('x', P1_information_sets);
     PolicyVec br_o('o', P2_information_sets);
 
-    char continue_exp = 'y';
-    while (continue_exp == 'y') {
-        long int num_iterations = 0;
-        long int step_size = 0;
-        char player;
-        int experiment_number = 1;
-        int num_experiments = 0;
-        long int log_size = 1;
-        double eps = 0.0;
+    double expected_utility = 0.0;
+    if (player == 'x'){
+        expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
+    }
+    else if (player == 'o'){
+        expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
+    }
 
-        std::cout << "Enter number of iterations: ";
-        std::cin >> num_iterations;
-        std::cout << "Enter the number of iterations after which progress is to be checked: ";
-        std::cin >> log_size;
-        std::cout << "Enter the player for whom the best response is to be computed (x/o):";
-        std::cin >> player;
-        std::cout << "Enter the number of experiments: ";
-        std::cin >> num_experiments;
-        if (decay_flag == 0){
-            std::cout << "Enter epsilon value:";
-            std::cin >> eps;
-        }
-        else{
-            std:: cout << "Enter step size for eps decay:";
-            std::cin >> step_size;
-        }
-
-        double expected_utility = 0.0;
+    while (experiment_number <= num_experiments){
         if (player == 'x'){
-            expected_utility = compute_best_response_wrapper(policy_obj_o, br_x, 'x');
+            PolicyVec uniform_policy_obj_x('x', P1_information_sets);
+            PolicyVec player_br_policy = uniform_policy_obj_x;
+            mccfr_outcome_sampling_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, num_iterations, eps, experiment_number, log_size, expected_utility, base_path);    
         }
         else if (player == 'o'){
-            expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
+            PolicyVec uniform_policy_obj_o('o', P2_information_sets);
+            PolicyVec player_br_policy = uniform_policy_obj_o;
+            mccfr_outcome_sampling_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, eps, experiment_number, log_size, expected_utility, base_path);    
         }
-
-        while (experiment_number <= num_experiments){
-            if (player == 'x'){
-                PolicyVec uniform_policy_obj_x('x', P1_information_sets);
-                PolicyVec player_br_policy = uniform_policy_obj_x;
-                mccfr_outcome_sampling_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, num_iterations, eps, step_size, decay_flag, experiment_number, log_size, expected_utility, exp_name);    
-            }
-            else if (player == 'o'){
-                PolicyVec uniform_policy_obj_o('o', P2_information_sets);
-                PolicyVec player_br_policy = uniform_policy_obj_o;
-                mccfr_outcome_sampling_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, eps, step_size, decay_flag, experiment_number, log_size, expected_utility, exp_name);    
-            }
-            experiment_number += 1;
-        }
-       
-        std::cout << "Continue experiments? (y/n): ";
-        std::cin >> continue_exp;
+        experiment_number += 1;
     }
     
 }
