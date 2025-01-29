@@ -33,7 +33,6 @@ do
         mkdir -p "$base_path"
         echo "./rbt_mccfr $p1_start_policy $p2_start_policy 96 $num_iterations $player $num_experiments $log_size $eps $base_path"
         ./rbt_mccfr "$p1_start_policy" "$p2_start_policy" 96 "$num_iterations" "$player" "$num_experiments" "$log_size" "$eps" "$base_path"
-        echo "./rbt_mccfr $p1_start_policy $p2_start_policy 96 $num_iterations $player $num_experiments $log_size $eps $base_path"
     done
 done
 
