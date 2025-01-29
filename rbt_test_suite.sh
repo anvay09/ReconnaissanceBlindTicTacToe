@@ -70,7 +70,7 @@ echo "Running on-path flipping"
 for player in x o
 do
     echo "Player: $player"
-    for k in 1 5 10 50 100 200 500 1000 2000 5000
+    for k in  0.01 0.1 1 5 10
     do 
         echo "k: $k"
         base_path="data/onpath/nash_policy/k_$k"
@@ -93,7 +93,7 @@ echo "Running upfront flipping"
 for player in x o
 do
     echo "Player: $player"
-    for k in 1 5 10 50 100 200 500 1000 2000 5000
+    for k in 0.01 0.1 1 5 10
     do 
         echo "k: $k"
         base_path="data/upfront/nash_policy/k_$k"
@@ -142,9 +142,9 @@ do
     echo "Player: $player"
     for C in 1 5 10 50 100 200 500 1000 2000 5000
     do 
-        for eps in $(seq 0.05 0.05 0.2)
+        for eps in 0.1
         do
-            for n0 in $(seq 0.8 0.05 1)
+            for n0 in 0.9
             do
                 for d in 0.0001 0.0005 0.001 0.005 0.01 0.05
                 do
