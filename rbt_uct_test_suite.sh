@@ -31,6 +31,6 @@ do
         # Create the base directory if it doesn't already exist
         mkdir -p "$base_path"
         echo "./rbt_uct $p1_start_policy $p2_start_policy 96 $num_iterations $player $num_experiments $log_size $C $base_path"
-        ./rbt_uct "$p1_start_policy" "$p2_start_policy" 96" $num_iterations" "$player" "$num_experiments" "$log_size" "$C" "$base_path"
+        ./rbt_uct "$p1_start_policy" "$p2_start_policy" 96 "$num_iterations" "$player" "$num_experiments" "$log_size" "$C" "$base_path"
     done
 done
