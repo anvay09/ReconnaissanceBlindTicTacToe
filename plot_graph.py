@@ -36,6 +36,7 @@ def parse_commandline_args():
     parser.add_argument('--logfiles', type=str, required=True, help='List of log file names')
     parser.add_argument('--algorithms', type=str, required=True, help='List of algorithms')
     parser.add_argument('--yaxisupper', type=float, required=True, help='Upper limit of y-axis')
+    parser.add_argument('--plotpath', type=str, required=True, help='path to save plot file')
     arguments = parser.parse_args()
     return arguments
 
@@ -144,11 +145,4 @@ if __name__ == "__main__":
             b = 0
             c += 1
     plt.legend()
-    plot_path = ("plots/game={game}_player={player}_numexperiments={numexperiments}_numiterations={numiterations}"
-                 "_logfreq={logfreq}_cours={cours}_epsmccfr={epsmccfr}_cuct={cuct}_epsuct={epsuct}_nuct={nuct}"
-                 "_duct={duct}".format(game=args.game, player=args.player, numexperiments=args.numexperiments,
-                                       numiterations=args.numiterations, logfreq=args.logfreq, cours=args.cours,
-                                       epsmccfr=args.epsmccfr, cuct=args.cuct, epsuct=args.epsuct, nuct=args.nuct,
-                                       duct=args.duct))
-    
-    plt.savefig("{}.pdf".format(plot_path))
+    plt.savefig("{}.pdf".format(args.plotpath))
