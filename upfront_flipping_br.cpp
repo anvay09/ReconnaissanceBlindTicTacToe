@@ -312,9 +312,9 @@ int main(int argc, char* argv[]) {
     NUM_THREADS = std::stoi(argv[3]); //96;
     std::string exp_file_path_1 = argv[4];
     std::string exp_file_path_2 = argv[5];
-    int uniform_policy_flag = std::stoi(argv[8]);
-    long int num_iterations = std::stol(argv[6]);
-    char player = argv[7][0];
+    int uniform_policy_flag = std::stoi(argv[6]);
+    long int num_iterations = std::stol(argv[7]);
+    char player = argv[8][0];
     int experiment_number = 1;
     int num_experiments = std::stoi(argv[9]);
     long int log_size = std::stol(argv[10]);
