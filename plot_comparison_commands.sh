@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# uct
+# uct 10^6
 python plot_graph.py --game "RBT, Start Policy" --player x --numexperiments 20 --numiterations 1000000 --logfreq 10000 --logfiles "data/uct/start_policy/1000000/C_1/x_uct,data/uct/start_policy/1000000/C_5/x_uct,data/uct/start_policy/1000000/C_10/x_uct,data/uct/start_policy/1000000/C_50/x_uct,data/uct/start_policy/1000000/C_100/x_uct,data/uct/start_policy/1000000/C_200/x_uct,data/uct/start_policy/1000000/C_500/x_uct,data/bandit/start_policy_x_C=16_LUCB_exploitability_log" --algorithms "c1,c5,c10,c50,c100,c200,c500,IS-LUCB" --yaxisupper 2 --plotpath "plots/uct/rbt_x_start_policy_uct_comp.pdf"
 
 python plot_graph.py --game "RBT, Nash Policy" --player x --numexperiments 20 --numiterations 1000000 --logfreq 10000 --logfiles "data/uct/nash_policy/1000000/C_1/x_uct,data/uct/nash_policy/1000000/C_5/x_uct,data/uct/nash_policy/1000000/C_10/x_uct,data/uct/nash_policy/1000000/C_50/x_uct,data/uct/nash_policy/1000000/C_100/x_uct,data/uct/nash_policy/1000000/C_200/x_uct,data/uct/nash_policy/1000000/C_500/x_uct,data/bandit/final_exp_x_C=16_LUCB_exploitability_log" --algorithms "c1,c5,c10,c50,c100,c200,c500,IS-LUCB" --yaxisupper 2 --plotpath "plots/uct/rbt_x_nash_policy_uct_comp.pdf"
@@ -8,6 +8,16 @@ python plot_graph.py --game "RBT, Nash Policy" --player x --numexperiments 20 --
 python plot_graph.py --game "RBT, Start Policy" --player o --numexperiments 20 --numiterations 1000000 --logfreq 10000 --logfiles "data/uct/start_policy/1000000/C_1/o_uct,data/uct/start_policy/1000000/C_5/o_uct,data/uct/start_policy/1000000/C_10/o_uct,data/uct/start_policy/1000000/C_50/o_uct,data/uct/start_policy/1000000/C_100/o_uct,data/uct/start_policy/1000000/C_200/o_uct,data/uct/start_policy/1000000/C_500/o_uct" --algorithms "c1,c5,c10,c50,c100,c200,c500" --yaxisupper 2 --plotpath "plots/uct/rbt_o_start_policy_uct_comp.pdf"
 
 python plot_graph.py --game "RBT, Nash Policy" --player o --numexperiments 20 --numiterations 1000000 --logfreq 10000 --logfiles "data/uct/nash_policy/1000000/C_1/o_uct,data/uct/nash_policy/1000000/C_5/o_uct,data/uct/nash_policy/1000000/C_10/o_uct,data/uct/nash_policy/1000000/C_50/o_uct,data/uct/nash_policy/1000000/C_100/o_uct,data/uct/nash_policy/1000000/C_200/o_uct,data/uct/nash_policy/1000000/C_500/o_uct,data/bandit/final_exp_o_C=16_LUCB_exploitability_log" --algorithms "c1,c5,c10,c50,c100,c200,c500,IS-LUCB" --yaxisupper 2 --plotpath "plots/uct/rbt_o_nash_policy_uct_comp.pdf"
+
+# uct 10^7
+python plot_graph.py --game "RBT, Start Policy" --player x --numexperiments 20 --numiterations 10000000 --logfreq 100000 --logfiles "data/uct/start_policy/10000000/C_1/x_uct,data/uct/start_policy/10000000/C_5/x_uct,data/uct/start_policy/10000000/C_10/x_uct,data/uct/start_policy/10000000/C_25/x_uct,data/bandit/start_policy_x_C=16_LUCB_exploitability_log" --algorithms "c1,c5,c10,c25,IS-LUCB" --yaxisupper 2 --plotpath "plots/uct/rbt_x_start_policy_uct_comp_107.pdf"
+
+python plot_graph.py --game "RBT, Nash Policy" --player x --numexperiments 20 --numiterations 10000000 --logfreq 100000 --logfiles "data/uct/nash_policy/10000000/C_1/x_uct,data/uct/nash_policy/10000000/C_5/x_uct,data/uct/nash_policy/10000000/C_10/x_uct,data/uct/nash_policy/10000000/C_25/x_uct,data/bandit/final_exp_x_C=16_LUCB_exploitability_log" --algorithms "c1,c5,c10,c25,IS-LUCB" --yaxisupper 2 --plotpath "plots/uct/rbt_x_nash_policy_uct_comp_107.pdf"
+
+python plot_graph.py --game "RBT, Start Policy" --player o --numexperiments 20 --numiterations 10000000 --logfreq 100000 --logfiles "data/uct/start_policy/10000000/C_1/o_uct,data/uct/start_policy/10000000/C_5/o_uct,data/uct/start_policy/10000000/C_10/o_uct,data/uct/start_policy/10000000/C_25/o_uct" --algorithms "c1,c5,c10,c25" --yaxisupper 2 --plotpath "plots/uct/rbt_o_start_policy_uct_comp_107.pdf"
+
+python plot_graph.py --game "RBT, Nash Policy" --player o --numexperiments 20 --numiterations 10000000 --logfreq 100000 --logfiles "data/uct/nash_policy/10000000/C_1/o_uct,data/uct/nash_policy/10000000/C_5/o_uct,data/uct/nash_policy/10000000/C_10/o_uct,data/uct/nash_policy/10000000/C_25/o_uct,data/bandit/final_exp_o_C=16_LUCB_exploitability_log" --algorithms "c1,c5,c10,c25,IS-LUCB" --yaxisupper 2 --plotpath "plots/uct/rbt_o_nash_policy_uct_comp_107.pdf"
+
 
 # mccfr
 python plot_graph.py --game "RBT, Start Policy" --player x --numexperiments 20 --numiterations 1000000 --logfreq 10000 --logfiles "data/mccfr/start_policy/1000000/eps_0.05/x_mccfr,data/mccfr/start_policy/1000000/eps_0.10/x_mccfr,data/mccfr/start_policy/1000000/eps_0.15/x_mccfr,data/mccfr/start_policy/1000000/eps_0.20/x_mccfr" --algorithms "eps0.05,eps0.10,eps0.15,eps0.20" --yaxisupper 2 --plotpath "plots/mccfr/rbt_x_start_policy_mccfr_comp.pdf"

@@ -2,8 +2,8 @@
 
 g++-13 onpath_flipping_br.cpp rbt_classes.cpp rbt_utilities.cpp -O3 -o rbt_onpath
 
-num_iterations=1000000
-log_size=10000
+num_iterations=10000000
+log_size=100000
 num_experiments=20
 p1_nash_policy="P1_nash_normalised.txt"
 p2_nash_policy="P2_nash_normalised.txt"
@@ -18,16 +18,16 @@ echo "Running on-path flipping"
 for player in x o
 do
     echo "Player: $player"
-    for k in  0.01 0.1 1 5 10
+    for k in 5 10 20
     do 
         echo "k: $k"
-        base_path="data/onpath/nash_policy/k_$k"
+        base_path="data/onpath/nash_policy/$num_iterations/k_$k"
         echo "base_path: $base_path"
         # Create the base directory if it doesn't already exist
         mkdir -p "$base_path"
         echo "./rbt_onpath $p1_nash_policy $p2_nash_policy 96 $p1_balanced_policy $p2_balanced_policy 1 $num_iterations $k $player $num_experiments $log_size $base_path"
         ./rbt_onpath "$p1_nash_policy" "$p2_nash_policy" 96 "$p1_balanced_policy" "$p2_balanced_policy" 1 "$num_iterations" "$k" "$player" "$num_experiments" "$log_size" "$base_path"
-        base_path="data/onpath/start_policy/k_$k"
+        base_path="data/onpath/start_policy/$num_iterations/k_$k"
         echo "base_path: $base_path"
         # Create the base directory if it doesn't already exist
         mkdir -p "$base_path"

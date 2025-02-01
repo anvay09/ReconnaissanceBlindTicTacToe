@@ -3,8 +3,8 @@
 g++-13 mccfr_outcome_sampling_br.cpp rbt_classes.cpp rbt_utilities.cpp -O3 -o rbt_mccfr
 g++-13 mccfr_outcome_sampling_eps_greedy_br.cpp rbt_classes.cpp rbt_utilities.cpp -O3 -o rbt_mccfr_greedy
 
-num_iterations=1000000
-log_size=10000
+num_iterations=10000000
+log_size=100000
 num_experiments=20
 p1_nash_policy="P1_nash_normalised.txt"
 p2_nash_policy="P2_nash_normalised.txt"
@@ -18,16 +18,16 @@ echo "Running MCCFR"
 for player in x o
 do
     echo "Player: $player"
-    for eps in $(seq 0.05 0.05 0.2)
+    for eps in $(seq 0.1 0.05 0.25)
     do 
         echo "eps: $eps"
-        base_path="data/mccfr/nash_policy/eps_$eps"
+        base_path="data/mccfr/nash_policy/$num_iterations/eps_$eps"
         echo "base_path: $base_path"
         # Create the base directory if it doesn't already exist
         mkdir -p "$base_path"
         echo "./rbt_mccfr $p1_nash_policy $p2_nash_policy 96 $num_iterations $player $num_experiments $log_size $eps $base_path"
         ./rbt_mccfr "$p1_nash_policy" "$p2_nash_policy" 96 "$num_iterations" "$player" "$num_experiments" "$log_size" "$eps" "$base_path"
-        base_path="data/mccfr/start_policy/eps_$eps"
+        base_path="data/mccfr/start_policy/$num_iterations/eps_$eps"
         echo "base_path: $base_path"
         # Create the base directory if it doesn't already exist
         mkdir -p "$base_path"
@@ -41,16 +41,16 @@ echo "Running MCCFR with epsilon-greedy exploration"
 for player in x o 
 do
     echo "Player: $player"
-    for eps in $(seq 0.05 0.05 0.2)
+    for eps in $(seq 0.1 0.05 0.25)
     do 
         echo "eps: $eps"
-        base_path="data/mccfr_greedy/nash_policy/eps_$eps"
+        base_path="data/mccfr_greedy/nash_policy/$num_iterations/eps_$eps"
         echo "base_path: $base_path"
         # Create the base directory if it doesn't already exist
         mkdir -p "$base_path"
         echo "./rbt_mccfr_greedy $p1_nash_policy $p2_nash_policy 96 $num_iterations $player $num_experiments $log_size $eps $base_path"
         ./rbt_mccfr_greedy "$p1_nash_policy" "$p2_nash_policy" 96 "$num_iterations" "$player" "$num_experiments" "$log_size" "$eps" "$base_path"
-        base_path="data/mccfr_greedy/start_policy/eps_$eps"
+        base_path="data/mccfr_greedy/start_policy/$num_iterations/eps_$eps"
         echo "base_path: $base_path"
         # Create the base directory if it doesn't already exist
         mkdir -p "$base_path"
