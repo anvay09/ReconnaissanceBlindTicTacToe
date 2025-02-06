@@ -379,8 +379,15 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
             p_hat[i] = (double) infoset_reach_count[I_prime.get_index()] / n_t;
 
             // issue with these two lines
-            Eigen::VectorXd c_value_upper(action_UCB[I_prime.get_index()]);
-            Eigen::VectorXd c_value_lower(action_LCB[I_prime.get_index()]);
+            Eigen::VectorXd c_value_upper(action_UCB[I_prime.get_index()].size());
+            for (int j = 0; j < action_UCB[I_prime.get_index()].size(); j++){
+                c_value_upper[j] = action_UCB[I_prime.get_index()][j];
+            }
+
+            Eigen::VectorXd c_value_lower(action_LCB[I_prime.get_index()].size());
+            for (int j = 0; j < action_LCB[I_prime.get_index()].size(); j++){
+                c_value_lower[j] = action_LCB[I_prime.get_index()][j];
+            }
 
             u_next[i] = reward_UCB[I.get_index()][a] + c_value_upper.maxCoeff();
             l_next[i] = reward_LCB[I.get_index()][a] + c_value_lower.maxCoeff();
