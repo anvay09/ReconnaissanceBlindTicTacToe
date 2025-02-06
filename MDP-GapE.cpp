@@ -2,7 +2,7 @@
 #include "cpp_headers/rbt_utilities.hpp"
 #include <random>
 #include <cmath>
-#include <Eigen/Dense>
+#include "Eigen/Dense"
 #include <functional>
 
 int NUMBER_THREADS = 96;
@@ -34,6 +34,21 @@ double bernoulli_kullback_leibler(double p, double q) {
 
 double d_bernoulli_kullback_leibler_dq(double p, double q) {
     return (1 - p) / (1 - q) - p / q;
+}
+
+
+double newton_iteration(std::function<double(double)> f, std::function<double(double)> df, double eps, double x0, double a, double b, double weight = 0.9, int max_iter = 100) {
+    double x = std::numeric_limits<double>::infinity();
+    double x_next = x0;
+    int iter = 0;
+    while (std::fabs(x - x_next) > eps && iter < max_iter) {
+        iter++;
+        x = x_next;
+        double f_x = f(x), df_x = df(x);
+        if (df_x != 0) x_next = x - f_x / df_x;
+        x_next = std::max(a, std::min(b, weight * x_next + (1 - weight) * x));
+    }
+    return x_next;
 }
 
 
@@ -76,21 +91,6 @@ double kl_upper_bound(double _sum, int count, double threshold = 1.0, double eps
 }
 
 
-double newton_iteration(std::function<double(double)> f, std::function<double(double)> df, double eps, double x0, double a, double b, double weight = 0.9, int max_iter = 100) {
-    double x = std::numeric_limits<double>::infinity();
-    double x_next = x0;
-    int iter = 0;
-    while (std::fabs(x - x_next) > eps && iter < max_iter) {
-        iter++;
-        x = x_next;
-        double f_x = f(x), df_x = df(x);
-        if (df_x != 0) x_next = x - f_x / df_x;
-        x_next = std::max(a, std::min(b, weight * x_next + (1 - weight) * x));
-    }
-    return x_next;
-}
-
-
 Eigen::VectorXd max_expectation_under_constraint(const Eigen::VectorXd &f, const Eigen::VectorXd &q, double c, double eps = 1e-2) {
     Eigen::VectorXd p_star = Eigen::VectorXd::Zero(q.size());
     Eigen::VectorXi x_plus = (q.array() > 0).cast<int>();
@@ -105,7 +105,6 @@ Eigen::VectorXd max_expectation_under_constraint(const Eigen::VectorXd &f, const
         Eigen::ArrayXd l_m_f_p = l - f_p.array();  // Convert f_p to an array for element-wise operations
         return (q_p.array() * l_m_f_p.log()).sum() + log((q_p.array() / l_m_f_p).sum()) - c;
     };
-
 
     auto d_theta_dl = [&](double l) {
         Eigen::VectorXd l_m_f_p_inv = 1 / (l - f_p.array());
@@ -338,9 +337,9 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
 void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset_reach_count, std::vector<std::vector<int>>& terminal_reach_count, 
                   std::vector<std::vector<double>>& reward_UCB, std::vector<std::vector<double>>& reward_LCB, std::vector<std::vector<double>>& action_UCB, 
                   std::vector<std::vector<double>>& action_LCB, std::vector<std::pair<std::string, int>>& trajectory, char br_player, double eps, double delta, int H, int B){
-    int H = trajectory.size();
+    int _H = trajectory.size();
 
-    for (int h = H-1; h >=0; h--){
+    for (int h = _H-1; h >=0; h--){
         std::string I_hash = trajectory[h].first;
         InformationSet I = InformationSet(br_player, get_move_flag(I_hash, br_player), I_hash);
         int a = trajectory[h].second;
@@ -379,6 +378,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
             p_hat[i] = (double) infoset_reach_count[I_prime.get_index()] / n_t;
 
+            // issue with these two lines
             Eigen::VectorXd c_value_upper(action_UCB[I_prime.get_index()]);
             Eigen::VectorXd c_value_lower(action_LCB[I_prime.get_index()]);
 
