@@ -147,23 +147,6 @@ Eigen::VectorXd max_expectation_under_constraint(const Eigen::VectorXd &f, const
 }
 
 
-int random_argmax(const Eigen::VectorXd &x) {
-    std::vector<int> indices;
-    double max_val = x.maxCoeff();
-    for (int i = 0; i < x.size(); i++) {
-        if (x(i) == max_val) indices.push_back(i);
-    }
-    std::uniform_int_distribution<> dis(0, indices.size() - 1);
-    return indices[dis(generator)];
-}
-
-
-Eigen::VectorXd random_dist(int n) {
-    Eigen::VectorXd q = Eigen::VectorXd::Random(n).array().abs();
-    return q / q.sum();
-}
-
-
 int sampleIndex(const std::vector<double>& probabilities) {
     std::discrete_distribution<int> distribution(probabilities.begin(), probabilities.end());
     return distribution(generator);
@@ -416,7 +399,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
 }
 
 
-void algorithm(double eps, double delta, int H, int B, char br_player, PolicyVec& player_policy, PolicyVec& opponent_policy, std::vector<std::string>& player_information_sets, int T){
+void algorithm(double eps, double delta, int H, int B, char br_player, PolicyVec& player_policy, PolicyVec& opponent_policy, std::vector<std::string>& player_information_sets, int T, int log_freq){
     std::vector<std::vector<double>> R(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<std::vector<double>> reward_UCB(player_information_sets.size(), std::vector<double>(13, 1.0));
     std::vector<std::vector<double>> reward_LCB(player_information_sets.size(), std::vector<double>(13, 0.0));
@@ -427,6 +410,18 @@ void algorithm(double eps, double delta, int H, int B, char br_player, PolicyVec
     std::vector<std::vector<double>> action_LCB(player_information_sets.size(), std::vector<double>(13, 0.0));
 
     for (int t = 1; t <= T; t++){
+        if (t % log_freq == 0){
+            std::cout << "-------------- Iteration: " << t << " --------------" << std::endl;
+            double expected_utility = 0.0;
+            if (br_player == 'x'){
+                expected_utility = get_expected_utility_wrapper(player_policy, opponent_policy);
+            }
+            else if (br_player == 'o'){
+                expected_utility = get_expected_utility_wrapper(opponent_policy, player_policy);
+            }
+            std::cout << "Expected Utility: " << expected_utility << std::endl;
+        }
+
         int first_action = 0;
         int b_t = 0;
         int c_t = 0;
@@ -490,7 +485,7 @@ int main(int argc, char* argv[]) {
     long int num_iterations = std::stol(argv[3]);
     char player = argv[4][0];
     int num_experiments = std::stoi(argv[5]);
-    long int log_size = std::stol(argv[6]);
+    long int log_freq = std::stol(argv[6]);
     double eps = std::stod(argv[7]);
     double delta = std::stod(argv[8]);
     std::string base_path = argv[9];
@@ -542,16 +537,19 @@ int main(int argc, char* argv[]) {
         expected_utility = compute_best_response_wrapper(policy_obj_x, br_o, 'o');
     }
 
+    std::cout << "----------- Expected Utility of Best Response: " << expected_utility << " -----------" << std::endl;
+
     while (experiment_number <= num_experiments){
         if (player == 'x'){
             PolicyVec uniform_policy_obj_x('x', P1_information_sets);
             PolicyVec player_br_policy = uniform_policy_obj_x;
+            algorithm(eps, delta, H, B, player, player_br_policy, policy_obj_o, P1_information_sets, num_iterations, log_freq);
         }
         else if (player == 'o'){
             PolicyVec uniform_policy_obj_o('o', P2_information_sets);
             PolicyVec player_br_policy = uniform_policy_obj_o;
+            algorithm(eps, delta, H, B, player, player_br_policy, policy_obj_x, P2_information_sets, num_iterations, log_freq);
         }
         experiment_number += 1;
     }
-    
 }
