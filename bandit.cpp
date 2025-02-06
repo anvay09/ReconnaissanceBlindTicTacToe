@@ -4,6 +4,8 @@
 #include <cmath>
 int NUMBER_THREADS = 96;
 
+static std::random_device rd;
+static std::mt19937 generator(rd());
 
 void pretty_print(std::chrono::time_point<std::chrono::system_clock> start, std::chrono::time_point<std::chrono::system_clock> end, std::string msg, int flag) {
     if (flag) {
@@ -154,8 +156,6 @@ void get_cohort(InformationSet I, int action, std::unordered_set<std::string> &c
 
 
 int sampleIndex(const std::vector<double>& probabilities) {
-    std::random_device rd;
-    std::mt19937 generator(rd());
     std::discrete_distribution<int> distribution(probabilities.begin(), probabilities.end());
     return distribution(generator);
 }
