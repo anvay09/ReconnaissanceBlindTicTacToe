@@ -351,6 +351,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         
         std::unordered_set<std::string> cohort;
         get_cohort(I, a, cohort);
+        std::cout << "Cohort size: " << cohort.size() << std::endl;
         // initialise p_hat as an Eigen vector
         Eigen::VectorXd p_hat(cohort.size() + 1);
         Eigen::VectorXd u_next(cohort.size() + 1);
@@ -367,6 +368,8 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         double beta_cnt = std::log(3.0 * std::pow(13 * B, H) / delta);
         double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
         double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
+
+        std::cout << "Beta_r: " << beta_r << " Beta_p: " << beta_p << std::endl;
 
         // update reward bounds
         reward_UCB[I.get_index()][a] = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, false);
@@ -400,6 +403,9 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         
         action_UCB[I.get_index()][a] = reward_UCB[I.get_index()][a] + p_plus.dot(u_next);
         action_LCB[I.get_index()][a] = reward_LCB[I.get_index()][a] + p_minus.dot(l_next);
+
+        std::cout << "Reward UCB: " << reward_UCB[I.get_index()][a] << " Reward LCB: " << reward_LCB[I.get_index()][a] << std::endl;
+        std::cout << "Action UCB: " << action_UCB[I.get_index()][a] << " Action LCB: " << action_LCB[I.get_index()][a] << std::endl;
     }
 }
 
@@ -483,6 +489,9 @@ void algorithm(double eps, double delta, int H, int B, char br_player, PolicyVec
         
         // sample game
         double reward = sample_terminal_history(I_1, I_2, true_board, player_policy, opponent_policy, current_history, trajectory, 'x', br_player, action_UCB, first_action, R, infoset_reach_count, terminal_reach_count);
+        std::cout << "Reward: " << reward << std::endl;
+        std::cout << "------------- History ------------" << std::endl;
+        current_history.print_history();
 
         // update bounds
         updateBounds(R, infoset_reach_count, terminal_reach_count, reward_UCB, reward_LCB, action_UCB, action_LCB, trajectory, br_player, eps, delta, H, B);
