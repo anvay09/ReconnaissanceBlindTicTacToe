@@ -247,7 +247,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
                                std::vector<std::vector<double>>& action_UCB, int first_action, std::vector<std::vector<double>>& R, 
                                std::vector<int>& infoset_reach_count, std::vector<std::vector<int>>& terminal_reach_count) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
-    int action = 0;
+    int action;
 
     if (player == br_player) { 
         if (first_action == -1){
@@ -346,8 +346,9 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         InformationSet I = InformationSet(br_player, get_move_flag(I_hash, br_player), I_hash);
         int a = trajectory[h].second;
         double n_t = terminal_reach_count[I.get_index()][a];
-        
 
+        std::cout << "Updating bounds for: " << I.get_hash() << " " << a << std::endl;
+        
         std::unordered_set<std::string> cohort;
         get_cohort(I, a, cohort);
         // initialise p_hat as an Eigen vector
@@ -380,7 +381,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
 
             Eigen::VectorXd c_value_upper(13);
             Eigen::VectorXd c_value_lower(13);
-            for (int j = 0; j < action_UCB[I_prime.get_index()].size(); j++){
+            for (int j = 0; j < 13; j++){
                 c_value_upper[j] = action_UCB[I_prime.get_index()][j];
                 c_value_lower[j] = action_LCB[I_prime.get_index()][j];
             }
