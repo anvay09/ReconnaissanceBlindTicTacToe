@@ -347,7 +347,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         int a = trajectory[h].second;
         double n_t = terminal_reach_count[I.get_index()][a];
 
-        std::cout << "Updating bounds for: " << I.get_hash() << " " << a << std::endl;
+        std::cout << "Updating bounds for: " << I.get_hash() << " " << a << " Index: " << I.get_index() << std::endl;
         
         std::unordered_set<std::string> cohort;
         get_cohort(I, a, cohort);
@@ -380,6 +380,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         i += 1;
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+            std::cout << "I_prime: " << I_prime.get_hash() << " Index: " << I_prime.get_index() << std::endl;
             p_hat[i] = (double) infoset_reach_count[I_prime.get_index()] / n_t;
 
             Eigen::VectorXd c_value_upper(13);
@@ -392,6 +393,8 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
             u_next[i] = c_value_upper.maxCoeff();
             l_next[i] = c_value_lower.maxCoeff();
 
+            std::cout << "P_hat: " << p_hat[i] << " U_next: " << u_next[i] << " L_next: " << l_next[i] << std::endl;
+
             i += 1;
         }
 
@@ -399,7 +402,12 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         // solve KL optimization problem
         // https://github.com/eleurent/rl-agents/blob/master/rl_agents/utils.py#L123
         Eigen::VectorXd p_plus = max_expectation_under_constraint(u_next, p_hat, beta_p / n_t, eps);
+
+        std::cout << "P_plus: " << p_plus << std::endl;
+    
         Eigen::VectorXd p_minus = max_expectation_under_constraint( - l_next, p_hat, beta_p / n_t, eps);
+
+        std::cout << "P_minus: " << p_minus << std::endl;
         
         action_UCB[I.get_index()][a] = reward_UCB[I.get_index()][a] + p_plus.dot(u_next);
         action_LCB[I.get_index()][a] = reward_LCB[I.get_index()][a] + p_minus.dot(l_next);
