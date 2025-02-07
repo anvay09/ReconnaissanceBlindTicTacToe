@@ -376,12 +376,24 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         reward_LCB[I.get_index()][a] = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, true);
 
         int i = 0;
-        p_hat[i] = (double) terminal_reach_count[I.get_index()][a] / n_t;
+        if (n_t == 0.0){
+            p_hat[i] = 1.0 / (cohort.size() + 1);
+        }
+        else{
+            p_hat[i] = (double) terminal_reach_count[I.get_index()][a] / n_t;
+        }
+
         i += 1;
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
             std::cout << "I_prime: " << I_prime.get_hash() << " Index: " << I_prime.get_index() << std::endl;
-            p_hat[i] = (double) infoset_reach_count[I_prime.get_index()] / n_t;
+
+            if (n_t == 0.0){
+                p_hat[i] = 1.0 / (cohort.size() + 1);
+            }
+            else{
+                p_hat[i] = (double) infoset_reach_count[I_prime.get_index()] / n_t;
+            }
 
             Eigen::VectorXd c_value_upper(13);
             Eigen::VectorXd c_value_lower(13);
