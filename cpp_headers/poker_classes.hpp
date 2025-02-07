@@ -16,6 +16,8 @@
 #include <cassert>
 #include <chrono>
 #include <ctime>
+#include "Eigen/Dense"
+#include <functional>
 
 static std::string EMPTY_TABLE = "---"; // Player 1 card {J, Q, K}, Player 2 card {J, Q, K}, Board card {J, Q, K}
 static std::string EMPTY_HASH = "";

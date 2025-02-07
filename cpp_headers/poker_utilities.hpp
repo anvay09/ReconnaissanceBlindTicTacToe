@@ -49,3 +49,15 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
 double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player, char game);
 
 void save_map_txt(std::string output_file, std::vector<std::vector<double>>& map, std::vector<std::string>& Information_sets);
+
+double kullback_leibler(const Eigen::VectorXd &p, const Eigen::VectorXd &q);
+
+double bernoulli_kullback_leibler(double p, double q);
+
+double d_bernoulli_kullback_leibler_dq(double p, double q);
+
+double newton_iteration(std::function<double(double)> f, std::function<double(double)> df, double eps, double x0, double a, double b, double weight, int max_iter);
+
+double kl_upper_bound(double _sum, int count, double threshold, double eps, bool lower);
+
+Eigen::VectorXd max_expectation_under_constraint(const Eigen::VectorXd &f, const Eigen::VectorXd &q, double c, double eps);

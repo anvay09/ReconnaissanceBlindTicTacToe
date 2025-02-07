@@ -61,13 +61,7 @@ double kl_upper_bound(double _sum, int count, double threshold = 1.0, double eps
     // :param eps: Absolute accuracy of the Newton Iteration
     // :param lower: Whether to compute a lower-bound instead of upper-bound
    
-    if (count == 0) { 
-        if (lower) {
-            return 0;
-        } else {
-            return 1;
-        }
-    }
+    if (count == 0) return lower ? 0 : 1;
 
     double mu = _sum / count;
     double max_div = threshold / count;
@@ -77,24 +71,28 @@ double kl_upper_bound(double _sum, int count, double threshold = 1.0, double eps
     std::function<double(double)> d_kl = [&](double q) { return d_bernoulli_kullback_leibler_dq(mu, q); };
 
     double a, b;
+    a = lower ? 0 : mu;
+    b = lower ? mu : 1;
 
-    if (lower){
-        a = 0;
-        b = mu;
-    }
-    else{
-        a = mu;
-        b = 1;
-    }
+    return newton_iteration(kl, d_kl, eps, (a + b) / 2.0, a, b);
+}
 
-    return newton_iteration(kl, d_kl, eps, a, b, 0.9, 100);
+// Function to mimic np.where in Python
+Eigen::VectorXi where(const Eigen::VectorXd& arr, std::function<bool(double)> condition) {
+    std::vector<int> indices;
+    for (int i = 0; i < arr.size(); ++i) {
+        if (condition(arr(i))) { // Apply custom condition function
+            indices.push_back(i);
+        }
+    }
+    return Eigen::Map<Eigen::VectorXi>(indices.data(), indices.size()); // Convert std::vector to Eigen::VectorXi
 }
 
 
 Eigen::VectorXd max_expectation_under_constraint(const Eigen::VectorXd &f, const Eigen::VectorXd &q, double c, double eps = 1e-2) {
     Eigen::VectorXd p_star = Eigen::VectorXd::Zero(q.size());
-    Eigen::VectorXi x_plus = (q.array() > 0).cast<int>();
-    Eigen::VectorXi x_zero = (q.array() == 0).cast<int>();
+    Eigen::VectorXi x_plus = where(q, [](double x) { return x > 0; });
+    Eigen::VectorXi x_zero = where(q, [](double x) { return x == 0; });
     double lambda_ = 0, z = 0;
 
     Eigen::VectorXd q_p = q(x_plus);
@@ -253,12 +251,16 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
 
     if (player == br_player) { 
         if (first_action == -1){
+            std::vector<int> legal_actions;
+            I.get_actions(legal_actions);
+            action = legal_actions[0];
+
             // choose the action with the highest UCB
             double max_UCB = 0.0;
-            for (int i = 0; i < action_UCB[I.get_index()].size(); i++) {
-                if (action_UCB[I.get_index()][i] >= max_UCB) {
-                    max_UCB = action_UCB[I.get_index()][i];
-                    action = i;
+            for (int a : legal_actions) {
+                if (action_UCB[I.get_index()][a] >= max_UCB) {
+                    max_UCB = action_UCB[I.get_index()][a];
+                    action = a;
                 }
             }
         }
@@ -268,7 +270,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         }
 
         // update player policy
-        std::vector<double> prob_dist = player_policy.policy_dict[I.get_index()];
+        std::vector<double>& prob_dist = player_policy.policy_dict[I.get_index()];
         for (int i = 0; i < prob_dist.size(); i++) {
             if (i != action) {
                 prob_dist[i] = 0.0;
@@ -283,7 +285,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         trajectory.push_back(std::make_pair(I.get_hash(), action));
     }
     else {
-        std::vector<double> prob_dist = opponent_policy.policy_dict[I.get_index()];
+        std::vector<double>& prob_dist = opponent_policy.policy_dict[I.get_index()];
         action = sampleIndex(prob_dist);
     }
 
@@ -366,31 +368,25 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
 
         // update reward bounds
-        reward_UCB[I.get_index()][a] = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, eps, false);
-        reward_LCB[I.get_index()][a] = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, eps, true);
+        reward_UCB[I.get_index()][a] = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, false);
+        reward_LCB[I.get_index()][a] = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, true);
 
         int i = 0;
         p_hat[i] = (double) terminal_reach_count[I.get_index()][a] / n_t;
-        u_next[i] = 0.0;
-        l_next[i] = 0.0;
         i += 1;
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
             p_hat[i] = (double) infoset_reach_count[I_prime.get_index()] / n_t;
 
-            // issue with these two lines
-            Eigen::VectorXd c_value_upper(action_UCB[I_prime.get_index()].size());
+            Eigen::VectorXd c_value_upper(13);
+            Eigen::VectorXd c_value_lower(13);
             for (int j = 0; j < action_UCB[I_prime.get_index()].size(); j++){
                 c_value_upper[j] = action_UCB[I_prime.get_index()][j];
-            }
-
-            Eigen::VectorXd c_value_lower(action_LCB[I_prime.get_index()].size());
-            for (int j = 0; j < action_LCB[I_prime.get_index()].size(); j++){
                 c_value_lower[j] = action_LCB[I_prime.get_index()][j];
             }
 
-            u_next[i] = reward_UCB[I.get_index()][a] + c_value_upper.maxCoeff();
-            l_next[i] = reward_LCB[I.get_index()][a] + c_value_lower.maxCoeff();
+            u_next[i] = c_value_upper.maxCoeff();
+            l_next[i] = c_value_lower.maxCoeff();
 
             i += 1;
         }
@@ -400,8 +396,9 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         // https://github.com/eleurent/rl-agents/blob/master/rl_agents/utils.py#L123
         Eigen::VectorXd p_plus = max_expectation_under_constraint(u_next, p_hat, beta_p / n_t, eps);
         Eigen::VectorXd p_minus = max_expectation_under_constraint( - l_next, p_hat, beta_p / n_t, eps);
-        action_UCB[I.get_index()][a] = u_next.dot(p_plus);
-        action_LCB[I.get_index()][a] = l_next.dot(p_minus);
+        
+        action_UCB[I.get_index()][a] = reward_UCB[I.get_index()][a] + p_plus.dot(u_next);
+        action_LCB[I.get_index()][a] = reward_LCB[I.get_index()][a] + p_minus.dot(l_next);
     }
 }
 
@@ -413,7 +410,7 @@ void algorithm(double eps, double delta, int H, int B, char br_player, PolicyVec
     std::vector<int> infoset_reach_count(player_information_sets.size(), 0);
     std::vector<std::vector<int>> terminal_reach_count(player_information_sets.size(), std::vector<int>(13, 0));
 
-    std::vector<std::vector<double>> action_UCB(player_information_sets.size(), std::vector<double>(13, 0.0));
+    std::vector<std::vector<double>> action_UCB(player_information_sets.size(), std::vector<double>(13, 1.0));
     std::vector<std::vector<double>> action_LCB(player_information_sets.size(), std::vector<double>(13, 0.0));
 
     for (int t = 1; t <= T; t++){
@@ -447,35 +444,42 @@ void algorithm(double eps, double delta, int H, int B, char br_player, PolicyVec
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
 
-        // best
-        double min_width = 1.0;
-        for (int i = 0; i < legal_actions.size(); i++){
+        if (legal_actions.size() == 1){
+            first_action = legal_actions[0];
+        }
+        else {
+            // best
+            double min_width = 1.0;
+            for (int a : legal_actions){
+                double max_U_1 = 0.0;
+                for (int b : legal_actions){
+                    if (b == a){ continue; }
+                    else { if (action_UCB[I.get_index()][b] >= max_U_1){ max_U_1 = action_UCB[I.get_index()][b]; }}
+                }
+
+                if (max_U_1 - action_LCB[I.get_index()][a] <= min_width){
+                    min_width = max_U_1 - action_LCB[I.get_index()][a];
+                    b_t = a;
+                }
+            }
+            // std::cout << "Best action: " << b_t << std::endl;
+            // challenger
             double max_U_1 = 0.0;
-            for (int j = 0; j < legal_actions.size(); j++){
-                if (j == i){ continue; }
-                else { if (action_UCB[I.get_index()][legal_actions[j]] >= max_U_1){ max_U_1 = action_UCB[I.get_index()][legal_actions[j]]; }}
+            for (int a : legal_actions){
+                if (a == b_t){ continue; }
+                if (action_UCB[I.get_index()][a] >= max_U_1){
+                    max_U_1 = action_UCB[I.get_index()][a];
+                    c_t = a;
+                }
             }
-
-            if (max_U_1 - action_LCB[I.get_index()][legal_actions[i]] <= min_width){
-                min_width = max_U_1 - action_LCB[I.get_index()][legal_actions[i]];
-                b_t = legal_actions[i];
-            }
+            // std::cout << "Challenger action: " << c_t << std::endl;
+            // exploration
+            double width_b = action_UCB[I.get_index()][b_t] - action_LCB[I.get_index()][b_t];
+            double width_c = action_UCB[I.get_index()][c_t] - action_LCB[I.get_index()][c_t];
+            first_action = width_b > width_c ? b_t : c_t;
+            // std::cout << "First action: " << first_action << std::endl;
         }
-
-        // challenger
-        double max_U_1 = 0.0;
-        for (int i = 0; i < legal_actions.size(); i++){
-            if (action_UCB[I.get_index()][legal_actions[i]] >= max_U_1){
-                max_U_1 = action_UCB[I.get_index()][legal_actions[i]];
-                c_t = legal_actions[i];
-            }
-        }
-
-        // exploration
-        double width_b = action_UCB[I.get_index()][b_t] - action_LCB[I.get_index()][b_t];
-        double width_c = action_UCB[I.get_index()][c_t] - action_LCB[I.get_index()][c_t];
-        first_action = width_b > width_c ? b_t : c_t;
-
+        
         // sample game
         double reward = sample_terminal_history(I_1, I_2, true_board, player_policy, opponent_policy, current_history, trajectory, 'x', br_player, action_UCB, first_action, R, infoset_reach_count, terminal_reach_count);
 

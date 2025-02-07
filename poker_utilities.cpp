@@ -284,6 +284,7 @@ double get_expected_utility(InformationSet &I_1, InformationSet &I_2, PokerTable
     return expected_utility_h;
 }
 
+
 double get_expected_utility_action_version(InformationSet &I_1, InformationSet &I_2, PokerTable &true_cards, PolicyVec &policy_obj_x, 
                             PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player, int action) {
     double expected_utility_h = 0.0;
@@ -333,6 +334,7 @@ double get_expected_utility_action_version(InformationSet &I_1, InformationSet &
 
     return expected_utility_h;
 }
+
 
 double get_expected_utility_parallel(InformationSet &I_1, InformationSet &I_2, PokerTable &true_cards, PolicyVec &policy_obj_x, 
                                      PolicyVec &policy_obj_o, double probability, History& current_history, char initial_player) {
@@ -1302,4 +1304,150 @@ void save_map_txt(std::string output_file, std::vector<std::vector<double>>& map
     }
     f_out.close();
 }
+
+
+double kullback_leibler(const Eigen::VectorXd &p, const Eigen::VectorXd &q) {
+    double kl = 0.0;
+    for (int i = 0; i < p.size(); i++) {
+        if (p(i) > 0) {
+            if (q(i) > 0)
+                kl += p(i) * std::log(p(i) / q(i));
+            else
+                return INFINITY;
+        }
+    }
+    return kl;
+}
+
+
+double bernoulli_kullback_leibler(double p, double q) {
+    double kl1 = (p > 0 && q > 0) ? p * std::log(p / q) : 0;
+    double kl2 = (p < 1 && q < 1) ? (1 - p) * std::log((1 - p) / (1 - q)) : 0;
+    return kl1 + kl2;
+}
+
+
+double d_bernoulli_kullback_leibler_dq(double p, double q) {
+    return (1 - p) / (1 - q) - p / q;
+}
+
+
+double newton_iteration(std::function<double(double)> f, std::function<double(double)> df, double eps, double x0, double a, double b, double weight = 0.9, int max_iter = 100) {
+    double x = std::numeric_limits<double>::infinity();
+    double x_next = x0;
+    int iter = 0;
+    while (std::fabs(x - x_next) > eps && iter < max_iter) {
+        iter++;
+        x = x_next;
+        double f_x = f(x); 
+
+        double df_x;
+        if (x == 1.0 || x == 0.0) df_x = (f_x - f(x-eps))/eps;
+        else df_x = df(x);
+        
+        if (df_x != 0) x_next = x - f_x / df_x;
+
+        if (x_next < a) x_next = weight * a + (1.0 - weight) * x;
+        if (x_next > b) x_next = weight * b + (1.0 - weight) * x;
+    }
+
+    if (x_next < a) x_next = a;
+    if (x_next > b) x_next = b;
+    return x_next;
+}
+
+
+double kl_upper_bound(double _sum, int count, double threshold = 1.0, double eps = 1e-2, bool lower = false) {
+    //     Upper Confidence Bound of the empirical mean built on the Kullback-Leibler divergence.
+    //     The computation involves solving a small convex optimization problem using Newton Iteration
+    // :param _sum: Sum of sample values
+    // :param count: Number of samples
+    // :param threshold: the maximum kl-divergence * count
+    // :param eps: Absolute accuracy of the Newton Iteration
+    // :param lower: Whether to compute a lower-bound instead of upper-bound
+   
+    if (count == 0) return lower ? 0 : 1;
+
+    double mu = _sum / count;
+    double max_div = threshold / count;
+
+    // Solve KL(mu, q) = max_div
+    std::function<double(double)> kl = [&](double q) { return bernoulli_kullback_leibler(mu, q) - max_div; };
+    std::function<double(double)> d_kl = [&](double q) { return d_bernoulli_kullback_leibler_dq(mu, q); };
+
+    double a, b;
+    a = lower ? 0 : mu;
+    b = lower ? mu : 1;
+
+    return newton_iteration(kl, d_kl, eps, (a + b) / 2.0, a, b);
+}
+
+
+// Function to mimic np.where in Python
+Eigen::VectorXi where(const Eigen::VectorXd& arr, std::function<bool(double)> condition) {
+    std::vector<int> indices;
+    for (int i = 0; i < arr.size(); ++i) {
+        if (condition(arr(i))) { // Apply custom condition function
+            indices.push_back(i);
+        }
+    }
+    return Eigen::Map<Eigen::VectorXi>(indices.data(), indices.size()); // Convert std::vector to Eigen::VectorXi
+}
+
+
+Eigen::VectorXd max_expectation_under_constraint(const Eigen::VectorXd &f, const Eigen::VectorXd &q, double c, double eps = 1e-2) {
+    Eigen::VectorXd p_star = Eigen::VectorXd::Zero(q.size());
+    Eigen::VectorXi x_plus = where(q, [](double x) { return x > 0; });
+    Eigen::VectorXi x_zero = where(q, [](double x) { return x == 0; });
+    double lambda_ = 0, z = 0;
+
+    Eigen::VectorXd q_p = q(x_plus);
+    Eigen::VectorXd f_p = f(x_plus);
+    double f_star = f.maxCoeff();
+
+    auto theta = [&](double l) {
+        Eigen::ArrayXd l_m_f_p = l - f_p.array();  // Convert f_p to an array for element-wise operations
+        return (q_p.array() * l_m_f_p.log()).sum() + log((q_p.array() / l_m_f_p).sum()) - c;
+    };
+
+    auto d_theta_dl = [&](double l) {
+        Eigen::VectorXd l_m_f_p_inv = 1 / (l - f_p.array());
+        return (q_p.array() * l_m_f_p_inv.array()).sum() - (q_p.array() * l_m_f_p_inv.array().square()).sum() / (q_p.array() * l_m_f_p_inv.array()).sum();
+    };
+
+    if (f_star > f_p.maxCoeff()) {
+        double theta_star = theta(f_star);
+        if (theta_star < 0) {
+            lambda_ = f_star;
+            z = 1 - exp(theta_star);
+            for (int i = 0; i < x_zero.size(); ++i) {
+                if (f(x_zero(i)) == f.maxCoeff()) {
+                    p_star(x_zero(i)) = z / x_zero.size();
+                }
+            }
+        }
+    }
+
+    if (lambda_ == 0) {
+        if ((f_p.array() == f_p(0)).all()) {
+            return q;
+        } else {
+            lambda_ = newton_iteration(theta, d_theta_dl, eps, f_star + 1, f_star, std::numeric_limits<double>::infinity());
+        }
+    }
+
+    double beta = (1 - z) / (q_p.array() / (lambda_ - f_p.array())).sum();
+    if (beta == 0) {
+        for (int i = 0; i < q.size(); ++i) {
+            if (q(i) > 0 && f(i) == f_star) {
+                p_star(i) = (1 - z) / q.size();
+            }
+        }
+    } else {
+        p_star(x_plus) = beta * q_p.array() / (lambda_ - f_p.array());
+    }
+    return p_star;
+}
+
+
 
