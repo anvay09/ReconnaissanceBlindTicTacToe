@@ -44,10 +44,20 @@ double newton_iteration(std::function<double(double)> f, std::function<double(do
     while (std::fabs(x - x_next) > eps && iter < max_iter) {
         iter++;
         x = x_next;
-        double f_x = f(x), df_x = df(x);
+        double f_x = f(x); 
+
+        double df_x;
+        if (x == 1.0 || x == 0.0) df_x = (f_x - f(x-eps))/eps;
+        else df_x = df(x);
+        
         if (df_x != 0) x_next = x - f_x / df_x;
-        x_next = std::max(a, std::min(b, weight * x_next + (1 - weight) * x));
+
+        if (x_next < a) x_next = weight * a + (1.0 - weight) * x;
+        if (x_next > b) x_next = weight * b + (1.0 - weight) * x;
     }
+
+    if (x_next < a) x_next = a;
+    if (x_next > b) x_next = b;
     return x_next;
 }
 
@@ -76,6 +86,7 @@ double kl_upper_bound(double _sum, int count, double threshold = 1.0, double eps
 
     return newton_iteration(kl, d_kl, eps, (a + b) / 2.0, a, b);
 }
+
 
 // Function to mimic np.where in Python
 Eigen::VectorXi where(const Eigen::VectorXd& arr, std::function<bool(double)> condition) {
@@ -347,11 +358,11 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         int a = trajectory[h].second;
         double n_t = terminal_reach_count[I.get_index()][a];
 
-        std::cout << "Updating bounds for: " << I.get_hash() << " " << a << " Index: " << I.get_index() << std::endl;
+        // std::cout << "Updating bounds for: " << I.get_hash() << " " << a << " Index: " << I.get_index() << std::endl;
         
         std::unordered_set<std::string> cohort;
         get_cohort(I, a, cohort);
-        std::cout << "Cohort size: " << cohort.size() << std::endl;
+        // std::cout << "Cohort size: " << cohort.size() << std::endl;
         // initialise p_hat as an Eigen vector
         Eigen::VectorXd p_hat(cohort.size() + 1);
         Eigen::VectorXd u_next(cohort.size() + 1);
@@ -369,7 +380,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
         double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
 
-        std::cout << "Beta_r: " << beta_r << " Beta_p: " << beta_p << std::endl;
+        // std::cout << "Beta_r: " << beta_r << " Beta_p: " << beta_p << std::endl;
 
         // update reward bounds
         reward_UCB[I.get_index()][a] = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, false);
@@ -386,7 +397,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         i += 1;
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
-            std::cout << "I_prime: " << I_prime.get_hash() << " Index: " << I_prime.get_index() << std::endl;
+            // std::cout << "I_prime: " << I_prime.get_hash() << " Index: " << I_prime.get_index() << std::endl;
 
             if (n_t == 0.0){
                 p_hat[i] = 1.0 / (cohort.size() + 1);
@@ -405,7 +416,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
             u_next[i] = c_value_upper.maxCoeff();
             l_next[i] = c_value_lower.maxCoeff();
 
-            std::cout << "P_hat: " << p_hat[i] << " U_next: " << u_next[i] << " L_next: " << l_next[i] << std::endl;
+            // std::cout << "P_hat: " << p_hat[i] << " U_next: " << u_next[i] << " L_next: " << l_next[i] << std::endl;
 
             i += 1;
         }
@@ -415,17 +426,17 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         // https://github.com/eleurent/rl-agents/blob/master/rl_agents/utils.py#L123
         Eigen::VectorXd p_plus = max_expectation_under_constraint(u_next, p_hat, beta_p / n_t, eps);
 
-        std::cout << "P_plus: " << p_plus << std::endl;
+        // std::cout << "P_plus: " << p_plus << std::endl;
     
         Eigen::VectorXd p_minus = max_expectation_under_constraint( - l_next, p_hat, beta_p / n_t, eps);
 
-        std::cout << "P_minus: " << p_minus << std::endl;
+        // std::cout << "P_minus: " << p_minus << std::endl;
         
         action_UCB[I.get_index()][a] = reward_UCB[I.get_index()][a] + p_plus.dot(u_next);
         action_LCB[I.get_index()][a] = reward_LCB[I.get_index()][a] + p_minus.dot(l_next);
 
-        std::cout << "Reward UCB: " << reward_UCB[I.get_index()][a] << " Reward LCB: " << reward_LCB[I.get_index()][a] << std::endl;
-        std::cout << "Action UCB: " << action_UCB[I.get_index()][a] << " Action LCB: " << action_LCB[I.get_index()][a] << std::endl;
+        // std::cout << "Reward UCB: " << reward_UCB[I.get_index()][a] << " Reward LCB: " << reward_LCB[I.get_index()][a] << std::endl;
+        // std::cout << "Action UCB: " << action_UCB[I.get_index()][a] << " Action LCB: " << action_LCB[I.get_index()][a] << std::endl;
     }
 }
 
@@ -509,9 +520,9 @@ void algorithm(double eps, double delta, int H, int B, char br_player, PolicyVec
         
         // sample game
         double reward = sample_terminal_history(I_1, I_2, true_board, player_policy, opponent_policy, current_history, trajectory, 'x', br_player, action_UCB, first_action, R, infoset_reach_count, terminal_reach_count);
-        std::cout << "Reward: " << reward << std::endl;
-        std::cout << "------------- History ------------" << std::endl;
-        current_history.print_history();
+        // std::cout << "Reward: " << reward << std::endl;
+        // std::cout << "------------- History ------------" << std::endl;
+        // current_history.print_history();
 
         // update bounds
         updateBounds(R, infoset_reach_count, terminal_reach_count, reward_UCB, reward_LCB, action_UCB, action_LCB, trajectory, br_player, eps, delta, H, B);
