@@ -336,7 +336,7 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
     }
 
     std::cout << "Saving exploitability log" << std::endl;
-    std::string file_name = "data/gapE/" + std::string(1, br_player) + "_gapE_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/gapE/" + std::string(1, br_player) + "_" + std::string(1, game) + "_gapE_exploitability_log_" + std::to_string(experiment_number) + ".txt";
 
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++) {

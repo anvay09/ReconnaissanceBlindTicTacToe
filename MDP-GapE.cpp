@@ -363,7 +363,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         int a = trajectory[h].second;
         double n_t = terminal_reach_count[I.get_index()][a];
 
-        // std::cout << "Updating bounds for: " << I.get_hash() << " " << a << " Index: " << I.get_index() << std::endl;
+        std::cout << "Updating bounds for: " << I.get_hash() << " " << a << " Index: " << I.get_index() << std::endl;
         
         std::unordered_set<std::string> cohort;
         get_cohort(I, a, cohort);
@@ -445,6 +445,12 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
 
         // std::cout << "Reward UCB: " << reward_UCB[I.get_index()][a] << " Reward LCB: " << reward_LCB[I.get_index()][a] << std::endl;
         // std::cout << "Action UCB: " << action_UCB[I.get_index()][a] << " Action LCB: " << action_LCB[I.get_index()][a] << std::endl;
+
+        std::vector<int> legal_actions;
+        I.get_actions(legal_actions);
+        for (int _a : legal_actions){
+            std::cout << "Action: " << _a << " Action UCB: " << action_UCB[I.get_index()][_a] << " Action LCB: " << action_LCB[I.get_index()][_a] << std::endl;
+        }
     }
 }
 
