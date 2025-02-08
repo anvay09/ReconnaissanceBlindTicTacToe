@@ -454,12 +454,12 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
 
 void algorithm(double eps, double delta, int H, int B, char br_player, PolicyVec& player_policy, PolicyVec& opponent_policy, std::vector<std::string>& player_information_sets, int T, int log_freq){
     std::vector<std::vector<double>> R(player_information_sets.size(), std::vector<double>(13, 0.0));
-    std::vector<std::vector<double>> reward_UCB(player_information_sets.size(), std::vector<double>(13, std::numeric_limits<double>::infinity()));
+    std::vector<std::vector<double>> reward_UCB(player_information_sets.size(), std::vector<double>(13, 1000000.0));
     std::vector<std::vector<double>> reward_LCB(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<int> infoset_reach_count(player_information_sets.size(), 0);
     std::vector<std::vector<int>> terminal_reach_count(player_information_sets.size(), std::vector<int>(13, 0));
 
-    std::vector<std::vector<double>> action_UCB(player_information_sets.size(), std::vector<double>(13, std::numeric_limits<double>::infinity()));
+    std::vector<std::vector<double>> action_UCB(player_information_sets.size(), std::vector<double>(13, 1000000.0));
     std::vector<std::vector<double>> action_LCB(player_information_sets.size(), std::vector<double>(13, 0.0));
 
     for (int t = 1; t <= T; t++){
