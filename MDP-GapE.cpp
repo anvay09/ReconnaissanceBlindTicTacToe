@@ -449,11 +449,10 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
 }
 
 
-void init_action_UCB(InformationSet& I, std::vector<std::vector<double>>& action_UCB, int depth, double gamma, int H) {
+void init_action_UCB_single_threaded(InformationSet& I, std::vector<std::vector<double>>& action_UCB, int depth, double gamma, int H) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
 
-    # pragma omp parallel for num_threads(NUMBER_THREADS)
     for (int a : legal_actions){
         action_UCB[I.get_index()][a] = (1 - std::pow(gamma, H - depth)) / (1 - gamma);
 
@@ -469,10 +468,11 @@ void init_action_UCB(InformationSet& I, std::vector<std::vector<double>>& action
 }
 
 
-void init_action_UCB_single_threaded(InformationSet& I, std::vector<std::vector<double>>& action_UCB, int depth, double gamma, int H) {
+void init_action_UCB(InformationSet& I, std::vector<std::vector<double>>& action_UCB, int depth, double gamma, int H) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
 
+    # pragma omp parallel for num_threads(NUMBER_THREADS)
     for (int a : legal_actions){
         action_UCB[I.get_index()][a] = (1 - std::pow(gamma, H - depth)) / (1 - gamma);
 
