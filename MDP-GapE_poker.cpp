@@ -112,7 +112,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
 
         char winner;
         if (success && !true_cards.is_win(winner) && !true_cards.is_over()) {
-            if (I.player == br_player) { R[I.get_index()][action] += 0.5; }
+            // if (I.player == br_player) { R[I.get_index()][action] += 0.5; }
 
             InformationSet new_I = I;
             new_I.update_move(action);

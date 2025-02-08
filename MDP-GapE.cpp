@@ -311,7 +311,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
 
         char winner;
         if (success && !true_board.is_win(winner) && !true_board.is_over()) {
-            if (player == br_player) { R[I.get_index()][action] += 0.5; }
+            // if (player == br_player) { R[I.get_index()][action] += 0.5; }
 
             InformationSet new_I = I;
             new_I.update_move(action, player);
