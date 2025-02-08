@@ -450,7 +450,26 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
 
 
 void init_action_UCB(InformationSet& I, std::vector<std::vector<double>>& action_UCB, int depth, double gamma, int H) {
-    std::cout << "Depth: " << depth << std::endl;
+    std::vector<int> legal_actions;
+    I.get_actions(legal_actions);
+
+    # pragma omp parallel for num_threads(NUMBER_THREADS)
+    for (int a : legal_actions){
+        action_UCB[I.get_index()][a] = (1 - std::pow(gamma, H - depth)) / (1 - gamma);
+
+        std::unordered_set<std::string> cohort;
+        std::unordered_map<std::string, double> cohort_values;
+        get_cohort(I, a, cohort);
+
+        for (std::string I_prime_hash : cohort){
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+            init_action_UCB_single_threaded(I_prime, action_UCB, depth + 1, gamma, H);
+        }
+    }
+}
+
+
+void init_action_UCB_single_threaded(InformationSet& I, std::vector<std::vector<double>>& action_UCB, int depth, double gamma, int H) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
 
@@ -463,7 +482,7 @@ void init_action_UCB(InformationSet& I, std::vector<std::vector<double>>& action
 
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
-            init_action_UCB(I_prime, action_UCB, depth + 1, gamma, H);
+            init_action_UCB_single_threaded(I_prime, action_UCB, depth + 1, gamma, H);
         }
     }
 }

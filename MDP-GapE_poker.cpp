@@ -66,6 +66,11 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
             int b_t = 0;
             int c_t = 0;
             best_arm_identification(b_t, c_t, action, I, action_UCB, action_LCB, legal_actions);
+            std::cout << "Information Set: " << I.get_hash() << std::endl;
+            for (int a : legal_actions){
+                std::cout << "Action: " << a << " UCB: " << action_UCB[I.get_index()][a] << " LCB: " << action_LCB[I.get_index()][a] << std::endl;
+            }
+            std::cout << "Best action: " << b_t << " Challenger action: " << c_t << " Selected action: " << action << std::endl;
 
             // update player policy to best action
             std::vector<double>& prob_dist = player_policy.policy_dict[I.get_index()];
@@ -175,8 +180,6 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         int a = trajectory[h].second;
         double n_t = terminal_reach_count[I.get_index()][a];
 
-        // std::cout << "Updating bounds for infoset: " << I.get_hash() << " and action: " << a << std::endl;
-
         std::unordered_set<std::string> cohort;
         get_cohort(I, a, cohort);
 
@@ -246,11 +249,6 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
 
         action_UCB[I.get_index()][a] = p_plus.dot(u_next);
         action_LCB[I.get_index()][a] = p_minus.dot(l_next);
-
-        // std::cout << "Action UCB: " << action_UCB[I.get_index()][a] << std::endl;
-        // std::cout << "Action LCB: " << action_LCB[I.get_index()][a] << std::endl;
-        // std::cout << "Reward UCB: " << reward_UCB[I.get_index()][a] << std::endl;
-        // std::cout << "Reward LCB: " << reward_LCB[I.get_index()][a] << std::endl;
     }
 }
 
@@ -334,8 +332,6 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
 
         // sample game
         double reward = sample_terminal_history(I_1, I_2, I_2, 0, true_cards, player_policy, opponent_policy, start_history, trajectory, br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count, game);
-        // std::cout << "Received Reward: " << reward << " for history: ";
-        // start_history.print_history();
         // update bounds
         updateBounds(R, infoset_reach_count, terminal_reach_count, reward_UCB, reward_LCB, action_UCB, action_LCB, trajectory, br_player, eps, delta, gamma, H, B);
     }
