@@ -15,10 +15,44 @@ int sampleIndex(const std::vector<double>& probabilities) {
 }
 
 
+void best_arm_identification(int& b_t, int& c_t, int& selected_child, InformationSet& I, std::vector<std::vector<double>>& action_UCB, std::vector<std::vector<double>>& action_LCB, std::vector<int>& legal_actions) {
+    // best
+    double min_width = std::numeric_limits<double>::infinity();
+    for (int a : legal_actions){
+        double max_U_1 = 0.0;
+        for (int b : legal_actions){
+            if (b == a){ continue; }
+            else { if (action_UCB[I.get_index()][b] >= max_U_1){ max_U_1 = action_UCB[I.get_index()][b]; }}
+        }
+
+        if (max_U_1 - action_LCB[I.get_index()][a] <= min_width){
+            min_width = max_U_1 - action_LCB[I.get_index()][a];
+            b_t = a;
+        }
+    }
+    // std::cout << "Best action: " << b_t << std::endl;
+    // challenger
+    double max_U_1 = 0.0;
+    for (int a : legal_actions){
+        if (a == b_t){ continue; }
+        if (action_UCB[I.get_index()][a] >= max_U_1){
+            max_U_1 = action_UCB[I.get_index()][a];
+            c_t = a;
+        }
+    }
+    // std::cout << "Challenger action: " << c_t << std::endl;
+    // exploration
+    double width_b = action_UCB[I.get_index()][b_t] - action_LCB[I.get_index()][b_t];
+    double width_c = action_UCB[I.get_index()][c_t] - action_LCB[I.get_index()][c_t];
+    selected_child = width_b > width_c ? b_t : c_t;
+    // std::cout << "First action: " << first_action << std::endl;
+}
+
+
 double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, InformationSet prev_opponent_I, int prev_opponent_action,
                                PokerTable& true_cards, PolicyVec& player_policy, PolicyVec& opponent_policy, History& current_history, 
                                std::vector<std::pair<std::string, int>>& trajectory, char br_player, std::vector<std::vector<double>>& action_UCB, 
-                               std::vector<std::vector<double>>& action_LCB, int first_action, std::vector<std::vector<double>>& R, 
+                               std::vector<std::vector<double>>& action_LCB, int BAI_level, std::vector<std::vector<double>>& R, 
                                std::vector<int>& infoset_reach_count, std::vector<std::vector<int>>& terminal_reach_count, char game) {
     InformationSet I = true_cards.player_to_move == 'x' ? I_1 : I_2;
     int action;
@@ -28,7 +62,17 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
         I.get_actions(legal_actions);
         action = legal_actions[0];
 
-        if (first_action == -1){
+        if (trajectory.size() == BAI_level){
+            int b_t = 0;
+            int c_t = 0;
+            best_arm_identification(b_t, c_t, action, I, action_UCB, action_LCB, legal_actions);
+
+            // update player policy to best action
+            std::vector<double>& prob_dist = player_policy.policy_dict[I.get_index()];
+            for (int i = 0; i < prob_dist.size(); i++) { prob_dist[i] = 0.0; }
+            prob_dist[b_t] = 1.0;
+        }
+        else {
             // choose the action with the highest UCB
             double max_UCB = 0.0;
             for (int a : legal_actions) {
@@ -37,25 +81,20 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
                     action = a;
                 }
             }
-        }
-        else {
-            action = first_action;
-            first_action = -1;
-        }
 
-        double max_LCB = 0.0;
-        int max_LCB_action = legal_actions[0];
-        for (int a : legal_actions) {
-            if (action_LCB[I.get_index()][a] >= max_LCB) {
-                max_LCB = action_LCB[I.get_index()][a];
-                max_LCB_action = a;
+            double max_LCB = 0.0;
+            int max_LCB_action = legal_actions[0];
+            for (int a : legal_actions) {
+                if (action_LCB[I.get_index()][a] >= max_LCB) {
+                    max_LCB = action_LCB[I.get_index()][a];
+                    max_LCB_action = a;
+                }
             }
+            // update player policy
+            std::vector<double>& prob_dist = player_policy.policy_dict[I.get_index()];
+            for (int i = 0; i < prob_dist.size(); i++) { prob_dist[i] = 0.0; }
+            prob_dist[max_LCB_action] = 1.0;
         }
-        // update player policy
-        std::vector<double>& prob_dist = player_policy.policy_dict[I.get_index()];
-        for (int i = 0; i < prob_dist.size(); i++) { prob_dist[i] = 0.0; }
-        prob_dist[max_LCB_action] = 1.0;
-
         // update reach count
         infoset_reach_count[I.get_index()] += 1;
 
@@ -78,17 +117,17 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
 
             if (I.player == 'x') {
                 if (true_cards.player_to_move == 'x'){
-                    return sample_terminal_history(new_I, I_2, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+                    return sample_terminal_history(new_I, I_2, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count, game);
                 }
                 else {
-                    return sample_terminal_history(new_I, I_2, I, action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+                    return sample_terminal_history(new_I, I_2, I, action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count, game);
                 }
             } else {
                 if (true_cards.player_to_move == 'o'){
-                    return sample_terminal_history(I_1, new_I, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+                    return sample_terminal_history(I_1, new_I, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count, game);
                 }
                 else {
-                    return sample_terminal_history(I_1, new_I, I, action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+                    return sample_terminal_history(I_1, new_I, I, action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count, game);
                 }
             }
         } else {
@@ -117,9 +156,9 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
         current_history.history.push_back(action);
 
         if (I.player == 'x') {
-            return sample_terminal_history(new_I, I_2, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+            return sample_terminal_history(new_I, I_2, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count, game);
         } else {
-            return sample_terminal_history(I_1, new_I, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+            return sample_terminal_history(I_1, new_I, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count, game);
         }
     }
 }
@@ -268,10 +307,6 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
             std::cout << "Expected Utility: " << expected_utility << std::endl;
         }
 
-        int first_action = 0;
-        int b_t = 0;
-        int c_t = 0;
-
         std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
         int draw_index = distribution(generator);
        
@@ -293,51 +328,12 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
 
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
-        if (legal_actions.size() == 1){
-            first_action = legal_actions[0];
-            b_t = legal_actions[0];
-            c_t = legal_actions[0];
-        }
-        else {
-            // best
-            double min_width = 1.0;
-            for (int a : legal_actions){
-                double max_U_1 = 0.0;
-                for (int b : legal_actions){
-                    if (b == a){ continue; }
-                    else { if (action_UCB[I.get_index()][b] >= max_U_1){ max_U_1 = action_UCB[I.get_index()][b]; }}
-                }
-
-                if (max_U_1 - action_LCB[I.get_index()][a] <= min_width){
-                    min_width = max_U_1 - action_LCB[I.get_index()][a];
-                    b_t = a;
-                }
-            }
-            // std::cout << "Best action: " << b_t << std::endl;
-            // challenger
-            double max_U_1 = 0.0;
-            for (int a : legal_actions){
-                if (a == b_t){ continue; }
-                if (action_UCB[I.get_index()][a] >= max_U_1){
-                    max_U_1 = action_UCB[I.get_index()][a];
-                    c_t = a;
-                }
-            }
-            // std::cout << "Challenger action: " << c_t << std::endl;
-            // exploration
-            double width_b = action_UCB[I.get_index()][b_t] - action_LCB[I.get_index()][b_t];
-            double width_c = action_UCB[I.get_index()][c_t] - action_LCB[I.get_index()][c_t];
-            first_action = width_b > width_c ? b_t : c_t;
-            // std::cout << "First action: " << first_action << std::endl;
-        }
-
-        // update policy to best action 
-        std::vector<double>& prob_dist = player_policy.policy_dict[I.get_index()];
-        for (int i = 0; i < prob_dist.size(); i++) { prob_dist[i] = 0.0; }
-        prob_dist[b_t] = 1.0;
+        // if the first information set has only one action, then we set the BAI level to 1
+        int BAI_level = 0;
+        if (legal_actions.size() == 1){ BAI_level = 1; }
 
         // sample game
-        double reward = sample_terminal_history(I_1, I_2, I_2, 0, true_cards, player_policy, opponent_policy, start_history, trajectory, br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+        double reward = sample_terminal_history(I_1, I_2, I_2, 0, true_cards, player_policy, opponent_policy, start_history, trajectory, br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count, game);
         // std::cout << "Received Reward: " << reward << " for history: ";
         // start_history.print_history();
         // update bounds
@@ -363,7 +359,7 @@ int main(int argc, char* argv[]) {
     double gamma = 0.99;
     // instance specific constants
     int B = game == 'L'? 4 : 2; // max number of infosets in cohort
-    int H = game == 'L'? 6 : 4; // max depth of the game tree
+    int H = game == 'L'? 7 : 4; // max depth of the game tree
 
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;

@@ -450,6 +450,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
 
 
 void init_action_UCB(InformationSet& I, std::vector<std::vector<double>>& action_UCB, int depth, double gamma, int H) {
+    std::cout << "Depth: " << depth << std::endl;
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
 
