@@ -261,7 +261,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
     int action;
 
     if (I.player == br_player) { 
-        std::cout << "InfoSet: " << I.get_hash() << std::endl;
+        std::cout << "InfoSet: " << I.get_hash() << " Reach count: " << infoset_reach_count[I.get_index()] << std::endl;
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         action = legal_actions[0];
@@ -280,6 +280,10 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         else {
             action = first_action;
             first_action = -1;
+
+            for (int a : legal_actions) {
+                std::cout << "Action: " << a << " UCB: " << action_LCB[I.get_index()][a] << std::endl;
+            }
         }
 
         double max_LCB = 0.0;
@@ -450,12 +454,12 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
 
 void algorithm(double eps, double delta, int H, int B, char br_player, PolicyVec& player_policy, PolicyVec& opponent_policy, std::vector<std::string>& player_information_sets, int T, int log_freq){
     std::vector<std::vector<double>> R(player_information_sets.size(), std::vector<double>(13, 0.0));
-    std::vector<std::vector<double>> reward_UCB(player_information_sets.size(), std::vector<double>(13, 1.0));
+    std::vector<std::vector<double>> reward_UCB(player_information_sets.size(), std::vector<double>(13, std::numeric_limits<double>::infinity()));
     std::vector<std::vector<double>> reward_LCB(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<int> infoset_reach_count(player_information_sets.size(), 0);
     std::vector<std::vector<int>> terminal_reach_count(player_information_sets.size(), std::vector<int>(13, 0));
 
-    std::vector<std::vector<double>> action_UCB(player_information_sets.size(), std::vector<double>(13, 1.0));
+    std::vector<std::vector<double>> action_UCB(player_information_sets.size(), std::vector<double>(13, std::numeric_limits<double>::infinity()));
     std::vector<std::vector<double>> action_LCB(player_information_sets.size(), std::vector<double>(13, 0.0));
 
     for (int t = 1; t <= T; t++){
