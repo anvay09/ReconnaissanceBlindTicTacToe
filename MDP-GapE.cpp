@@ -501,7 +501,7 @@ void algorithm(double eps, double delta, int H, int B, char br_player, PolicyVec
         }
         else {
             // best
-            double min_width = 1.0;
+            double min_width = std::numeric_limits<double>::infinity();
             for (int a : legal_actions){
                 double max_U_1 = 0.0;
                 for (int b : legal_actions){
