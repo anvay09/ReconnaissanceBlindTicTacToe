@@ -16,19 +16,19 @@ int sampleIndex(const std::vector<double>& probabilities) {
 
 
 double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, InformationSet prev_opponent_I, int prev_opponent_action,
-                               PokerTable& true_cards, PolicyVec& player_policy, PolicyVec& opponent_policy, 
-                               History& current_history, std::vector<std::pair<std::string, int>>& trajectory, char br_player, 
-                               std::vector<std::vector<double>>& action_UCB, int first_action, std::vector<std::vector<double>>& R, 
+                               PokerTable& true_cards, PolicyVec& player_policy, PolicyVec& opponent_policy, History& current_history, 
+                               std::vector<std::pair<std::string, int>>& trajectory, char br_player, std::vector<std::vector<double>>& action_UCB, 
+                               std::vector<std::vector<double>>& action_LCB, int first_action, std::vector<std::vector<double>>& R, 
                                std::vector<int>& infoset_reach_count, std::vector<std::vector<int>>& terminal_reach_count, char game) {
     InformationSet I = true_cards.player_to_move == 'x' ? I_1 : I_2;
     int action;
 
     if (I.player == br_player) { 
-        if (first_action == -1){
-            std::vector<int> legal_actions;
-            I.get_actions(legal_actions);
-            action = legal_actions[0];
+        std::vector<int> legal_actions;
+        I.get_actions(legal_actions);
+        action = legal_actions[0];
 
+        if (first_action == -1){
             // choose the action with the highest UCB
             double max_UCB = 0.0;
             for (int a : legal_actions) {
@@ -43,14 +43,18 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
             first_action = -1;
         }
 
-        // update player policy
-        std::vector<double>& prob_dist = player_policy.policy_dict[I.get_index()];
-        for (int i = 0; i < prob_dist.size(); i++) {
-            if (i != action) {
-                prob_dist[i] = 0.0;
+        double max_LCB = 0.0;
+        int max_LCB_action = legal_actions[0];
+        for (int a : legal_actions) {
+            if (action_LCB[I.get_index()][a] >= max_LCB) {
+                max_LCB = action_LCB[I.get_index()][a];
+                max_LCB_action = a;
             }
         }
-        prob_dist[action] = 1.0;
+        // update player policy
+        std::vector<double>& prob_dist = player_policy.policy_dict[I.get_index()];
+        for (int i = 0; i < prob_dist.size(); i++) { prob_dist[i] = 0.0; }
+        prob_dist[max_LCB_action] = 1.0;
 
         // update reach count
         infoset_reach_count[I.get_index()] += 1;
@@ -74,17 +78,17 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
 
             if (I.player == 'x') {
                 if (true_cards.player_to_move == 'x'){
-                    return sample_terminal_history(new_I, I_2, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+                    return sample_terminal_history(new_I, I_2, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
                 }
                 else {
-                    return sample_terminal_history(new_I, I_2, I, action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+                    return sample_terminal_history(new_I, I_2, I, action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
                 }
             } else {
                 if (true_cards.player_to_move == 'o'){
-                    return sample_terminal_history(I_1, new_I, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+                    return sample_terminal_history(I_1, new_I, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
                 }
                 else {
-                    return sample_terminal_history(I_1, new_I, I, action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+                    return sample_terminal_history(I_1, new_I, I, action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
                 }
             }
         } else {
@@ -113,9 +117,9 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
         current_history.history.push_back(action);
 
         if (I.player == 'x') {
-            return sample_terminal_history(new_I, I_2, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+            return sample_terminal_history(new_I, I_2, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
         } else {
-            return sample_terminal_history(I_1, new_I, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+            return sample_terminal_history(I_1, new_I, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
         }
     }
 }
@@ -197,6 +201,11 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
 
         action_UCB[I.get_index()][a] = reward_UCB[I.get_index()][a] + p_plus.dot(u_next);
         action_LCB[I.get_index()][a] = reward_LCB[I.get_index()][a] + p_minus.dot(l_next);
+
+        // std::cout << "Action UCB: " << action_UCB[I.get_index()][a] << std::endl;
+        // std::cout << "Action LCB: " << action_LCB[I.get_index()][a] << std::endl;
+        // std::cout << "Reward UCB: " << reward_UCB[I.get_index()][a] << std::endl;
+        // std::cout << "Reward LCB: " << reward_LCB[I.get_index()][a] << std::endl;
     }
 }
 
@@ -290,7 +299,9 @@ void algorithm(double eps, double delta, int H, int B, char br_player, PolicyVec
         }
 
         // sample game
-        double reward = sample_terminal_history(I_1, I_2, I_2, 0, true_cards, player_policy, opponent_policy, start_history, trajectory, br_player, action_UCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+        double reward = sample_terminal_history(I_1, I_2, I_2, 0, true_cards, player_policy, opponent_policy, start_history, trajectory, br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count, game);
+        // std::cout << "Received Reward: " << reward << " for history: ";
+        // start_history.print_history();
         // update bounds
         updateBounds(R, infoset_reach_count, terminal_reach_count, reward_UCB, reward_LCB, action_UCB, action_LCB, trajectory, br_player, eps, delta, H, B);
     }
@@ -313,7 +324,7 @@ int main(int argc, char* argv[]) {
     int experiment_number = 1;
     // instance specific constants
     int B = game == 'L'? 4 : 2; // max number of infosets in cohort
-    int H = game == 'L'? 7 : 5; // max depth of the game tree
+    int H = game == 'L'? 6 : 4; // max depth of the game tree
 
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
