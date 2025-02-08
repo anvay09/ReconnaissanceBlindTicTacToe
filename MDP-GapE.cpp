@@ -354,7 +354,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
 
 void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset_reach_count, std::vector<std::vector<int>>& terminal_reach_count, 
                   std::vector<std::vector<double>>& reward_UCB, std::vector<std::vector<double>>& reward_LCB, std::vector<std::vector<double>>& action_UCB, 
-                  std::vector<std::vector<double>>& action_LCB, std::vector<std::pair<std::string, int>>& trajectory, char br_player, double eps, double delta, double gamma, int H, int B){
+                  std::vector<std::vector<double>>& action_LCB, std::vector<std::pair<std::string, int>>& trajectory, char br_player, double eps, double delta, double gamma, int H, int B, int t){
     int _H = trajectory.size();
 
     for (int h = _H-1; h >=0; h--){
@@ -363,7 +363,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         int a = trajectory[h].second;
         double n_t = terminal_reach_count[I.get_index()][a];
 
-        std::cout << "Updating bounds for: " << I.get_hash() << " " << a << " Index: " << I.get_index() << std::endl;
+        // std::cout << "Updating bounds for: " << I.get_hash() << " " << a << " Index: " << I.get_index() << std::endl;
         
         std::unordered_set<std::string> cohort;
         get_cohort(I, a, cohort);
@@ -381,9 +381,11 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
             n_t += infoset_reach_count[I_prime.get_index()];
         }
 
-        double beta_cnt = std::log(3.0 * std::pow(13 * B, H) / delta);
-        double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
-        double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
+        // double beta_cnt = std::log(3.0 * std::pow(13 * B, H) / delta);
+        // double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
+        // double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
+        double beta_r = 3.0 * std::log(1.0 + std::log(n_t)) + H * std::log(13.0) + std::log(1.0 / (1.0 - delta));
+        double beta_p = 0.1 * std::log(t);
 
         // std::cout << "Beta_r: " << beta_r << " Beta_p: " << beta_p << std::endl;
 
@@ -446,11 +448,11 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         // std::cout << "Reward UCB: " << reward_UCB[I.get_index()][a] << " Reward LCB: " << reward_LCB[I.get_index()][a] << std::endl;
         // std::cout << "Action UCB: " << action_UCB[I.get_index()][a] << " Action LCB: " << action_LCB[I.get_index()][a] << std::endl;
 
-        std::vector<int> legal_actions;
-        I.get_actions(legal_actions);
-        for (int _a : legal_actions){
-            std::cout << "Action: " << _a << " Action UCB: " << action_UCB[I.get_index()][_a] << " Action LCB: " << action_LCB[I.get_index()][_a] << std::endl;
-        }
+        // std::vector<int> legal_actions;
+        // I.get_actions(legal_actions);
+        // for (int _a : legal_actions){
+        //     std::cout << "Action: " << _a << " Action UCB: " << action_UCB[I.get_index()][_a] << " Action LCB: " << action_LCB[I.get_index()][_a] << std::endl;
+        // }
     }
 }
 
@@ -589,7 +591,7 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
         // current_history.print_history();
 
         // update bounds
-        updateBounds(R, infoset_reach_count, terminal_reach_count, reward_UCB, reward_LCB, action_UCB, action_LCB, trajectory, br_player, eps, delta, gamma, H, B);
+        updateBounds(R, infoset_reach_count, terminal_reach_count, reward_UCB, reward_LCB, action_UCB, action_LCB, trajectory, br_player, eps, delta, gamma, H, B, t);
     }
 }
 
