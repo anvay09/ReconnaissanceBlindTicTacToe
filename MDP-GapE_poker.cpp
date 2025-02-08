@@ -66,12 +66,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
             int b_t = 0;
             int c_t = 0;
             best_arm_identification(b_t, c_t, action, I, action_UCB, action_LCB, legal_actions);
-            std::cout << "Information Set: " << I.get_hash() << std::endl;
-            for (int a : legal_actions){
-                std::cout << "Action: " << a << " UCB: " << action_UCB[I.get_index()][a] << " LCB: " << action_LCB[I.get_index()][a] << std::endl;
-            }
-            std::cout << "Best action: " << b_t << " Challenger action: " << c_t << " Selected action: " << action << std::endl;
-
+            
             // update player policy to best action
             std::vector<double>& prob_dist = player_policy.policy_dict[I.get_index()];
             for (int i = 0; i < prob_dist.size(); i++) { prob_dist[i] = 0.0; }
@@ -272,7 +267,7 @@ void init_action_UCB(InformationSet& I, std::vector<std::vector<double>>& action
 }
 
 
-void algorithm(double eps, double delta, double gamma, int H, int B, char br_player, PolicyVec& player_policy, PolicyVec& opponent_policy, std::vector<std::string>& player_information_sets, int T, int log_freq, char game){
+void algorithm(double eps, double delta, double gamma, int H, int B, char br_player, PolicyVec& player_policy, PolicyVec& opponent_policy, std::vector<std::string>& player_information_sets, int T, int log_freq, char game, double br_value, int experiment_number){
     std::vector<std::vector<double>> R(player_information_sets.size(), std::vector<double>(6, 0.0));
     std::vector<std::vector<double>> reward_UCB(player_information_sets.size(), std::vector<double>(6, 1.0));
     std::vector<std::vector<double>> reward_LCB(player_information_sets.size(), std::vector<double>(6, 0.0));
@@ -281,6 +276,8 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
 
     std::vector<std::vector<double>> action_UCB(player_information_sets.size(), std::vector<double>(6, 1.0));
     std::vector<std::vector<double>> action_LCB(player_information_sets.size(), std::vector<double>(6, 0.0));
+
+    std::vector<std::pair<int, double>> exploitability_log; 
 
     std::vector<std::string>& unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
     std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
@@ -298,9 +295,11 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
             double expected_utility = 0.0;
             if (br_player == 'x'){
                 expected_utility = get_expected_utility_wrapper(player_policy, opponent_policy, game);
+                exploitability_log.push_back(std::make_pair(t, br_value - expected_utility));
             }
             else if (br_player == 'o'){
                 expected_utility = get_expected_utility_wrapper(opponent_policy, player_policy, game);
+                exploitability_log.push_back(std::make_pair(t, br_value - expected_utility));
             }
             std::cout << "Expected Utility: " << expected_utility << std::endl;
         }
@@ -335,6 +334,15 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
         // update bounds
         updateBounds(R, infoset_reach_count, terminal_reach_count, reward_UCB, reward_LCB, action_UCB, action_LCB, trajectory, br_player, eps, delta, gamma, H, B);
     }
+
+    std::cout << "Saving exploitability log" << std::endl;
+    std::string file_name = "data/gapE/" + std::string(1, br_player) + "_gapE_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+
+    std::ofstream f(file_name);
+    for (int i = 0; i < exploitability_log.size(); i++) {
+        f << exploitability_log[i].first << " " << exploitability_log[i].second << std::endl;
+    }
+    f.close();
 }
 
 
@@ -402,17 +410,18 @@ int main(int argc, char* argv[]) {
     std::cout << "----------- Expected Utility of Best Response: " << expected_utility << " -----------" << std::endl;
 
     while (experiment_number <= num_experiments){
+        std::cout << "----------- Experiment Number: " << experiment_number << " -----------" << std::endl;
         if (player == 'x'){
             PolicyVec uniform_policy_obj_x('x', P1_information_sets, game);
             PolicyVec player_br_policy = uniform_policy_obj_x;
-            algorithm(eps, delta, gamma, H, B, player, player_br_policy, policy_obj_o, P1_information_sets, num_iterations, log_freq, game);
-            save_map_txt(base_path + "MDP-GapE_" + std::string(1, game) + "_poker_" + std::string(1, player) + std::to_string(experiment_number) + ".txt", player_br_policy.policy_dict, P1_information_sets);
+            algorithm(eps, delta, gamma, H, B, player, player_br_policy, policy_obj_o, P1_information_sets, num_iterations, log_freq, game, expected_utility, experiment_number);
+            //save_map_txt(base_path + "MDP-GapE_" + std::string(1, game) + "_poker_" + std::string(1, player) + std::to_string(experiment_number) + ".txt", player_br_policy.policy_dict, P1_information_sets);
         }
         else if (player == 'o'){
             PolicyVec uniform_policy_obj_o('o', P2_information_sets, game);
             PolicyVec player_br_policy = uniform_policy_obj_o;
-            algorithm(eps, delta, gamma, H, B, player, player_br_policy, policy_obj_x, P2_information_sets, num_iterations, log_freq, game);
-            save_map_txt(base_path + "MDP-GapE_" + std::string(1, game) + "_poker_" + std::string(1, player) + std::to_string(experiment_number) + ".txt", player_br_policy.policy_dict, P2_information_sets);
+            algorithm(eps, delta, gamma, H, B, player, player_br_policy, policy_obj_x, P2_information_sets, num_iterations, log_freq, game, expected_utility, experiment_number);
+            //save_map_txt(base_path + "MDP-GapE_" + std::string(1, game) + "_poker_" + std::string(1, player) + std::to_string(experiment_number) + ".txt", player_br_policy.policy_dict, P2_information_sets);
         }
         experiment_number += 1;
     }

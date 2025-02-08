@@ -683,8 +683,14 @@ void History::get_information_sets(InformationSet &I_1, InformationSet &I_2) {
 }
 
 void History::print_history() {
+    int i = 0;
     for (int action : this->history) {
-        std::cout << action << " ";
+        if (i < 3) {
+            std::cout << (char) action << " ";
+        } else {
+            std::cout << action << " ";
+        }
+        i++;
     }
     std::cout << std::endl;
 }
