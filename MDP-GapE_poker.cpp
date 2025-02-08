@@ -112,6 +112,8 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
 
         char winner;
         if (success && !true_cards.is_win(winner) && !true_cards.is_over()) {
+            if (I.player == br_player) { R[I.get_index()][action] += 0.5; }
+
             InformationSet new_I = I;
             new_I.update_move(action);
 
@@ -166,7 +168,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
 
 void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset_reach_count, std::vector<std::vector<int>>& terminal_reach_count, 
                   std::vector<std::vector<double>>& reward_UCB, std::vector<std::vector<double>>& reward_LCB, std::vector<std::vector<double>>& action_UCB, 
-                  std::vector<std::vector<double>>& action_LCB, std::vector<std::pair<std::string, int>>& trajectory, char br_player, double eps, double delta, double gamma, int H, int B){
+                  std::vector<std::vector<double>>& action_LCB, std::vector<std::pair<std::string, int>>& trajectory, char br_player, double eps, double delta, double gamma, int H, int B, int t){
     int _H = trajectory.size();
 
     for (int h = _H-1; h >=0; h--){
@@ -191,9 +193,12 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
             n_t += infoset_reach_count[I_prime.get_index()];
         }
 
-        double beta_cnt = std::log(3.0 * std::pow(6 * B, H) / delta);
-        double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
-        double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
+        // double beta_cnt = std::log(3.0 * std::pow(6 * B, H) / delta);
+        // double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
+        // double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
+
+        double beta_r = 3.0 * std::log(1.0 + std::log(n_t)) + H * std::log(13.0) + std::log(1.0 / (1.0 - delta));
+        double beta_p = 0.1 * std::log(t);
 
         double mu_UCB = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, false);
         double mu_LCB = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, true);
@@ -332,7 +337,7 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
         // sample game
         double reward = sample_terminal_history(I_1, I_2, I_2, 0, true_cards, player_policy, opponent_policy, start_history, trajectory, br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count, game);
         // update bounds
-        updateBounds(R, infoset_reach_count, terminal_reach_count, reward_UCB, reward_LCB, action_UCB, action_LCB, trajectory, br_player, eps, delta, gamma, H, B);
+        updateBounds(R, infoset_reach_count, terminal_reach_count, reward_UCB, reward_LCB, action_UCB, action_LCB, trajectory, br_player, eps, delta, gamma, H, B, t);
     }
 
     std::cout << "Saving exploitability log" << std::endl;
