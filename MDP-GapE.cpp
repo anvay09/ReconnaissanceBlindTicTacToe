@@ -439,8 +439,8 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         action_UCB[I.get_index()][a] = reward_UCB[I.get_index()][a] + p_plus.dot(u_next);
         action_LCB[I.get_index()][a] = reward_LCB[I.get_index()][a] + p_minus.dot(l_next);
 
-        std::cout << "Reward UCB: " << reward_UCB[I.get_index()][a] << " Reward LCB: " << reward_LCB[I.get_index()][a] << std::endl;
-        std::cout << "Action UCB: " << action_UCB[I.get_index()][a] << " Action LCB: " << action_LCB[I.get_index()][a] << std::endl;
+        // std::cout << "Reward UCB: " << reward_UCB[I.get_index()][a] << " Reward LCB: " << reward_LCB[I.get_index()][a] << std::endl;
+        // std::cout << "Action UCB: " << action_UCB[I.get_index()][a] << " Action LCB: " << action_LCB[I.get_index()][a] << std::endl;
     }
 }
 
