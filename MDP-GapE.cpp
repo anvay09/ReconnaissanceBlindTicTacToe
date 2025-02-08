@@ -501,9 +501,11 @@ void algorithm(double eps, double delta, int H, int B, char br_player, PolicyVec
         }
         else {
             // best
+            std::cout << "--------- Root InfoSet: " << I.get_hash() << " ---------" << std::endl;
             double min_width = std::numeric_limits<double>::infinity();
             for (int a : legal_actions){
                 double max_U_1 = 0.0;
+                std::cout << "Action: " << a << " Q: " << action_UCB[I.get_index()][a] << " Reward: " << reward_UCB[I.get_index()][a] << std::endl;
                 for (int b : legal_actions){
                     if (b == a){ continue; }
                     else { if (action_UCB[I.get_index()][b] >= max_U_1){ max_U_1 = action_UCB[I.get_index()][b]; }}
@@ -558,7 +560,7 @@ int main(int argc, char* argv[]) {
 
     int experiment_number = 1;
     // instance specific constants
-    int B = 7; // max number of infosets in cohort
+    int B = 5; // max number of infosets in cohort
     int H = 9; // max horizon
 
     std::vector<std::string> P1_information_sets;
