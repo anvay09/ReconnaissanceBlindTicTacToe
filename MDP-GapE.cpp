@@ -394,8 +394,11 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         // std::cout << "Beta_r: " << beta_r << " Beta_p: " << beta_p << std::endl;
 
         // update reward bounds
-        reward_UCB[I.get_index()][a] = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, false);
-        reward_LCB[I.get_index()][a] = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, true);
+        double mu_UCB = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, false);
+        double mu_LCB = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, true);
+
+        reward_UCB[I.get_index()][a] = mu_UCB;
+        reward_LCB[I.get_index()][a] = mu_LCB;
 
         int i = 0;
         if (n_t == 0.0){
@@ -404,6 +407,8 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         else{
             p_hat[i] = (double) terminal_reach_count[I.get_index()][a] / n_t;
         }
+        u_next[i] = mu_UCB;
+        l_next[i] = mu_LCB;
 
         i += 1;
         for (std::string I_prime_hash : cohort){
@@ -424,10 +429,8 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
                 c_value_lower[j] = action_LCB[I_prime.get_index()][j];
             }
 
-            u_next[i] = c_value_upper.maxCoeff();
-            l_next[i] = c_value_lower.maxCoeff();
-
-            // std::cout << "P_hat: " << p_hat[i] << " U_next: " << u_next[i] << " L_next: " << l_next[i] << std::endl;
+            u_next[i] = mu_UCB + c_value_upper.maxCoeff();
+            l_next[i] = mu_LCB + c_value_lower.maxCoeff();
 
             i += 1;
         }
@@ -443,8 +446,8 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
 
         // std::cout << "P_minus: " << p_minus << std::endl;
         
-        action_UCB[I.get_index()][a] = reward_UCB[I.get_index()][a] + p_plus.dot(u_next);
-        action_LCB[I.get_index()][a] = reward_LCB[I.get_index()][a] + p_minus.dot(l_next);
+        action_UCB[I.get_index()][a] = p_plus.dot(u_next);
+        action_LCB[I.get_index()][a] = p_minus.dot(l_next);
 
         // std::cout << "Reward UCB: " << reward_UCB[I.get_index()][a] << " Reward LCB: " << reward_LCB[I.get_index()][a] << std::endl;
         // std::cout << "Action UCB: " << action_UCB[I.get_index()][a] << " Action LCB: " << action_LCB[I.get_index()][a] << std::endl;
@@ -454,12 +457,12 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
 
 void algorithm(double eps, double delta, int H, int B, char br_player, PolicyVec& player_policy, PolicyVec& opponent_policy, std::vector<std::string>& player_information_sets, int T, int log_freq){
     std::vector<std::vector<double>> R(player_information_sets.size(), std::vector<double>(13, 0.0));
-    std::vector<std::vector<double>> reward_UCB(player_information_sets.size(), std::vector<double>(13, 1000000.0));
+    std::vector<std::vector<double>> reward_UCB(player_information_sets.size(), std::vector<double>(13, 1.0));
     std::vector<std::vector<double>> reward_LCB(player_information_sets.size(), std::vector<double>(13, 0.0));
     std::vector<int> infoset_reach_count(player_information_sets.size(), 0);
     std::vector<std::vector<int>> terminal_reach_count(player_information_sets.size(), std::vector<int>(13, 0));
 
-    std::vector<std::vector<double>> action_UCB(player_information_sets.size(), std::vector<double>(13, 1000000.0));
+    std::vector<std::vector<double>> action_UCB(player_information_sets.size(), std::vector<double>(13, 1.0));
     std::vector<std::vector<double>> action_LCB(player_information_sets.size(), std::vector<double>(13, 0.0));
 
     for (int t = 1; t <= T; t++){
