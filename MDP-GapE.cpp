@@ -261,6 +261,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
     int action;
 
     if (I.player == br_player) { 
+        std::cout << "InfoSet: " << I.get_hash() << std::endl;
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         action = legal_actions[0];
@@ -269,6 +270,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             // choose the action with the highest UCB
             double max_UCB = 0.0;
             for (int a : legal_actions) {
+                std::cout << "Action: " << a << " UCB: " << action_UCB[I.get_index()][a] << std::endl;
                 if (action_UCB[I.get_index()][a] >= max_UCB) {
                     max_UCB = action_UCB[I.get_index()][a];
                     action = a;
@@ -283,6 +285,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         double max_LCB = 0.0;
         int max_LCB_action = legal_actions[0];
         for (int a : legal_actions) {
+            std::cout << "Action: " << a << " LCB: " << action_LCB[I.get_index()][a] << std::endl;
             if (action_LCB[I.get_index()][a] >= max_LCB) {
                 max_LCB = action_LCB[I.get_index()][a];
                 max_LCB_action = a;
