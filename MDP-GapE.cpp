@@ -261,7 +261,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
     int action;
 
     if (I.player == br_player) { 
-        std::cout << "InfoSet: " << I.get_hash() << " Reach count: " << infoset_reach_count[I.get_index()] << std::endl;
+        // std::cout << "InfoSet: " << I.get_hash() << " Reach count: " << infoset_reach_count[I.get_index()] << std::endl;
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         action = legal_actions[0];
@@ -270,7 +270,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             // choose the action with the highest UCB
             double max_UCB = 0.0;
             for (int a : legal_actions) {
-                std::cout << "Action: " << a << " UCB: " << action_UCB[I.get_index()][a] << std::endl;
+                // std::cout << "Action: " << a << " UCB: " << action_UCB[I.get_index()][a] << std::endl;
                 if (action_UCB[I.get_index()][a] >= max_UCB) {
                     max_UCB = action_UCB[I.get_index()][a];
                     action = a;
@@ -281,15 +281,15 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             action = first_action;
             first_action = -1;
 
-            for (int a : legal_actions) {
-                std::cout << "Action: " << a << " UCB: " << action_LCB[I.get_index()][a] << std::endl;
-            }
+            // for (int a : legal_actions) {
+            //     std::cout << "Action: " << a << " UCB: " << action_LCB[I.get_index()][a] << std::endl;
+            // }
         }
 
         double max_LCB = 0.0;
         int max_LCB_action = legal_actions[0];
         for (int a : legal_actions) {
-            std::cout << "Action: " << a << " LCB: " << action_LCB[I.get_index()][a] << std::endl;
+            // std::cout << "Action: " << a << " LCB: " << action_LCB[I.get_index()][a] << std::endl;
             if (action_LCB[I.get_index()][a] >= max_LCB) {
                 max_LCB = action_LCB[I.get_index()][a];
                 max_LCB_action = a;
@@ -369,11 +369,11 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         int a = trajectory[h].second;
         double n_t = terminal_reach_count[I.get_index()][a];
 
-        // std::cout << "Updating bounds for: " << I.get_hash() << " " << a << " Index: " << I.get_index() << std::endl;
+        std::cout << "Updating bounds for: " << I.get_hash() << " " << a << " Index: " << I.get_index() << std::endl;
         
         std::unordered_set<std::string> cohort;
         get_cohort(I, a, cohort);
-        // std::cout << "Cohort size: " << cohort.size() << std::endl;
+        std::cout << "Cohort size: " << cohort.size() << std::endl;
         // initialise p_hat as an Eigen vector
         Eigen::VectorXd p_hat(cohort.size() + 1);
         Eigen::VectorXd u_next(cohort.size() + 1);
@@ -391,7 +391,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
         double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
 
-        // std::cout << "Beta_r: " << beta_r << " Beta_p: " << beta_p << std::endl;
+        std::cout << "Beta_r: " << beta_r << " Beta_p: " << beta_p << std::endl;
 
         // update reward bounds
         double mu_UCB = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, false);
@@ -413,7 +413,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         i += 1;
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
-            // std::cout << "I_prime: " << I_prime.get_hash() << " Index: " << I_prime.get_index() << std::endl;
+            std::cout << "I_prime: " << I_prime.get_hash() << " Index: " << I_prime.get_index() << std::endl;
 
             if (n_t == 0.0){
                 p_hat[i] = 1.0 / (cohort.size() + 1);
@@ -449,8 +449,8 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         action_UCB[I.get_index()][a] = p_plus.dot(u_next);
         action_LCB[I.get_index()][a] = p_minus.dot(l_next);
 
-        // std::cout << "Reward UCB: " << reward_UCB[I.get_index()][a] << " Reward LCB: " << reward_LCB[I.get_index()][a] << std::endl;
-        // std::cout << "Action UCB: " << action_UCB[I.get_index()][a] << " Action LCB: " << action_LCB[I.get_index()][a] << std::endl;
+        std::cout << "Reward UCB: " << reward_UCB[I.get_index()][a] << " Reward LCB: " << reward_LCB[I.get_index()][a] << std::endl;
+        std::cout << "Action UCB: " << action_UCB[I.get_index()][a] << " Action LCB: " << action_LCB[I.get_index()][a] << std::endl;
     }
 }
 
