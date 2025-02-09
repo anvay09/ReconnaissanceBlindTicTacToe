@@ -140,16 +140,8 @@ def main(player):
     
     env = LeducPokerEnv(S, A, T, R, state_strings, player)
     
-    state, _ = env.reset()
-    env.render()
+    print("Environment initialized. Now run experiments using rl-agents experiments.py.")
     
-    done = False
-    while not done:
-        action = np.random.choice(A[state])
-        state, reward, done, _, _ = env.step(action)
-        env.render()
-    
-    print("Episode ended.")
     env.close()
     
 if __name__ == "__main__":
