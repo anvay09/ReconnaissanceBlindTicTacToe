@@ -262,6 +262,20 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // save S to file
+    std::ofstream S_file;
+    std::string S_file_name = player == 'x' ? "Leduc_Poker_S_x.txt" : "Leduc_Poker_S_o.txt";
+    S_file.open(S_file_name);
+    for (int i = 0; i < information_sets.size(); i++){
+        InformationSet I(player, get_move_flag(information_sets[i], player), information_sets[i], game);
+        if (I.get_hash() == "-"){ I.index = information_sets.size() - 1; }
+        S_file << I.get_index() << " " << I.get_hash() << std::endl;
+    }
+
+    S_file.close();
+    std::cout << "Finished saving state space." << std::endl;
+
+
     T_file.close();
     std::cout << "Finished saving transition function." << std::endl;
     information_sets.pop_back();
