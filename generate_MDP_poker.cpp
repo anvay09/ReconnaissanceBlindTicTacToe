@@ -249,11 +249,14 @@ int main(int argc, char* argv[]) {
     std::string T_file_name = player == 'x' ? "Leduc_Poker_T_x.txt" : "Leduc_Poker_T_o.txt";
     T_file.open(T_file_name);
     for (int i = 0; i < information_sets.size(); i++){
+        InformationSet I(player, get_move_flag(information_sets[i], player), information_sets[i], game);
         for (int a = 0; a < 6; a++){
             for (int j = 0; j < information_sets.size(); j++){
+                InformationSet J(player, get_move_flag(information_sets[j], player), information_sets[j], game);
+                if (J.get_hash() == "-"){ J.index = information_sets.size() - 1; }
                 if (T[i][a][j] != 0.0){
                     // T_file << information_sets[i] << " " << a << " " << information_sets[j] << " " << T[i][a][j] << std::endl;
-                    T_file << i << " " << a << " " << j << " " << T[i][a][j] << std::endl;
+                    T_file << I.get_index() << " " << a << " " << J.get_index() << " " << T[i][a][j] << std::endl;
                 }
             }
         }
@@ -269,11 +272,12 @@ int main(int argc, char* argv[]) {
     std::string R_file_name = player == 'x' ? "Leduc_Poker_R_x.txt" : "Leduc_Poker_R_o.txt";
     R_file.open(R_file_name);
     for (int i = 0; i < information_sets.size(); i++){
+        InformationSet I(player, get_move_flag(information_sets[i], player), information_sets[i], game);
         for (int a = 0; a < 6; a++){
             for (int j = 0; j < 2 * MAX_UTIL + 1; j++){
                 if (R[i][a][j] != 0.0){
                     // R_file << information_sets[i] << " " << a << " " << j - MAX_UTIL << " " << R[i][a][j] << std::endl;
-                    R_file << i << " " << a << " " << j - MAX_UTIL << " " << R[i][a][j] << std::endl;
+                    R_file << I.get_index() << " " << a << " " << j - MAX_UTIL << " " << R[i][a][j] << std::endl;
                 }
             }
         }
@@ -281,4 +285,22 @@ int main(int argc, char* argv[]) {
 
     R_file.close();
     std::cout << "Finished saving reward function." << std::endl;
+
+    // generate A file
+    std::ofstream A_file;
+    std::string A_file_name = player == 'x' ? "Leduc_Poker_A_x.txt" : "Leduc_Poker_A_o.txt";
+    A_file.open(A_file_name);
+    for (int i = 0; i < information_sets.size(); i++){
+        InformationSet I(player, get_move_flag(information_sets[i], player), information_sets[i], game);
+        std::vector<int> legal_actions;
+        I.get_actions(legal_actions);
+        A_file << I.get_index() << " ";
+        for (int a : legal_actions){
+            A_file << a << " ";
+        }
+        A_file << std::endl;
+    }
+
+    A_file.close();
+    std::cout << "Finished saving action file." << std::endl;
 }

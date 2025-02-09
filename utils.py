@@ -360,9 +360,9 @@ def random_dist(n):
 
 if __name__ == '__main__':
     # test kl upper bound   
-    _sum = 0.4615
-    count = 1
-    threshold = 27.34072137465
+    _sum = 418.23
+    count = 1089
+    threshold = 33.6424
     eps = 1e-2
     print(kl_upper_bound(_sum, count, threshold, eps, lower=False))
     print(kl_upper_bound(_sum, count, threshold, eps, lower=True))

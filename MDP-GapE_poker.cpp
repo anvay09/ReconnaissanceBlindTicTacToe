@@ -168,12 +168,12 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
 
 void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset_reach_count, std::vector<std::vector<int>>& terminal_reach_count, 
                   std::vector<std::vector<double>>& reward_UCB, std::vector<std::vector<double>>& reward_LCB, std::vector<std::vector<double>>& action_UCB, 
-                  std::vector<std::vector<double>>& action_LCB, std::vector<std::pair<std::string, int>>& trajectory, char br_player, double eps, double delta, double gamma, int H, int B, int t){
+                  std::vector<std::vector<double>>& action_LCB, std::vector<std::pair<std::string, int>>& trajectory, char br_player, double eps, double delta, double gamma, int H, int B, int t, char game){
     int _H = trajectory.size();
 
     for (int h = _H-1; h >=0; h--){
         std::string I_hash = trajectory[h].first;
-        InformationSet I = InformationSet(br_player, get_move_flag(I_hash, br_player), I_hash);
+        InformationSet I = InformationSet(br_player, get_move_flag(I_hash, br_player), I_hash, game);
         int a = trajectory[h].second;
         double n_t = terminal_reach_count[I.get_index()][a];
 
@@ -189,7 +189,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         l_next.setZero();
         
         for (std::string I_prime_hash : cohort){
-            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
             n_t += infoset_reach_count[I_prime.get_index()];
         }
 
@@ -218,7 +218,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
 
         i += 1;
         for (std::string I_prime_hash : cohort){
-            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
 
             if (n_t == 0.0){
                 p_hat[i] = 1.0 / (cohort.size() + 1);
@@ -253,7 +253,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
 }
 
 
-void init_action_UCB(InformationSet& I, std::vector<std::vector<double>>& action_UCB, int depth, double gamma, int H) {
+void init_action_UCB(InformationSet& I, std::vector<std::vector<double>>& action_UCB, int depth, double gamma, int H, char game) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
 
@@ -265,8 +265,8 @@ void init_action_UCB(InformationSet& I, std::vector<std::vector<double>>& action
         get_cohort(I, a, cohort);
 
         for (std::string I_prime_hash : cohort){
-            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
-            init_action_UCB(I_prime, action_UCB, depth + 1, gamma, H);
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
+            init_action_UCB(I_prime, action_UCB, depth + 1, gamma, H, game);
         }
     }
 }
@@ -291,7 +291,7 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
     for (char c : cards){
         std::string root_hash = br_player == 'x' ? "a-" + std::string(1, c) + "--" : "o-" + std::string(1, c) + "--";
         InformationSet root = br_player == 'x' ? InformationSet('x', true, root_hash, game) : InformationSet('o', false, root_hash, game);
-        init_action_UCB(root, action_UCB, 0, gamma, H);
+        init_action_UCB(root, action_UCB, 0, gamma, H, game);
     }
 
     for (int t = 1; t <= T; t++){
@@ -337,7 +337,7 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
         // sample game
         double reward = sample_terminal_history(I_1, I_2, I_2, 0, true_cards, player_policy, opponent_policy, start_history, trajectory, br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count, game);
         // update bounds
-        updateBounds(R, infoset_reach_count, terminal_reach_count, reward_UCB, reward_LCB, action_UCB, action_LCB, trajectory, br_player, eps, delta, gamma, H, B, t);
+        updateBounds(R, infoset_reach_count, terminal_reach_count, reward_UCB, reward_LCB, action_UCB, action_LCB, trajectory, br_player, eps, delta, gamma, H, B, t, game);
     }
 
     std::cout << "Saving exploitability log" << std::endl;
