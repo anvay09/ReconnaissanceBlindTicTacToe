@@ -3,21 +3,21 @@ from gymnasium import spaces
 import numpy as np
 from gymnasium.envs.registration import register
 
+
 class LeducPokerEnv(gym.Env):
     MAX_UTIL = 13
     
-    def __init__(self, **kwargs):
+    def __init__(self, env_config):
         super(LeducPokerEnv, self).__init__()
 
-        # Extract keyword arguments
-        self.states = kwargs["S"]
-        self.actions = kwargs["A"]
-        self.transition_function = kwargs["T"]
-        self.reward_function = kwargs["R"]
-        self.state_strings = kwargs["state_strings"]
-        self.player = kwargs["player"]
-        self.gamma = kwargs.get("gamma", 0.99)  # Default discount factor
-
+        # Extract environment configuration
+        self.states = env_config["S"]
+        self.actions = env_config["A"]
+        self.transition_function = env_config["T"]
+        self.reward_function = env_config["R"]
+        self.state_strings = env_config["state_strings"]
+        self.player = env_config["player"]
+        
         self.starting_states = [0, 48, 96] if self.player == 'x' else [144, 165, 186]
         
         self.state = None
@@ -32,7 +32,7 @@ class LeducPokerEnv(gym.Env):
         self.state = np.random.choice(self.starting_states)
         self.last_reward = None
         self.last_action = None
-        return self.state, {}
+        return self.state, {"valid_actions": self.actions[self.state]}
     
     def step(self, action):
         if action not in self.actions[self.state]:
@@ -60,14 +60,15 @@ class LeducPokerEnv(gym.Env):
         # Check if episode should terminate
         done = self.state_strings[self.state] == "-"
         
-        return next_state, reward, done, False, {}
+        return next_state, reward, done, False, {"valid_actions": self.actions[self.state]}
     
     def render(self):
         print(f"Current State: {self.state_strings[self.state]}, Last Action: {self.last_action}, Last Reward: {self.last_reward}")
     
     def close(self):
         pass
-    
+  
+
 # Parsing functions
 def parse_states(filename):
     states = []
