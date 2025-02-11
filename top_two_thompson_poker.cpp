@@ -338,7 +338,7 @@ void exploit_wrapper(InformationSet& I_1, PokerTable& true_cards, InformationSet
 
 double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, 
                                std::vector<std::vector<std::vector<int>>>& empirical_action_reward, 
-                               std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<double>& infoset_values) {
+                               std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<double>& infoset_values, char game) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
@@ -352,8 +352,8 @@ double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::ve
         int terminal_reach_count = action_terminal_reach_count[I.get_index()][a];
 
         for (std::string I_prime_hash : cohort){
-            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
-            cohort_values[I_prime_hash] = build_max_reward_policy(policy_obj, I_prime, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values);
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
+            cohort_values[I_prime_hash] = build_max_reward_policy(policy_obj, I_prime, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, game);
 
             norm += infoset_reach_count[I_prime.get_index()];
             action_values[a] += cohort_values[I_prime_hash] * infoset_reach_count[I_prime.get_index()]; 
@@ -421,7 +421,7 @@ double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::ve
 
 double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, 
                                          std::vector<std::vector<std::vector<int>>>& empirical_action_reward, 
-                                         std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<double>& infoset_values) {
+                                         std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<double>& infoset_values, char game) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
@@ -436,8 +436,8 @@ double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& 
         int terminal_reach_count = action_terminal_reach_count[I.get_index()][a];
 
         for (std::string I_prime_hash : cohort){
-            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
-            cohort_values[I_prime_hash] = build_max_reward_policy_dirichlet(policy_obj, I_prime, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values);
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
+            cohort_values[I_prime_hash] = build_max_reward_policy_dirichlet(policy_obj, I_prime, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, game);
 
             norm += infoset_reach_count[I_prime.get_index()];
         }
@@ -446,7 +446,7 @@ double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& 
         if (norm != 0){
             int index = 0;
             for (std::string I_prime_hash : cohort){
-                InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+                InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
                 alpha[index++] = infoset_reach_count[I_prime.get_index()] / norm;
             }
             alpha[index] = terminal_reach_count / norm;
@@ -455,7 +455,7 @@ double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& 
 
             index = 0;
             for (std::string I_prime_hash : cohort){
-                InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+                InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
                 action_values[a] += cohort_values[I_prime_hash] * samples[index++];
             }
             
@@ -522,7 +522,7 @@ double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& 
 
 double build_max_reward_policy_dirichlet_parallel(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, 
                                                   std::vector<std::vector<std::vector<int>>>& empirical_action_reward, 
-                                                  std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<double>& infoset_values) {
+                                                  std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<double>& infoset_values, char game) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
@@ -538,8 +538,8 @@ double build_max_reward_policy_dirichlet_parallel(PolicyVec& policy_obj, Informa
         int terminal_reach_count = action_terminal_reach_count[I.get_index()][a];
 
         for (std::string I_prime_hash : cohort){
-            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
-            cohort_values[I_prime_hash] = build_max_reward_policy_dirichlet(policy_obj, I_prime, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values);
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
+            cohort_values[I_prime_hash] = build_max_reward_policy_dirichlet(policy_obj, I_prime, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, game);
 
             norm += infoset_reach_count[I_prime.get_index()];
         }
@@ -548,7 +548,7 @@ double build_max_reward_policy_dirichlet_parallel(PolicyVec& policy_obj, Informa
         if (norm != 0){
             int index = 0;
             for (std::string I_prime_hash : cohort){
-                InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+                InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
                 alpha[index++] = infoset_reach_count[I_prime.get_index()] / norm;
             }
             alpha[index] = terminal_reach_count / norm;
@@ -557,7 +557,7 @@ double build_max_reward_policy_dirichlet_parallel(PolicyVec& policy_obj, Informa
 
             index = 0;
             for (std::string I_prime_hash : cohort){
-                InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+                InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
                 action_values[a] += cohort_values[I_prime_hash] * samples[index++];
             }
             
@@ -630,7 +630,7 @@ void logging(int t, int log_frequency, PolicyVec& br, PolicyVec& opponent_policy
             std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
             std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
             InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-            double root_val = build_max_reward_policy(br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values);    
+            double root_val = build_max_reward_policy(br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, game);    
         }
 
         double expected_utility = 0.0;
@@ -736,7 +736,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
             std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
             InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-            double root_val = build_max_reward_policy_dirichlet_parallel(br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values);    
+            double root_val = build_max_reward_policy_dirichlet_parallel(br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, game);    
         }
         
         while (areEqual(br, candidate_br)){
@@ -744,7 +744,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
                 std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
                 std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
                 InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-                double root_val = build_max_reward_policy_dirichlet_parallel(candidate_br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values);    
+                double root_val = build_max_reward_policy_dirichlet_parallel(candidate_br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, game);    
             }
         }
 
