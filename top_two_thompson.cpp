@@ -843,6 +843,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     PolicyVec candidate_br(br_player, player_information_sets);
     std::vector<std::pair<int, double>> exploitability_log; 
 
+    std::cout << "Building cohorts" << std::endl;
     // precompute cohorts
     std::vector<std::vector<std::unordered_set<std::string>>> cohorts(player_information_sets.size(), std::vector<std::unordered_set<std::string>>(13, std::unordered_set<std::string>()));
     #pragma omp parallel for num_threads(NUMBER_THREADS)
@@ -852,6 +853,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             get_cohort(I, a, cohorts[i][a]);
         }
     }
+    std::cout << "Cohorts built" << std::endl;
 
     int flag = 1;
     int t = 0;
