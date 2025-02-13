@@ -606,6 +606,8 @@ double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& 
 
     for (int a : legal_actions){
         std::unordered_set<std::string>& cohort = cohorts[I.get_index()][a];
+        std::cout << "Action: " << a << std::endl;
+        std::cout << "Cohort size: " << cohort.size() << std::endl;
         std::unordered_map<std::string, double> cohort_values;
 
         double norm = 0.0;
