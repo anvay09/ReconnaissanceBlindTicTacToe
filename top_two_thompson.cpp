@@ -856,8 +856,12 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     #pragma omp parallel for num_threads(NUMBER_THREADS)
     for (int i = 0; i < player_information_sets.size(); i++) {
         InformationSet I = br_player == 'x' ? InformationSet('x', true, player_information_sets[i]) : InformationSet('o', false, player_information_sets[i]);
-        for (int a = 0; a < 13; a++) {
-            get_cohort(I, a, cohorts[i][a]);
+        std::vector<int> legal_actions;
+        I.get_actions(legal_actions);
+        for (int a : legal_actions) {
+            std::unordered_set<std::string> cohort;
+            get_cohort(I, a, cohort);
+            cohorts[I.get_index()][a] = cohort;
         }
     }
     std::cout << "Cohorts built" << std::endl;
