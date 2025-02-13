@@ -526,6 +526,7 @@ double build_max_reward_policy_parallel(PolicyVec& policy_obj, InformationSet&I,
         int terminal_reach_count = action_terminal_reach_count[I.get_index()][a];
 
         for (std::string I_prime_hash : cohort){
+            std::cout << I_prime_hash << std::endl;
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
             cohort_values[I_prime_hash] = build_max_reward_policy(policy_obj, I_prime, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, cohorts);
 
