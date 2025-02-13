@@ -858,6 +858,20 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
     std::cout << "Cohorts built" << std::endl;
 
+    // check if cohorts are built correctly
+    for (int i = 0; i < player_information_sets.size(); i++) {
+        InformationSet I = br_player == 'x' ? InformationSet('x', true, player_information_sets[i]) : InformationSet('o', false, player_information_sets[i]);
+        std::vector<int> legal_actions;
+        I.get_actions(legal_actions);
+        for (int a : legal_actions) {
+            std::unordered_set<std::string>& cohort = cohorts[I.get_index()][a];
+            for (std::string I_prime_hash : cohort) {
+                InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+                std::cout << "Information set: " << I.get_index() << " Action: " << a << " Cohort: " << I_prime.get_index() << std::endl;
+            }
+        }
+    }
+
     int flag = 1;
     int t = 0;
     int k = 1;
