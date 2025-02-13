@@ -905,10 +905,12 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         InformationSet root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
         double root_val = build_max_reward_policy_dirichlet_parallel(br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, cohorts);    
      
+        std::cout << "Building candidate best response policy" << std::endl;
         while (areEqual(br, candidate_br)){
             hash = "";
             root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
             root_val = build_max_reward_policy_dirichlet_parallel(candidate_br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, cohorts);
+            std::cout << "Root value: " << root_val << std::endl;
         }
 
         // toss a coin
