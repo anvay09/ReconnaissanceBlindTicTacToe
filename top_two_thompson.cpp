@@ -907,24 +907,17 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         // logging
         logging(t, log_frequency, br, opponent_policy, br_player, exact_br_value, infoset_reach_count, exploitability_log, infoset_values, empirical_action_reward, action_terminal_reach_count, cohorts);
 
-        // start time 
-        auto start = std::chrono::high_resolution_clock::now();
+
         std::string hash = "";
         InformationSet root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
         double root_val = build_max_reward_policy_dirichlet_parallel(br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, cohorts);    
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop - start);
-        std::cout << "Time taken to build max reward policy: " << duration.count() << " seconds" << std::endl;
 
-        start = std::chrono::high_resolution_clock::now();
-        while (areEqual(br, candidate_br)){
+
+        do {
             hash = "";
             root = br_player == 'x' ? InformationSet('x', true, hash) : InformationSet('o', false, hash);
             root_val = build_max_reward_policy_dirichlet_parallel(candidate_br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, cohorts);
-        }
-        stop = std::chrono::high_resolution_clock::now();
-        duration = std::chrono::duration_cast<std::chrono::seconds>(stop - start);
-        std::cout << "Time taken to build candidate policy: " << duration.count() << " seconds" << std::endl;
+        } while (areEqual(br, candidate_br));
 
         // toss a coin
         std::vector<double> dist = {0.5, 0.5};
