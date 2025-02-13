@@ -602,6 +602,7 @@ double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& 
     I.get_actions(legal_actions);
     std::vector<double> action_values(13, 0.0);
     double infoset_value = -1.0;
+    std::cout << "I: " << I.get_hash() << std::endl;
 
     for (int a : legal_actions){
         std::unordered_set<std::string>& cohort = cohorts[I.get_index()][a];
@@ -628,6 +629,11 @@ double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& 
             alpha[index] = terminal_reach_count / norm;
 
             std::vector<double> samples = sample_dirichlet(alpha, generator);
+            std::cout << "Samples: ";
+            for (double s : samples){
+                std::cout << s << " ";
+            }
+            std::cout << std::endl;
 
             index = 0;
             for (std::string I_prime_hash : cohort){
