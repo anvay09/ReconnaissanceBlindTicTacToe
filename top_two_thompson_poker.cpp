@@ -739,14 +739,14 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             double root_val = build_max_reward_policy_dirichlet_parallel(br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, game);    
         }
         
-        while (areEqual(br, candidate_br)){
+        do {
             for (int card_index = 0; card_index < player_cards.size(); card_index++){
                 std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
                 std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
                 InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
                 double root_val = build_max_reward_policy_dirichlet_parallel(candidate_br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, game);    
             }
-        }
+        } while (areEqual(br, candidate_br));
 
         // toss a coin
         std::vector<double> dist = {0.5, 0.5};
