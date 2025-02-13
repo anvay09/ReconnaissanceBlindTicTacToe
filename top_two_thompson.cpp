@@ -867,7 +867,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             std::unordered_set<std::string>& cohort = cohorts[I.get_index()][a];
             for (std::string I_prime_hash : cohort) {
                 InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
-                std::cout << "Information set: " << I.get_index() << " Action: " << a << " Cohort: " << I_prime.get_index() << std::endl;
+                std::cout << "Information set: " << I.get_hash() << " Action: " << a << " Cohort: " << I_prime.get_hash() << std::endl;
             }
         }
     }
