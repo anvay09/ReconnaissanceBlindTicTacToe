@@ -31,6 +31,15 @@ std::vector<double> sample_dirichlet(const std::vector<double>& alpha, std::mt19
     return gamma_samples;
 }
 
+// Function to sample from Beta distribution
+double sample_beta(double alpha, double beta, std::mt19937& gen) {
+    std::gamma_distribution<double> gamma_alpha(alpha, 1.0);
+    std::gamma_distribution<double> gamma_beta(beta, 1.0);
+    double x = gamma_alpha(gen);
+    double y = gamma_beta(gen);
+    return x / (x + y);
+}
+
 
 bool areEqual(PolicyVec& a, PolicyVec& b){
     for (int i = 0; i < a.policy_dict.size(); i++){
@@ -459,13 +468,20 @@ double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& 
                 action_values[a] += cohort_values[I_prime_hash] * samples[index++];
             }
             
-            double terminal_value = (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) * samples[index];
+            int s = empirical_action_reward[I.get_index()][a][0] / terminal_reach_count;
+            int d = empirical_action_reward[I.get_index()][a][1] / terminal_reach_count;
+            int f = empirical_action_reward[I.get_index()][a][2] / terminal_reach_count;
+
+            double terminal_value_sample = sample_beta(s + 1, f + d + 1, generator);
+            // double terminal_value = (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) * samples[index];
+            double terminal_value = terminal_value_sample * samples[index];
             if (terminal_reach_count != 0){
-                action_values[a] += terminal_value / terminal_reach_count;
+                // action_values[a] += terminal_value / terminal_reach_count;
+                action_values[a] += terminal_value;
             }
         }
         else {
-            action_values[a] = I.game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
+            action_values[a] = I.game == 'L'? LEDUC_MAX_UTILITY : KUHN_MAX_UTILITY;
         }
     }
 
@@ -561,13 +577,20 @@ double build_max_reward_policy_dirichlet_parallel(PolicyVec& policy_obj, Informa
                 action_values[a] += cohort_values[I_prime_hash] * samples[index++];
             }
             
-            double terminal_value = (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) * samples[index];
+            int s = empirical_action_reward[I.get_index()][a][0] / terminal_reach_count;
+            int d = empirical_action_reward[I.get_index()][a][1] / terminal_reach_count;
+            int f = empirical_action_reward[I.get_index()][a][2] / terminal_reach_count;
+
+            double terminal_value_sample = sample_beta(s + 1, f + d + 1, generator);
+            // double terminal_value = (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) * samples[index];
+            double terminal_value = terminal_value_sample * samples[index];
             if (terminal_reach_count != 0){
-                action_values[a] += terminal_value / terminal_reach_count;
+                // action_values[a] += terminal_value / terminal_reach_count;
+                action_values[a] += terminal_value;
             }
         }
         else {
-            action_values[a] = I.game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
+            action_values[a] = I.game == 'L'? LEDUC_MAX_UTILITY : KUHN_MAX_UTILITY;
         }
     }
 
@@ -648,6 +671,7 @@ void logging(int t, int log_frequency, PolicyVec& br, PolicyVec& opponent_policy
 
         int count = 0;
         for (int i = 0; i < infoset_reach_count.size(); i++) {
+            // std::cout << "Information set: " << i << " Reach count: " << infoset_reach_count[i] << " Value: " << infoset_values[i] << std::endl;
             if (infoset_reach_count[i] > 0) {
                 count += 1;
             }
@@ -752,22 +776,53 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
             std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
             InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-            double root_val = build_max_reward_policy_dirichlet_parallel(br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, game, cohorts);    
+            double root_val = build_max_reward_policy_dirichlet(br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, game, cohorts);    
         }
-        
-        do {
-            for (int card_index = 0; card_index < player_cards.size(); card_index++){
-                std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
-                std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
-                InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-                double root_val = build_max_reward_policy_dirichlet_parallel(candidate_br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, game, cohorts);    
-            }
-        } while (areEqual(br, candidate_br));
+
+        // // print br policy
+        // std::cout << "Best response policy: ";
+        // for (int i = 0; i < player_information_sets.size(); i++) {
+        //     for (int j = 0; j < 6; j++) {
+        //         if (br.policy_dict[i][j] > 0.0) {
+        //             std::cout << j;
+        //         }
+        //     }
+        // }
+        // std::cout << std::endl;
 
         // toss a coin
         std::vector<double> dist = {0.5, 0.5};
         int head = sampleIndex(dist);
+        // std::cout << "Coin: " << head << std::endl;
 
+        if (head){
+            // int max_iter = 10;
+            // int iter = 0;
+            do {
+                for (int card_index = 0; card_index < player_cards.size(); card_index++){
+                    std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
+                    std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
+                    InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
+                    double root_val = build_max_reward_policy_dirichlet(candidate_br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, game, cohorts);    
+                }
+
+                // // print candidate br policy
+                // std::cout << "Candidate best response policy: ";
+                // for (int i = 0; i < player_information_sets.size(); i++) {
+                //     for (int j = 0; j < 6; j++) {
+                //         if (candidate_br.policy_dict[i][j] > 0.0) {
+                //             std::cout << j;
+                //         }
+                //     }
+                // }
+                // std::cout << std::endl;
+                // iter += 1;
+                // if (iter > max_iter){
+                //     break;
+                // }
+            } while (areEqual(br, candidate_br));
+        }
+        
         PolicyVec& policy_to_sample = head == 0 ? br : candidate_br;
 
         std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
