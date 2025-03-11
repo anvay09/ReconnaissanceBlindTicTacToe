@@ -468,9 +468,14 @@ double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& 
                 action_values[a] += cohort_values[I_prime_hash] * samples[index++];
             }
             
-            int s = empirical_action_reward[I.get_index()][a][0] / terminal_reach_count;
-            int d = empirical_action_reward[I.get_index()][a][1] / terminal_reach_count;
-            int f = empirical_action_reward[I.get_index()][a][2] / terminal_reach_count;
+            int s = 0;
+            int d = 0;
+            int f = 0;
+            if (terminal_reach_count != 0){
+                s = empirical_action_reward[I.get_index()][a][0] / terminal_reach_count;
+                d = empirical_action_reward[I.get_index()][a][1] / terminal_reach_count;
+                f = empirical_action_reward[I.get_index()][a][2] / terminal_reach_count;
+            }
 
             double terminal_value_sample = sample_beta(s + 1, f + d + 1, generator);
             // double terminal_value = (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) * samples[index];
@@ -577,10 +582,15 @@ double build_max_reward_policy_dirichlet_parallel(PolicyVec& policy_obj, Informa
                 action_values[a] += cohort_values[I_prime_hash] * samples[index++];
             }
             
-            int s = empirical_action_reward[I.get_index()][a][0] / terminal_reach_count;
-            int d = empirical_action_reward[I.get_index()][a][1] / terminal_reach_count;
-            int f = empirical_action_reward[I.get_index()][a][2] / terminal_reach_count;
-
+            int s = 0;
+            int d = 0;
+            int f = 0;
+            if (terminal_reach_count != 0){
+                s = empirical_action_reward[I.get_index()][a][0] / terminal_reach_count;
+                d = empirical_action_reward[I.get_index()][a][1] / terminal_reach_count;
+                f = empirical_action_reward[I.get_index()][a][2] / terminal_reach_count;
+            }
+        
             double terminal_value_sample = sample_beta(s + 1, f + d + 1, generator);
             // double terminal_value = (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) * samples[index];
             double terminal_value = terminal_value_sample * samples[index];
