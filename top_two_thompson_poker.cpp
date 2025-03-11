@@ -877,6 +877,7 @@ int main(int argc, char* argv[]) {
     int experiments = std::stoi(argv[7]);
     std::string exp_name = argv[8];
     int start_index = std::stoi(argv[9]);
+    NUMBER_THREADS = std::stoi(argv[10]);
     
     // load information sets
     std::vector<std::string> P1_information_sets;
