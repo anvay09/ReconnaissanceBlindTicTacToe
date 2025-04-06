@@ -81,10 +81,19 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
             // for (int i = 0; i < prob_dist.size(); i++) { prob_dist[i] = 0.0; }
             // prob_dist[max_LCB_action] = 1.0;
 
-            // update player policy to max UCB action
+            // update player policy to max reward action
+            double max_reward = 0.0;
+            int max_reward_action = legal_actions[0];
+            for (int a : legal_actions) {
+                if (R[I.get_index()][a] >= max_reward) {
+                    max_reward = R[I.get_index()][a];
+                    max_reward_action = a;
+                }
+            }
+
             std::vector<double>& prob_dist = player_policy.policy_dict[I.get_index()];
             for (int i = 0; i < prob_dist.size(); i++) { prob_dist[i] = 0.0; }
-            prob_dist[action] = 1.0;
+            prob_dist[max_reward_action] = 1.0;
         }
 
         // update reach count
