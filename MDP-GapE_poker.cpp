@@ -49,6 +49,13 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
         action = legal_actions[0];
 
         if (trajectory.size() == BAI_level){
+            // print trajectory
+            std::cout << "Trajectory: ";
+            for (const auto& t : trajectory) {
+                std::cout << "(" << t.first << ", " << t.second << ") ";
+            }
+            std::cout << std::endl;
+
             int b_t = 0;
             int c_t = 0;
             best_arm_identification(b_t, c_t, action, I, action_UCB, action_LCB, legal_actions);
@@ -68,32 +75,18 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
                 }
             }
 
-            // double max_LCB = 0.0;
-            // int max_LCB_action = legal_actions[0];
-            // for (int a : legal_actions) {
-            //     if (action_LCB[I.get_index()][a] >= max_LCB) {
-            //         max_LCB = action_LCB[I.get_index()][a];
-            //         max_LCB_action = a;
-            //     }
-            // }
-            // update player policy to max LCB action
-            // std::vector<double>& prob_dist = player_policy.policy_dict[I.get_index()];
-            // for (int i = 0; i < prob_dist.size(); i++) { prob_dist[i] = 0.0; }
-            // prob_dist[max_LCB_action] = 1.0;
-
-            // update player policy to max reward action
-            double max_reward = 0.0;
-            int max_reward_action = legal_actions[0];
+            double max_LCB = 0.0;
+            int max_LCB_action = legal_actions[0];
             for (int a : legal_actions) {
-                if (R[I.get_index()][a] >= max_reward) {
-                    max_reward = R[I.get_index()][a];
-                    max_reward_action = a;
+                if (action_LCB[I.get_index()][a] >= max_LCB) {
+                    max_LCB = action_LCB[I.get_index()][a];
+                    max_LCB_action = a;
                 }
             }
-
+            // update player policy to max LCB action
             std::vector<double>& prob_dist = player_policy.policy_dict[I.get_index()];
             for (int i = 0; i < prob_dist.size(); i++) { prob_dist[i] = 0.0; }
-            prob_dist[max_reward_action] = 1.0;
+            prob_dist[max_LCB_action] = 1.0;
         }
 
         // update reach count
