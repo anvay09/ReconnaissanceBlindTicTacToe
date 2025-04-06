@@ -275,7 +275,7 @@ void get_cohort(InformationSet I, int action, std::unordered_set<std::string> &c
 
 double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, PolicyVec& player_policy, PolicyVec& opponent_policy, 
                                History& current_history, std::vector<std::pair<std::string, int>>& trajectory, char player, char br_player, 
-                               std::vector<std::vector<double>>& action_UCB, std::vector<std::vector<double>>& action_LCB, int first_action, 
+                               std::vector<std::vector<double>>& action_UCB, std::vector<std::vector<double>>& action_LCB, int BAI_level, 
                                std::vector<std::vector<double>>& R, std::vector<int>& infoset_reach_count, std::vector<std::vector<int>>& terminal_reach_count) {
     InformationSet& I = player == 'x' ? I_1 : I_2;
     int action;
@@ -285,7 +285,17 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         I.get_actions(legal_actions);
         action = legal_actions[0];
 
-        if (first_action == -1){
+        if (trajectory.size() == BAI_level){
+            int b_t = 0;
+            int c_t = 0;
+            best_arm_identification(b_t, c_t, action, I, action_UCB, action_LCB, legal_actions);
+
+            // update player policy to the best action
+            std::vector<double>& prob_dist = player_policy.policy_dict[I.get_index()];
+            for (int i = 0; i < prob_dist.size(); i++) { prob_dist[i] = 0.0; }
+            prob_dist[b_t] = 1.0;
+        }
+        else {
             // choose the action with the highest UCB
             double max_UCB = 0.0;
             for (int a : legal_actions) {
@@ -309,10 +319,6 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             for (int i = 0; i < prob_dist.size(); i++) { prob_dist[i] = 0.0; }
             prob_dist[max_LCB_action] = 1.0;
         }
-        else {
-            action = first_action;
-            first_action = -1;
-        }
 
         // update reach count
         infoset_reach_count[I.get_index()] += 1;
@@ -331,16 +337,14 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
 
         char winner;
         if (success && !true_board.is_win(winner) && !true_board.is_over()) {
-            // if (player == br_player) { R[I.get_index()][action] += 0.5; }
-
             InformationSet new_I = I;
             new_I.update_move(action, player);
             new_I.reset_zeros();
 
             if (player == 'x') {
-                return sample_terminal_history(new_I, I_2, true_board, player_policy, opponent_policy, current_history, trajectory, 'o', br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count);
+                return sample_terminal_history(new_I, I_2, true_board, player_policy, opponent_policy, current_history, trajectory, 'o', br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count);
             } else {
-                return sample_terminal_history(I_1, new_I, true_board, player_policy, opponent_policy, current_history, trajectory, 'x', br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count);
+                return sample_terminal_history(I_1, new_I, true_board, player_policy, opponent_policy, current_history, trajectory, 'x', br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
@@ -366,9 +370,9 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         current_history.history.push_back(action);
 
         if (player == 'x') {
-            return sample_terminal_history(new_I, I_2, true_board, player_policy, opponent_policy, current_history, trajectory, 'x', br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count);
+            return sample_terminal_history(new_I, I_2, true_board, player_policy, opponent_policy, current_history, trajectory, 'x', br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count);
         } else {
-            return sample_terminal_history(I_1, new_I, true_board, player_policy, opponent_policy, current_history, trajectory, 'o', br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count);
+            return sample_terminal_history(I_1, new_I, true_board, player_policy, opponent_policy, current_history, trajectory, 'o', br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count);
         }
     }
 }
@@ -385,11 +389,8 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         int a = trajectory[h].second;
         double n_t = terminal_reach_count[I.get_index()][a];
 
-        // std::cout << "Updating bounds for: " << I.get_hash() << " " << a << " Index: " << I.get_index() << std::endl;
-        
         std::unordered_set<std::string> cohort;
         get_cohort(I, a, cohort);
-        // std::cout << "Cohort size: " << cohort.size() << std::endl;
         // initialise p_hat as an Eigen vector
         Eigen::VectorXd p_hat(cohort.size() + 1);
         Eigen::VectorXd u_next(cohort.size() + 1);
@@ -403,13 +404,11 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
             n_t += infoset_reach_count[I_prime.get_index()];
         }
 
-        // double beta_cnt = std::log(3.0 * std::pow(13 * B, H) / delta);
-        // double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
-        // double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
-        double beta_r = 3.0 * std::log(1.0 + std::log(n_t)) + H * std::log(13.0) + std::log(1.0 / (1.0 - delta));
-        double beta_p = 0.1 * std::log(t);
-
-        // std::cout << "Beta_r: " << beta_r << " Beta_p: " << beta_p << std::endl;
+        double beta_cnt = std::log(3.0 * std::pow(13 * B, H) / delta);
+        double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
+        double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
+        // double beta_r = 3.0 * std::log(1.0 + std::log(n_t)) + H * std::log(13.0) + std::log(1.0 / (1.0 - delta));
+        // double beta_p = 0.1 * std::log(t);
 
         // update reward bounds
         double mu_UCB = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, false);
@@ -431,7 +430,6 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         i += 1;
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
-            // std::cout << "I_prime: " << I_prime.get_hash() << " Index: " << I_prime.get_index() << std::endl;
 
             if (n_t == 0.0){
                 p_hat[i] = 1.0 / (cohort.size() + 1);
@@ -457,24 +455,10 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         // solve KL optimization problem
         // https://github.com/eleurent/rl-agents/blob/master/rl_agents/utils.py#L123
         Eigen::VectorXd p_plus = max_expectation_under_constraint(u_next, p_hat, beta_p / n_t, eps);
-
-        // std::cout << "P_plus: " << p_plus << std::endl;
-    
         Eigen::VectorXd p_minus = max_expectation_under_constraint( - l_next, p_hat, beta_p / n_t, eps);
 
-        // std::cout << "P_minus: " << p_minus << std::endl;
-        
         action_UCB[I.get_index()][a] = p_plus.dot(u_next);
         action_LCB[I.get_index()][a] = p_minus.dot(l_next);
-
-        // std::cout << "Reward UCB: " << reward_UCB[I.get_index()][a] << " Reward LCB: " << reward_LCB[I.get_index()][a] << std::endl;
-        // std::cout << "Action UCB: " << action_UCB[I.get_index()][a] << " Action LCB: " << action_LCB[I.get_index()][a] << std::endl;
-
-        // std::vector<int> legal_actions;
-        // I.get_actions(legal_actions);
-        // for (int _a : legal_actions){
-        //     std::cout << "Action: " << _a << " Action UCB: " << action_UCB[I.get_index()][_a] << " Action LCB: " << action_LCB[I.get_index()][_a] << std::endl;
-        // }
     }
 }
 
@@ -545,10 +529,6 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
             std::cout << "Expected Utility: " << expected_utility << std::endl;
         }
 
-        int first_action = 0;
-        int b_t = 0;
-        int c_t = 0;
-
         std::string board = "000000000";
         TicTacToeBoard true_board = TicTacToeBoard(board);
         std::string hash_1 = "";
@@ -563,25 +543,11 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
 
-        if (legal_actions.size() == 1){
-            first_action = legal_actions[0];
-            b_t = legal_actions[0];
-            c_t = legal_actions[0];
-        }
-        else {
-            best_arm_identification(b_t, c_t, first_action, I, action_UCB, action_LCB, legal_actions);
-        }
-        
-        // update policy to best action 
-        std::vector<double>& prob_dist = player_policy.policy_dict[I.get_index()];
-        for (int i = 0; i < prob_dist.size(); i++) { prob_dist[i] = 0.0; }
-        prob_dist[b_t] = 1.0;
+        int BAI_level = 0;
+        if (legal_actions.size() == 1){ BAI_level = 1;}
         
         // sample game
-        double reward = sample_terminal_history(I_1, I_2, true_board, player_policy, opponent_policy, current_history, trajectory, 'x', br_player, action_UCB, action_LCB, first_action, R, infoset_reach_count, terminal_reach_count);
-        // std::cout << "Reward: " << reward << std::endl;
-        // std::cout << "------------- History ------------" << std::endl;
-        // current_history.print_history();
+        double reward = sample_terminal_history(I_1, I_2, true_board, player_policy, opponent_policy, current_history, trajectory, 'x', br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count);
 
         // update bounds
         updateBounds(R, infoset_reach_count, terminal_reach_count, reward_UCB, reward_LCB, action_UCB, action_LCB, trajectory, br_player, eps, delta, gamma, H, B, t);
