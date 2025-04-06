@@ -47,21 +47,21 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
 
-        // print the infoset, and the LCB, reward and UCB for each action
-        std::cout << "Infoset: " << I.get_hash();
-        std::cout << " Actions: ";
-        for (int a : legal_actions) {
-            std::cout << a << " ";
-            std::cout << "LCB: " << action_LCB[I.get_index()][a] << " ";
-            if (terminal_reach_count[I.get_index()][a] == 0) {
-                std::cout << "Reward: 0.0 ";
-            }
-            else {
-                std::cout << "Reward: " << R[I.get_index()][a] / terminal_reach_count[I.get_index()][a] << " ";
-            }
-            std::cout << "UCB: " << action_UCB[I.get_index()][a] << " ";
-        }
-        std::cout << std::endl;
+        // // print the infoset, and the LCB, reward and UCB for each action
+        // std::cout << "Infoset: " << I.get_hash();
+        // std::cout << " Actions: ";
+        // for (int a : legal_actions) {
+        //     std::cout << a << " ";
+        //     std::cout << "LCB: " << action_LCB[I.get_index()][a] << " ";
+        //     if (terminal_reach_count[I.get_index()][a] == 0) {
+        //         std::cout << "Reward: 0.0 ";
+        //     }
+        //     else {
+        //         std::cout << "Reward: " << R[I.get_index()][a] / terminal_reach_count[I.get_index()][a] << " ";
+        //     }
+        //     std::cout << "UCB: " << action_UCB[I.get_index()][a] << " ";
+        // }
+        // std::cout << std::endl;
 
         action = legal_actions[0];
 
