@@ -195,12 +195,12 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
             n_t += infoset_reach_count[I_prime.get_index()];
         }
 
-        // double beta_cnt = std::log(3.0 * std::pow(6 * B, H) / delta);
-        // double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
-        // double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
+        double beta_cnt = std::log(3.0 * std::pow(6 * B, H) / delta);
+        double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
+        double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
 
-        double beta_r = 3.0 * std::log(1.0 + std::log(n_t)) + H * std::log(13.0) + std::log(1.0 / (1.0 - delta));
-        double beta_p = 0.1 * std::log(t);
+        // double beta_r = 3.0 * std::log(1.0 + std::log(n_t)) + H * std::log(13.0) + std::log(1.0 / (1.0 - delta));
+        // double beta_p = 0.1 * std::log(t);
 
         double mu_UCB = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, false);
         double mu_LCB = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, true);
