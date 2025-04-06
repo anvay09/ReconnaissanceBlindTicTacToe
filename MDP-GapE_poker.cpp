@@ -17,35 +17,52 @@ int sampleIndex(const std::vector<double>& probabilities) {
 
 void best_arm_identification(int& b_t, int& c_t, int& selected_child, InformationSet& I, std::vector<std::vector<double>>& action_UCB, std::vector<std::vector<double>>& action_LCB, std::vector<int>& legal_actions) {
     // best
-    double min_width = std::numeric_limits<double>::infinity();
-    for (int a : legal_actions){
-        double max_U_1 = 0.0;
-        for (int b : legal_actions){
-            if (b == a){ continue; }
-            else { if (action_UCB[I.get_index()][b] >= max_U_1){ max_U_1 = action_UCB[I.get_index()][b]; }}
-        }
+    // double min_width = std::numeric_limits<double>::infinity();
+    // for (int a : legal_actions){
+    //     double max_U_1 = 0.0;
+    //     for (int b : legal_actions){
+    //         if (b == a){ continue; }
+    //         else { if (action_UCB[I.get_index()][b] >= max_U_1){ max_U_1 = action_UCB[I.get_index()][b]; }}
+    //     }
 
-        if (max_U_1 - action_LCB[I.get_index()][a] <= min_width){
-            min_width = max_U_1 - action_LCB[I.get_index()][a];
+    //     if (max_U_1 - action_LCB[I.get_index()][a] <= min_width){
+    //         min_width = max_U_1 - action_LCB[I.get_index()][a];
+    //         b_t = a;
+    //     }
+    // }
+    // // std::cout << "Best action: " << b_t << std::endl;
+    // // challenger
+    // double max_U_1 = 0.0;
+    // for (int a : legal_actions){
+    //     if (a == b_t){ continue; }
+    //     if (action_UCB[I.get_index()][a] >= max_U_1){
+    //         max_U_1 = action_UCB[I.get_index()][a];
+    //         c_t = a;
+    //     }
+    // }
+    // std::cout << "Challenger action: " << c_t << std::endl;
+    // exploration
+    // double width_b = action_UCB[I.get_index()][b_t] - action_LCB[I.get_index()][b_t];
+    // double width_c = action_UCB[I.get_index()][c_t] - action_LCB[I.get_index()][c_t];
+    // selected_child = width_b > width_c ? b_t : c_t;
+    // std::cout << "First action: " << first_action << std::endl;
+
+    double highest_U = 0.0;
+    double second_highest_U = 0.0;
+    for (int a : legal_actions) {
+        if (action_UCB[I.get_index()][a] > highest_U) {
+            second_highest_U = highest_U;
+            highest_U = action_UCB[I.get_index()][a];
             b_t = a;
-        }
-    }
-    // std::cout << "Best action: " << b_t << std::endl;
-    // challenger
-    double max_U_1 = 0.0;
-    for (int a : legal_actions){
-        if (a == b_t){ continue; }
-        if (action_UCB[I.get_index()][a] >= max_U_1){
-            max_U_1 = action_UCB[I.get_index()][a];
+        } else if (action_UCB[I.get_index()][a] > second_highest_U) {
+            second_highest_U = action_UCB[I.get_index()][a];
             c_t = a;
         }
     }
-    // std::cout << "Challenger action: " << c_t << std::endl;
-    // exploration
+
     double width_b = action_UCB[I.get_index()][b_t] - action_LCB[I.get_index()][b_t];
     double width_c = action_UCB[I.get_index()][c_t] - action_LCB[I.get_index()][c_t];
     selected_child = width_b > width_c ? b_t : c_t;
-    // std::cout << "First action: " << first_action << std::endl;
 }
 
 
