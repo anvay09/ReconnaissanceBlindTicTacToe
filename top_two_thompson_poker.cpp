@@ -53,169 +53,11 @@ bool areEqual(PolicyVec& a, PolicyVec& b){
 }
 
 
-int explore(InformationSet& I_1, InformationSet& I_2, InformationSet previous_opponent_I, int prev_opponent_action, PokerTable& true_cards, History& current_history, char br_player, 
-            PolicyVec& opponent_policy, std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, int m, 
-            std::vector<int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_terminal_reach_count) {
+void sample_game(InformationSet& I_1, InformationSet& I_2, InformationSet previous_opponent_I, int prev_opponent_action, PokerTable& true_cards, History& current_history, char br_player, 
+            PolicyVec& policy_obj, PolicyVec& opponent_policy, std::vector<int>& infoset_reach_count, std::vector<std::vector<std::unordered_map<int, int>>>& empirical_action_reward, 
+            std::vector<std::vector<int>>& action_terminal_reach_count) {
     InformationSet I = true_cards.player_to_move == 'x' ? I_1 : I_2;
     int action = 0;
-    int terminal_flag = 0;
-    int is_child_infoset_ticked = 0;
-    
-    if (br_player == I.player){
-        infoset_reach_count[I.get_index()] += 1;
-
-        std::vector<int> legal_actions;
-        I.get_actions(legal_actions);
-        std::vector<int> A;
-        std::vector<double> prob_dist(6, 0.0); 
-
-        for (int a : legal_actions){
-            if (I_a_tickmark[I.get_index()][a] < m){
-                A.push_back(a);
-            }
-        }
-
-        if (A.size() == 0){
-            for (int a : legal_actions){
-                prob_dist[a] = 1.0/legal_actions.size();
-            }
-        }
-        else{
-            for (int a : A){
-                prob_dist[a] = 1.0/A.size();
-            }
-        }
-
-        action = sampleIndex(prob_dist);
-    }
-    else {
-        std::vector<double>& prob_dist = opponent_policy.policy_dict[I.get_index()];
-        action = sampleIndex(prob_dist);
-    }
-
-    if (I.move_flag) {
-        PokerTable new_cards = true_cards;
-        bool success = new_cards.update_move(action);
-        current_history.history.push_back(action);
-
-        char winner;
-        if (success && !new_cards.is_win(winner) && !new_cards.is_over()) {
-            InformationSet new_I = I;
-            new_I.update_move(action);
-
-            if (I.player == 'x') {
-                if (new_cards.player_to_move == 'x') {
-                    is_child_infoset_ticked = explore(new_I, I_2, previous_opponent_I, prev_opponent_action, new_cards, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
-                }
-                else {
-                    is_child_infoset_ticked = explore(new_I, I_2, I, action, new_cards, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
-                }
-
-                
-            } else {
-                if (new_cards.player_to_move == 'o') {
-                    is_child_infoset_ticked = explore(I_1, new_I, previous_opponent_I, prev_opponent_action, new_cards, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
-                }
-                else {
-                    is_child_infoset_ticked = explore(I_1, new_I, I, action, new_cards, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
-                }
-            }
-        } else {
-            TerminalHistory H_T = TerminalHistory(current_history.history);
-            H_T.set_reward(I.game);
-            int r = br_player == 'x' ? H_T.reward[0] : H_T.reward[1];
-            terminal_flag = 1;
-
-            // update action pull count and empirical action reward only when action leads to terminal state
-            if (I.player == br_player){
-                action_terminal_reach_count[I.get_index()][action] += 1;
-                if (r > 0){
-                    empirical_action_reward[I.get_index()][action][0] += r;
-                }
-                else if (r == 0){
-                    empirical_action_reward[I.get_index()][action][1] += 1;
-                }
-                else if (r < 0){
-                    empirical_action_reward[I.get_index()][action][2] += (-1 * r);
-                }
-            }
-            else {
-                action_terminal_reach_count[previous_opponent_I.get_index()][prev_opponent_action] += 1;
-
-                if (r > 0){
-                    empirical_action_reward[previous_opponent_I.get_index()][prev_opponent_action][0] += r;
-                }
-                else if (r == 0){
-                    empirical_action_reward[previous_opponent_I.get_index()][prev_opponent_action][1] += 1;
-                }
-                else if (r < 0){
-                    empirical_action_reward[previous_opponent_I.get_index()][prev_opponent_action][2] += (-1 * r);
-                }
-            }
-
-            reward = (double) r;
-        }
-    }
-    else {
-        InformationSet new_I = I;
-        PokerTable new_board = true_cards;
-        new_I.simulate_sense(action, new_board);
-        current_history.history.push_back(action);
-
-        if (I.player == 'x') {
-            is_child_infoset_ticked = explore(new_I, I_2, previous_opponent_I, prev_opponent_action, new_board, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
-        } else {
-            is_child_infoset_ticked = explore(I_1, new_I, previous_opponent_I, prev_opponent_action, new_board, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
-        }
-    }
-
-    if (I.player == br_player){
-        if (terminal_flag == 1 || is_child_infoset_ticked == 1){
-            I_a_tickmark[I.get_index()][action] += 1;
-        }
-  
-        std::vector<int> legal_actions;
-        I.get_actions(legal_actions);
-
-        int count = 0;
-        for (int a : legal_actions){
-            if (I_a_tickmark[I.get_index()][a] >= m){
-                count += 1;
-            }
-        }
-
-        if (count == legal_actions.size()){
-            I_tickmark[I.get_index()] += 1;
-            return 1;
-        }
-        else {
-            return 0;
-        }
-    }
-    else {
-        if (terminal_flag == 1 || is_child_infoset_ticked == 1){
-            return 1;
-        }
-        else {
-            return 0;
-        }
-    }
-}
-
-
-void explore_wrapper(InformationSet& I_1, PokerTable& true_cards, InformationSet& I_2, std::vector<std::vector<int>>& I_a_tickmark, std::vector<int>& I_tickmark, double& reward, PolicyVec& opponent_policy, History& current_history, char br_player, int m, 
-                     std::vector<int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, std::vector<std::vector<int>>& action_terminal_reach_count) {
-    explore(I_1, I_2, I_2, 0, true_cards, current_history, br_player, opponent_policy, I_a_tickmark, I_tickmark, reward, m, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
-}
-
-
-int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_opponent_I, int prev_opponent_action, PokerTable& true_cards, History& current_history, char br_player, 
-            PolicyVec& policy_obj, PolicyVec& opponent_policy, std::vector<int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, 
-            std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<int>& I_tickmark, std::vector<std::vector<int>>& I_a_tickmark) {
-    InformationSet I = true_cards.player_to_move == 'x' ? I_1 : I_2;
-    int action = 0;
-    int terminal_flag = 0;
-    int is_child_infoset_ticked = 0;
     
     if (br_player == I.player){
         infoset_reach_count[I.get_index()] += 1;
@@ -239,50 +81,34 @@ int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
 
             if (I.player == 'x') {
                 if (new_board.player_to_move == 'x') {
-                    is_child_infoset_ticked = exploit(new_I, I_2, previous_opponent_I, prev_opponent_action, new_board, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
+                    sample_game(new_I, I_2, previous_opponent_I, prev_opponent_action, new_board, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
                 }
                 else {
-                    is_child_infoset_ticked = exploit(new_I, I_2, I, action, new_board, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
+                    sample_game(new_I, I_2, I, action, new_board, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
                 }
             } else {
                 if (new_board.player_to_move == 'o') {
-                    is_child_infoset_ticked = exploit(I_1, new_I, previous_opponent_I, prev_opponent_action, new_board, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
+                    sample_game(I_1, new_I, previous_opponent_I, prev_opponent_action, new_board, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
                 }
                 else {
-                    is_child_infoset_ticked = exploit(I_1, new_I, I, action, new_board, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
+                    sample_game(I_1, new_I, I, action, new_board, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
                 }
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
             H_T.set_reward(I.game);
             int r = br_player == 'x' ? H_T.reward[0] : H_T.reward[1];
-            terminal_flag = 1;
 
             // update action pull count and empirical action reward only when action leads to terminal state
             if (I.player == br_player){
                 action_terminal_reach_count[I.get_index()][action] += 1;        
-                if (r > 0){
-                    empirical_action_reward[I.get_index()][action][0] += r;
-                }
-                else if (r == 0){
-                    empirical_action_reward[I.get_index()][action][1] += 1;
-                }
-                else if (r < 0){
-                    empirical_action_reward[I.get_index()][action][2] += (-1 * r);
-                }
+                std::unordered_map<int, int>& action_reward = empirical_action_reward[I.get_index()][action];
+                action_reward[r] += 1;
             }
             else {
                 action_terminal_reach_count[previous_opponent_I.get_index()][prev_opponent_action] += 1;
-                
-                if (r > 0){
-                    empirical_action_reward[previous_opponent_I.get_index()][prev_opponent_action][0] += r;
-                }
-                else if (r == 0){
-                    empirical_action_reward[previous_opponent_I.get_index()][prev_opponent_action][1] += 1;
-                }
-                else if (r < 0){
-                    empirical_action_reward[previous_opponent_I.get_index()][prev_opponent_action][2] += (-1 * r);
-                }
+                std::unordered_map<int, int>& action_reward = empirical_action_reward[previous_opponent_I.get_index()][prev_opponent_action];
+                action_reward[r] += 1;
             }
         }
     }
@@ -293,60 +119,27 @@ int exploit(InformationSet& I_1, InformationSet& I_2, InformationSet previous_op
         current_history.history.push_back(action);
 
         if (I.player == 'x') {
-            is_child_infoset_ticked = exploit(new_I, I_2, previous_opponent_I, prev_opponent_action, new_board, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
+            sample_game(new_I, I_2, previous_opponent_I, prev_opponent_action, new_board, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
         } else {
-            is_child_infoset_ticked = exploit(I_1, new_I, previous_opponent_I, prev_opponent_action, new_board, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
-        }
-    }
-
-    if (I.player == br_player){
-        if (terminal_flag == 1 || is_child_infoset_ticked == 1){
-            I_a_tickmark[I.get_index()][action] += 1;
-        }
-  
-        std::vector<int> legal_actions;
-        I.get_actions(legal_actions);
-
-        int count = 0;
-        for (int a : legal_actions){
-            if (I_a_tickmark[I.get_index()][a] >= 1){
-                count += 1;
-            }
-        }
-
-        if (count == legal_actions.size()){
-            I_tickmark[I.get_index()] += 1;
-            return 1;
-        }
-        else {
-            return 0;
-        }
-    }
-    else {
-        if (terminal_flag == 1 || is_child_infoset_ticked == 1){
-            return 1;
-        }
-        else {
-            return 0;
+            sample_game(I_1, new_I, previous_opponent_I, prev_opponent_action, new_board, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
         }
     }
 }
 
 
-void exploit_wrapper(InformationSet& I_1, PokerTable& true_cards, InformationSet& I_2, PolicyVec& policy_obj, PolicyVec& opponent_policy, History& current_history, char br_player, 
-                     std::vector<int>& infoset_reach_count, std::vector<std::vector<std::vector<int>>>& empirical_action_reward, 
-                     std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<int>& I_tickmark, std::vector<std::vector<int>>& I_a_tickmark) {
+void sample_game_wrapper(InformationSet& I_1, PokerTable& true_cards, InformationSet& I_2, PolicyVec& policy_obj, PolicyVec& opponent_policy, History& current_history, char br_player, 
+                     std::vector<int>& infoset_reach_count, std::vector<std::vector<std::unordered_map<int, int>>>& empirical_action_reward, 
+                     std::vector<std::vector<int>>& action_terminal_reach_count) {
     if (br_player == 'x'){
-        exploit(I_1, I_2, I_2, 0, true_cards, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
+        sample_game(I_1, I_2, I_2, 0, true_cards, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
     }
     else {
-        exploit(I_1, I_2, I_1, 0, true_cards, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
+        sample_game(I_1, I_2, I_1, 0, true_cards, current_history, br_player, policy_obj, opponent_policy, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
     }
 }
 
 
-double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, 
-                               std::vector<std::vector<std::vector<int>>>& empirical_action_reward, 
+double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, std::vector<std::vector<std::unordered_map<int, int>>>& empirical_action_reward, 
                                std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<double>& infoset_values, char game, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
@@ -369,7 +162,13 @@ double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::ve
         }
 
         norm += terminal_reach_count;
-        action_values[a] += empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2];
+        std::unordered_map<int, int>& action_reward = empirical_action_reward[I.get_index()][a];
+        double action_value = 0.0;
+        for (auto& [r, count] : action_reward){
+            action_value += r * count;
+        }
+
+        action_values[a] += action_value;
         if (norm != 0){
             action_values[a] /= norm;
         }
@@ -428,8 +227,7 @@ double build_max_reward_policy(PolicyVec& policy_obj, InformationSet& I, std::ve
 }
 
 
-double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, 
-                                         std::vector<std::vector<std::vector<int>>>& empirical_action_reward, 
+double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, std::vector<std::vector<std::unordered_map<int, int>>>& empirical_action_reward, 
                                          std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<double>& infoset_values, char game, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
@@ -456,9 +254,9 @@ double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& 
             int index = 0;
             for (std::string I_prime_hash : cohort){
                 InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
-                alpha[index++] = infoset_reach_count[I_prime.get_index()] / norm;
+                alpha[index++] = infoset_reach_count[I_prime.get_index()];
             }
-            alpha[index] = terminal_reach_count / norm;
+            alpha[index] = terminal_reach_count;
 
             std::vector<double> samples = sample_dirichlet(alpha, generator);
 
@@ -468,20 +266,22 @@ double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& 
                 action_values[a] += cohort_values[I_prime_hash] * samples[index++];
             }
             
-            int s = 0;
-            int d = 0;
-            int f = 0;
             if (terminal_reach_count != 0){
-                s = empirical_action_reward[I.get_index()][a][0] / terminal_reach_count;
-                d = empirical_action_reward[I.get_index()][a][1] / terminal_reach_count;
-                f = empirical_action_reward[I.get_index()][a][2] / terminal_reach_count;
-            }
+                std::vector<double> reward_values;
+                std::vector<double> reward_frequency;
+                for (auto& [r, count] : empirical_action_reward[I.get_index()][a]){
+                    reward_values.push_back(r);
+                    reward_frequency.push_back(((double) count));
+                }
 
-            double terminal_value_sample = sample_beta(s + 1, f + d + 1, generator);
-            // double terminal_value = (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) * samples[index];
-            double terminal_value = terminal_value_sample * samples[index];
-            if (terminal_reach_count != 0){
-                // action_values[a] += terminal_value / terminal_reach_count;
+                std::vector<double> reward_samples = sample_dirichlet(reward_frequency, generator);
+                double terminal_value_sample = 0.0;
+
+                for (int i = 0; i < reward_values.size(); i++){
+                    terminal_value_sample += reward_values[i] * reward_samples[i];
+                }
+
+                double terminal_value = terminal_value_sample * samples[index];
                 action_values[a] += terminal_value;
             }
         }
@@ -540,9 +340,7 @@ double build_max_reward_policy_dirichlet(PolicyVec& policy_obj, InformationSet& 
 }
 
 
-
-double build_max_reward_policy_dirichlet_parallel(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, 
-                                                  std::vector<std::vector<std::vector<int>>>& empirical_action_reward, 
+double build_max_reward_policy_dirichlet_parallel(PolicyVec& policy_obj, InformationSet& I, std::vector<int>& infoset_reach_count, std::vector<std::vector<std::unordered_map<int, int>>>& empirical_action_reward,
                                                   std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<double>& infoset_values, char game, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
@@ -570,9 +368,9 @@ double build_max_reward_policy_dirichlet_parallel(PolicyVec& policy_obj, Informa
             int index = 0;
             for (std::string I_prime_hash : cohort){
                 InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
-                alpha[index++] = infoset_reach_count[I_prime.get_index()] / norm;
+                alpha[index++] = infoset_reach_count[I_prime.get_index()];
             }
-            alpha[index] = terminal_reach_count / norm;
+            alpha[index] = terminal_reach_count;
 
             std::vector<double> samples = sample_dirichlet(alpha, generator);
 
@@ -582,20 +380,22 @@ double build_max_reward_policy_dirichlet_parallel(PolicyVec& policy_obj, Informa
                 action_values[a] += cohort_values[I_prime_hash] * samples[index++];
             }
             
-            int s = 0;
-            int d = 0;
-            int f = 0;
             if (terminal_reach_count != 0){
-                s = empirical_action_reward[I.get_index()][a][0] / terminal_reach_count;
-                d = empirical_action_reward[I.get_index()][a][1] / terminal_reach_count;
-                f = empirical_action_reward[I.get_index()][a][2] / terminal_reach_count;
-            }
-        
-            double terminal_value_sample = sample_beta(s + 1, f + d + 1, generator);
-            // double terminal_value = (empirical_action_reward[I.get_index()][a][0] - empirical_action_reward[I.get_index()][a][2]) * samples[index];
-            double terminal_value = terminal_value_sample * samples[index];
-            if (terminal_reach_count != 0){
-                // action_values[a] += terminal_value / terminal_reach_count;
+                std::vector<double> reward_values;
+                std::vector<double> reward_frequency;
+                for (auto& [r, count] : empirical_action_reward[I.get_index()][a]){
+                    reward_values.push_back(r);
+                    reward_frequency.push_back(((double) count));
+                }
+
+                std::vector<double> reward_samples = sample_dirichlet(reward_frequency, generator);
+                double terminal_value_sample = 0.0;
+
+                for (int i = 0; i < reward_values.size(); i++){
+                    terminal_value_sample += reward_values[i] * reward_samples[i];
+                }
+
+                double terminal_value = terminal_value_sample * samples[index];
                 action_values[a] += terminal_value;
             }
         }
@@ -655,7 +455,7 @@ double build_max_reward_policy_dirichlet_parallel(PolicyVec& policy_obj, Informa
 
 
 void logging(int t, int log_frequency, PolicyVec& br, PolicyVec& opponent_policy, char br_player, double exact_br_value, std::vector<int>& infoset_reach_count, 
-             std::vector<std::pair<int, double>>& exploitability_log, char game, std::vector<double>& infoset_values, std::vector<std::vector<std::vector<int>>>& empirical_action_reward,
+             std::vector<std::pair<int, double>>& sample_gameability_log, char game, std::vector<double>& infoset_values, std::vector<std::vector<std::unordered_map<int, int>>>& empirical_action_reward,
              std::vector<std::vector<int>>& action_terminal_reach_count, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
     if (t % log_frequency == 0 && t != 0) { 
         std::vector<char> player_cards = {'J', 'Q', 'K'};
@@ -667,44 +467,38 @@ void logging(int t, int log_frequency, PolicyVec& br, PolicyVec& opponent_policy
         }
 
         double expected_utility = 0.0;
-        double exploitability = 0.0;
+        double sample_gameability = 0.0;
     
         if (br_player == 'x') {
             expected_utility = get_expected_utility_wrapper(br, opponent_policy, game);
-            exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
+            sample_gameability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
         } 
         else {
             expected_utility = get_expected_utility_wrapper(opponent_policy, br, game);
-            exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
+            sample_gameability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
         }
         std::cout << "Expected utility of best response policy: " << expected_utility << std::endl;
-
-        int count = 0;
-        for (int i = 0; i < infoset_reach_count.size(); i++) {
-            // std::cout << "Information set: " << i << " Reach count: " << infoset_reach_count[i] << " Value: " << infoset_values[i] << std::endl;
-            if (infoset_reach_count[i] > 0) {
-                count += 1;
-            }
-        }
-
-        std::cout << "Number of information sets visited: " << count << std::endl;
         std::cout << "Number of games sampled so far: " << t << std::endl;
     }
 }
 
 
 void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, int m, PolicyVec& br, int experiment_number, char game, int iterations, std::string& exp_name) {    
-    std::vector<std::vector<int>> I_a_tickmark(player_information_sets.size(), std::vector<int>(6, 0));
-    std::vector<int> I_tickmark(player_information_sets.size(), 0);
-
-    std::vector<int> infoset_reach_count(player_information_sets.size(), 0);
+    std::vector<int> infoset_reach_count(player_information_sets.size(), 1);
     std::vector<double> infoset_values(player_information_sets.size(), 0.0);
 
-    std::vector<std::vector<std::vector<int>>> empirical_action_reward(player_information_sets.size(), std::vector<std::vector<int>>(6, std::vector<int>(3, 0)));
-    std::vector<std::vector<int>> action_terminal_reach_count(player_information_sets.size(), std::vector<int>(6, 0));
+    std::unordered_map<int, int> reward_map;
+    int MIN_UTILITY = game == 'L' ? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
+    int MAX_UTILITY = game == 'L' ? LEDUC_MAX_UTILITY : KUHN_MAX_UTILITY;
+    for (int i = MIN_UTILITY; i <= MAX_UTILITY; i++) {
+        reward_map[i] = 1;
+    }
+
+    std::vector<std::vector<std::unordered_map<int, int>>> empirical_action_reward(player_information_sets.size(), std::vector<std::unordered_map<int, int>>(6, reward_map));
+    std::vector<std::vector<int>> action_terminal_reach_count(player_information_sets.size(), std::vector<int>(6, 1));
 
     PolicyVec candidate_br(br_player, player_information_sets, game);
-    std::vector<std::pair<int, double>> exploitability_log; 
+    std::vector<std::pair<int, double>> sample_gameability_log; 
 
     std::vector<std::string>& unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
     std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
@@ -724,10 +518,7 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         }
     }
     std::cout << "Cohorts built" << std::endl;
-
-    int flag = 1;
     int t = 0;
-    int k = 1;
 
     PolicyVec exact_br(br_player, player_information_sets, game);
     compute_best_response_wrapper(opponent_policy, exact_br, br_player, game);
@@ -740,46 +531,9 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     }
     std::cout << "Exact best response value: " << exact_br_value << std::endl;
 
-    while (flag){ 
-        std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
-        int draw_index = distribution(generator);
-       
-        std::string cards = unique_draws[draw_index];
-        PokerTable true_cards = PokerTable(cards);
-        true_cards.game = game;
-        std::string hash_1 = "a-" + std::string(1, cards[0]) + "--";
-        std::string hash_2 = "o-" + std::string(1, cards[1]) + "--";
-        InformationSet I_1 = InformationSet('x', true, hash_1, game);
-        InformationSet I_2 = InformationSet('o', false, hash_2, game);
-
-        std::vector<int> h = {};
-        h.push_back(cards[0]);
-        h.push_back(cards[1]);
-        h.push_back(cards[2]); 
-        TerminalHistory start_history = TerminalHistory(h);
-        double reward = 0.0;
-        explore_wrapper(I_1, true_cards, I_2, I_a_tickmark, I_tickmark, reward, opponent_policy, start_history, br_player, k, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
-
-        t += 1;
-
-        InformationSet I = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-        if (I_tickmark[I.get_index()] == k){
-            k += 1;
-            if (k > m){
-                flag = 0;
-            }
-        }
-
-        if (t % log_frequency == 0){
-            std:: cout << "Number of games sampled so far: " << t << std::endl;
-        }
-    }
-
-    std::cout << "Total number of games sampled for pulling each policy " << m << " times: " << t << std::endl;
-    
     while (t <= iterations) {
         // logging
-        logging(t, log_frequency, br, opponent_policy, br_player, exact_br_value, infoset_reach_count, exploitability_log, game, infoset_values, empirical_action_reward, action_terminal_reach_count, cohorts);
+        logging(t, log_frequency, br, opponent_policy, br_player, exact_br_value, infoset_reach_count, sample_gameability_log, game, infoset_values, empirical_action_reward, action_terminal_reach_count, cohorts);
 
         std::vector<char> player_cards = {'J', 'Q', 'K'};
         for (int card_index = 0; card_index < player_cards.size(); card_index++){
@@ -789,25 +543,13 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
             double root_val = build_max_reward_policy_dirichlet(br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, game, cohorts);    
         }
 
-        // // print br policy
-        // std::cout << "Best response policy: ";
-        // for (int i = 0; i < player_information_sets.size(); i++) {
-        //     for (int j = 0; j < 6; j++) {
-        //         if (br.policy_dict[i][j] > 0.0) {
-        //             std::cout << j;
-        //         }
-        //     }
-        // }
-        // std::cout << std::endl;
-
         // toss a coin
         std::vector<double> dist = {0.5, 0.5};
         int head = sampleIndex(dist);
-        // std::cout << "Coin: " << head << std::endl;
 
         if (head){
-            // int max_iter = 10;
-            // int iter = 0;
+            int max_iter = 10;
+            int iter = 0;
             do {
                 for (int card_index = 0; card_index < player_cards.size(); card_index++){
                     std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
@@ -815,21 +557,10 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
                     InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
                     double root_val = build_max_reward_policy_dirichlet(candidate_br, root, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, infoset_values, game, cohorts);    
                 }
-
-                // // print candidate br policy
-                // std::cout << "Candidate best response policy: ";
-                // for (int i = 0; i < player_information_sets.size(); i++) {
-                //     for (int j = 0; j < 6; j++) {
-                //         if (candidate_br.policy_dict[i][j] > 0.0) {
-                //             std::cout << j;
-                //         }
-                //     }
-                // }
-                // std::cout << std::endl;
-                // iter += 1;
-                // if (iter > max_iter){
-                //     break;
-                // }
+                if (iter == max_iter){
+                    break;
+                }
+                iter += 1;
             } while (areEqual(br, candidate_br));
         }
         
@@ -851,16 +582,16 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
         h.push_back(cards[2]); 
         TerminalHistory start_history = TerminalHistory(h);
 
-        exploit_wrapper(I_1, true_cards, I_2, policy_to_sample, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count, I_tickmark, I_a_tickmark);
+        sample_game_wrapper(I_1, true_cards, I_2, policy_to_sample, opponent_policy, start_history, br_player, infoset_reach_count, empirical_action_reward, action_terminal_reach_count);
         t += 1;
     }
 
-    std::cout << "Saving exploitability log" << std::endl;
-    std::string file_name = "data/bandit/" + exp_name + "_" + std::string(1, game) + "_poker_" + std::string(1, br_player) +  "_top_two_thompson_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::cout << "Saving sample_gameability log" << std::endl;
+    std::string file_name = "data/bandit/" + exp_name + "_" + std::string(1, game) + "_poker_" + std::string(1, br_player) +  "_top_two_thompson_sample_gameability_log_" + std::to_string(experiment_number) + ".txt";
 
     std::ofstream f(file_name);
-    for (int i = 0; i < exploitability_log.size(); i++) {
-        f << exploitability_log[i].first << " " << exploitability_log[i].second << std::endl;
+    for (int i = 0; i < sample_gameability_log.size(); i++) {
+        f << sample_gameability_log[i].first << " " << sample_gameability_log[i].second << std::endl;
     }
     f.close();
 }

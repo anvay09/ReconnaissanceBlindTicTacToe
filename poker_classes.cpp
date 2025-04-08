@@ -888,3 +888,43 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& 
 
     return policy_list;
 }
+
+
+Sequence::Sequence() {
+    this->seq = std::vector<std::pair<std::string, int>>();
+    this->r = 0.0;
+    this->p = 0.0;
+    this->ucb_r = 1.0;
+    this->ucb_p = 1.0;
+    this->n = 0;
+    this->n_pi = 0;
+}
+
+Sequence::Sequence(std::vector<std::pair<std::string, int>> seq, double r, double p, double ucb_r, double ucb_p, int n, int n_pi) {
+    this->seq = seq;
+    this->r = r;
+    this->p = p;
+    this->ucb_r = ucb_r;
+    this->ucb_p = ucb_p;
+    this->n = n;
+    this->n_pi = n_pi;
+}
+
+bool Sequence::operator==(const Sequence &other) {
+    return this->seq == other.seq && this->r == other.r && this->p == other.p && this->ucb_r == other.ucb_r && this->ucb_p == other.ucb_p && this->n == other.n && this->n_pi == other.n_pi;
+}
+
+void Sequence::operator=(const Sequence &other) {
+    this->seq = other.seq;
+    this->r = other.r;
+    this->p = other.p;
+    this->ucb_r = other.ucb_r;
+    this->ucb_p = other.ucb_p;
+    this->n = other.n;
+    this->n_pi = other.n_pi;
+}
+
+void Sequence::extend(InformationSet &I, int action) {
+    std::pair<std::string, int> new_node = std::make_pair(I.get_hash(), action);
+    this->seq.push_back(new_node);
+}
