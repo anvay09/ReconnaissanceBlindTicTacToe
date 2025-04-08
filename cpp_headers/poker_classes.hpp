@@ -152,10 +152,12 @@ class Sequence
         double ucb_p; // upper confidence bound on probability
         int n; // number of times this sequence has been sampled
         int n_pi; // number of times a policy that could have generated this sequence has been sampled
+        std::string hash; // a sequence can be uniquely identified by the last (I, action) pair
         Sequence();
-        Sequence(std::vector<std::pair<std::string, int>> seq, double r, double p, double ucb_r, double ucb_p, int n, int n_pi);
+        Sequence(std::vector<std::pair<std::string, int>> seq, double r, double p, double ucb_r, double ucb_p, int n, int n_pi, std::string hash);
         void operator=(const Sequence &other);
         bool operator==(const Sequence &other);
+        void update_hash();
         void extend(InformationSet& I, int action);
 };
 

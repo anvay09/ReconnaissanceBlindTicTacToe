@@ -997,10 +997,10 @@ void update_max_UCB_policy_given_history(InformationSet& I, PokerTable& true_car
 }
 
 
-void get_terminal_sequences(InformationSet& I, Sequence& trajectory, std::vector<Sequence>& terminal_sequences, char game) {
+void get_terminal_sequences(InformationSet& I, Sequence& trajectory, std::vector<Sequence>& terminal_sequences, std::unordered_map<std::string, int>& sequence_hash_to_index_map, char game) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
-
+    
     for (int a : legal_actions){
         Sequence new_trajectory = trajectory;
         new_trajectory.extend(I, a);
@@ -1010,25 +1010,63 @@ void get_terminal_sequences(InformationSet& I, Sequence& trajectory, std::vector
 
         if (cohort.size() == 0){
             terminal_sequences.push_back(new_trajectory);
+            sequence_hash_to_index_map[new_trajectory.hash] = terminal_sequences.size() - 1;
         }
         else {
             for (std::string I_prime_hash : cohort){
                 InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
-                get_terminal_sequences(I_prime, new_trajectory, terminal_sequences, game);
+                get_terminal_sequences(I_prime, new_trajectory, terminal_sequences, sequence_hash_to_index_map, game);
             }
         }
     }
 }
 
 
-void get_terminal_sequences_wrapper(std::vector<Sequence>& terminal_sequences, char game, char br_player) {
+void get_terminal_sequences_wrapper(std::vector<Sequence>& terminal_sequences, char game, char br_player, std::unordered_map<std::string, int>& sequence_hash_to_index_map) {
     std::vector<char> player_cards = {'J', 'Q', 'K'};
     for (int card_index = 0; card_index < player_cards.size(); card_index++){
         std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
         std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
         InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
         Sequence empty_sequence = Sequence();
-        get_terminal_sequences(root, empty_sequence, terminal_sequences, game);
+        get_terminal_sequences(root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, game);
+    }
+}
+
+
+void get_policy_sequences(PolicyVec& policy_obj, InformationSet& I, Sequence& trajectory, std::vector<int>& policy_sequences, char game, std::unordered_map<std::string, int>& sequence_hash_to_index_map){
+    std::vector<int> legal_actions;
+    I.get_actions_given_policy(legal_actions, policy_obj);
+    
+    for (int a : legal_actions){
+        Sequence new_trajectory = trajectory;
+        new_trajectory.extend(I, a);
+
+        std::unordered_set<std::string> cohort;
+        get_cohort(I, a, cohort);
+
+        if (cohort.size() == 0){
+            int index = sequence_hash_to_index_map[new_trajectory.hash];
+            policy_sequences.push_back(index);
+        }
+        else {
+            for (std::string I_prime_hash : cohort){
+                InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
+                get_policy_sequences(policy_obj, I_prime, new_trajectory, policy_sequences, game, sequence_hash_to_index_map);
+            }
+        }
+    }
+}
+
+
+void get_policy_sequences_wrapper(PolicyVec& policy_obj, std::vector<int>& policy_sequences, char game, std::unordered_map<std::string, int>& sequence_hash_to_index_map, char br_player) {
+    std::vector<char> player_cards = {'J', 'Q', 'K'};
+    for (int card_index = 0; card_index < player_cards.size(); card_index++){
+        std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
+        std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
+        InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
+        Sequence empty_sequence = Sequence();
+        get_policy_sequences(policy_obj, root, empty_sequence, policy_sequences, game, sequence_hash_to_index_map);
     }
 }
 
@@ -1316,12 +1354,28 @@ int main(int argc, char* argv[]) {
 
     // initialize sequences for player
     std::vector<Sequence> terminal_sequences;
-    get_terminal_sequences_wrapper(terminal_sequences, game, player);
+    std::unordered_map<std::string, int> sequence_hash_to_index_map;
+    get_terminal_sequences_wrapper(terminal_sequences, game, player, sequence_hash_to_index_map);
     std::cout << "Number of terminal sequences: " << terminal_sequences.size() << std::endl;
     // print terminal sequences
     std::cout << "Terminal sequences:" << std::endl;
     for (int i = 0; i < terminal_sequences.size(); i++) {
         Sequence seq = terminal_sequences[i];
+        for (int j = 0; j < seq.seq.size(); j++) {
+            std::cout << seq.seq[j].first << " " << seq.seq[j].second << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // get policy sequences for player
+    std::vector<int> policy_sequences;
+    get_policy_sequences_wrapper(player == 'x' ? policy_obj_x : policy_obj_o, policy_sequences, game, sequence_hash_to_index_map, player);
+    std::cout << "Number of policy sequences: " << policy_sequences.size() << std::endl;
+    // print policy sequences
+    std::cout << "Policy sequences:" << std::endl;
+    for (int i = 0; i < policy_sequences.size(); i++) {
+        int index = policy_sequences[i];
+        Sequence seq = terminal_sequences[index];
         for (int j = 0; j < seq.seq.size(); j++) {
             std::cout << seq.seq[j].first << " " << seq.seq[j].second << " ";
         }
