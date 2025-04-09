@@ -228,9 +228,9 @@ void update_sequence_data(std::vector<int>& policy_sequences, std::vector<Sequen
             terminal_sequences[s_index].r += reward_game;
             terminal_sequences[s_index].n += 1;
             terminal_sequences[s_index].n_pi += 1;
-            terminal_sequences[s_index].p = terminal_sequences[s_index].n / terminal_sequences[s_index].n_pi;
-            terminal_sequences[s_index].ucb_r = terminal_sequences[s_index].r / terminal_sequences[s_index].n + C_r * std::sqrt(1.0 / terminal_sequences[s_index].n);
-            terminal_sequences[s_index].ucb_p = terminal_sequences[s_index].p + C_p * std::sqrt(1.0 / terminal_sequences[s_index].n_pi);
+            terminal_sequences[s_index].p = (double) terminal_sequences[s_index].n / (double) terminal_sequences[s_index].n_pi;
+            terminal_sequences[s_index].ucb_r = terminal_sequences[s_index].r / (double) terminal_sequences[s_index].n + C_r * std::sqrt(1.0 / (double) terminal_sequences[s_index].n);
+            terminal_sequences[s_index].ucb_p = terminal_sequences[s_index].p + C_p * std::sqrt(1.0 / (double) terminal_sequences[s_index].n_pi);
         }
         else{
             terminal_sequences[s_index].n_pi += 1;
@@ -299,10 +299,10 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
             std::cout << "Number of games sampled so far: " << t << std::endl;
 
             // print sequence data
-            std::cout << "Sequence data: " << std::endl;
-            for (int i = 0; i < terminal_sequences.size(); i++) {
-                std::cout << "Sequence: " << terminal_sequences[i].hash << ", n: " << terminal_sequences[i].n << "n_pi" << terminal_sequences[i].n_pi << ", r: " << terminal_sequences[i].r << ", p: " << terminal_sequences[i].p << ", ucb_r: " << terminal_sequences[i].ucb_r << ", ucb_p: " << terminal_sequences[i].ucb_p << std::endl;
-            }
+            // std::cout << "Sequence data: " << std::endl;
+            // for (int i = 0; i < terminal_sequences.size(); i++) {
+            //     std::cout << "Sequence: " << terminal_sequences[i].hash << ", n: " << terminal_sequences[i].n << ", n_pi" << terminal_sequences[i].n_pi << ", r: " << terminal_sequences[i].r << ", p: " << terminal_sequences[i].p << ", ucb_r: " << terminal_sequences[i].ucb_r << ", ucb_p: " << terminal_sequences[i].ucb_p << std::endl;
+            // }
         }
   
         if (max_UCB_flag) {
