@@ -219,7 +219,7 @@ void get_policy_sequences_wrapper(PolicyVec& policy_obj, std::vector<int>& polic
 }
 
 
-void update_sequence_data(std::vector<int>& policy_sequences, std::vector<Sequence>& terminal_sequences, int reward_game, std::string terminal_hash_game, double C_r, double C_p) {
+void update_sequence_data(std::vector<int>& policy_sequences, std::vector<Sequence>& terminal_sequences, double reward_game, std::string terminal_hash_game, double C_r, double C_p) {
     for (int i = 0; i < policy_sequences.size(); i++){
         int s_index = policy_sequences[i];
 
