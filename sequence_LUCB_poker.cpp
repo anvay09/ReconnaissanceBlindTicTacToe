@@ -126,6 +126,11 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
             candidate_actions.push_back(a);
         }
     }
+    std::cout << "Candidate actions: ";
+    for (int a : candidate_actions){
+        std::cout << a << " ";
+    }
+    std::cout << std::endl;
 
     // sample from candidate actions
     int action = candidate_actions[std::rand() % candidate_actions.size()];
