@@ -105,7 +105,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
         }
         else{
             p_hat = terminal_sequences[s_index].p;
-            r_hat = terminal_sequences[s_index].r;
+            r_hat = terminal_sequences[s_index].r / (double) terminal_sequences[s_index].n;
         }
         action_values[a] += p_hat * r_hat;
 
