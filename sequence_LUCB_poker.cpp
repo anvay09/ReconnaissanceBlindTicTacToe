@@ -114,11 +114,14 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
         }
     }
 
+    std::cout << "Action values for " << I.hash << ": ";
     for (int a : legal_actions){
+        std::cout << "Action: " << a << " Value: " << action_values[a] << std::endl;
         if (action_values[a] > infoset_value){
             infoset_value = action_values[a];
         }
     }
+    std::cout << "Infoset value for " << I.hash << ": " << infoset_value << std::endl;
 
     std::vector<int> candidate_actions;
     for (int a : legal_actions){
