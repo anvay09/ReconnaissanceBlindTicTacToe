@@ -80,8 +80,10 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
-    double infoset_value = I.game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
-    std::cout << "Building max policy for " << I.hash << std::endl;
+    double MIN_UTILITY = game == 'L' ? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
+    double MAX_UTILITY = game == 'L' ? LEDUC_MAX_UTILITY : KUHN_MAX_UTILITY;
+    double infoset_value = MIN_UTILITY;
+    // std::cout << "Building max policy for " << I.hash << std::endl;
 
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
@@ -109,19 +111,24 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
 
         if (!UCB_flag){
             if (cohort.size() == 0 && terminal_sequences[s_index].n == 0){
-                action_values[a] = I.game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
+                action_values[a] = MIN_UTILITY;
             }
+        }
+
+        // make sure action values lie between [MIN_UTILITY, MAX_UTILITY]
+        if (action_values[a] < MIN_UTILITY){
+            action_values[a] = MIN_UTILITY;
+        }
+        else if (action_values[a] > MAX_UTILITY){
+            action_values[a] = MAX_UTILITY;
         }
     }
 
-    std::cout << "Action values for " << I.hash << ": ";
     for (int a : legal_actions){
-        std::cout << "Action: " << a << " Value: " << action_values[a] << std::endl;
         if (action_values[a] > infoset_value){
             infoset_value = action_values[a];
         }
     }
-    std::cout << "Infoset value for " << I.hash << ": " << infoset_value << std::endl;
 
     std::vector<int> candidate_actions;
     for (int a : legal_actions){
@@ -129,14 +136,9 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
             candidate_actions.push_back(a);
         }
     }
-    std::cout << "Candidate actions: ";
-    for (int a : candidate_actions){
-        std::cout << a << " ";
-    }
-    std::cout << std::endl;
 
     // sample from candidate actions
-    int action = candidate_actions[std::rand() % candidate_actions.size()];
+    int action = candidate_actions[sampleIndex(std::vector<double>(candidate_actions.size(), 1.0 / candidate_actions.size()))];
     std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
 
     for (int a : legal_actions){
