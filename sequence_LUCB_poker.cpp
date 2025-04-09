@@ -327,7 +327,7 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
             h.push_back(cards[2]); 
             TerminalHistory start_history = TerminalHistory(h);
             Sequence trajectory = Sequence();
-            int reward = sample_game(I_1, I_2, true_cards, start_history, br_player, player_max_ucb_policy, opponent_policy, trajectory);
+            double reward = sample_game(I_1, I_2, true_cards, start_history, br_player, player_max_ucb_policy, opponent_policy, trajectory);
 
             std::vector<int> policy_sequences;
             get_policy_sequences_wrapper(player_max_ucb_policy, policy_sequences, game, sequence_hash_to_index_map, br_player);
