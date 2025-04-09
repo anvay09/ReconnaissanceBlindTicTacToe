@@ -110,11 +110,6 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
             }
         }
 
-        if (terminal_sequences[s_index].n == 0){
-            p_hat = 0.0;
-            r_hat = 0.0;
-        }
-        
         action_values[a] += p_hat * r_hat;
 
         if (!UCB_flag){
