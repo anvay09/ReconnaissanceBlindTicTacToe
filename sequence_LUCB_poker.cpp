@@ -56,7 +56,10 @@ double sample_game(InformationSet& I_1, InformationSet& I_2, PokerTable& true_ca
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
             H_T.set_reward(I.game);
-            int r = br_player == 'x' ? H_T.reward[0] : H_T.reward[1];
+            double r = br_player == 'x' ? H_T.reward[0] : H_T.reward[1];
+            // scale reward between 0 to 1
+            double MAX_UTILITY = I.game == 'L' ? LEDUC_MAX_UTILITY : KUHN_MAX_UTILITY;
+            r = (r + MAX_UTILITY) / (2 * MAX_UTILITY);
             return r; 
         }
     }
@@ -80,9 +83,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
-    double MIN_UTILITY = game == 'L' ? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
-    double MAX_UTILITY = game == 'L' ? LEDUC_MAX_UTILITY : KUHN_MAX_UTILITY;
-    double infoset_value = MIN_UTILITY;
+    double infoset_value = 0.0;
     // std::cout << "Building max policy for " << I.hash << std::endl;
 
     for (int a : legal_actions){
@@ -113,17 +114,13 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
 
         if (!UCB_flag){
             if (cohort.size() == 0 && terminal_sequences[s_index].n == 0){
-                action_values[a] = MIN_UTILITY;
+                action_values[a] = 0.0;
             }
         }
 
-        // make sure action values lie between [MIN_UTILITY, MAX_UTILITY]
-        if (action_values[a] < MIN_UTILITY){
-            action_values[a] = MIN_UTILITY;
-        }
-        else if (action_values[a] > MAX_UTILITY){
-            action_values[a] = MAX_UTILITY;
-        }
+        // make sure action values lie between [0, 1]
+        action_values[a] = std::min(1.0, action_values[a]);
+        action_values[a] = std::max(0.0, action_values[a]);
     }
 
     for (int a : legal_actions){
@@ -231,13 +228,13 @@ void update_sequence_data(std::vector<int>& policy_sequences, std::vector<Sequen
             terminal_sequences[s_index].n += 1;
             terminal_sequences[s_index].n_pi += 1;
             terminal_sequences[s_index].p = (double) terminal_sequences[s_index].n / (double) terminal_sequences[s_index].n_pi;
-            terminal_sequences[s_index].ucb_r = terminal_sequences[s_index].r / (double) terminal_sequences[s_index].n + C_r * std::sqrt(1.0 / (double) terminal_sequences[s_index].n);
-            terminal_sequences[s_index].ucb_p = terminal_sequences[s_index].p + C_p * std::sqrt(1.0 / (double) terminal_sequences[s_index].n_pi);
+            terminal_sequences[s_index].ucb_r = std::min(1.0, terminal_sequences[s_index].r / (double) terminal_sequences[s_index].n + C_r * std::sqrt(1.0 / (double) terminal_sequences[s_index].n));
+            terminal_sequences[s_index].ucb_p = std::min(1.0, terminal_sequences[s_index].p + C_p * std::sqrt(1.0 / (double) terminal_sequences[s_index].n_pi));
         }
         else{
             terminal_sequences[s_index].n_pi += 1;
             terminal_sequences[s_index].p = (double) terminal_sequences[s_index].n / (double) terminal_sequences[s_index].n_pi;
-            terminal_sequences[s_index].ucb_p = terminal_sequences[s_index].p + C_p * std::sqrt(1.0 / (double) terminal_sequences[s_index].n_pi);
+            terminal_sequences[s_index].ucb_p = std::min(1.0, terminal_sequences[s_index].p + C_p * std::sqrt(1.0 / (double) terminal_sequences[s_index].n_pi));
         }
     }
 }
