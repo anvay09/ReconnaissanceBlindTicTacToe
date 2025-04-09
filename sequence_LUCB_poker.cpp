@@ -81,6 +81,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
     double infoset_value = I.game == 'L'? LEDUC_MIN_UTILITY : KUHN_MIN_UTILITY;
+    std::cout << "Building max policy for " << I.hash << std::endl;
 
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
