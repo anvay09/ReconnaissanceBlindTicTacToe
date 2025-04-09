@@ -56,10 +56,10 @@ double sample_game(InformationSet& I_1, InformationSet& I_2, PokerTable& true_ca
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
             H_T.set_reward(I.game);
-            double r = br_player == 'x' ? H_T.reward[0] : H_T.reward[1];
+            double r = br_player == 'x' ? (double) H_T.reward[0] : (double) H_T.reward[1];
             // scale reward between 0 to 1
             double MAX_UTILITY = I.game == 'L' ? LEDUC_MAX_UTILITY : KUHN_MAX_UTILITY;
-            r = (r + MAX_UTILITY) / (2 * MAX_UTILITY);
+            r = (r + MAX_UTILITY) / (2.0 * MAX_UTILITY);
             return r; 
         }
     }
