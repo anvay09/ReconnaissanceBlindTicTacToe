@@ -84,7 +84,6 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
     double infoset_value = 0.0;
-    // std::cout << "Building max policy for " << I.hash << std::endl;
 
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
@@ -110,6 +109,12 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
                 r_hat = terminal_sequences[s_index].r / (double) terminal_sequences[s_index].n;
             }
         }
+
+        if (terminal_sequences[s_index].n == 0){
+            p_hat = 0.0;
+            r_hat = 0.0;
+        }
+        
         action_values[a] += p_hat * r_hat;
 
         if (!UCB_flag){
