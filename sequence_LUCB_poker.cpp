@@ -1349,6 +1349,10 @@ int main(int argc, char* argv[]) {
     std::unordered_map<std::string, int> sequence_hash_to_index_map;
     get_sequences_wrapper(terminal_sequences, game, player, sequence_hash_to_index_map);
     std::cout << "Number of sequences: " << terminal_sequences.size() << std::endl;
+    // print sequences
+    for (int i = 0; i < terminal_sequences.size(); i++) {
+        std::cout << terminal_sequences[i].hash << std::endl;
+    }
 
     // compute epsilon best response
     int experiment_num = start_index;
