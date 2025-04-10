@@ -610,19 +610,20 @@ int main(int argc, char* argv[]) {
     double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o, game);
     std::cout << "Expected utility of initial policies: " << expected_utility << std::endl;
 
-    std::vector<std::string>& player_information_sets = player == 'x' ? P1_information_sets : P2_information_sets;
-    std::vector<std::vector<std::unordered_set<std::string>>> cohorts(player_information_sets.size(), std::vector<std::unordered_set<std::string>>(6));
-    precompute_cohorts(cohorts, player_information_sets, player, game);
-    // initialize sequences for player
-    std::vector<Sequence> terminal_sequences;
-    std::unordered_map<std::string, int> sequence_hash_to_index_map;
-    get_sequences_wrapper(terminal_sequences, game, player, sequence_hash_to_index_map, cohorts);
-    std::cout << "Number of sequences: " << terminal_sequences.size() << std::endl;
-
     // compute epsilon best response
     int experiment_num = start_index;
 
+    std::vector<std::string>& player_information_sets = player == 'x' ? P1_information_sets : P2_information_sets;
+    std::vector<std::vector<std::unordered_set<std::string>>> cohorts(player_information_sets.size(), std::vector<std::unordered_set<std::string>>(6));
+    precompute_cohorts(cohorts, player_information_sets, player, game);
+
     while (experiment_num < experiments + start_index) {
+        // initialize sequences for player
+        std::vector<Sequence> terminal_sequences;
+        std::unordered_map<std::string, int> sequence_hash_to_index_map;
+        get_sequences_wrapper(terminal_sequences, game, player, sequence_hash_to_index_map, cohorts);
+        std::cout << "Number of sequences: " << terminal_sequences.size() << std::endl;
+
         if (player == 'x') {
             PolicyVec uniform_x('x', P1_information_sets, game);
             calc_br_sequence_LUCB(policy_obj_o, 'x', P1_information_sets, log_frequency, uniform_x, experiment_num, game, iterations, C_r, C_p, exp_name, sequence_hash_to_index_map, terminal_sequences, cohorts);
