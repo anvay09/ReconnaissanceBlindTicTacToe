@@ -259,6 +259,15 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
     }
     std::cout << "Exact best response value: " << exact_br_value << std::endl;
 
+    // compute sequences for exact_br
+    std::vector<int> policy_sequences;
+    get_policy_sequences_wrapper(exact_br, policy_sequences, game, sequence_hash_to_index_map, br_player);
+    // print sequence hashes
+    std::cout << "Exact best response policy sequences: " << std::endl;
+    for (int i = 0; i < policy_sequences.size(); i++){
+        std::cout << terminal_sequences[policy_sequences[i]].hash << std::endl;
+    }
+
     std::vector<char> player_cards = {'J', 'Q', 'K'};
     for (int card_index = 0; card_index < player_cards.size(); card_index++){
         std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
@@ -284,15 +293,15 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
     for (int t = 1; t <= iterations; t += 1) {
         if (t % log_frequency == 0) { 
             // print sequence data
-            std::cout << "Sequence data: " << std::endl;
-            for (int i = 0; i < terminal_sequences.size(); i++) {
-                if (terminal_sequences[i].n == 0) {
-                    std::cout << "Sequence: " << terminal_sequences[i].hash << ", n: " << terminal_sequences[i].n << ", n_pi: " << terminal_sequences[i].n_pi << ", r: " << terminal_sequences[i].r << ", p: " << terminal_sequences[i].p << ", ucb_r: " << terminal_sequences[i].ucb_r << ", ucb_p: " << terminal_sequences[i].ucb_p << std::endl;
-                }
-                else {
-                    std::cout << "Sequence: " << terminal_sequences[i].hash << ", n: " << terminal_sequences[i].n << ", n_pi: " << terminal_sequences[i].n_pi << ", r: " << terminal_sequences[i].r / (double) terminal_sequences[i].n << ", p: " << terminal_sequences[i].p << ", ucb_r: " << terminal_sequences[i].ucb_r << ", ucb_p: " << terminal_sequences[i].ucb_p << std::endl;
-                }
-            }
+            // std::cout << "Sequence data: " << std::endl;
+            // for (int i = 0; i < terminal_sequences.size(); i++) {
+            //     if (terminal_sequences[i].n == 0) {
+            //         std::cout << "Sequence: " << terminal_sequences[i].hash << ", n: " << terminal_sequences[i].n << ", n_pi: " << terminal_sequences[i].n_pi << ", r: " << terminal_sequences[i].r << ", p: " << terminal_sequences[i].p << ", ucb_r: " << terminal_sequences[i].ucb_r << ", ucb_p: " << terminal_sequences[i].ucb_p << std::endl;
+            //     }
+            //     else {
+            //         std::cout << "Sequence: " << terminal_sequences[i].hash << ", n: " << terminal_sequences[i].n << ", n_pi: " << terminal_sequences[i].n_pi << ", r: " << terminal_sequences[i].r / (double) terminal_sequences[i].n << ", p: " << terminal_sequences[i].p << ", ucb_r: " << terminal_sequences[i].ucb_r << ", ucb_p: " << terminal_sequences[i].ucb_p << std::endl;
+            //     }
+            // }
 
             double expected_utility = 0.0;
             double exploitability = 0.0;
