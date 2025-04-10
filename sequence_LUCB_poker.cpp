@@ -160,8 +160,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
 
 void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& trajectory, std::vector<Sequence>& terminal_sequences, std::unordered_map<std::string, int>& sequence_hash_to_index_map,
                                                std::vector<double>& global_infoset_values, std::vector<std::vector<double>>& global_action_values, char game, char br_player) {
-    int j = trajectory.seq.size() - 1;
-    while (j >= 0){
+    for (int j = trajectory.seq.size() - 1; j >= 0; j--){
         std::cout << "j: " << j << std::endl;
         std::string I_hash = trajectory.seq[j].first;
         int played_action = trajectory.seq[j].second;
@@ -230,8 +229,6 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
         }
         global_infoset_values[I.get_index()] = infoset_value;
         std::cerr << "Best action: " << best_action << std::endl;
-
-        j--;
     }
 }
 
