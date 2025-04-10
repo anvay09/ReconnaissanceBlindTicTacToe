@@ -1,11 +1,13 @@
-#include "cpp_headers/poker_classes.hpp"
-#include "cpp_headers/poker_utilities.hpp"
+#include "cpp_headers/rbt_classes.hpp"
+#include "cpp_headers/rbt_utilities.hpp"
 #include <random>
 #include <cmath>
-int NUMBER_THREADS = 4;
+int NUMBER_THREADS = 96;
+int NUM_ACTIONS = 13;
 
 static std::random_device rd;
 static std::mt19937 generator(rd());
+
 
 int sampleIndex(const std::vector<double>& probabilities) {
     std::discrete_distribution<int> distribution(probabilities.begin(), probabilities.end());
@@ -13,13 +15,105 @@ int sampleIndex(const std::vector<double>& probabilities) {
 }
 
 
-void precompute_cohorts(std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, std::vector<std::string>& player_information_sets, char br_player, char game) {
+int get_number_of_unknown_opponent_moves(InformationSet& I) {
+    std::string B = I.get_board_from_hash();
+    int count_x = 0;
+    int count_o = 0;
+    for (int i = 0; i < 9; i++) {
+        if (B[i] == 'x') {
+            count_x++;
+        }
+        if (B[i] == 'o') {
+            count_o++;
+        }
+    }
+    if (I.player == 'x') {
+        return count_x - count_o;
+    } else {
+        return count_o - count_x + 1;
+    }
+}
+
+
+void get_uncertain_squares(InformationSet& I, std::vector<int> &squares) {
+    std::string B = I.get_board_from_hash();
+    for (int i = 0; i < 9; i++) {
+        if (B[i] == '-') {
+            squares.push_back(i);
+        }
+    }
+}
+
+
+void get_states_in_infoset(InformationSet &I, std::vector<TicTacToeBoard> &states) {
+    int num_unknown_opponent_moves = get_number_of_unknown_opponent_moves(I);
+    std::string board_copy = I.get_board_from_hash();
+
+    for (int i = 0; i < 9; i++) {
+        if (board_copy[i] == '-') {
+            board_copy[i] = '0';
+        }
+    }
+
+    if (num_unknown_opponent_moves == 0) {
+        states.push_back(TicTacToeBoard(board_copy));
+    } 
+    else {
+        std::vector<int> uncertain_ind;
+        get_uncertain_squares(I, uncertain_ind);
+
+        std::vector<char> base_perm(num_unknown_opponent_moves, I.other_player());
+        base_perm.insert(base_perm.end(), uncertain_ind.size() - num_unknown_opponent_moves, '0');
+        // sort 
+        std::sort(base_perm.begin(), base_perm.end());
+
+        do {
+            TicTacToeBoard new_state(board_copy);
+            for (int j = 0; j < base_perm.size(); j++) {
+                new_state[uncertain_ind[j]] = base_perm[j];
+            }
+            char winner;
+            if (!new_state.is_win(winner) && !new_state.is_over()) {
+                states.push_back(new_state);
+            }
+        } while (std::next_permutation(base_perm.begin(), base_perm.end()));
+
+    }
+}
+
+
+void get_cohort(InformationSet I, int action, std::unordered_set<std::string> &cohort) {
+    if (I.move_flag) {
+        I.update_move(action, I.player);
+        I.reset_zeros();
+        if (I.get_index() != -1) {
+            cohort.insert(I.get_hash());
+        }
+        return;
+    }
+    else {
+        std::vector<TicTacToeBoard> states;
+        get_states_in_infoset(I, states);
+        for (TicTacToeBoard &state : states) {
+            InformationSet new_I = I;
+            new_I.simulate_sense(action, state);
+            if (new_I.get_index() != -1) {
+                if (cohort.find(new_I.get_hash()) == cohort.end()) {
+                    cohort.insert(new_I.get_hash());
+                }
+            }
+        }
+    }
+}
+
+
+void precompute_cohorts(std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, std::vector<std::string>& player_information_sets, char br_player) {
     std::cout << "Building cohorts" << std::endl;
     // precompute cohorts
     
     #pragma omp parallel for num_threads(NUMBER_THREADS)
     for (int i = 0; i < player_information_sets.size(); i++) {
-        InformationSet I = InformationSet(br_player, get_move_flag(player_information_sets[i], br_player), player_information_sets[i], game);
+        InformationSet I = InformationSet(br_player, get_move_flag(player_information_sets[i], br_player), player_information_sets[i]);
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         for (int a : legal_actions) {
@@ -32,9 +126,9 @@ void precompute_cohorts(std::vector<std::vector<std::unordered_set<std::string>>
 }
 
 
-double sample_game(InformationSet& I_1, InformationSet& I_2, PokerTable& true_cards, History& current_history, char br_player, 
-                   PolicyVec& policy_obj, PolicyVec& opponent_policy, Sequence& trajectory) {
-    InformationSet I = true_cards.player_to_move == 'x' ? I_1 : I_2;
+double sample_game(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, History& current_history, char br_player, 
+                   PolicyVec& policy_obj, PolicyVec& opponent_policy, Sequence& trajectory, char curr_player) {
+    InformationSet I = curr_player == 'x' ? I_1 : I_2;
     int action = 0;
     
     if (br_player == I.player){
@@ -48,61 +142,49 @@ double sample_game(InformationSet& I_1, InformationSet& I_2, PokerTable& true_ca
     }
 
     if (I.move_flag) {
-        PokerTable new_board = true_cards;
-        bool success = new_board.update_move(action);
+        TicTacToeBoard new_board = true_board;
+        bool success = new_board.update_move(action, curr_player);
         current_history.history.push_back(action);
         
         char winner;
         if (success && !new_board.is_win(winner) && !new_board.is_over()) {
             InformationSet new_I = I;
-            new_I.update_move(action);
+            new_I.update_move(action, curr_player);
 
-            if (I.player == 'x') {
-                if (new_board.player_to_move == 'x') {
-                    return sample_game(new_I, I_2, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory);
-                }
-                else {
-                    return sample_game(new_I, I_2, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory);
-                }
-            } else {
-                if (new_board.player_to_move == 'o') {
-                    return sample_game(I_1, new_I, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory);
-                }
-                else {
-                    return sample_game(I_1, new_I, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory);
-                }
+            if (curr_player == 'x') {
+                return sample_game(new_I, I_2, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory, 'o');
+            }
+            else {
+                return sample_game(I_1, new_I, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory, 'x');
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
-            H_T.set_reward(I.game);
+            H_T.set_reward();
             double r = br_player == 'x' ? (double) H_T.reward[0] : (double) H_T.reward[1];
-            // scale reward between -1 to 1
-            double MAX_UTILITY = I.game == 'L' ? LEDUC_MAX_UTILITY : KUHN_MAX_UTILITY;
-            r = r / (2.0 * MAX_UTILITY);
             return r; 
         }
     }
     else {
         InformationSet new_I = I;
-        PokerTable new_board = true_cards;
+        TicTacToeBoard new_board = true_board;
         new_I.simulate_sense(action, new_board);
         current_history.history.push_back(action);
 
-        if (I.player == 'x') {
-            return sample_game(new_I, I_2, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory);
+        if (curr_player == 'x') {
+            return sample_game(new_I, I_2, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory, 'x');
         } else {
-            return sample_game(I_1, new_I, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory);
+            return sample_game(I_1, new_I, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory, 'o');
         }
     }
 }
 
 
 double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& trajectory, std::vector<Sequence>& terminal_sequences,
-                        std::unordered_map<std::string, int>& sequence_hash_to_index_map, char game, bool UCB_flag, 
+                        std::unordered_map<std::string, int>& sequence_hash_to_index_map, bool UCB_flag, 
                         std::vector<double>& global_infoset_values, std::vector<std::vector<double>>& global_action_values, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
-    std::vector<double> legal_action_values(6, 0.0);
+    std::vector<double> legal_action_values(NUM_ACTIONS, 0.0);
     double infoset_value = -1.0;
 
     for (int a : legal_actions){
@@ -112,8 +194,8 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
         new_trajectory.extend(I, a);
 
         for (std::string I_prime_hash : cohort){
-            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
-            legal_action_values[a] += build_max_policy(policy_obj, I_prime, new_trajectory, terminal_sequences, sequence_hash_to_index_map, game, UCB_flag, global_infoset_values, global_action_values, cohorts);
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+            legal_action_values[a] += build_max_policy(policy_obj, I_prime, new_trajectory, terminal_sequences, sequence_hash_to_index_map, UCB_flag, global_infoset_values, global_action_values, cohorts);
         }
 
         int s_index = sequence_hash_to_index_map[new_trajectory.hash];
@@ -179,12 +261,12 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
 
 
 void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& trajectory, std::vector<Sequence>& terminal_sequences, std::unordered_map<std::string, int>& sequence_hash_to_index_map,
-                                               std::vector<double>& global_infoset_values, std::vector<std::vector<double>>& global_action_values, char game, char br_player, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
+                                               std::vector<double>& global_infoset_values, std::vector<std::vector<double>>& global_action_values, char br_player, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
     for (int j = trajectory.seq.size() - 1; j >= 0; j--){
         std::string I_hash = trajectory.seq[j].first;
         int played_action = trajectory.seq[j].second;
         bool move_flag = get_move_flag(I_hash, br_player);
-        InformationSet I(br_player, move_flag, I_hash, game);
+        InformationSet I(br_player, move_flag, I_hash);
 
         std::string seq_hash = I_hash + "-" + std::to_string(played_action);
         int s_index = sequence_hash_to_index_map[seq_hash];
@@ -195,7 +277,7 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
 
         double action_value = 0.0;
         for (std::string I_prime_hash : cohort){
-            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
             action_value += global_infoset_values[I_prime.get_index()];
         }
 
@@ -250,7 +332,7 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
 
 
 double update_max_ucb_policy_given_trajectory(PolicyVec& update_policy_obj, PolicyVec& played_policy_obj, InformationSet& I, Sequence& trajectory, std::vector<Sequence>& terminal_sequences,
-                                              std::unordered_map<std::string, int>& sequence_hash_to_index_map, char game, std::vector<double>& global_infoset_values, std::vector<std::vector<double>>& global_action_values, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
+                                              std::unordered_map<std::string, int>& sequence_hash_to_index_map, std::vector<double>& global_infoset_values, std::vector<std::vector<double>>& global_action_values, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<int> played_actions;
@@ -266,8 +348,8 @@ double update_max_ucb_policy_given_trajectory(PolicyVec& update_policy_obj, Poli
         new_trajectory.extend(I, a);
 
         for (std::string I_prime_hash : cohort){
-            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
-            played_action_value += update_max_ucb_policy_given_trajectory(update_policy_obj, played_policy_obj, I_prime, new_trajectory, terminal_sequences, sequence_hash_to_index_map, game, global_infoset_values, global_action_values, cohorts);
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+            played_action_value += update_max_ucb_policy_given_trajectory(update_policy_obj, played_policy_obj, I_prime, new_trajectory, terminal_sequences, sequence_hash_to_index_map, global_infoset_values, global_action_values, cohorts);
         }
 
         int s_index = sequence_hash_to_index_map[new_trajectory.hash];
@@ -317,7 +399,7 @@ double update_max_ucb_policy_given_trajectory(PolicyVec& update_policy_obj, Poli
 }
 
 
-void get_sequences(InformationSet& I, Sequence& trajectory, std::vector<Sequence>& terminal_sequences, std::unordered_map<std::string, int>& sequence_hash_to_index_map, char game, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
+void get_sequences(InformationSet& I, Sequence& trajectory, std::vector<Sequence>& terminal_sequences, std::unordered_map<std::string, int>& sequence_hash_to_index_map, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     
@@ -330,27 +412,28 @@ void get_sequences(InformationSet& I, Sequence& trajectory, std::vector<Sequence
         std::unordered_set<std::string>& cohort = cohorts[I.get_index()][a];
 
         for (std::string I_prime_hash : cohort){
-            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
-            get_sequences(I_prime, new_trajectory, terminal_sequences, sequence_hash_to_index_map, game, cohorts);
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+            get_sequences(I_prime, new_trajectory, terminal_sequences, sequence_hash_to_index_map, cohorts);
         }
     }
 }
 
 
-void get_sequences_wrapper(std::vector<Sequence>& terminal_sequences, char game, char br_player, std::unordered_map<std::string, int>& sequence_hash_to_index_map, 
+void get_sequences_wrapper(std::vector<Sequence>& terminal_sequences, char br_player, std::unordered_map<std::string, int>& sequence_hash_to_index_map, 
                            std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
-    std::vector<char> player_cards = {'J', 'Q', 'K'};
-    for (int card_index = 0; card_index < player_cards.size(); card_index++){
-        std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
-        std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
-        InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-        Sequence empty_sequence = Sequence();
-        get_sequences(root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, game, cohorts);
-    }
+    std::string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    InformationSet I_1 = InformationSet('x', true, hash_1);
+    InformationSet I_2 = InformationSet('o', false, hash_2);
+    Sequence empty_sequence = Sequence();
+    InformationSet root = br_player == 'x' ? I_1 : I_2;
+    get_sequences(root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, cohorts);
 }
 
 
-void get_policy_sequences(PolicyVec& policy_obj, InformationSet& I, Sequence& trajectory, std::vector<int>& policy_sequences, char game, std::unordered_map<std::string, int>& sequence_hash_to_index_map, 
+void get_policy_sequences(PolicyVec& policy_obj, InformationSet& I, Sequence& trajectory, std::vector<int>& policy_sequences, std::unordered_map<std::string, int>& sequence_hash_to_index_map, 
                           std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
     std::vector<int> legal_actions;
     I.get_actions_given_policy(legal_actions, policy_obj);
@@ -364,23 +447,24 @@ void get_policy_sequences(PolicyVec& policy_obj, InformationSet& I, Sequence& tr
         std::unordered_set<std::string>& cohort = cohorts[I.get_index()][a];
 
         for (std::string I_prime_hash : cohort){
-            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
-            get_policy_sequences(policy_obj, I_prime, new_trajectory, policy_sequences, game, sequence_hash_to_index_map, cohorts);
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+            get_policy_sequences(policy_obj, I_prime, new_trajectory, policy_sequences, sequence_hash_to_index_map, cohorts);
         }
     }
 }
 
 
-void get_policy_sequences_wrapper(PolicyVec& policy_obj, std::vector<int>& policy_sequences, char game, std::unordered_map<std::string, int>& sequence_hash_to_index_map, char br_player, 
+void get_policy_sequences_wrapper(PolicyVec& policy_obj, std::vector<int>& policy_sequences, std::unordered_map<std::string, int>& sequence_hash_to_index_map, char br_player, 
                                   std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
-    std::vector<char> player_cards = {'J', 'Q', 'K'};
-    for (int card_index = 0; card_index < player_cards.size(); card_index++){
-        std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
-        std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
-        InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-        Sequence empty_sequence = Sequence();
-        get_policy_sequences(policy_obj, root, empty_sequence, policy_sequences, game, sequence_hash_to_index_map, cohorts);
-    }
+    std::string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    InformationSet I_1 = InformationSet('x', true, hash_1);
+    InformationSet I_2 = InformationSet('o', false, hash_2);
+    Sequence empty_sequence = Sequence();
+    InformationSet root = br_player == 'x' ? I_1 : I_2;
+    get_policy_sequences(policy_obj, root, empty_sequence, policy_sequences, sequence_hash_to_index_map, cohorts);
 }
 
 
@@ -406,78 +490,67 @@ void update_sequence_data(std::vector<int>& policy_sequences, std::vector<Sequen
 
 
 void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, PolicyVec& player_br, 
-    int experiment_number, char game, int iterations, double C_r, double C_p, std::string& exp_name, std::unordered_map<std::string, int>& sequence_hash_to_index_map, 
+    int experiment_number, int iterations, double C_r, double C_p, std::string& exp_name, std::unordered_map<std::string, int>& sequence_hash_to_index_map, 
     std::vector<Sequence>& terminal_sequences, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) 
 {  
     // store infoset and action values to avoid recomputation for parts of the tree that don't change
     std::vector<double> infoset_empirical_values(player_information_sets.size(), 0.0);
-    std::vector<std::vector<double>> action_empirical_values(player_information_sets.size(), std::vector<double>(6, 0.0));
+    std::vector<std::vector<double>> action_empirical_values(player_information_sets.size(), std::vector<double>(NUM_ACTIONS, 0.0));
 
     std::vector<double> infoset_upper_bound_values(player_information_sets.size(), 0.0);
-    std::vector<std::vector<double>> action_upper_bound_values(player_information_sets.size(), std::vector<double>(6, 0.0));
+    std::vector<std::vector<double>> action_upper_bound_values(player_information_sets.size(), std::vector<double>(NUM_ACTIONS, 0.0));
     
-    PolicyVec player_max_ucb_policy(br_player, player_information_sets, game);
+    PolicyVec player_max_ucb_policy(br_player, player_information_sets);
     std::vector<std::pair<int, double>> exploitability_log; 
 
-    std::vector<std::string>& unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
-    std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
-
-    PolicyVec exact_br(br_player, player_information_sets, game);
-    compute_best_response_wrapper(opponent_policy, exact_br, br_player, game);
+    PolicyVec exact_br(br_player, player_information_sets);
+    compute_best_response_wrapper(opponent_policy, exact_br, br_player);
     double exact_br_value = 0.0;
 
     if (br_player == 'x') {
-        exact_br_value = get_expected_utility_wrapper(exact_br, opponent_policy, game);
+        exact_br_value = get_expected_utility_wrapper(exact_br, opponent_policy);
     } 
     else {
-        exact_br_value = get_expected_utility_wrapper(opponent_policy, exact_br, game);
+        exact_br_value = get_expected_utility_wrapper(opponent_policy, exact_br);
     }
     std::cout << "Exact best response value: " << exact_br_value << std::endl;
 
-    std::vector<char> player_cards = {'J', 'Q', 'K'};
-    for (int card_index = 0; card_index < player_cards.size(); card_index++){
-        std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
-        std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
-        InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-        Sequence empty_sequence = Sequence();
-        double root_val = build_max_policy(player_br, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, game, false, infoset_empirical_values, action_empirical_values, cohorts);  
-    }
+    std::string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    InformationSet I_1 = InformationSet('x', true, hash_1);
+    InformationSet I_2 = InformationSet('o', false, hash_2);
+    Sequence empty_sequence = Sequence();
+    InformationSet root = br_player == 'x' ? I_1 : I_2;
+    double root_val = build_max_policy(player_br, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, false, infoset_empirical_values, action_empirical_values, cohorts);  
 
     std::cout << "Max Reward policy computed" << std::endl;
 
-    for (int card_index = 0; card_index < player_cards.size(); card_index++){
-        std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
-        std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
-        InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-        Sequence empty_sequence = Sequence();
-        double max_UCB = build_max_policy(player_max_ucb_policy, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, game, true, infoset_upper_bound_values, action_upper_bound_values, cohorts);
-    }
-
+    board = "000000000";
+    true_board = TicTacToeBoard(board);
+    hash_1 = "";
+    hash_2 = "";
+    I_1 = InformationSet('x', true, hash_1);
+    I_2 = InformationSet('o', false, hash_2);
+    empty_sequence = Sequence();
+    root = br_player == 'x' ? I_1 : I_2;
+    double max_UCB = build_max_policy(player_max_ucb_policy, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, true, infoset_upper_bound_values, action_upper_bound_values, cohorts);
+    
     std::cout << "Max UCB policy computed" << std::endl;
     bool max_UCB_flag = true;
 
     for (int t = 1; t <= iterations; t += 1) {
         if (t % log_frequency == 0) { 
-            // print sequence data
-            // std::cout << "Iteration: " << t << std::endl;
-            // for (int i = 0; i < terminal_sequences.size(); i++){
-            //     if (terminal_sequences[i].n == 0){
-            //         std::cout << "Sequence: " << terminal_sequences[i].hash << " r: " << terminal_sequences[i].r << " n: " << terminal_sequences[i].n << " n_pi: " << terminal_sequences[i].n_pi << " p: " << terminal_sequences[i].p << " ucb_r: " << terminal_sequences[i].ucb_r << " ucb_p: " << terminal_sequences[i].ucb_p << std::endl;
-            //     }
-            //     else {
-            //         std::cout << "Sequence: " << terminal_sequences[i].hash << " r: " << terminal_sequences[i].r / (double) terminal_sequences[i].n << " n: " << terminal_sequences[i].n << " n_pi: " << terminal_sequences[i].n_pi << " p: " << terminal_sequences[i].p << " ucb_r: " << terminal_sequences[i].ucb_r / (double) terminal_sequences[i].n << " ucb_p: " << terminal_sequences[i].ucb_p << std::endl;
-            //     }
-            // }
-
             double expected_utility = 0.0;
             double exploitability = 0.0;
         
             if (br_player == 'x') {
-                expected_utility = get_expected_utility_wrapper(player_br, opponent_policy, game);
+                expected_utility = get_expected_utility_wrapper(player_br, opponent_policy);
                 exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
             } 
             else {
-                expected_utility = get_expected_utility_wrapper(opponent_policy, player_br, game);
+                expected_utility = get_expected_utility_wrapper(opponent_policy, player_br);
                 exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
             }
             std::cout << "Expected utility of best response policy: " << expected_utility << std::endl;
@@ -485,86 +558,74 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
         }
   
         if (max_UCB_flag) {
-            std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
-            int draw_index = distribution(generator);
-
-            std::string cards = unique_draws[draw_index];
-            PokerTable true_cards = PokerTable(cards);
-            true_cards.game = game;
-            std::string hash_1 = "a-" + std::string(1, cards[0]) + "--";
-            std::string hash_2 = "o-" + std::string(1, cards[1]) + "--";
-            InformationSet I_1 = InformationSet('x', true, hash_1, game);
-            InformationSet I_2 = InformationSet('o', false, hash_2, game);
+            board = "000000000";
+            true_board = TicTacToeBoard(board);
+            std::string hash_1 = "";
+            std::string hash_2 = "";
+            I_1 = InformationSet('x', true, hash_1);
+            I_2 = InformationSet('o', false, hash_2);
 
             std::vector<int> h = {};
-            h.push_back(cards[0]);
-            h.push_back(cards[1]);
-            h.push_back(cards[2]); 
             TerminalHistory start_history = TerminalHistory(h);
             Sequence trajectory = Sequence();
-            double reward = sample_game(I_1, I_2, true_cards, start_history, br_player, player_max_ucb_policy, opponent_policy, trajectory);
+            double reward = sample_game(I_1, I_2, true_board, start_history, br_player, player_max_ucb_policy, opponent_policy, trajectory, 'x');
 
             std::vector<int> policy_sequences;
-            get_policy_sequences_wrapper(player_max_ucb_policy, policy_sequences, game, sequence_hash_to_index_map, br_player, cohorts);
+            get_policy_sequences_wrapper(player_max_ucb_policy, policy_sequences, sequence_hash_to_index_map, br_player, cohorts);
 
             // update sequence data for policy sequences
             update_sequence_data(policy_sequences, terminal_sequences, reward, trajectory.hash, C_r, C_p);
 
             // update policies 
-            update_max_reward_policy_given_trajectory(player_br, trajectory, terminal_sequences, sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, game, br_player, cohorts);
+            update_max_reward_policy_given_trajectory(player_br, trajectory, terminal_sequences, sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, br_player, cohorts);
 
-            for (int card_index = 0; card_index < player_cards.size(); card_index++){
-                std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
-                std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
-                InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-                Sequence empty_sequence = Sequence();
-                double max_UCB = update_max_ucb_policy_given_trajectory(player_max_ucb_policy, player_max_ucb_policy, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, game, infoset_upper_bound_values, action_upper_bound_values, cohorts);
-            }
+            board = "000000000";
+            true_board = TicTacToeBoard(board);
+            hash_1 = "";
+            hash_2 = "";
+            I_1 = InformationSet('x', true, hash_1);
+            I_2 = InformationSet('o', false, hash_2);
+            empty_sequence = Sequence();
+            root = br_player == 'x' ? I_1 : I_2;
+            double max_UCB = update_max_ucb_policy_given_trajectory(player_max_ucb_policy, player_max_ucb_policy, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, infoset_upper_bound_values, action_upper_bound_values, cohorts);
 
             max_UCB_flag = false;
         }
         else {
-            std::discrete_distribution<int> distribution(draw_probabilities.begin(), draw_probabilities.end());
-            int draw_index = distribution(generator);
-
-            std::string cards = unique_draws[draw_index];
-            PokerTable true_cards = PokerTable(cards);
-            true_cards.game = game;
-            std::string hash_1 = "a-" + std::string(1, cards[0]) + "--";
-            std::string hash_2 = "o-" + std::string(1, cards[1]) + "--";
-            InformationSet I_1 = InformationSet('x', true, hash_1, game);
-            InformationSet I_2 = InformationSet('o', false, hash_2, game);
-
+            board = "000000000";
+            true_board = TicTacToeBoard(board);
+            std::string hash_1 = "";
+            std::string hash_2 = "";
+            I_1 = InformationSet('x', true, hash_1);
+            I_2 = InformationSet('o', false, hash_2);
+            
             std::vector<int> h = {};
-            h.push_back(cards[0]);
-            h.push_back(cards[1]);
-            h.push_back(cards[2]); 
             TerminalHistory start_history = TerminalHistory(h);
             Sequence trajectory = Sequence();
-            double reward = sample_game(I_1, I_2, true_cards, start_history, br_player, player_br, opponent_policy, trajectory);
+            double reward = sample_game(I_1, I_2, true_board, start_history, br_player, player_br, opponent_policy, trajectory, 'x');
 
             std::vector<int> policy_sequences;
-            get_policy_sequences_wrapper(player_br, policy_sequences, game, sequence_hash_to_index_map, br_player, cohorts);
+            get_policy_sequences_wrapper(player_br, policy_sequences, sequence_hash_to_index_map, br_player, cohorts);
             // update sequence data for policy sequences
             update_sequence_data(policy_sequences, terminal_sequences, reward, trajectory.hash, C_r, C_p);
 
             // update policies
-            update_max_reward_policy_given_trajectory(player_br, trajectory, terminal_sequences, sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, game, br_player, cohorts);
+            update_max_reward_policy_given_trajectory(player_br, trajectory, terminal_sequences, sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, br_player, cohorts);
 
-            for (int card_index = 0; card_index < player_cards.size(); card_index++){
-                std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
-                std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
-                InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-                Sequence empty_sequence = Sequence();
-                double max_UCB = update_max_ucb_policy_given_trajectory(player_max_ucb_policy, player_br, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, game, infoset_upper_bound_values, action_upper_bound_values, cohorts);
-            }
-
+            hash_1 = "";
+            hash_2 = "";
+            I_1 = InformationSet('x', true, hash_1);
+            I_2 = InformationSet('o', false, hash_2);
+            empty_sequence = Sequence();
+            root = br_player == 'x' ? I_1 : I_2;
+            double max_UCB = update_max_ucb_policy_given_trajectory(player_max_ucb_policy, player_br, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, infoset_upper_bound_values, action_upper_bound_values, cohorts);
+            
             max_UCB_flag = true;
         }
     }
 
     std::cout << "Saving exploitability log" << std::endl;
-    std::string file_name = "data/sequence/" + exp_name + "_" + std::string(1, game) + "_poker_" + std::string(1, br_player) + "_C_r=" + std::to_string(C_r) + "_C_p=" + std::to_string(C_p) + "_seq-LUCB_exploitability_log_" + std::to_string(experiment_number) + ".txt";
+    std::string file_name = "data/sequence/" + exp_name + "_rbt_" + std::string(1, br_player) + "_C_r=" + std::to_string(C_r) + "_C_p=" + std::to_string(C_p) + "_seq-LUCB_exploitability_log_" + std::to_string(experiment_number) + ".txt";
 
     std::ofstream f(file_name);
     for (int i = 0; i < exploitability_log.size(); i++) {
@@ -578,21 +639,20 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     std::string file_path_1 = argv[1]; // start policy P1
     std::string file_path_2 = argv[2]; // start policy P2
-    char game = argv[3][0];
-    char player = argv[4][0];
-    int iterations = std::stoi(argv[5]);
-    int log_frequency = std::stoi(argv[6]);
-    int experiments = std::stoi(argv[7]);
-    double C_r = std::stod(argv[8]);
-    double C_p = std::stod(argv[9]);
-    std::string exp_name = argv[10];
-    int start_index = std::stoi(argv[11]);
+    char player = argv[3][0];
+    int iterations = std::stoi(argv[4]);
+    int log_frequency = std::stoi(argv[5]);
+    int experiments = std::stoi(argv[6]);
+    double C_r = std::stod(argv[7]);
+    double C_p = std::stod(argv[8]);
+    std::string exp_name = argv[9];
+    int start_index = std::stoi(argv[10]);
     
     // load information sets
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
-    std::string P1_information_sets_file = game == 'L'? "P1_information_sets_Leduc_Poker.txt" : "P1_information_sets_Kuhn_Poker.txt";
-    std::string P2_information_sets_file = game == 'L'? "P2_information_sets_Leduc_Poker.txt" : "P2_information_sets_Kuhn_Poker.txt";
+    std::string P1_information_sets_file = "data/P1_information_sets_V2.txt";
+    std::string P2_information_sets_file = "data/P2_information_sets_V2.txt";
     std::ifstream P1_f_is(P1_information_sets_file);
     std::string P1_line_is;
     while (std::getline(P1_f_is, P1_line_is)) {
@@ -616,32 +676,32 @@ int main(int argc, char* argv[]) {
 
     // load policies
     std::cout << "Loading policies" << std::endl;
-    PolicyVec policy_obj_x('x', file_path_1, game, true);
-    PolicyVec policy_obj_o('o', file_path_2, game, true);
-    double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o, game);
+    PolicyVec policy_obj_x('x', file_path_1, true);
+    PolicyVec policy_obj_o('o', file_path_2, true);
+    double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o);
     std::cout << "Expected utility of initial policies: " << expected_utility << std::endl;
 
     // compute epsilon best response
     int experiment_num = start_index;
 
     std::vector<std::string>& player_information_sets = player == 'x' ? P1_information_sets : P2_information_sets;
-    std::vector<std::vector<std::unordered_set<std::string>>> cohorts(player_information_sets.size(), std::vector<std::unordered_set<std::string>>(6));
-    precompute_cohorts(cohorts, player_information_sets, player, game);
+    std::vector<std::vector<std::unordered_set<std::string>>> cohorts(player_information_sets.size(), std::vector<std::unordered_set<std::string>>(NUM_ACTIONS));
+    precompute_cohorts(cohorts, player_information_sets, player);
 
     while (experiment_num < experiments + start_index) {
         // initialize sequences for player
         std::vector<Sequence> terminal_sequences;
         std::unordered_map<std::string, int> sequence_hash_to_index_map;
-        get_sequences_wrapper(terminal_sequences, game, player, sequence_hash_to_index_map, cohorts);
+        get_sequences_wrapper(terminal_sequences, player, sequence_hash_to_index_map, cohorts);
         std::cout << "Number of sequences: " << terminal_sequences.size() << std::endl;
 
         if (player == 'x') {
-            PolicyVec uniform_x('x', P1_information_sets, game);
-            calc_br_sequence_LUCB(policy_obj_o, 'x', P1_information_sets, log_frequency, uniform_x, experiment_num, game, iterations, C_r, C_p, exp_name, sequence_hash_to_index_map, terminal_sequences, cohorts);
+            PolicyVec uniform_x('x', P1_information_sets);
+            calc_br_sequence_LUCB(policy_obj_o, 'x', P1_information_sets, log_frequency, uniform_x, experiment_num, iterations, C_r, C_p, exp_name, sequence_hash_to_index_map, terminal_sequences, cohorts);
         }
         else {
-            PolicyVec uniform_o('o', P2_information_sets, game);
-            calc_br_sequence_LUCB(policy_obj_x, 'o', P2_information_sets, log_frequency, uniform_o, experiment_num, game, iterations, C_r, C_p, exp_name, sequence_hash_to_index_map, terminal_sequences, cohorts);
+            PolicyVec uniform_o('o', P2_information_sets);
+            calc_br_sequence_LUCB(policy_obj_x, 'o', P2_information_sets, log_frequency, uniform_o, experiment_num, iterations, C_r, C_p, exp_name, sequence_hash_to_index_map, terminal_sequences, cohorts);
         }
 
         std::cout << "(" << experiment_num << " experiments done)" << std::endl;
