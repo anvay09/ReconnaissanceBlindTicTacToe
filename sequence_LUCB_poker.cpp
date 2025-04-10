@@ -162,12 +162,14 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
                                                std::vector<double>& global_infoset_values, std::vector<std::vector<double>>& global_action_values, char game, char br_player) {
     int j = trajectory.seq.size() - 1;
     while (j >= 0){
+        std::cout << "j: " << j << std::endl;
         std::string I_hash = trajectory.seq[j].first;
         int played_action = trajectory.seq[j].second;
         bool move_flag = get_move_flag(I_hash, br_player);
         InformationSet I(br_player, move_flag, I_hash, game);
 
         std::string seq_hash = I_hash + "-" + std::to_string(played_action);
+        std::cout << "Sequence hash: " << seq_hash << std::endl;
         int s_index = sequence_hash_to_index_map[seq_hash];
         std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
 
@@ -195,6 +197,7 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
         // make sure action value lies between [-1, 1]
         action_value = std::min(1.0, action_value);
         action_value = std::max(-1.0, action_value);
+        std::cerr << "Action value: " << action_value << std::endl;
 
         // update played action value
         global_action_values[I.get_index()][played_action] = action_value;
@@ -206,6 +209,7 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
                 infoset_value = global_action_values[I.get_index()][a];
             }
         }
+        std::cout << "Infoset value: " << infoset_value << std::endl;
 
         std::vector<int> candidate_actions;
         for (int a = 0; a < 6; a++){
