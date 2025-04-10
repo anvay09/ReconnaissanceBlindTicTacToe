@@ -227,6 +227,7 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
             }
         }
 
+        std::cerr << "Size of candidate actions: " << candidate_actions.size() << std::endl;
         // sample from candidate actions
         int best_action = candidate_actions[sampleIndex(std::vector<double>(candidate_actions.size(), 1.0 / candidate_actions.size()))];
         for (int a = 0; a < 6; a++){
@@ -238,9 +239,12 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
             }
         }
         global_infoset_values[I.get_index()] = infoset_value;
+        std::cerr << "Best action: " << best_action << std::endl;
 
         // pop last (I,a) pair from trajectory
         trajectory.pop_back();        
+        std::cerr << "Popped (I,a) pair from trajectory" << std::endl;
+        std::cerr << "New trajectory size: " << trajectory.seq.size() << std::endl;
     }
 }
 
