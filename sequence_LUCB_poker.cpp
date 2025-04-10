@@ -83,7 +83,7 @@ double build_max_policy(PolicyVec& policy_obj, InformationSet& I, Sequence& traj
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     std::vector<double> action_values(6, 0.0);
-    double infoset_value = 0.0;
+    double infoset_value = -1.0;
 
     for (int a : legal_actions){
         std::unordered_set<std::string> cohort;
@@ -258,15 +258,6 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
         exact_br_value = get_expected_utility_wrapper(opponent_policy, exact_br, game);
     }
     std::cout << "Exact best response value: " << exact_br_value << std::endl;
-
-    // compute sequences for exact_br
-    // std::vector<int> policy_sequences;
-    // get_policy_sequences_wrapper(exact_br, policy_sequences, game, sequence_hash_to_index_map, br_player);
-    // // print sequence hashes
-    // std::cout << "Exact best response policy sequences: " << std::endl;
-    // for (int i = 0; i < policy_sequences.size(); i++){
-    //     std::cout << terminal_sequences[policy_sequences[i]].hash << std::endl;
-    // }
 
     std::vector<char> player_cards = {'J', 'Q', 'K'};
     for (int card_index = 0; card_index < player_cards.size(); card_index++){
