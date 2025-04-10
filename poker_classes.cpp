@@ -928,6 +928,10 @@ void Sequence::operator=(const Sequence &other) {
 }
 
 void Sequence::update_hash() {
+    if (this->seq.empty()) {
+        this->hash = "";
+        return;
+    }
     std::string hash = this->seq[this->seq.size() - 1].first + "-" + std::to_string(this->seq[this->seq.size() - 1].second);
     this->hash = hash;
 }
