@@ -937,3 +937,8 @@ void Sequence::extend(InformationSet &I, int action) {
     this->seq.push_back(new_node);
     this->update_hash();
 }
+
+void Sequence::pop_back() {
+    this->seq.pop_back();
+    this->update_hash();
+}

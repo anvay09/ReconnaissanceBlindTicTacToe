@@ -159,6 +159,7 @@ class Sequence
         bool operator==(const Sequence &other);
         void update_hash();
         void extend(InformationSet& I, int action);
+        void pop_back();
 };
 
 #endif // POKER_CLASSES_HPP_
