@@ -163,6 +163,7 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
     while (trajectory.seq.size() > 0){
         std::string seq_hash = trajectory.hash;
         int s_index = sequence_hash_to_index_map[seq_hash];
+        std::cout << "Processing (I, a): " << seq_hash << std::endl;
         
         std::string I_hash = trajectory.seq.back().first;
         int played_action = trajectory.seq.back().second;
@@ -225,7 +226,7 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
         }
         global_infoset_values[I.get_index()] = infoset_value;
 
-        // pop last action from trajectory
+        // pop last (I,a) pair from trajectory
         trajectory.pop_back();        
     }
 }
