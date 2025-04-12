@@ -1,5 +1,6 @@
 #include "cpp_headers/rbt_classes.hpp"
 #include "cpp_headers/json.hpp"
+#include <random>
 using json = nlohmann::json;
 
 size_t split(const std::string &txt, std::vector<std::string> &strs, char ch)
@@ -721,9 +722,11 @@ PolicyVec::PolicyVec() {
     this->policy_dict = std::vector< std::vector<double> >();
 }
 
-PolicyVec::PolicyVec(char player, std::vector<std::string> & information_sets) {
+PolicyVec::PolicyVec(char player, std::vector<std::string> & information_sets, bool uniform = true) {
     this->player = player;
     std::vector< std::vector<double> > policy_list(information_sets.size());
+    static std::random_device rd;
+    static std::mt19937 generator(rd());
 
     for (long int i = 0; i < information_sets.size(); i++) {
         std::string I_hash = information_sets[i];
@@ -746,6 +749,21 @@ PolicyVec::PolicyVec(char player, std::vector<std::string> & information_sets) {
             for (int action : actions) {
                 probability_distribution[action] = 1.0 / ((double) actions.size());
             }
+            if (!uniform){
+                // choose a random action 
+                std::discrete_distribution<int> distribution(probability_distribution.begin(), probability_distribution.end());
+                int policy_action = distribution(generator);
+                
+                for (int action: actions) {
+                    if (action == policy_action){
+                        probability_distribution[action] = 1.0;
+                    }
+                    else {
+                        probability_distribution[action] = 0.0;
+                    }
+                }
+            }
+
         }
       
         policy_list[I.get_index()] = probability_distribution;

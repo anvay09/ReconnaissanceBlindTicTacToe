@@ -221,11 +221,15 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         double infoset_value = -1.0;
+
+        // std::cout << "Infoset: " << I.get_hash() << " ";
         for (int a : legal_actions){
+            // std::cout << a << " " << global_action_values[I.get_index()][a] << " ";
             if (global_action_values[I.get_index()][a] > infoset_value){
                 infoset_value = global_action_values[I.get_index()][a];
             }
         }
+        // std::cout << std::endl;
 
         std::vector<int> candidate_actions;
         for (int a: legal_actions){
@@ -458,7 +462,7 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
 
     for (int t = 1; t <= iterations; t += 1) {
         if (t % log_frequency == 0) { 
-            // print sequence data
+            // print sequence data 
             // std::cout << "Iteration: " << t << std::endl;
             // for (int i = 0; i < terminal_sequences.size(); i++){
             //     if (terminal_sequences[i].n == 0){
