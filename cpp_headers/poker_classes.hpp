@@ -132,7 +132,7 @@ public:
     char player;
     std::vector<std::vector<double> > policy_dict;
     PolicyVec();
-    PolicyVec(char player, std::vector<std::string> & information_sets, char game);
+    PolicyVec(char player, std::vector<std::string> & information_sets, char game, bool uniform);
     PolicyVec(char player, std::string& file_path, char game);
     PolicyVec(char player, std::string& file_path, char game, bool from_txt);
     PolicyVec(char player, std::vector<std::vector<double> >& policy_dict);
