@@ -127,11 +127,12 @@ void precompute_cohorts(std::vector<std::vector<std::unordered_set<std::string>>
 
 
 double sample_game(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& true_board, History& current_history, char br_player, 
-                   PolicyVec& policy_obj, PolicyVec& opponent_policy, Sequence& trajectory, char curr_player) {
+                   PolicyVec& policy_obj, PolicyVec& opponent_policy, Sequence& trajectory, char curr_player, std::vector<int>& infoset_reach_counts) {
     InformationSet I = curr_player == 'x' ? I_1 : I_2;
     int action = 0;
     
     if (br_player == I.player){
+        infoset_reach_counts[I.get_index()] += 1;
         std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
         action = sampleIndex(prob_dist);
         trajectory.extend(I, action);
@@ -152,10 +153,10 @@ double sample_game(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& tru
             new_I.update_move(action, curr_player);
 
             if (curr_player == 'x') {
-                return sample_game(new_I, I_2, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory, 'o');
+                return sample_game(new_I, I_2, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory, 'o', infoset_reach_counts);
             }
             else {
-                return sample_game(I_1, new_I, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory, 'x');
+                return sample_game(I_1, new_I, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory, 'x', infoset_reach_counts);
             }
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
@@ -171,9 +172,9 @@ double sample_game(InformationSet& I_1, InformationSet& I_2, TicTacToeBoard& tru
         current_history.history.push_back(action);
 
         if (curr_player == 'x') {
-            return sample_game(new_I, I_2, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory, 'x');
+            return sample_game(new_I, I_2, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory, 'x', infoset_reach_counts);
         } else {
-            return sample_game(I_1, new_I, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory, 'o');
+            return sample_game(I_1, new_I, new_board, current_history, br_player, policy_obj, opponent_policy, trajectory, 'o', infoset_reach_counts);
         }
     }
 }
@@ -356,11 +357,13 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
 
         // compute value of played action
         std::unordered_set<std::string>& cohort = cohorts[I.get_index()][played_action];
+        // std::cout << "Played action: " << played_action << std::endl;
 
         double action_value = 0.0;
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
             action_value += global_infoset_values[I_prime.get_index()];
+            // std::cout << "Cohort: " << I_prime.get_hash() << " - Value: " << global_infoset_values[I_prime.get_index()] << std::endl;
         }
 
         double p_hat, r_hat = 0.0;
@@ -369,6 +372,7 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
             r_hat = terminal_sequences[s_index].r / (double) terminal_sequences[s_index].n;
         }
         action_value += p_hat * r_hat;
+        // std::cout << "Terminal value: " << p_hat * r_hat << std::endl;
 
         if (cohort.size() == 0 && terminal_sequences[s_index].n == 0){
             action_value = 0.0;
@@ -385,12 +389,15 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         double infoset_value = -1.0;
+        // std::cout << "Infoset: " << I.get_hash() << " - Action values: ";
         
         for (int a : legal_actions){            
+            // std::cout << a << " " << global_action_values[I.get_index()][a] << " ";
             if (global_action_values[I.get_index()][a] > infoset_value){
                 infoset_value = global_action_values[I.get_index()][a];
             }
         }
+        // std::cout << std::endl;
 
         std::vector<int> candidate_actions;
         for (int a: legal_actions){
@@ -526,7 +533,7 @@ void get_sequences_wrapper(std::vector<Sequence>& terminal_sequences, char br_pl
 
 
 void get_policy_sequences(PolicyVec& policy_obj, InformationSet& I, Sequence& trajectory, std::vector<int>& policy_sequences, std::unordered_map<std::string, int>& sequence_hash_to_index_map, 
-                          std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
+                          std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, std::vector<int>& infoset_reach_counts, std::vector<double>& policy_sequence_probability_estimates, double reach, std::vector<Sequence>& terminal_sequences) {
     std::vector<int> legal_actions;
     I.get_actions_given_policy(legal_actions, policy_obj);
     
@@ -534,20 +541,38 @@ void get_policy_sequences(PolicyVec& policy_obj, InformationSet& I, Sequence& tr
         Sequence new_trajectory = trajectory;
         new_trajectory.extend(I, a);
         int index = sequence_hash_to_index_map[new_trajectory.hash];
+        int terminal_reach_count = terminal_sequences[index].n;
         policy_sequences.push_back(index);
-
+        
         std::unordered_set<std::string>& cohort = cohorts[I.get_index()][a];
+        int reach_sum = terminal_reach_count;
+        for (std::string I_prime_hash : cohort){
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+            reach_sum += infoset_reach_counts[I_prime.get_index()];
+        }
+
+        if (reach_sum != 0){
+            policy_sequence_probability_estimates.push_back(reach * ((double) terminal_reach_count / (double) reach_sum));
+        }
+        else {
+            policy_sequence_probability_estimates.push_back(0.0);
+        }
+        
 
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
-            get_policy_sequences(policy_obj, I_prime, new_trajectory, policy_sequences, sequence_hash_to_index_map, cohorts);
+            double new_reach = 0;
+            if (reach_sum != 0) {
+                new_reach = reach * ((double) infoset_reach_counts[I_prime.get_index()] / (double) reach_sum);
+            }
+            get_policy_sequences(policy_obj, I_prime, new_trajectory, policy_sequences, sequence_hash_to_index_map, cohorts, infoset_reach_counts, policy_sequence_probability_estimates, new_reach, terminal_sequences);
         }
     }
 }
 
 
 void get_policy_sequences_wrapper(PolicyVec& policy_obj, std::vector<int>& policy_sequences, std::unordered_map<std::string, int>& sequence_hash_to_index_map, char br_player, 
-                                  std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
+                                  std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, std::vector<int>& infoset_reach_counts, std::vector<double>& policy_sequence_probability_estimates, std::vector<Sequence>& terminal_sequences) {
     std::string board = "000000000";
     TicTacToeBoard true_board = TicTacToeBoard(board);
     std::string hash_1 = "";
@@ -556,14 +581,14 @@ void get_policy_sequences_wrapper(PolicyVec& policy_obj, std::vector<int>& polic
     InformationSet I_2 = InformationSet('o', false, hash_2);
     Sequence empty_sequence = Sequence();
     InformationSet root = br_player == 'x' ? I_1 : I_2;
-    get_policy_sequences(policy_obj, root, empty_sequence, policy_sequences, sequence_hash_to_index_map, cohorts);
+    get_policy_sequences(policy_obj, root, empty_sequence, policy_sequences, sequence_hash_to_index_map, cohorts, infoset_reach_counts, policy_sequence_probability_estimates, 1.0, terminal_sequences);
 }
 
 
-void update_sequence_data(std::vector<int>& policy_sequences, std::vector<Sequence>& terminal_sequences, double reward_game, std::string terminal_hash_game, double C_r, double C_p) {
-    std::cerr << "Updating " << policy_sequences.size() << " sequences..." << std::endl;
-    double p_sum = 0.0;
-    int count_unreached = 0;
+void update_sequence_data(std::vector<int>& policy_sequences, std::vector<Sequence>& terminal_sequences, double reward_game, std::string terminal_hash_game, double C_r, double C_p, std::vector<double>& policy_sequence_probability_estimates) {
+    // std::cerr << "Updating " << policy_sequences.size() << " sequences..." << std::endl;
+    // double p_sum = 0.0;
+    // int count_unreached = 0;
     
     for (int i = 0; i < policy_sequences.size(); i++){
         int s_index = policy_sequences[i];
@@ -572,41 +597,54 @@ void update_sequence_data(std::vector<int>& policy_sequences, std::vector<Sequen
             terminal_sequences[s_index].r += reward_game;
             terminal_sequences[s_index].n += 1;
             terminal_sequences[s_index].n_pi += 1;
-            terminal_sequences[s_index].p = (double) terminal_sequences[s_index].n / (double) terminal_sequences[s_index].n_pi;
+            terminal_sequences[s_index].p = policy_sequence_probability_estimates[i];
             terminal_sequences[s_index].ucb_r = ((double) terminal_sequences[s_index].r / (double) terminal_sequences[s_index].n) + C_r * std::sqrt(1.0 / (double) terminal_sequences[s_index].n);
             terminal_sequences[s_index].ucb_p = terminal_sequences[s_index].p + C_p * std::sqrt(1.0 / (double) terminal_sequences[s_index].n_pi);
         }
         else{
             terminal_sequences[s_index].n_pi += 1;
-            terminal_sequences[s_index].p = (double) terminal_sequences[s_index].n / (double) terminal_sequences[s_index].n_pi;
+            terminal_sequences[s_index].p = policy_sequence_probability_estimates[i];
             terminal_sequences[s_index].ucb_p = terminal_sequences[s_index].p + C_p * std::sqrt(1.0 / (double) terminal_sequences[s_index].n_pi);
         }
 
-        if (terminal_sequences[s_index].n != 0){
-            std::cerr << terminal_sequences[s_index].hash << "- r:" << terminal_sequences[s_index].r << ", n:" << terminal_sequences[s_index].n << ", n_pi:" << terminal_sequences[s_index].n_pi << ", p:" << terminal_sequences[s_index].p << ", ucb_r:" << terminal_sequences[s_index].ucb_r << ", ucb_p:" << terminal_sequences[s_index].ucb_p << std::endl;
-        }
-        p_sum += terminal_sequences[s_index].p;
-        if (terminal_sequences[s_index].n == 0){
-            count_unreached += 1;
-        }
+        // if (terminal_sequences[s_index].n != 0){
+        //     std::cerr << terminal_sequences[s_index].hash << "- r:" << terminal_sequences[s_index].r << ", n:" << terminal_sequences[s_index].n << ", n_pi:" << terminal_sequences[s_index].n_pi << ", p:" << terminal_sequences[s_index].p << ", ucb_r:" << terminal_sequences[s_index].ucb_r << ", ucb_p:" << terminal_sequences[s_index].ucb_p << std::endl;
+        // }
+        // p_sum += terminal_sequences[s_index].p;
+        // if (terminal_sequences[s_index].n == 0){
+        //     count_unreached += 1;
+        // }
     }
 
-    std::cerr << "Number of unreached sequences: " << count_unreached << " out of " << policy_sequences.size() << std::endl;
-    std::cerr << "Sum of probabilities: " << p_sum << std::endl;
+    // std::cerr << "Number of unreached sequences: " << count_unreached << " out of " << policy_sequences.size() << std::endl;
+    // std::cerr << "Sum of probabilities: " << p_sum << std::endl;
+}
+
+
+void eliminate_sequences(std::vector<int>& policy_sequences, std::vector<Sequence>& terminal_sequences) {
+    for (int i = 0; i < policy_sequences.size(); i++){
+        int s_index = policy_sequences[i];
+
+        if (terminal_sequences[s_index].n == 0){
+            terminal_sequences[s_index].ucb_p = 0.0;
+            terminal_sequences[s_index].ucb_r = 0.0;
+        }
+    }
 }
 
 
 void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vector<std::string>& player_information_sets, int log_frequency, PolicyVec& player_br, 
-    int experiment_number, int iterations, double C_r, double C_p, std::string& exp_name, std::unordered_map<std::string, int>& sequence_hash_to_index_map, 
-    std::vector<Sequence>& terminal_sequences, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) 
-{  
+                           int experiment_number, int iterations, double C_r, double C_p, std::string& exp_name, std::unordered_map<std::string, int>& sequence_hash_to_index_map, 
+                           std::vector<Sequence>& terminal_sequences, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {  
     // store infoset and action values to avoid recomputation for parts of the tree that don't change
     std::vector<double> infoset_empirical_values(player_information_sets.size(), 0.0);
     std::vector<std::vector<double>> action_empirical_values(player_information_sets.size(), std::vector<double>(NUM_ACTIONS, 0.0));
 
     std::vector<double> infoset_upper_bound_values(player_information_sets.size(), 0.0);
     std::vector<std::vector<double>> action_upper_bound_values(player_information_sets.size(), std::vector<double>(NUM_ACTIONS, 0.0));
-    
+
+    std::vector<int> infoset_reach_counts(player_information_sets.size(), 0);
+
     PolicyVec player_max_ucb_policy(br_player, player_information_sets, false);
     std::vector<std::pair<int, double>> exploitability_log; 
 
@@ -647,9 +685,10 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
     
     std::cerr << "Max UCB policy computed" << std::endl;
     bool max_UCB_flag = true;
+    // int same_policy_play_count = 0;
 
     for (int t = 1; t <= iterations; t += 1) {
-        std::cerr << "Iteration: " << t << std::endl;
+        // std::cerr << "Iteration: " << t << std::endl;
         if (max_UCB_flag) {
             board = "000000000";
             true_board = TicTacToeBoard(board);
@@ -661,20 +700,25 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
             std::vector<int> h = {};
             TerminalHistory start_history = TerminalHistory(h);
             Sequence trajectory = Sequence();
-            double reward = sample_game(I_1, I_2, true_board, start_history, br_player, player_max_ucb_policy, opponent_policy, trajectory, 'x');
-            std::cerr << "Sampled game using max ucb policy with reward: " << reward << std::endl;
-            start_history.print_history();
+            double reward = sample_game(I_1, I_2, true_board, start_history, br_player, player_max_ucb_policy, opponent_policy, trajectory, 'x', infoset_reach_counts);
+            // std::cerr << "Sampled game using max ucb policy with reward: " << reward << std::endl;
+            // start_history.print_history();
 
             std::vector<int> policy_sequences;
-            get_policy_sequences_wrapper(player_max_ucb_policy, policy_sequences, sequence_hash_to_index_map, br_player, cohorts);
+            std::vector<double> policy_sequence_probability_estimates;
+            get_policy_sequences_wrapper(player_max_ucb_policy, policy_sequences, sequence_hash_to_index_map, br_player, cohorts, infoset_reach_counts, policy_sequence_probability_estimates, terminal_sequences);
 
             // update sequence data for policy sequences
-            update_sequence_data(policy_sequences, terminal_sequences, reward, trajectory.hash, C_r, C_p);
-            std::cerr << "Updated sequence data" << std::endl;
+            update_sequence_data(policy_sequences, terminal_sequences, reward, trajectory.hash, C_r, C_p, policy_sequence_probability_estimates);
+            // std::cerr << "Updated sequence data" << std::endl;
 
             // update policies 
             update_max_reward_policy_given_trajectory(player_br, trajectory, terminal_sequences, sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, br_player, cohorts);
-            std::cerr << "Updated max reward policy" << std::endl;
+            // std::cerr << "Updated max reward policy" << std::endl;
+
+            // same_policy_play_count += 1;
+            // if (same_policy_play_count == 99){
+            //     eliminate_sequences(policy_sequences, terminal_sequences);
 
             hash_1 = "";
             hash_2 = "";
@@ -683,8 +727,10 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
             empty_sequence = Sequence();
             root = br_player == 'x' ? I_1 : I_2;
             double max_UCB = update_max_ucb_policy_given_trajectory(player_max_ucb_policy, player_max_ucb_policy, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, infoset_upper_bound_values, action_upper_bound_values, cohorts);
-            std::cerr << "Updated max ucb policy" << std::endl;
+            // std::cerr << "Updated max ucb policy" << std::endl; 
             max_UCB_flag = false;
+            //     same_policy_play_count = 0;
+            // } 
         }
         else {
             board = "000000000";
@@ -697,19 +743,20 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
             std::vector<int> h = {};
             TerminalHistory start_history = TerminalHistory(h);
             Sequence trajectory = Sequence();
-            double reward = sample_game(I_1, I_2, true_board, start_history, br_player, player_br, opponent_policy, trajectory, 'x');
-            std::cerr << "Sampled game using max reward policy with reward: " << reward << std::endl;
-            start_history.print_history();
+            double reward = sample_game(I_1, I_2, true_board, start_history, br_player, player_br, opponent_policy, trajectory, 'x', infoset_reach_counts);
+            // std::cerr << "Sampled game using max reward policy with reward: " << reward << std::endl;
+            // start_history.print_history();
 
             std::vector<int> policy_sequences;
-            get_policy_sequences_wrapper(player_br, policy_sequences, sequence_hash_to_index_map, br_player, cohorts);
+            std::vector<double> policy_sequence_probability_estimates;
+            get_policy_sequences_wrapper(player_br, policy_sequences, sequence_hash_to_index_map, br_player, cohorts, infoset_reach_counts, policy_sequence_probability_estimates, terminal_sequences);
             // update sequence data for policy sequences
-            update_sequence_data(policy_sequences, terminal_sequences, reward, trajectory.hash, C_r, C_p);
-            std::cerr << "Updated sequence data" << std::endl;
+            update_sequence_data(policy_sequences, terminal_sequences, reward, trajectory.hash, C_r, C_p, policy_sequence_probability_estimates);
+            // std::cerr << "Updated sequence data" << std::endl;
 
             // update policies
             update_max_reward_policy_given_trajectory(player_br, trajectory, terminal_sequences, sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, br_player, cohorts);
-            std::cerr << "Updated max reward policy" << std::endl;
+            // std::cerr << "Updated max reward policy" << std::endl;
 
             hash_1 = "";
             hash_2 = "";
@@ -718,7 +765,7 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
             empty_sequence = Sequence();
             root = br_player == 'x' ? I_1 : I_2;
             double max_UCB = update_max_ucb_policy_given_trajectory(player_max_ucb_policy, player_br, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, infoset_upper_bound_values, action_upper_bound_values, cohorts);
-            std::cerr << "Updated max ucb policy" << std::endl;
+            // std::cerr << "Updated max ucb policy" << std::endl;
             max_UCB_flag = true;
         }
 
