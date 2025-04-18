@@ -1168,14 +1168,14 @@ void calc_br(PolicyVec& opponent_policy, char br_player, std::vector<std::string
     std::vector<std::vector<int>> action_terminal_reach_count(player_information_sets.size(), std::vector<int>(13, 0));
     std::vector<std::vector<int>> action_explore_count(player_information_sets.size(), std::vector<int>(13, 0));
 
-    PolicyVec player_max_ucb_policy(br_player, player_information_sets);
+    PolicyVec player_max_ucb_policy(br_player, player_information_sets, false);
     std::vector<std::pair<int, double>> exploitability_log; 
 
     int flag = 1;
     int t = 0;
     int k = 1;
 
-    PolicyVec exact_br(br_player, player_information_sets);
+    PolicyVec exact_br(br_player, player_information_sets, false);
     double exact_br_value = compute_best_response_wrapper(opponent_policy, exact_br, br_player);
     std::cout << "Exact best response value: " << exact_br_value << std::endl;
 
@@ -1372,11 +1372,11 @@ int main(int argc, char* argv[]) {
 
     while (experiment_num <= experiments) {
         if (player == 'x') {
-            PolicyVec uniform_x('x', P1_information_sets);
+            PolicyVec uniform_x('x', P1_information_sets, false);
             calc_br(policy_obj_o, 'x', P1_information_sets, log_frequency, 1, uniform_x, experiment_num, iterations, C, exp_name);
         }
         else {
-            PolicyVec uniform_o('o', P2_information_sets);
+            PolicyVec uniform_o('o', P2_information_sets, false);
             calc_br(policy_obj_x, 'o', P2_information_sets, log_frequency, 1, uniform_o, experiment_num, iterations, C, exp_name);
         }
 

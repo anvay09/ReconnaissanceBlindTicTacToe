@@ -949,7 +949,7 @@ void Sequence::update_hash() {
         this->hash = "";
         return;
     }
-    std::string hash = this->seq[this->seq.size() - 1].first + "-" + std::to_string(this->seq[this->seq.size() - 1].second);
+    std::string hash = this->seq[this->seq.size() - 1].first + ";" + std::to_string(this->seq[this->seq.size() - 1].second);
     this->hash = hash;
 }
 
