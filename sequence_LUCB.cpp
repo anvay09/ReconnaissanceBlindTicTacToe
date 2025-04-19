@@ -591,7 +591,6 @@ void get_policy_sequences_wrapper(PolicyVec& policy_obj, std::vector<int>& polic
 void update_sequence_data(std::vector<int>& policy_sequences, std::vector<Sequence>& terminal_sequences, double reward_game, std::string terminal_hash_game, 
                           double C_r, double C_p, std::vector<double>& policy_sequence_probability_estimates, std::vector<int>& infoset_reach_counts, 
                           std::vector<std::vector<int>>& action_reach_counts, std::vector<int>& infoset_pseudo_reach_counts, char br_player) {
-    #pragma omp parallel for num_threads(NUMBER_THREADS) 
     for (int i = 0; i < policy_sequences.size(); i++){
         int s_index = policy_sequences[i];
         std::string I_hash = terminal_sequences[s_index].hash;
