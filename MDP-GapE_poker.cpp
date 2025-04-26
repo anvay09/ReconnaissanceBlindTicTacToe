@@ -386,8 +386,8 @@ int main(int argc, char* argv[]) {
     PolicyVec policy_obj_x('x', file_path_1, game, true);
     PolicyVec policy_obj_o('o', file_path_2, game, true);
     std::cout << "Start policies loaded." << std::endl;
-    PolicyVec br_x('x', P1_information_sets, game);
-    PolicyVec br_o('o', P2_information_sets, game);
+    PolicyVec br_x('x', P1_information_sets, game, false);
+    PolicyVec br_o('o', P2_information_sets, game, false);
 
     double expected_utility = 0.0;
     if (player == 'x'){
@@ -402,13 +402,13 @@ int main(int argc, char* argv[]) {
     while (experiment_number <= num_experiments){
         std::cout << "----------- Experiment Number: " << experiment_number << " -----------" << std::endl;
         if (player == 'x'){
-            PolicyVec uniform_policy_obj_x('x', P1_information_sets, game);
+            PolicyVec uniform_policy_obj_x('x', P1_information_sets, game, false);
             PolicyVec player_br_policy = uniform_policy_obj_x;
             algorithm(eps, delta, gamma, H, B, player, player_br_policy, policy_obj_o, P1_information_sets, num_iterations, log_freq, game, expected_utility, experiment_number);
             //save_map_txt(base_path + "MDP-GapE_" + std::string(1, game) + "_poker_" + std::string(1, player) + std::to_string(experiment_number) + ".txt", player_br_policy.policy_dict, P1_information_sets);
         }
         else if (player == 'o'){
-            PolicyVec uniform_policy_obj_o('o', P2_information_sets, game);
+            PolicyVec uniform_policy_obj_o('o', P2_information_sets, game, false);
             PolicyVec player_br_policy = uniform_policy_obj_o;
             algorithm(eps, delta, gamma, H, B, player, player_br_policy, policy_obj_x, P2_information_sets, num_iterations, log_freq, game, expected_utility, experiment_number);
             //save_map_txt(base_path + "MDP-GapE_" + std::string(1, game) + "_poker_" + std::string(1, player) + std::to_string(experiment_number) + ".txt", player_br_policy.policy_dict, P2_information_sets);
