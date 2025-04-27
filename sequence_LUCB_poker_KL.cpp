@@ -262,7 +262,8 @@ double update_max_ucb_policy_given_trajectory(PolicyVec& update_policy_obj, Poli
     std::vector<int> played_actions;
     I.get_actions_given_policy(played_actions, played_policy_obj);
     double infoset_value = -1.0;
-    double beta_cnt = std::log(3.0 * std::pow(6 * B, H) / 0.1);
+    double delta = 0.01;
+    double beta_cnt = std::log(3.0 * std::pow(6 * B, H) / delta);
 
     for (int a : played_actions){
         double played_action_value = 0.0;
@@ -294,7 +295,7 @@ double update_max_ucb_policy_given_trajectory(PolicyVec& update_policy_obj, Poli
 
             if (terminal_sequences[s_index].n > 0){
                 p_hat[i] = (double) terminal_sequences[s_index].n / (double) reach_sum;
-                u_next[i] = (double) terminal_sequences[s_index].r / (double) terminal_sequences[s_index].n;
+                u_next[i] = terminal_sequences[s_index].ucb_r;
             }
             else {
                 p_hat[i] == 0.0;
@@ -308,15 +309,8 @@ double update_max_ucb_policy_given_trajectory(PolicyVec& update_policy_obj, Poli
                 u_next[i] = cohort_values[I_prime_hash];
             }
 
-            // std::cout << "Values: ";
-            // std::cout << u_next << std::endl;
-            // std::cout << "Probabilities: ";
-            // std::cout << p_hat << std::endl;
-            // std::cout << "Beta: ";
-            double beta_p = beta_cnt + 2.0 * std::log(3) + std::log(B) + std::log(20) + H * std::log(B * 6) + 0.5 * B * std::log(3.0 * (double) reach_sum / (double) B);
-            // std::cout << beta_p << std::endl;
+            double beta_p = beta_cnt + 2.0 * std::log(3) + std::log(B) + std::log(1.0 / delta) + H * std::log(B * 6) + 0.5 * B * std::log(3.0 * (double) reach_sum / (double) B);
             Eigen::VectorXd p_plus = max_expectation_under_constraint(u_next, p_hat, beta_p / (double) reach_sum, 1e-2);
-            // std::cout << p_plus << std::endl;
             played_action_value = p_plus.dot(u_next);
         }
         
@@ -461,7 +455,7 @@ void update_sequence_data(std::vector<int>& policy_sequences, std::vector<Sequen
             terminal_sequences[s_index].n_pi += 1;
             terminal_sequences[s_index].p = policy_sequence_probability_estimates[i];
             // terminal_sequences[s_index].p = ((double) infoset_reach_counts[I.get_index()] / (double) infoset_pseudo_reach_counts[I.get_index()]) * (((double) terminal_sequences[s_index].n) / ((double) action_reach_counts[I.get_index()][played_action]));
-            // terminal_sequences[s_index].ucb_r = (double) terminal_sequences[s_index].r / (double) terminal_sequences[s_index].n + C_r * std::sqrt(1.0 / (double) terminal_sequences[s_index].n);
+            terminal_sequences[s_index].ucb_r = (double) terminal_sequences[s_index].r / (double) terminal_sequences[s_index].n + C_r * std::sqrt(1.0 / (double) terminal_sequences[s_index].n);
             // terminal_sequences[s_index].ucb_p = terminal_sequences[s_index].p + C_p * std::sqrt(1.0 / (double) terminal_sequences[s_index].n_pi);
         }
         else{
