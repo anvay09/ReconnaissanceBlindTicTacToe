@@ -454,15 +454,11 @@ void update_sequence_data(std::vector<int>& policy_sequences, std::vector<Sequen
             terminal_sequences[s_index].n += 1;
             terminal_sequences[s_index].n_pi += 1;
             terminal_sequences[s_index].p = policy_sequence_probability_estimates[i];
-            // terminal_sequences[s_index].p = ((double) infoset_reach_counts[I.get_index()] / (double) infoset_pseudo_reach_counts[I.get_index()]) * (((double) terminal_sequences[s_index].n) / ((double) action_reach_counts[I.get_index()][played_action]));
             terminal_sequences[s_index].ucb_r = (double) terminal_sequences[s_index].r / (double) terminal_sequences[s_index].n + C_r * std::sqrt(1.0 / (double) terminal_sequences[s_index].n);
-            // terminal_sequences[s_index].ucb_p = terminal_sequences[s_index].p + C_p * std::sqrt(1.0 / (double) terminal_sequences[s_index].n_pi);
         }
         else{
             terminal_sequences[s_index].n_pi += 1;
             terminal_sequences[s_index].p = policy_sequence_probability_estimates[i];
-            // terminal_sequences[s_index].p = ((double) infoset_reach_counts[I.get_index()] / (double) infoset_pseudo_reach_counts[I.get_index()]) * (((double) terminal_sequences[s_index].n) / ((double) action_reach_counts[I.get_index()][played_action]));
-            // terminal_sequences[s_index].ucb_p = terminal_sequences[s_index].p + C_p * std::sqrt(1.0 / (double) terminal_sequences[s_index].n_pi);
         }
     }
 }

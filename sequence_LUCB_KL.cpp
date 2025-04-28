@@ -620,7 +620,7 @@ double update_max_ucb_policy_given_trajectory(PolicyVec& update_policy_obj, Poli
                 u_next[i] = cohort_values[I_prime_hash];
             }
 
-            double beta_p = 2.0 * std::log(3) + std::log(B) + std::log(1.0 / delta) + H * std::log(B * 6) + 0.5 * B * std::log(3.0 * (double) reach_sum / (double) B);
+            double beta_p = std::log(3) + std::log(B) + std::log(1.0 / delta) + 0.5 * B * std::log(3.0 * (double) reach_sum / (double) B);
             Eigen::VectorXd p_plus = max_expectation_under_constraint(u_next, p_hat, beta_p / (double) reach_sum, 1e-2);
             played_action_value = p_plus.dot(u_next);
         }
