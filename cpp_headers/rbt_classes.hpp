@@ -148,6 +148,9 @@ class Sequence
     public:
         std::vector<std::pair<std::string, int>> seq;
         double r; // total empirical reward
+        int w; // total wins
+        int d; // total losses
+        int l; // total draws
         double p; // total empirical probability, p = n / n_pi
         double ucb_r; // upper confidence bound on reward
         double ucb_p; // upper confidence bound on probability
