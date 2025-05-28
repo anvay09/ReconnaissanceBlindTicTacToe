@@ -486,27 +486,7 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
         exact_br_value = get_expected_utility_wrapper(opponent_policy, exact_br, game);
     }
     std::cout << "Exact best response value: " << exact_br_value << std::endl;
-
     std::vector<char> player_cards = {'J', 'Q', 'K'};
-    for (int card_index = 0; card_index < player_cards.size(); card_index++){
-        std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
-        std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
-        InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-        Sequence empty_sequence = Sequence();
-        double root_val = build_max_policy(player_br, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, game, false, infoset_empirical_values, action_empirical_values, cohorts);  
-    }
-
-    std::cout << "Max Reward policy computed" << std::endl;
-
-    for (int card_index = 0; card_index < player_cards.size(); card_index++){
-        std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
-        std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
-        InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-        Sequence empty_sequence = Sequence();
-        double max_UCB = build_max_policy(player_max_ucb_policy, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, game, true, infoset_empirical_values, action_empirical_values, cohorts);
-    }
-
-    std::cout << "Max UCB policy computed" << std::endl;
     bool max_UCB_flag = true;
 
     for (int t = 1; t <= iterations; t += 1) {  
