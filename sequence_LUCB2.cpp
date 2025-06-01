@@ -394,15 +394,19 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
             }
         }
 
+        // std::cout << "Infoset: " << I.get_hash() << " ";
         std::vector<int> candidate_actions;
         for (int a: legal_actions){
             if (fabs(global_action_values[I.get_index()][a] - infoset_value) < 1e-6){
                 candidate_actions.push_back(a);
             }
+            // std::cout << "Action " << a << ": " << global_action_values[I.get_index()][a] << " ";
         }
+        // std::cout << std::endl;
 
         // sample from candidate actions
-        int best_action = candidate_actions[sampleIndex(std::vector<double>(candidate_actions.size(), 1.0 / candidate_actions.size()))];
+        // int best_action = candidate_actions[sampleIndex(std::vector<double>(candidate_actions.size(), 1.0 / candidate_actions.size()))];
+        int best_action = candidate_actions[0];
         for (int a : legal_actions){
             if (a == best_action){
                 prob_dist[a] = 1.0;
@@ -417,8 +421,9 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
 
 
 void update_max_ucb_policy_given_trajectory(PolicyVec& update_policy_obj, PolicyVec& played_policy_obj, InformationSet& I, Sequence& trajectory, std::vector<Sequence>& terminal_sequences,
-                                              std::unordered_map<std::string, int>& sequence_hash_to_index_map, std::vector<double>& global_infoset_values, std::vector<std::vector<double>>& global_action_values, 
-                                              std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, std::vector<int>& infoset_min_npi_values, std::vector<std::vector<int>>& action_min_npi_values, double C, int t, double delta) {
+                                            std::unordered_map<std::string, int>& sequence_hash_to_index_map, std::vector<double>& global_infoset_values, std::vector<std::vector<double>>& global_action_values, 
+                                            std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, std::vector<int>& infoset_min_npi_values, std::vector<std::vector<int>>& action_min_npi_values, 
+                                            double C, int t, double delta, std::vector<int>& infoset_num_starved_seq, std::vector<std::vector<int>>& action_num_starved_seq) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
 
@@ -440,13 +445,26 @@ void update_max_ucb_policy_given_trajectory(PolicyVec& update_policy_obj, Policy
 
     for (std::string I_prime_hash : cohort){
         InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
-        update_max_ucb_policy_given_trajectory(update_policy_obj, played_policy_obj, I_prime, new_trajectory, terminal_sequences, sequence_hash_to_index_map, global_infoset_values, global_action_values, cohorts, infoset_min_npi_values, action_min_npi_values, C, t, delta);
+        update_max_ucb_policy_given_trajectory(update_policy_obj, played_policy_obj, I_prime, new_trajectory, terminal_sequences, sequence_hash_to_index_map, 
+                                               global_infoset_values, global_action_values, cohorts, infoset_min_npi_values, action_min_npi_values, 
+                                               C, t, delta, infoset_num_starved_seq, action_num_starved_seq);
+
         n_pi = std::min(n_pi, infoset_min_npi_values[I_prime.get_index()]);
     }
 
     action_min_npi_values[I.get_index()][played_action] = n_pi;
+    int num_starved = 0;
+    for (std::string I_prime_hash : cohort){
+        InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+        if (n_pi == infoset_min_npi_values[I_prime.get_index()]){
+            num_starved += infoset_num_starved_seq[I_prime.get_index()];
+        }
+    }
+    action_num_starved_seq[I.get_index()][played_action] = num_starved;
+
     //
 
+    // std::cout << "Infoset: " << I.get_hash() << " ";
     for (int a : legal_actions){
         if (action_min_npi_values[I.get_index()][a] == 0){
             action_values[a] = 1.0;
@@ -455,17 +473,32 @@ void update_max_ucb_policy_given_trajectory(PolicyVec& update_policy_obj, Policy
             action_values[a] = std::min(1.0, global_action_values[I.get_index()][a] + std::sqrt(C * std::log((double) t / delta) / (double) action_min_npi_values[I.get_index()][a]));
         }
         infoset_value = std::max(infoset_value, action_values[a]);
+        // std::cout << "Action " << a << ": " << action_values[a] << " ";
     }
+    // std::cout << std::endl;
 
+    num_starved = -1;
     std::vector<int> candidate_actions;
     for (int a : legal_actions){
         if (fabs(action_values[a] - infoset_value) < 1e-6){
             candidate_actions.push_back(a);
+            if (action_num_starved_seq[I.get_index()][a] > num_starved){
+                num_starved = action_num_starved_seq[I.get_index()][a];
+            }
         }
     }
 
+    std::vector<int>::iterator it = candidate_actions.begin();
+    while(it != candidate_actions.end()) {
+        if(action_num_starved_seq[I.get_index()][*it] < num_starved) {
+            it = candidate_actions.erase(it);
+        }
+        else ++it;
+    }
+
     // sample from candidate actions
-    int action = candidate_actions[sampleIndex(std::vector<double>(candidate_actions.size(), 1.0 / candidate_actions.size()))];
+    // int action = candidate_actions[sampleIndex(std::vector<double>(candidate_actions.size(), 1.0 / candidate_actions.size()))];
+    int action = candidate_actions[0];
     std::vector<double>& prob_dist = update_policy_obj.policy_dict[I.get_index()];
 
     for (int a : legal_actions){
@@ -477,6 +510,7 @@ void update_max_ucb_policy_given_trajectory(PolicyVec& update_policy_obj, Policy
         }
     }
     infoset_min_npi_values[I.get_index()] = action_min_npi_values[I.get_index()][action];
+    infoset_num_starved_seq[I.get_index()] = action_num_starved_seq[I.get_index()][action];
 }
 
 
@@ -511,6 +545,39 @@ void get_sequences_wrapper(std::vector<Sequence>& terminal_sequences, char br_pl
     Sequence empty_sequence = Sequence();
     InformationSet root = br_player == 'x' ? I_1 : I_2;
     get_sequences(root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, cohorts);
+}
+
+
+int init_num_starved_seq(InformationSet& I, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, std::vector<int>& infoset_num_starved_seq, std::vector<std::vector<int>>& action_num_starved_seq) {
+    std::vector<int> legal_actions;
+    I.get_actions(legal_actions);
+    int num = 0;
+    
+    for (int a : legal_actions){
+        int a_num = 1;
+        std::unordered_set<std::string>& cohort = cohorts[I.get_index()][a];
+
+        for (std::string I_prime_hash : cohort){
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash);
+            a_num += init_num_starved_seq(I_prime, cohorts, infoset_num_starved_seq, action_num_starved_seq);
+        }
+
+        if (a_num > num) {num = a_num;}
+    }
+
+    return num;
+}
+
+
+void init_num_starved_seq_wrapper(char br_player, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, std::vector<int>& infoset_num_starved_seq, std::vector<std::vector<int>>& action_num_starved_seq) {
+    std::string board = "000000000";
+    TicTacToeBoard true_board = TicTacToeBoard(board);
+    std::string hash_1 = "";
+    std::string hash_2 = "";
+    InformationSet I_1 = InformationSet('x', true, hash_1);
+    InformationSet I_2 = InformationSet('o', false, hash_2);
+    InformationSet root = br_player == 'x' ? I_1 : I_2;
+    init_num_starved_seq(root, cohorts, infoset_num_starved_seq, action_num_starved_seq);
 }
 
 
@@ -589,6 +656,10 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
 
     std::vector<int> infoset_min_npi_values(player_information_sets.size(), 0);
     std::vector<std::vector<int>> action_min_npi_values(player_information_sets.size(), std::vector<int>(NUM_ACTIONS, 0));
+
+    std::vector<int> infoset_num_starved_seq(player_information_sets.size(), 0);
+    std::vector<std::vector<int>> action_num_starved_seq(player_information_sets.size(), std::vector<int>(NUM_ACTIONS, 0));
+    init_num_starved_seq_wrapper(br_player, cohorts, infoset_num_starved_seq, action_num_starved_seq);
     
     std::vector<std::vector<int>> action_reach_counts(player_information_sets.size(), std::vector<int>(NUM_ACTIONS, 0));
     std::vector<int> infoset_reach_counts(player_information_sets.size(), 0);
@@ -645,7 +716,7 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
             I_2 = InformationSet('o', false, hash_2);
             empty_sequence = Sequence();
             root = br_player == 'x' ? I_1 : I_2;
-            update_max_ucb_policy_given_trajectory(player_max_ucb_policy, player_max_ucb_policy, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, cohorts, infoset_min_npi_values, action_min_npi_values, C, t, delta);
+            update_max_ucb_policy_given_trajectory(player_max_ucb_policy, player_max_ucb_policy, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, cohorts, infoset_min_npi_values, action_min_npi_values, C, t, delta, infoset_num_starved_seq, action_num_starved_seq);
             max_UCB_flag = false;
         }
         else {
@@ -672,7 +743,7 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
             I_2 = InformationSet('o', false, hash_2);
             empty_sequence = Sequence();
             root = br_player == 'x' ? I_1 : I_2;
-            update_max_ucb_policy_given_trajectory(player_max_ucb_policy, player_br, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, cohorts, infoset_min_npi_values, action_min_npi_values, C, t, delta);
+            update_max_ucb_policy_given_trajectory(player_max_ucb_policy, player_br, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, cohorts, infoset_min_npi_values, action_min_npi_values, C, t, delta, infoset_num_starved_seq, action_num_starved_seq);
             max_UCB_flag = true;
         }
 
@@ -690,6 +761,7 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
             }
             std::cerr << "Expected utility of best response policy: " << expected_utility << std::endl;
             std::cerr << "Number of games sampled so far: " << t << std::endl;
+            // std::cin.ignore();
         }
     }
 
