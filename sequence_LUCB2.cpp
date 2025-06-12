@@ -405,8 +405,8 @@ void update_max_reward_policy_given_trajectory(PolicyVec& policy_obj, Sequence& 
         // std::cout << std::endl;
 
         // sample from candidate actions
-        // int best_action = candidate_actions[sampleIndex(std::vector<double>(candidate_actions.size(), 1.0 / candidate_actions.size()))];
-        int best_action = candidate_actions[0];
+        int best_action = candidate_actions[sampleIndex(std::vector<double>(candidate_actions.size(), 1.0 / candidate_actions.size()))];
+        // int best_action = candidate_actions[0];
         for (int a : legal_actions){
             if (a == best_action){
                 prob_dist[a] = 1.0;

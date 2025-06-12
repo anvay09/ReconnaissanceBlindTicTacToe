@@ -653,22 +653,33 @@ void update_reach_and_sequence_data(PolicyVec& policy_obj, InformationSet& I, Se
         Sequence new_trajectory = trajectory;
         new_trajectory.extend(I, a);
         int index = sequence_hash_to_index_map[new_trajectory.hash];
+        int reach_sum = action_reach_counts[I.get_index()][a];
 
         // update data for the sequence
         if (terminal_sequences[index].hash == terminal_hash_game){
             terminal_sequences[index].r += reward_game;
             terminal_sequences[index].n += 1;
             terminal_sequences[index].n_pi += 1;
-            terminal_sequences[index].p = reach * (double) terminal_sequences[index].n / (double) action_reach_counts[I.get_index()][a];
+            if (reach_sum == 0){
+                terminal_sequences[index].p = reach;
+            }
+            else {
+                terminal_sequences[index].p = reach * (double) terminal_sequences[index].n / (double) reach_sum;
+            }
+
             terminal_sequences[index].ucb_r = ((double) terminal_sequences[index].r / (double) terminal_sequences[index].n) + C_r * std::sqrt(1.0 / (double) terminal_sequences[index].n);
         }
         else{
             terminal_sequences[index].n_pi += 1;
-            terminal_sequences[index].p = reach * (double) terminal_sequences[index].n / (double) action_reach_counts[I.get_index()][a];
+            if (reach_sum == 0){
+                terminal_sequences[index].p = reach;
+            }
+            else {
+                terminal_sequences[index].p = reach * (double) terminal_sequences[index].n / (double) reach_sum;
+            } 
         }
         
         std::unordered_set<std::string>& cohort = cohorts[I.get_index()][a];
-        int reach_sum = action_reach_counts[I.get_index()][a];
 
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
