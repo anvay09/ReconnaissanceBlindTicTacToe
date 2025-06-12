@@ -913,9 +913,6 @@ std::vector< std::vector<double> > PolicyVec::read_policy_from_txt(std::string& 
 Sequence::Sequence() {
     this->seq = std::vector<std::pair<std::string, int>>();
     this->r = 0.0;
-    this->w = 0;
-    this->d = 0;
-    this->l = 0;
     this->p = 0.0;
     this->ucb_r = 1.0;
     this->ucb_p = 1.0;
@@ -927,9 +924,6 @@ Sequence::Sequence() {
 Sequence::Sequence(std::vector<std::pair<std::string, int>> seq, double r, double p, double ucb_r, double ucb_p, int n, int n_pi, std::string hash) {
     this->seq = seq;
     this->r = r;
-    this->w = 0;
-    this->d = 0;
-    this->l = 0;
     this->p = p;
     this->ucb_r = ucb_r;
     this->ucb_p = ucb_p;
@@ -939,15 +933,12 @@ Sequence::Sequence(std::vector<std::pair<std::string, int>> seq, double r, doubl
 }
 
 bool Sequence::operator==(const Sequence &other) {
-    return this->seq == other.seq && this->r == other.r && this->w == other.w && this->d == other.d && this->l == other.l && this->p == other.p && this->ucb_r == other.ucb_r && this->ucb_p == other.ucb_p && this->n == other.n && this->n_pi == other.n_pi && this->hash == other.hash;
+    return this->seq == other.seq && this->r == other.r && this->p == other.p && this->ucb_r == other.ucb_r && this->ucb_p == other.ucb_p && this->n == other.n && this->n_pi == other.n_pi && this->hash == other.hash;
 }
 
 void Sequence::operator=(const Sequence &other) {
     this->seq = other.seq;
     this->r = other.r;
-    this->w = other.w;
-    this->d = other.d;
-    this->l = other.l;
     this->p = other.p;
     this->ucb_r = other.ucb_r;
     this->ucb_p = other.ucb_p;

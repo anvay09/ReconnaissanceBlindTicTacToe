@@ -346,8 +346,8 @@ void update_max_ucb_policy_given_trajectory(PolicyVec& update_policy_obj, Policy
 
 double find_maximizing_sequence(PolicyVec& played_policy_obj, InformationSet& I, Sequence& trajectory, Sequence& maximising_trajectory, std::vector<Sequence>& terminal_sequences, 
                                 std::unordered_map<std::string, int>& sequence_hash_to_index_map, std::vector<double>& global_infoset_values, std::vector<std::vector<double>>& global_action_values,
-                                std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, std::vector<Sequence>& infoset_maximising_trajectories, 
-                                std::vector<std::vector<Sequence>>& action_maximising_trajectories, char game, double C, int t, double delta){
+                                std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, std::vector<int>& infoset_maximising_trajectories, 
+                                std::vector<std::vector<int>>& action_maximising_trajectories, char game, double C, int t, double delta){
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
 
@@ -399,7 +399,7 @@ double find_maximizing_sequence(PolicyVec& played_policy_obj, InformationSet& I,
             cohort_values[ind] += terminal_sequences[s_index].p * (terminal_sequences[s_index].r / (double) terminal_sequences[s_index].n);
         }
         
-        cohort_maximising_trajectories[ind] = infoset_maximising_trajectories[I_prime.get_index()];
+        cohort_maximising_trajectories[ind] = terminal_sequences[infoset_maximising_trajectories[I_prime.get_index()]];
         
         if (cohort_values[ind] > action_UCBs[played_action]){
             action_UCBs[played_action] = cohort_values[ind];
@@ -412,7 +412,7 @@ double find_maximizing_sequence(PolicyVec& played_policy_obj, InformationSet& I,
         maximising_trajectory = cohort_maximising_trajectories[0];
     }
 
-    action_maximising_trajectories[I.get_index()][played_action] = maximising_trajectory;
+    action_maximising_trajectories[I.get_index()][played_action] = sequence_hash_to_index_map[maximising_trajectory.hash];
     action_UCBs[played_action] = std::min(1.0, action_UCBs[played_action]); // ensure UCB is at most 1.0
     
     //
@@ -420,11 +420,12 @@ double find_maximizing_sequence(PolicyVec& played_policy_obj, InformationSet& I,
     std::vector<int> candidate_actions;
     for (int a : legal_actions){
         if (a != played_action){
-            if (action_maximising_trajectories[I.get_index()][a].n_pi == 0){
+            int n_pi_a = terminal_sequences[action_maximising_trajectories[I.get_index()][a]].n_pi;
+            if (n_pi_a == 0){
                 action_UCBs[a] = 1.0;
             }
             else {
-                action_UCBs[a] = std::min(1.0, global_action_values[I.get_index()][a] + std::sqrt(C * std::log((double) t / delta) / (double) action_maximising_trajectories[I.get_index()][a].n_pi));
+                action_UCBs[a] = std::min(1.0, global_action_values[I.get_index()][a] + std::sqrt(C * std::log((double) t / delta) / (double) n_pi_a));
             }
         }
     }
@@ -438,22 +439,48 @@ double find_maximizing_sequence(PolicyVec& played_policy_obj, InformationSet& I,
 
     // sample from candidate actions
     int action = candidate_actions[sampleIndex(std::vector<double>(candidate_actions.size(), 1.0 / candidate_actions.size()))];
-    maximising_trajectory = action_maximising_trajectories[I.get_index()][action];
-    infoset_maximising_trajectories[I.get_index()] = maximising_trajectory;
+    maximising_trajectory = terminal_sequences[action_maximising_trajectories[I.get_index()][action]];
+    infoset_maximising_trajectories[I.get_index()] = sequence_hash_to_index_map[maximising_trajectory.hash];
     return infoset_UCB;
 }
 
 
-void build_max_UCB_policy_given_maximising_sequence(PolicyVec& max_ucb_policy, PolicyVec& max_reward_policy, Sequence& maximising_trajectory, char game, char br_player){
-    max_ucb_policy = max_reward_policy.copy();
+void build_max_UCB_policy_given_maximising_sequence(PolicyVec& policy_obj, Sequence& maximising_trajectory, char game, char br_player, std::unordered_map<std::string, int>& backup){
     for (int j = maximising_trajectory.seq.size() - 1; j >= 0; j--){
         std::string I_hash = maximising_trajectory.seq[j].first;
         int action = maximising_trajectory.seq[j].second;
         bool move_flag = get_move_flag(I_hash, br_player);
         InformationSet I(br_player, move_flag, I_hash, game);
-        std::vector<double>& prob_dist = max_ucb_policy.policy_dict[I.get_index()];
+        std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
 
         // set action to 1.0 and all other actions to 0.0
+        std::vector<int> legal_actions;
+        I.get_actions(legal_actions);
+        for (int a : legal_actions){
+            if (prob_dist[a] == 1.0){
+                backup[I_hash] = a;
+            }
+
+            if (a == action){
+                prob_dist[a] = 1.0;
+            }
+            else{
+                prob_dist[a] = 0.0;
+            }
+        }
+    }
+}
+
+
+void restore_backup(PolicyVec& policy_obj, char br_player, std::unordered_map<std::string, int>& backup, char game){
+    for (auto& it: backup){
+        std::string I_hash = it.first;
+        int action = it.second;
+
+        bool move_flag = get_move_flag(I_hash, br_player);
+        InformationSet I(br_player, move_flag, I_hash, game);
+        std::vector<double>& prob_dist = policy_obj.policy_dict[I.get_index()];
+
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
         for (int a : legal_actions){
@@ -574,7 +601,9 @@ int init_num_starved_seq(InformationSet& I, std::vector<std::vector<std::unorder
 }
 
 
-void init_maximising_seq(InformationSet& I, Sequence& trajectory, Sequence& maximising_sequence, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, std::vector<Sequence>& infoset_maximising_sequences, std::vector<std::vector<Sequence>>& action_maximising_sequences, char game) {
+void init_maximising_seq(InformationSet& I, Sequence& trajectory, std::string maximising_sequence_hash, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, 
+                         std::vector<int>& infoset_maximising_sequences, std::vector<std::vector<int>>& action_maximising_sequences, char game,
+                         std::unordered_map<std::string, int>& sequence_hash_to_index_map, std::vector<Sequence>& terminal_sequences) {
     std::vector<int> legal_actions;
     I.get_actions(legal_actions);
     
@@ -586,19 +615,19 @@ void init_maximising_seq(InformationSet& I, Sequence& trajectory, Sequence& maxi
 
         for (std::string I_prime_hash : cohort){
             InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
-            init_maximising_seq(I_prime, new_trajectory, maximising_sequence, cohorts, infoset_maximising_sequences, action_maximising_sequences, game);
+            init_maximising_seq(I_prime, new_trajectory, maximising_sequence_hash, cohorts, infoset_maximising_sequences, action_maximising_sequences, game, sequence_hash_to_index_map, terminal_sequences);
         }
 
         if (cohort.size() == 0){
-            action_maximising_sequences[I.get_index()][a] = new_trajectory;
+            action_maximising_sequences[I.get_index()][a] = sequence_hash_to_index_map[new_trajectory.hash];
         }
         else {
-            action_maximising_sequences[I.get_index()][a] = maximising_sequence;
+            action_maximising_sequences[I.get_index()][a] = sequence_hash_to_index_map[maximising_sequence_hash];
         }
     }
 
     infoset_maximising_sequences[I.get_index()] = action_maximising_sequences[I.get_index()][legal_actions[0]];
-    maximising_sequence = infoset_maximising_sequences[I.get_index()];
+    maximising_sequence_hash = terminal_sequences[infoset_maximising_sequences[I.get_index()]].hash;
 }
 
 
@@ -675,11 +704,11 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
     std::vector<double> infoset_empirical_values(player_information_sets.size(), 0.0);
     std::vector<std::vector<double>> action_empirical_values(player_information_sets.size(), std::vector<double>(6, 0.0));
 
-    std::vector<int> infoset_min_npi_values(player_information_sets.size(), 0);
-    std::vector<std::vector<int>> action_min_npi_values(player_information_sets.size(), std::vector<int>(6, 0));
+    // std::vector<int> infoset_min_npi_values(player_information_sets.size(), 0);
+    // std::vector<std::vector<int>> action_min_npi_values(player_information_sets.size(), std::vector<int>(6, 0));
 
-    std::vector<Sequence> infoset_maximising_trajectories(player_information_sets.size(), Sequence());
-    std::vector<std::vector<Sequence>> action_maximising_trajectories(player_information_sets.size(), std::vector<Sequence>(6, Sequence()));
+    std::vector<int> infoset_maximising_trajectories(player_information_sets.size(), -1);
+    std::vector<std::vector<int>> action_maximising_trajectories(player_information_sets.size(), std::vector<int>(6, -1));
 
     std::vector<char> player_cards = {'J', 'Q', 'K'};
     for (int card_index = 0; card_index < player_cards.size(); card_index++){
@@ -687,19 +716,19 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
         std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
         InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
         Sequence empty_sequence = Sequence();
-        Sequence maximising_trajectory = Sequence();
-        init_maximising_seq(root, empty_sequence, maximising_trajectory, cohorts, infoset_maximising_trajectories, action_maximising_trajectories, game);
+        std::string maximising_trajectory_hash = "";
+        init_maximising_seq(root, empty_sequence, maximising_trajectory_hash, cohorts, infoset_maximising_trajectories, action_maximising_trajectories, game, sequence_hash_to_index_map, terminal_sequences);
     }
                 
-    std::vector<int> infoset_num_starved_seq(player_information_sets.size(), 0);
-    std::vector<std::vector<int>> action_num_starved_seq(player_information_sets.size(), std::vector<int>(6, 0));
-    init_num_starved_seq_wrapper(br_player, cohorts, infoset_num_starved_seq, action_num_starved_seq, game);
+    // std::vector<int> infoset_num_starved_seq(player_information_sets.size(), 0);
+    // std::vector<std::vector<int>> action_num_starved_seq(player_information_sets.size(), std::vector<int>(6, 0));
+    // init_num_starved_seq_wrapper(br_player, cohorts, infoset_num_starved_seq, action_num_starved_seq, game);
     
     std::vector<std::vector<int>> action_reach_counts(player_information_sets.size(), std::vector<int>(6, 0));
     std::vector<int> infoset_reach_counts(player_information_sets.size(), 0);
     // std::vector<int> infoset_pseudo_reach_counts(player_information_sets.size(), 0);
 
-    PolicyVec player_max_ucb_policy(br_player, player_information_sets, game, false);
+    // PolicyVec player_max_ucb_policy(br_player, player_information_sets, game, false);
     std::vector<std::pair<int, double>> exploitability_log; 
 
     std::vector<std::string>& unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
@@ -716,7 +745,9 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
         exact_br_value = get_expected_utility_wrapper(opponent_policy, exact_br, game);
     }
     std::cout << "Exact best response value: " << exact_br_value << std::endl;
-    bool max_UCB_flag = true;
+
+    std::unordered_map<std::string, int> backup;
+    bool max_UCB_flag = false;
 
     for (int t = 1; t <= iterations; t += 1) {  
         if (max_UCB_flag) {
@@ -737,36 +768,39 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
             h.push_back(cards[2]); 
             TerminalHistory start_history = TerminalHistory(h);
             Sequence trajectory = Sequence();
-            double reward = sample_game(I_1, I_2, true_cards, start_history, br_player, player_max_ucb_policy, opponent_policy, trajectory, infoset_reach_counts, action_reach_counts);
+            double reward = sample_game(I_1, I_2, true_cards, start_history, br_player, player_br, opponent_policy, trajectory, infoset_reach_counts, action_reach_counts);
 
             // std::vector<int> policy_sequences;
             // std::vector<double> policy_sequence_probability_estimates;
             // get_policy_sequences_wrapper(player_max_ucb_policy, policy_sequences, game, sequence_hash_to_index_map, br_player, cohorts, infoset_reach_counts, infoset_pseudo_reach_counts, policy_sequence_probability_estimates, terminal_sequences);
 
             // update sequence data for policy sequences
-            update_reach_and_sequence_data_wrapper(player_max_ucb_policy, sequence_hash_to_index_map, br_player, cohorts, infoset_reach_counts, terminal_sequences, reward, trajectory.hash, C_r, action_reach_counts, game);
+            update_reach_and_sequence_data_wrapper(player_br, sequence_hash_to_index_map, br_player, cohorts, infoset_reach_counts, terminal_sequences, reward, trajectory.hash, C_r, action_reach_counts, game);
+
+            // undo changes to player br using backup
+            restore_backup(player_br, br_player, backup, game);
 
             // update policies 
             update_max_reward_policy_given_trajectory(player_br, trajectory, terminal_sequences, sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, game, br_player, cohorts);
 
-            std::vector<Sequence> maximising_trajectories(3, Sequence());
-            for (int card_index = 0; card_index < player_cards.size(); card_index++){
-                std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
-                std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
-                InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-                Sequence empty_sequence = Sequence();
-                Sequence maximising_trajectory = Sequence();
-                find_maximizing_sequence(player_max_ucb_policy, root, empty_sequence, maximising_trajectory, terminal_sequences, 
-                                         sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, cohorts, 
-                                         infoset_maximising_trajectories, action_maximising_trajectories, game, C, t, delta);
+            // std::vector<Sequence> maximising_trajectories(3, Sequence());
+            // for (int card_index = 0; card_index < player_cards.size(); card_index++){
+            //     std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
+            //     std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
+            //     InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
+            //     Sequence empty_sequence = Sequence();
+            //     Sequence maximising_trajectory = Sequence();
+            //     find_maximizing_sequence(player_max_ucb_policy, root, empty_sequence, maximising_trajectory, terminal_sequences, 
+            //                              sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, cohorts, 
+            //                              infoset_maximising_trajectories, action_maximising_trajectories, game, C, t, delta);
 
-                maximising_trajectories[card_index] = maximising_trajectory;
-                // update_max_ucb_policy_given_trajectory(player_max_ucb_policy, player_max_ucb_policy, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, game, infoset_empirical_values, action_empirical_values, cohorts, infoset_min_npi_values, action_min_npi_values, C, t, delta, infoset_num_starved_seq, action_num_starved_seq);
-            }
+            //     maximising_trajectories[card_index] = maximising_trajectory;
+            //     // update_max_ucb_policy_given_trajectory(player_max_ucb_policy, player_max_ucb_policy, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, game, infoset_empirical_values, action_empirical_values, cohorts, infoset_min_npi_values, action_min_npi_values, C, t, delta, infoset_num_starved_seq, action_num_starved_seq);
+            // }
 
-            std::discrete_distribution<int> t_distribution({1, 1, 1});
-            int t_index = t_distribution(generator);
-            build_max_UCB_policy_given_maximising_sequence(player_max_ucb_policy, player_br, maximising_trajectories[t_index], game, br_player);
+            // std::discrete_distribution<int> t_distribution({1, 1, 1});
+            // int t_index = t_distribution(generator);
+            // build_max_UCB_policy_given_maximising_sequence(player_max_ucb_policy, player_br, maximising_trajectories[t_index], game, br_player);
 
             max_UCB_flag = false;
         }
@@ -807,16 +841,17 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
                 InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
                 Sequence empty_sequence = Sequence();
                 Sequence maximising_trajectory = Sequence();
-                double v = find_maximizing_sequence(player_br, root, empty_sequence, maximising_trajectory, terminal_sequences, 
-                                                    sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, cohorts, 
-                                                    infoset_maximising_trajectories, action_maximising_trajectories, game, C, t, delta);
+                find_maximizing_sequence(player_br, root, empty_sequence, maximising_trajectory, terminal_sequences, 
+                                         sequence_hash_to_index_map, infoset_empirical_values, action_empirical_values, cohorts, 
+                                         infoset_maximising_trajectories, action_maximising_trajectories, game, C, t, delta);
                 maximising_trajectories[card_index] = maximising_trajectory;
                 // update_max_ucb_policy_given_trajectory(player_max_ucb_policy, player_br, root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, game, infoset_empirical_values, action_empirical_values, cohorts, infoset_min_npi_values, action_min_npi_values, C, t, delta, infoset_num_starved_seq, action_num_starved_seq);
             }
 
             std::discrete_distribution<int> t_distribution({1, 1, 1});
             int t_index = t_distribution(generator);
-            build_max_UCB_policy_given_maximising_sequence(player_max_ucb_policy, player_br, maximising_trajectories[t_index], game, br_player);
+            backup = std::unordered_map<std::string, int>();
+            build_max_UCB_policy_given_maximising_sequence(player_br, maximising_trajectories[t_index], game, br_player, backup);
 
             max_UCB_flag = true;
         }
