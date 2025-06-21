@@ -349,14 +349,14 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
         } else {
             TerminalHistory H_T = TerminalHistory(current_history.history);
             H_T.set_reward();
-            double reward = 0.0;
+            double reward = br_player == 'x' ? H_T.reward[0] : H_T.reward[1];
             // scale reward between 0 and 1
+            reward = (reward + 1.0) / 2.0; 
+            
             if (br_player == 'x'){
-                reward = ((double) H_T.reward[0] + 1.0)/ 2.0;
                 R[I_1.get_index()][action] += reward;
                 terminal_reach_count[I_1.get_index()][action] += 1;
             } else {
-                reward = ((double) H_T.reward[1] + 1.0)/ 2.0;
                 R[I_2.get_index()][action] += reward;
                 terminal_reach_count[I_2.get_index()][action] += 1;
             }
@@ -438,11 +438,15 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
                 p_hat[i] = (double) infoset_reach_count[I_prime.get_index()] / n_t;
             }
 
-            Eigen::VectorXd c_value_upper(13);
-            Eigen::VectorXd c_value_lower(13);
-            for (int j = 0; j < 13; j++){
-                c_value_upper[j] = action_UCB[I_prime.get_index()][j];
-                c_value_lower[j] = action_LCB[I_prime.get_index()][j];
+            std::vector<int> legal_actions;
+            I_prime.get_actions(legal_actions);
+            Eigen::VectorXd c_value_upper(legal_actions.size());
+            Eigen::VectorXd c_value_lower(legal_actions.size());
+            
+            for (int j = 0; j < legal_actions.size(); j++){
+                int action = legal_actions[j];
+                c_value_upper[j] = action_UCB[I_prime.get_index()][action];
+                c_value_lower[j] = action_LCB[I_prime.get_index()][action];
             }
 
             u_next[i] = mu_UCB + gamma * c_value_upper.maxCoeff();
@@ -514,7 +518,7 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
 
     std::string root_hash = "";
     InformationSet root = br_player == 'x' ? InformationSet('x', true, root_hash) : InformationSet('o', false, root_hash);
-    init_action_UCB(root, action_UCB, 0, gamma, H);
+    // init_action_UCB(root, action_UCB, 0, gamma, H);
 
     for (int t = 1; t <= T; t++){
         if (t % log_freq == 0){
@@ -604,8 +608,8 @@ int main(int argc, char* argv[]) {
     PolicyVec policy_obj_x('x', file_path_1, true);
     PolicyVec policy_obj_o('o', file_path_2, true);
     std::cout << "Start policies loaded." << std::endl;
-    PolicyVec br_x('x', P1_information_sets);
-    PolicyVec br_o('o', P2_information_sets);
+    PolicyVec br_x('x', P1_information_sets, false);
+    PolicyVec br_o('o', P2_information_sets, false);
 
     double expected_utility = 0.0;
     if (player == 'x'){
@@ -619,12 +623,12 @@ int main(int argc, char* argv[]) {
 
     while (experiment_number <= num_experiments){
         if (player == 'x'){
-            PolicyVec uniform_policy_obj_x('x', P1_information_sets);
+            PolicyVec uniform_policy_obj_x('x', P1_information_sets, false);
             PolicyVec player_br_policy = uniform_policy_obj_x;
             algorithm(eps, delta, gamma, H, B, player, player_br_policy, policy_obj_o, P1_information_sets, num_iterations, log_freq);
         }
         else if (player == 'o'){
-            PolicyVec uniform_policy_obj_o('o', P2_information_sets);
+            PolicyVec uniform_policy_obj_o('o', P2_information_sets, false);
             PolicyVec player_br_policy = uniform_policy_obj_o;
             algorithm(eps, delta, gamma, H, B, player, player_br_policy, policy_obj_x, P2_information_sets, num_iterations, log_freq);
         }

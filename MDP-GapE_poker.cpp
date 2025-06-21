@@ -102,7 +102,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
             InformationSet new_I = I;
             new_I.update_move(action);
 
-            if (I.player == 'x') {
+            if (I.player == 'x') {   
                 if (true_cards.player_to_move == 'x'){
                     return sample_terminal_history(new_I, I_2, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count, game);
                 }
@@ -142,7 +142,7 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
         new_I.simulate_sense(action, true_cards);
         current_history.history.push_back(action);
 
-        if (I.player == 'x') {
+        if (I.player == 'x') {       
             return sample_terminal_history(new_I, I_2, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count, game);
         } else {
             return sample_terminal_history(I_1, new_I, prev_opponent_I, prev_opponent_action, true_cards, player_policy, opponent_policy, current_history, trajectory, br_player, action_UCB, action_LCB, BAI_level, R, infoset_reach_count, terminal_reach_count, game);
@@ -212,12 +212,15 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
                 p_hat[i] = (double) infoset_reach_count[I_prime.get_index()] / n_t;
             }
 
-            Eigen::VectorXd c_value_upper(6);
-            Eigen::VectorXd c_value_lower(6);
-
-            for (int j = 0; j < 6; j++){
-                c_value_upper[j] = action_UCB[I_prime.get_index()][j];
-                c_value_lower[j] = action_LCB[I_prime.get_index()][j];
+            std::vector<int> legal_actions;
+            I_prime.get_actions(legal_actions);
+            Eigen::VectorXd c_value_upper(legal_actions.size());
+            Eigen::VectorXd c_value_lower(legal_actions.size());
+            
+            for (int j = 0; j < legal_actions.size(); j++){
+                int action = legal_actions[j];
+                c_value_upper[j] = action_UCB[I_prime.get_index()][action];
+                c_value_lower[j] = action_LCB[I_prime.get_index()][action];
             }
 
             u_next[i] = mu_UCB + gamma * c_value_upper.maxCoeff();
@@ -273,11 +276,11 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
     std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
 
     std::vector<char> cards = {'J', 'Q', 'K'};
-    for (char c : cards){
-        std::string root_hash = br_player == 'x' ? "a-" + std::string(1, c) + "--" : "o-" + std::string(1, c) + "--";
-        InformationSet root = br_player == 'x' ? InformationSet('x', true, root_hash, game) : InformationSet('o', false, root_hash, game);
-        init_action_UCB(root, action_UCB, 0, gamma, H, game);
-    }
+    // for (char c : cards){
+    //     std::string root_hash = br_player == 'x' ? "a-" + std::string(1, c) + "--" : "o-" + std::string(1, c) + "--";
+    //     InformationSet root = br_player == 'x' ? InformationSet('x', true, root_hash, game) : InformationSet('o', false, root_hash, game);
+    //     init_action_UCB(root, action_UCB, 0, gamma, H, game);
+    // }
 
     for (int t = 1; t <= T; t++){
         if (t % log_freq == 0){
