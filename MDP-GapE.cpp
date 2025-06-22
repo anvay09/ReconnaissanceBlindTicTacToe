@@ -177,7 +177,16 @@ void best_arm_identification(int& b_t, int& c_t, int& selected_child, Informatio
 
     double width_b = action_UCB[I.get_index()][b_t] - action_LCB[I.get_index()][b_t];
     double width_c = action_UCB[I.get_index()][c_t] - action_LCB[I.get_index()][c_t];
-    selected_child = width_b > width_c ? b_t : c_t;
+
+    if (fabs(width_b - width_c) < 1e-6) {
+        // If the widths are equal, choose randomly between b_t and c_t
+        selected_child = sampleIndex({0.5, 0.5}) == 0 ? b_t : c_t;
+    } else if (width_b > width_c) {
+        selected_child = b_t;
+    } else {
+        // width_c > width_b
+        selected_child = c_t;
+    }
 }
 
 
@@ -301,9 +310,18 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, TicTacT
             for (int a : legal_actions) {
                 if (action_UCB[I.get_index()][a] >= max_UCB) {
                     max_UCB = action_UCB[I.get_index()][a];
-                    action = a;
+                    // action = a;
                 }
             }
+
+            std::vector<int> candidate_actions;
+            for (int a : legal_actions) {
+                if (fabs(action_UCB[I.get_index()][a] - max_UCB) < 1e-6) {
+                    candidate_actions.push_back(a);
+                }
+            }
+
+            action = candidate_actions[sampleIndex(std::vector<double>(candidate_actions.size(), 1.0 / candidate_actions.size()))];
 
             double max_LCB = 0.0;
             int max_LCB_action = legal_actions[0];
@@ -404,11 +422,11 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
             n_t += infoset_reach_count[I_prime.get_index()];
         }
 
-        double beta_cnt = std::log(3.0 * std::pow(13 * B, H) / delta);
-        double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
-        double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
-        // double beta_r = 3.0 * std::log(1.0 + std::log(n_t)) + H * std::log(13.0) + std::log(1.0 / (1.0 - delta));
-        // double beta_p = 0.1 * std::log(t);
+        // double beta_cnt = std::log(3.0 * std::pow(13 * B, H) / delta);
+        // double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
+        // double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
+        double beta_r = 3.0 * std::log(1.0 + std::log(n_t)) + H * std::log(13.0) + std::log(1.0 / (1.0 - delta));
+        double beta_p = 0.1 * std::log(t);
 
         // update reward bounds
         double mu_UCB = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, false);
@@ -461,8 +479,8 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         Eigen::VectorXd p_plus = max_expectation_under_constraint(u_next, p_hat, beta_p / n_t, eps);
         Eigen::VectorXd p_minus = max_expectation_under_constraint( - l_next, p_hat, beta_p / n_t, eps);
 
-        action_UCB[I.get_index()][a] = p_plus.dot(u_next);
-        action_LCB[I.get_index()][a] = p_minus.dot(l_next);
+        action_UCB[I.get_index()][a] = std::min(1.0, p_plus.dot(u_next));
+        action_LCB[I.get_index()][a] = std::max(0.0, p_minus.dot(l_next));
     }
 }
 
@@ -531,6 +549,20 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
                 expected_utility = get_expected_utility_wrapper(opponent_policy, player_policy);
             }
             std::cout << "Expected Utility: " << expected_utility << std::endl;
+
+            // compute infosets reachable by taking legal actions from root, and see how many times each infoset has been reached
+            // std::vector<int> legal_actions;
+            // root.get_actions(legal_actions);
+            // for (int a : legal_actions) {
+            //     std::unordered_set<std::string> cohort;
+            //     get_cohort(root, a, cohort);
+            //     std::cout << "Action: " << a << ", Cohort Size: " << cohort.size() << std::endl;
+            //     std::cout << "Action UCB: " << action_UCB[root.get_index()][a] << ", Action LCB: " << action_LCB[root.get_index()][a] << std::endl;
+            //     for (std::string I_prime_hash : cohort){
+            //         InformationSet I_prime(root.player, get_move_flag(I_prime_hash, root.player), I_prime_hash);
+            //         std::cout << "Infoset: " << I_prime.get_hash() << ", Reach Count: " << infoset_reach_count[I_prime.get_index()] << std::endl;
+            //     }
+            // }
         }
 
         std::string board = "000000000";
