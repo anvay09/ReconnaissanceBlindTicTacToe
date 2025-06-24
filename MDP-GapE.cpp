@@ -425,7 +425,8 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         // double beta_cnt = std::log(3.0 * std::pow(13 * B, H) / delta);
         // double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
         // double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
-        double beta_r = 3.0 * std::log(1.0 + std::log(n_t)) + H * std::log(13.0) + std::log(1.0 / (1.0 - delta));
+
+        double beta_r = std::log(1.0 + std::log(n_t)) + 7 * std::log(4) + std::log(1.0 / (1.0 - delta));
         double beta_p = 0.1 * std::log(t);
 
         // update reward bounds
@@ -479,8 +480,16 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         Eigen::VectorXd p_plus = max_expectation_under_constraint(u_next, p_hat, beta_p / n_t, eps);
         Eigen::VectorXd p_minus = max_expectation_under_constraint( - l_next, p_hat, beta_p / n_t, eps);
 
-        action_UCB[I.get_index()][a] = std::min(1.0, p_plus.dot(u_next));
-        action_LCB[I.get_index()][a] = std::max(0.0, p_minus.dot(l_next));
+        action_UCB[I.get_index()][a] = p_plus.dot(u_next);
+        action_LCB[I.get_index()][a] = p_minus.dot(l_next);
+
+        
+        std::cout << "Infoset: " << I.get_hash() << std::endl;
+        std::vector<int> legal_actions;
+        I.get_actions(legal_actions);
+        for (int i = 0; i < legal_actions.size(); i++){
+            std::cout << "Action: " << legal_actions[i] << " UCB: " << action_UCB[I.get_index()][legal_actions[i]] << std::endl;
+        }
     }
 }
 
@@ -536,7 +545,8 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
 
     std::string root_hash = "";
     InformationSet root = br_player == 'x' ? InformationSet('x', true, root_hash) : InformationSet('o', false, root_hash);
-    // init_action_UCB(root, action_UCB, 0, gamma, H);
+    init_action_UCB(root, action_UCB, 0, gamma, H);
+    std::vector<std::pair<std::string, int>> trajectory = {};
 
     for (int t = 1; t <= T; t++){
         if (t % log_freq == 0){
@@ -553,11 +563,17 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
             // compute infosets reachable by taking legal actions from root, and see how many times each infoset has been reached
             // std::vector<int> legal_actions;
             // root.get_actions(legal_actions);
+            // std::cout << "Sampled Game: ";
+            // for (int i = 0; i < trajectory.size(); i++){
+            //     std::cout << trajectory[i].first << " " << trajectory[i].second << " ";
+            // }
+            // std::cout << std::endl;
+
             // for (int a : legal_actions) {
             //     std::unordered_set<std::string> cohort;
             //     get_cohort(root, a, cohort);
-            //     std::cout << "Action: " << a << ", Cohort Size: " << cohort.size() << std::endl;
-            //     std::cout << "Action UCB: " << action_UCB[root.get_index()][a] << ", Action LCB: " << action_LCB[root.get_index()][a] << std::endl;
+            //     std::cout << "Action: " << a << " , Cohort Size: " << cohort.size() << std::endl;
+            //     std::cout << "Action UCB: " << action_UCB[root.get_index()][a] << " , Action LCB: " << action_LCB[root.get_index()][a] << std::endl;
             //     for (std::string I_prime_hash : cohort){
             //         InformationSet I_prime(root.player, get_move_flag(I_prime_hash, root.player), I_prime_hash);
             //         std::cout << "Infoset: " << I_prime.get_hash() << ", Reach Count: " << infoset_reach_count[I_prime.get_index()] << std::endl;
@@ -574,7 +590,7 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
         InformationSet& I = br_player == 'x' ? I_1 : I_2;
         std::vector<int> h = {};
         History current_history = History(h);
-        std::vector<std::pair<std::string, int>> trajectory = {};
+        trajectory = {};
 
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
