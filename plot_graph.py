@@ -13,7 +13,7 @@ def parse_commandline_args():
     """Parse command line arguments"""
     logging.info("Fetching command line arguments")
     parser = argparse.ArgumentParser()
-    parser.add_argument('--game', type=str, required=True, help='Khun,Leduc, RBT')
+    parser.add_argument('--game', type=str, required=True, help='Kuhn,Leduc, RBT')
     parser.add_argument('--player', type=str, required=True, help='x/o')
     parser.add_argument('--numexperiments', type=int, required=True, help='number of experiments')
     parser.add_argument('--numiterations', type=int, required=True, help='number of iterations')
@@ -37,6 +37,8 @@ def parse_commandline_args():
     parser.add_argument('--algorithms', type=str, required=True, help='List of algorithms')
     parser.add_argument('--yaxisupper', type=float, required=True, help='Upper limit of y-axis')
     parser.add_argument('--plotpath', type=str, required=True, help='path to save plot file')
+    parser.add_argument('--regret', type=int, required=False, default=0, 
+                        help='If 1, plot regret instead of exploitability')
     arguments = parser.parse_args()
     return arguments
 
@@ -52,6 +54,7 @@ def read_exploitability_log(file_name):
         iteration, exploitability = line.split()
         iterations.append(int(iteration))
         exploitabilities.append(float(exploitability))
+    
     return iterations, exploitabilities
 
 
@@ -108,10 +111,20 @@ if __name__ == "__main__":
     # horizontal line
     plt.figure(figsize=(6,6))
     plt.grid(True, which='both', linestyle='-.', linewidth=0.3)
-    low = -args.yaxisupper/20
+    
+    low = 0
     high = args.yaxisupper
-    num_ticks = 5
-    plt.yticks(np.arange(0, high, (high) / num_ticks))
+    if args.regret:
+        low = -args.yaxisupper
+        num_ticks = 5
+        plt.yticks(np.arange(low, high, (high) / num_ticks))
+    else:
+        low = -args.yaxisupper/20
+        num_ticks = 5
+        plt.yticks(np.arange(0, high, (high) / num_ticks))
+        
+
+    
     plt.ticklabel_format(style='sci', axis='both', scilimits=(0,0), useMathText=True)
 
     plt.ylim(low, high)

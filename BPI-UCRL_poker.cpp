@@ -30,13 +30,24 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
         action = legal_actions[0];
 
         // choose the action with the highest UCB
+        // std::cout << "Choosing action for player: " << I.player << ", Information Set: " << I.get_hash() << std::endl;
         double max_UCB = 0.0;
         for (int a : legal_actions) {
+            // std::cout << "Action: " << a << ", UCB: " << action_UCB[I.get_index()][a] << std::endl;
             if (action_UCB[I.get_index()][a] >= max_UCB) {
                 max_UCB = action_UCB[I.get_index()][a];
-                action = a;
+                // action = a;
             }
         }
+
+        std::vector<int> candidate_actions;
+        for (int a : legal_actions) {
+            if (fabs(action_UCB[I.get_index()][a] - max_UCB) < 1e-6) {
+                candidate_actions.push_back(a);
+            }
+        }
+
+        action = candidate_actions[sampleIndex(std::vector<double>(candidate_actions.size(), 1.0 / candidate_actions.size()))];
 
         double max_LCB = 0.0;
         int max_LCB_action = legal_actions[0];
@@ -149,9 +160,9 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
             n_t += infoset_reach_count[I_prime.get_index()];
         }
 
-        double beta_cnt = std::log((3.0 * S * 6.0 * H) / delta);
+        double beta_cnt = std::log((3.0 * 6.0 * H) / delta);
         double beta_r = 0.5 * (beta_cnt + std::log(e + e * n_t));
-        double beta_p = beta_cnt + (S - 1.0) * (std::log(e + (e * n_t) / (S - 1.0)));
+        double beta_p = beta_cnt + (std::log(e + (e * n_t)));
         double beta = (std::sqrt(beta_r) + std::sqrt(2.0 * beta_p)); 
         
         if (n_t == 0.0){
@@ -194,8 +205,8 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
                 c_value_lower[j] = action_LCB[I_prime.get_index()][action];
             }
 
-            u_next[i] = c_value_upper.maxCoeff();
-            l_next[i] = c_value_lower.maxCoeff();
+            u_next[i] = (double) R[I.get_index()][a] / (double) terminal_reach_count[I.get_index()][a] + c_value_upper.maxCoeff();
+            l_next[i] = (double) R[I.get_index()][a] / (double) terminal_reach_count[I.get_index()][a] + c_value_lower.maxCoeff();
 
             i += 1;
         }
@@ -319,7 +330,7 @@ int main(int argc, char* argv[]) {
     int experiment_number = 1;
     double gamma = 0.99;
     // instance specific constants
-    int S = game == 'L'? 20 : 5; // number of states in the game
+    int S = game == 'L'? 250 : 10; // number of states in the game
     int H = game == 'L'? 7 : 4; // max depth of the game tree
 
     std::vector<std::string> P1_information_sets;
