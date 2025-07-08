@@ -58,7 +58,7 @@ def read_exploitability_log(file_name):
     return iterations, exploitabilities
 
 
-def clean_data(player, file_name, num_experiments, num_iterations, step_size=1000, omit_range=1):
+def clean_data(player, file_name, num_experiments, num_iterations, step_size=1000, regret = 0, omit_range=1):
     """Format data as required."""
     x = [i for i in range(0, num_iterations, step_size)]
     y = [0.0 for i in range(0, num_iterations, step_size)]
@@ -78,7 +78,10 @@ def clean_data(player, file_name, num_experiments, num_iterations, step_size=100
             if player == 'x':
                 y_curr[x_index-1] = exploitabilities[j]
             else:
-                y_curr[x_index-1] = -1 * exploitabilities[j]
+                if regret:
+                    y_curr[x_index-1] = exploitabilities[j]
+                else:
+                    y_curr[x_index-1] = -1 * exploitabilities[j]
 
         for j in range(len(y)):
             y[j] += y_curr[j]
@@ -135,10 +138,10 @@ if __name__ == "__main__":
     for logfile in logfiles:
         if args.omitrange is None:
             x, y, y_err = clean_data(args.player, logfile, args.numexperiments, args.numiterations,
-                                     args.logfreq)
+                                     args.logfreq, args.regret)
         else:
             x, y, y_err = clean_data(args.player, logfile, args.numexperiments, args.numiterations,
-                                     args.logfreq, args.omitrange)
+                                     args.logfreq, args.regret, args.omitrange)
 
         plt.plot(x, y, '-', linewidth=1, color=colors[a], linestyle=line_styles[b],
                  label=algorithms[a], marker=markers[c])
