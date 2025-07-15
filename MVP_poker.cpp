@@ -210,7 +210,7 @@ void init_action_UCB(InformationSet& I, std::vector<std::vector<double>>& action
 
 
 void algorithm(double eps, double delta, double c1, double c2, double c3, int S, int H, char br_player, PolicyVec& player_policy, PolicyVec& opponent_policy, std::vector<std::string>& player_information_sets, int T, int log_freq, char game, double br_value, int experiment_number){
-    double iota = std::log(6.0*H*T/delta);
+    double iota = std::log(1.0/delta);
 
     std::vector<std::vector<double>> theta(player_information_sets.size(), std::vector<double>(6, 0.0));
     std::vector<std::vector<double>> kappa(player_information_sets.size(), std::vector<double>(6, 0.0));
@@ -305,9 +305,9 @@ int main(int argc, char* argv[]) {
     // constants
     int S = game == 'L'? 200 : 10;
     int H = game == 'L'? 7 : 4; // max depth of the game tree
-    double c1 = 51.11;
-    double c2 = 2.83;
-    double c3 = 60.44;
+    double c1 = 0.5;
+    double c2 = 0.1;
+    double c3 = 0.5;
 
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;

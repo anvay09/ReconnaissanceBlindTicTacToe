@@ -160,7 +160,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
             n_t += infoset_reach_count[I_prime.get_index()];
         }
 
-        double beta_cnt = std::log((3.0 * 6.0 * H) / delta);
+        double beta_cnt = std::log(1.0 / delta);
         double beta_r = 0.5 * (beta_cnt + std::log(e + e * n_t));
         double beta_p = beta_cnt + (std::log(e + (e * n_t)));
         double beta = (std::sqrt(beta_r) + std::sqrt(2.0 * beta_p)); 
@@ -169,7 +169,7 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
             beta = (H - h + 1.0);
         }
         else {
-            beta = beta * (H - h + 1.0) / std::sqrt(n_t);
+            beta = (H - h + 1.0) * std::min(1.0, beta / std::sqrt(n_t));
         }
         // std::cout << "Beta: " << beta << std::endl;
 
@@ -205,8 +205,10 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
                 c_value_lower[j] = action_LCB[I_prime.get_index()][action];
             }
 
-            u_next[i] = (double) R[I.get_index()][a] / (double) terminal_reach_count[I.get_index()][a] + c_value_upper.maxCoeff();
-            l_next[i] = (double) R[I.get_index()][a] / (double) terminal_reach_count[I.get_index()][a] + c_value_lower.maxCoeff();
+            // u_next[i] = (double) R[I.get_index()][a] / (double) terminal_reach_count[I.get_index()][a] + c_value_upper.maxCoeff();
+            // l_next[i] = (double) R[I.get_index()][a] / (double) terminal_reach_count[I.get_index()][a] + c_value_lower.maxCoeff();
+            u_next[i] = c_value_upper.maxCoeff();
+            l_next[i] = c_value_lower.maxCoeff();
 
             i += 1;
         }
