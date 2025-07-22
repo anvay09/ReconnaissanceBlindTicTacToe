@@ -30,13 +30,10 @@ double sample_terminal_history(InformationSet& I_1, InformationSet& I_2, Informa
         action = legal_actions[0];
 
         // choose the action with the highest UCB
-        // std::cout << "Choosing action for player: " << I.player << ", Information Set: " << I.get_hash() << std::endl;
         double max_UCB = 0.0;
         for (int a : legal_actions) {
-            // std::cout << "Action: " << a << ", UCB: " << action_UCB[I.get_index()][a] << std::endl;
             if (action_UCB[I.get_index()][a] >= max_UCB) {
                 max_UCB = action_UCB[I.get_index()][a];
-                // action = a;
             }
         }
 
@@ -137,11 +134,10 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
                   int>>& trajectory, char br_player, double eps, double delta, double gamma, int S, int H, int t, char game){
     int _H = trajectory.size();
 
-    for (int h = _H-1; h >=0; h--){
-        std::string I_hash = trajectory[h].first;
+    for (int h = _H; h > 0; h--){
+        std::string I_hash = trajectory[h-1].first;
         InformationSet I = InformationSet(br_player, get_move_flag(I_hash, br_player), I_hash, game);
-        int a = trajectory[h].second;
-        // std::cout << "Updating bounds for Information Set: " << I.get_hash() << ", Action: " << a << std::endl;
+        int a = trajectory[h-1].second;
         double n_t = terminal_reach_count[I.get_index()][a];
 
         std::unordered_set<std::string> cohort;
@@ -161,17 +157,15 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         }
 
         double beta_cnt = std::log(1.0 / delta);
-        double beta_r = 0.5 * (beta_cnt + std::log(e + e * n_t));
-        double beta_p = beta_cnt + (std::log(e + (e * n_t)));
-        double beta = (std::sqrt(beta_r) + std::sqrt(2.0 * beta_p)); 
+        double beta_r = 0.5 * (beta_cnt + std::log(e + (e * n_t)));
+        double beta = std::sqrt(beta_r);
         
         if (n_t == 0.0){
-            beta = (H - h + 1.0);
+            beta = 1.0;
         }
         else {
-            beta = (H - h + 1.0) * std::min(1.0, beta / std::sqrt(n_t));
+            beta = std::min(1.0, beta / std::sqrt(n_t));
         }
-        // std::cout << "Beta: " << beta << std::endl;
 
         int i = 0;
         if (n_t == 0.0){
@@ -180,8 +174,15 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         else{
             p_hat[i] = (double) terminal_reach_count[I.get_index()][a] / n_t;
         }
-        u_next[i] = (double) R[I.get_index()][a] / (double) terminal_reach_count[I.get_index()][a];
-        l_next[i] = (double) R[I.get_index()][a] / (double) terminal_reach_count[I.get_index()][a];
+
+        if (terminal_reach_count[I.get_index()][a] == 0){
+            u_next[i] = 0.0;
+            l_next[i] = 0.0;
+        }
+        else {
+            u_next[i] = (double) R[I.get_index()][a] / (double) terminal_reach_count[I.get_index()][a];
+            l_next[i] = (double) R[I.get_index()][a] / (double) terminal_reach_count[I.get_index()][a];
+        }
 
         i += 1;
         for (std::string I_prime_hash : cohort){
@@ -205,8 +206,6 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
                 c_value_lower[j] = action_LCB[I_prime.get_index()][action];
             }
 
-            // u_next[i] = (double) R[I.get_index()][a] / (double) terminal_reach_count[I.get_index()][a] + c_value_upper.maxCoeff();
-            // l_next[i] = (double) R[I.get_index()][a] / (double) terminal_reach_count[I.get_index()][a] + c_value_lower.maxCoeff();
             u_next[i] = c_value_upper.maxCoeff();
             l_next[i] = c_value_lower.maxCoeff();
 
@@ -214,30 +213,8 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         }
 
         // update action bounds
-
-        action_UCB[I.get_index()][a] = std::min(H - h + 1.0, p_hat.dot(u_next) + beta);
+        action_UCB[I.get_index()][a] = std::min(1.0, p_hat.dot(u_next) + beta);
         action_LCB[I.get_index()][a] = std::max(0.0, p_hat.dot(l_next) - beta);
-        // std::cout << "Action: " << a << ", UCB: " << action_UCB[I.get_index()][a] 
-        //           << ", LCB: " << action_LCB[I.get_index()][a] << std::endl;
-    }
-}
-
-
-void init_action_UCB(InformationSet& I, std::vector<std::vector<double>>& action_UCB, int depth, double gamma, int H, char game) {
-    std::vector<int> legal_actions;
-    I.get_actions(legal_actions);
-
-    for (int a : legal_actions){
-        action_UCB[I.get_index()][a] = H - depth + 1.0;
-
-        std::unordered_set<std::string> cohort;
-        std::unordered_map<std::string, double> cohort_values;
-        get_cohort(I, a, cohort);
-
-        for (std::string I_prime_hash : cohort){
-            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
-            init_action_UCB(I_prime, action_UCB, depth + 1, gamma, H, game);
-        }
     }
 }
 
@@ -254,13 +231,6 @@ void algorithm(double eps, double delta, double gamma, int S, int H, char br_pla
 
     std::vector<std::string>& unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
     std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
-
-    std::vector<char> cards = {'J', 'Q', 'K'};
-    for (char c : cards){
-        std::string root_hash = br_player == 'x' ? "a-" + std::string(1, c) + "--" : "o-" + std::string(1, c) + "--";
-        InformationSet root = br_player == 'x' ? InformationSet('x', true, root_hash, game) : InformationSet('o', false, root_hash, game);
-        init_action_UCB(root, action_UCB, 0, gamma, H, game);
-    }
 
     for (int t = 1; t <= T; t++){
         if (t % log_freq == 0){
