@@ -182,9 +182,6 @@ void updateBounds(std::vector<std::vector<double>>& R, std::vector<int>& infoset
         double beta_r = beta_cnt + std::log(1.0 + n_t) + 1.0;
         double beta_p = beta_cnt + (B - 1.0) * (1.0 + std::log(1.0 + (n_t) / (B - 1.0)));
 
-        // double beta_r = 3.0 * std::log(1.0 + std::log(n_t)) + H * std::log(13.0) + std::log(1.0 / (1.0 - delta));
-        // double beta_p = 0.1 * std::log(t);
-
         double mu_UCB = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, false);
         double mu_LCB = kl_upper_bound(R[I.get_index()][a], n_t, beta_r, 1e-2, true);
 
@@ -276,11 +273,6 @@ void algorithm(double eps, double delta, double gamma, int H, int B, char br_pla
     std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
 
     std::vector<char> cards = {'J', 'Q', 'K'};
-    // for (char c : cards){
-    //     std::string root_hash = br_player == 'x' ? "a-" + std::string(1, c) + "--" : "o-" + std::string(1, c) + "--";
-    //     InformationSet root = br_player == 'x' ? InformationSet('x', true, root_hash, game) : InformationSet('o', false, root_hash, game);
-    //     init_action_UCB(root, action_UCB, 0, gamma, H, game);
-    // }
 
     for (int t = 1; t <= T; t++){
         if (t % log_freq == 0){

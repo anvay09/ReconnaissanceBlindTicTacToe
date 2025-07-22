@@ -144,7 +144,7 @@ void updateBounds(std::vector<std::vector<double>>& theta, std::vector<std::vect
         }
         
         double r_hat = theta[I.get_index()][a] / n_t;
-        double sigma_hat = kappa[I.get_index()][a] / n_t;
+        // double sigma_hat = kappa[I.get_index()][a] / n_t;
 
         std::vector<double> p_hat(cohort.size() + 1, 0.0);
         std::vector<double> V_next(cohort.size() + 1, 0.0);
@@ -175,9 +175,10 @@ void updateBounds(std::vector<std::vector<double>>& theta, std::vector<std::vect
         // omitting second term: c2 * std::sqrt(x * (sigma_hat - r_hat * r_hat))
         double bonus = c1 * std::sqrt(x * V_x) + c3 * H * x;
         // std::cout << "Infoset: " << I.get_hash() << " Action: " << a << " Bonus: " << bonus << " E_x: " << E_x << " V_x: " << V_x << std::endl;
+        // std::cout << "Count: " << n_t << std::endl;
 
         // update Q, omitting r_hat
-        Q[I.get_index()][a] = std::min((double) h, E_x + bonus);
+        Q[I.get_index()][a] = std::min(1.0, E_x + bonus);
         // update V
         std::vector<int> legal_actions;
         I.get_actions(legal_actions);
@@ -210,7 +211,7 @@ void init_action_UCB(InformationSet& I, std::vector<std::vector<double>>& action
 
 
 void algorithm(double eps, double delta, double c1, double c2, double c3, int S, int H, char br_player, PolicyVec& player_policy, PolicyVec& opponent_policy, std::vector<std::string>& player_information_sets, int T, int log_freq, char game, double br_value, int experiment_number){
-    double iota = std::log(1.0/delta);
+    double iota = std::log(S * 6.0 * H/delta);
 
     std::vector<std::vector<double>> theta(player_information_sets.size(), std::vector<double>(6, 0.0));
     std::vector<std::vector<double>> kappa(player_information_sets.size(), std::vector<double>(6, 0.0));
@@ -225,13 +226,6 @@ void algorithm(double eps, double delta, double c1, double c2, double c3, int S,
 
     std::vector<std::string>& unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
     std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
-
-    std::vector<char> cards = {'J', 'Q', 'K'};
-    for (char c : cards){
-        std::string root_hash = br_player == 'x' ? "a-" + std::string(1, c) + "--" : "o-" + std::string(1, c) + "--";
-        InformationSet root = br_player == 'x' ? InformationSet('x', true, root_hash, game) : InformationSet('o', false, root_hash, game);
-        init_action_UCB(root, Q, 0, H, game);
-    }
 
     for (int t = 1; t <= T; t++){
         if (t % log_freq == 0){
@@ -305,9 +299,9 @@ int main(int argc, char* argv[]) {
     // constants
     int S = game == 'L'? 200 : 10;
     int H = game == 'L'? 7 : 4; // max depth of the game tree
-    double c1 = 0.5;
+    double c1 = 1.0;
     double c2 = 0.1;
-    double c3 = 0.5;
+    double c3 = 1.0;
 
     std::vector<std::string> P1_information_sets;
     std::vector<std::string> P2_information_sets;
