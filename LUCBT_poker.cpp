@@ -5,6 +5,8 @@
 int NUMBER_THREADS = 4;
 
 // this code is a version of sequence LUCB which uses the sequence with the minimum n_hat count to decide the UCB of the policy
+// g++-13 LUCBT_poker.cpp poker_utilities.cpp poker_classes.cpp -O3 -o LUCBTp -fopenmp
+// ./LUCBTp data/P1_nash_Leduc_Poker.txt data/P2_nash_Leduc_Poker.txt L x 1000000 10000 1 1.0 1.0 AAAI 1
 
 static std::random_device rd;
 static std::mt19937 generator(rd());
@@ -483,8 +485,8 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
     std::vector<int> infoset_reach_counts(player_information_sets.size(), 0);
 
     std::vector<std::pair<int, double>> exploitability_log; 
-    std::vector<std::pair<int, double>> reward_log; 
-    double cumulative_reward = 0.0;
+    // std::vector<std::pair<int, double>> reward_log; 
+    // double cumulative_reward = 0.0;
 
     std::vector<std::string>& unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
     std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
@@ -524,7 +526,7 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
             TerminalHistory start_history = TerminalHistory(h);
             Sequence trajectory = Sequence();
             double reward = sample_game(I_1, I_2, true_cards, start_history, br_player, player_br, opponent_policy, trajectory, infoset_reach_counts, action_reach_counts);
-            cumulative_reward += reward;
+            // cumulative_reward += reward;
 
             // update sequence data for policy sequences
             update_reach_and_sequence_data_wrapper(player_br, sequence_hash_to_index_map, br_player, cohorts, infoset_reach_counts, terminal_sequences, reward, trajectory.hash, C_r, action_reach_counts, game);
@@ -556,7 +558,7 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
             TerminalHistory start_history = TerminalHistory(h);
             Sequence trajectory = Sequence();
             double reward = sample_game(I_1, I_2, true_cards, start_history, br_player, player_br, opponent_policy, trajectory, infoset_reach_counts, action_reach_counts);
-            cumulative_reward += reward;
+            // cumulative_reward += reward;
 
             // update sequence data for policy sequences
             update_reach_and_sequence_data_wrapper(player_br, sequence_hash_to_index_map, br_player, cohorts, infoset_reach_counts, terminal_sequences, reward, trajectory.hash, C_r, action_reach_counts, game);
@@ -597,8 +599,8 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
                 expected_utility = get_expected_utility_wrapper(opponent_policy, player_br, game);
                 exploitability_log.push_back(std::make_pair(t, exact_br_value - expected_utility));
             }
-            reward_log.push_back(std::make_pair(t, cumulative_reward / (double) t));
-            std::cout << "Cumulative Average Reward: " << cumulative_reward / (double) t << std::endl;
+            // reward_log.push_back(std::make_pair(t, cumulative_reward / (double) t));
+            // std::cout << "Cumulative Average Reward: " << cumulative_reward / (double) t << std::endl;
             std::cout << "Expected utility of best response policy: " << expected_utility << std::endl;
             std::cout << "Number of games sampled so far: " << t << std::endl;
         }
@@ -613,13 +615,13 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
     }
     f1.close();
 
-    file_name = "data/sequence/" + exp_name + "_" + std::string(1, game) + "_poker_" + std::string(1, br_player) + "_C=" + std::to_string(C) + "_C_r=" + std::to_string(C_r) + "_seq-LUCB_reward_log_" + std::to_string(experiment_number) + ".txt";
+    // file_name = "data/sequence/" + exp_name + "_" + std::string(1, game) + "_poker_" + std::string(1, br_player) + "_C=" + std::to_string(C) + "_C_r=" + std::to_string(C_r) + "_seq-LUCB_reward_log_" + std::to_string(experiment_number) + ".txt";
 
-    std::ofstream f2(file_name);
-    for (int i = 0; i < reward_log.size(); i++) {
-        f2 << reward_log[i].first << " " << reward_log[i].second << std::endl;
-    }
-    f2.close();
+    // std::ofstream f2(file_name);
+    // for (int i = 0; i < reward_log.size(); i++) {
+    //     f2 << reward_log[i].first << " " << reward_log[i].second << std::endl;
+    // }
+    // f2.close();
 }
 
 

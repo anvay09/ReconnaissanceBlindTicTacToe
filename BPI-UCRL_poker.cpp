@@ -298,8 +298,9 @@ int main(int argc, char* argv[]) {
     double delta = std::stod(argv[8]);
     std::string base_path = argv[9];
     char game = argv[10][0];
+    int experiment_number = std::stoi(argv[11]);
 
-    int experiment_number = 1;
+    num_experiments = experiment_number + num_experiments - 1;
     double gamma = 0.99;
     // instance specific constants
     int S = game == 'L'? 250 : 10; // number of states in the game
