@@ -41,6 +41,15 @@ void simulate_opponent_turn(PokerTable& true_cards, History& history, double rea
 double get_max_Q_value_and_update_policy(std::vector<double>& Q_values, std::vector<int>& actions, PolicyVec& br, InformationSet& I);
 
 double compute_best_response(InformationSet& I, char br_player, std::vector<PokerTable>& true_cards_list, std::vector<History>& history_list, 
+                 std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj, std::vector<std::vector<double>>& Q_star);
+    
+double compute_best_response_parallel(InformationSet& I, char br_player, std::vector<PokerTable>& true_cards_list, std::vector<History>& history_list, 
+                 std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj, std::vector<std::vector<double>>& Q_star);
+
+double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player, char game, std::vector<std::vector<double>>& Q_star);
+
+// Overload 3 BR functions to not include Q_star
+double compute_best_response(InformationSet& I, char br_player, std::vector<PokerTable>& true_cards_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj);
     
 double compute_best_response_parallel(InformationSet& I, char br_player, std::vector<PokerTable>& true_cards_list, std::vector<History>& history_list, 

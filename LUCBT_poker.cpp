@@ -18,6 +18,39 @@ int sampleIndex(const std::vector<double>& probabilities) {
 }
 
 
+void get_sequences(InformationSet& I, Sequence& trajectory, std::vector<Sequence>& terminal_sequences, std::unordered_map<std::string, int>& sequence_hash_to_index_map, char game, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
+    std::vector<int> legal_actions;
+    I.get_actions(legal_actions);
+    
+    for (int a : legal_actions){
+        Sequence new_trajectory = trajectory;
+        new_trajectory.extend(I, a);
+        terminal_sequences.push_back(new_trajectory);
+        sequence_hash_to_index_map[new_trajectory.hash] = terminal_sequences.size() - 1;
+
+        std::unordered_set<std::string>& cohort = cohorts[I.get_index()][a];
+
+        for (std::string I_prime_hash : cohort){
+            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
+            get_sequences(I_prime, new_trajectory, terminal_sequences, sequence_hash_to_index_map, game, cohorts);
+        }
+    }
+}
+
+
+void get_sequences_wrapper(std::vector<Sequence>& terminal_sequences, char game, char br_player, std::unordered_map<std::string, int>& sequence_hash_to_index_map, 
+                           std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
+    std::vector<char> player_cards = {'J', 'Q', 'K'};
+    for (int card_index = 0; card_index < player_cards.size(); card_index++){
+        std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
+        std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
+        InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
+        Sequence empty_sequence = Sequence();
+        get_sequences(root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, game, cohorts);
+    }
+}
+
+
 void precompute_cohorts(std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, std::vector<std::string>& player_information_sets, char br_player, char game) {
     std::cout << "Building cohorts" << std::endl;
     // precompute cohorts
@@ -34,6 +67,45 @@ void precompute_cohorts(std::vector<std::vector<std::unordered_set<std::string>>
         }
     }
     std::cout << "Cohorts built" << std::endl;
+}
+
+
+void policy_diff(PolicyVec& A, PolicyVec& B, std::vector<std::vector<double>>& Q_A, std::vector<std::vector<double>>& Q_B, std::vector<std::string>& player_infosets, char br_player, std::vector<int>& infoset_reach_counts, char game) {
+    // show diff between two policies A and B, where A is optimal and B is the estimate, print the infosets where B has a different action than A
+    for (int i = 0; i < player_infosets.size(); i++) {
+        InformationSet I = InformationSet(br_player, get_move_flag(player_infosets[i], br_player), player_infosets[i], game);
+
+        if (infoset_reach_counts[I.get_index()] == 0) continue; // skip infosets that have not been reached
+
+        std::vector<int> legal_actions;
+        I.get_actions(legal_actions);
+        std::vector<double>& prob_dist_A = A.policy_dict[I.get_index()];
+        std::vector<double>& prob_dist_B = B.policy_dict[I.get_index()];
+
+        // policies are deterministic, so we can just check the action with probability 1.0
+        int action_A = -1;
+        for (int a : legal_actions) {
+            if (prob_dist_A[a] == 1.0) {
+                action_A = a;
+                break;
+            }
+        }
+        int action_B = -1;
+        for (int a : legal_actions) {
+            if (prob_dist_B[a] == 1.0) {
+                action_B = a;
+                break;
+            }
+        }
+
+        // skip infosets where difference between optimal value of action_A and action_B are less than 0.01
+        if (fabs(Q_A[I.get_index()][action_A] - Q_A[I.get_index()][action_B]) < 0.01) continue;
+
+        if (action_A != action_B) {
+            std::cout << "Infoset: " << I.get_hash() << ", Action A: " << action_A << ", Action B: " << action_B << ", Q_A of action A: " << Q_A[I.get_index()][action_A] 
+                      << ", Q_A of action B: " << Q_A[I.get_index()][action_B] << ", Q_B of action A: " << Q_B[I.get_index()][action_A] << ", Q_B of action B: " << Q_B[I.get_index()][action_B] << std::endl;
+        }
+    }
 }
 
 
@@ -220,7 +292,7 @@ double find_maximizing_sequence(PolicyVec& played_policy_obj, InformationSet& I,
 
         for (std::string I_prime_hash_j : cohort){
             if (I_prime_hash_j == I_prime_hash) continue;
-            InformationSet I_prime_j(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
+            InformationSet I_prime_j(I.player, get_move_flag(I_prime_hash_j, I.player), I_prime_hash_j, game);
             cohort_values[ind] += global_infoset_values[I_prime_j.get_index()];
         }
         cohort_values[ind] += terminal_sequences[s_index].p * terminal_sequences[s_index].ucb_r;
@@ -329,39 +401,6 @@ void restore_backup(PolicyVec& policy_obj, char br_player, std::unordered_map<st
 }
 
 
-void get_sequences(InformationSet& I, Sequence& trajectory, std::vector<Sequence>& terminal_sequences, std::unordered_map<std::string, int>& sequence_hash_to_index_map, char game, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
-    std::vector<int> legal_actions;
-    I.get_actions(legal_actions);
-    
-    for (int a : legal_actions){
-        Sequence new_trajectory = trajectory;
-        new_trajectory.extend(I, a);
-        terminal_sequences.push_back(new_trajectory);
-        sequence_hash_to_index_map[new_trajectory.hash] = terminal_sequences.size() - 1;
-
-        std::unordered_set<std::string>& cohort = cohorts[I.get_index()][a];
-
-        for (std::string I_prime_hash : cohort){
-            InformationSet I_prime(I.player, get_move_flag(I_prime_hash, I.player), I_prime_hash, game);
-            get_sequences(I_prime, new_trajectory, terminal_sequences, sequence_hash_to_index_map, game, cohorts);
-        }
-    }
-}
-
-
-void get_sequences_wrapper(std::vector<Sequence>& terminal_sequences, char game, char br_player, std::unordered_map<std::string, int>& sequence_hash_to_index_map, 
-                           std::vector<std::vector<std::unordered_set<std::string>>>& cohorts) {
-    std::vector<char> player_cards = {'J', 'Q', 'K'};
-    for (int card_index = 0; card_index < player_cards.size(); card_index++){
-        std::string hash_1 = "a-" + std::string(1, player_cards[card_index]) + "--";
-        std::string hash_2 = "o-" + std::string(1, player_cards[card_index]) + "--";
-        InformationSet root = br_player == 'x' ? InformationSet('x', true, hash_1, game) : InformationSet('o', false, hash_2, game);
-        Sequence empty_sequence = Sequence();
-        get_sequences(root, empty_sequence, terminal_sequences, sequence_hash_to_index_map, game, cohorts);
-    }
-}
-
-
 void init_maximising_seq(PolicyVec& policy_obj, InformationSet& I, Sequence& trajectory, std::string& maximising_sequence_hash, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, 
                          std::vector<int>& infoset_maximising_sequences, std::vector<std::vector<int>>& action_maximising_sequences, char game,
                          std::unordered_map<std::string, int>& sequence_hash_to_index_map, std::vector<Sequence>& terminal_sequences) {
@@ -465,8 +504,8 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
     std::vector<Sequence>& terminal_sequences, std::vector<std::vector<std::unordered_set<std::string>>>& cohorts, double delta) 
 {  
     // store infoset and action values to avoid recomputation for parts of the tree that don't change
-    std::vector<double> infoset_empirical_values(player_information_sets.size(), 0.0);
-    std::vector<std::vector<double>> action_empirical_values(player_information_sets.size(), std::vector<double>(6, 0.0));
+    std::vector<double> infoset_empirical_values(player_information_sets.size(), 1.0);
+    std::vector<std::vector<double>> action_empirical_values(player_information_sets.size(), std::vector<double>(6, 1.0));
 
     std::vector<int> infoset_maximising_trajectories(player_information_sets.size(), -1);
     std::vector<std::vector<int>> action_maximising_trajectories(player_information_sets.size(), std::vector<int>(6, -1));
@@ -491,8 +530,10 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
     std::vector<std::string>& unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
     std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
 
+    // compute optimal Q-Value function for logging and comparison
+    std::vector<std::vector<double>> Q_star(player_information_sets.size(), std::vector<double>(6, 0.0));
     PolicyVec exact_br(br_player, player_information_sets, game, false);
-    compute_best_response_wrapper(opponent_policy, exact_br, br_player, game);
+    compute_best_response_wrapper(opponent_policy, exact_br, br_player, game, Q_star);
     double exact_br_value = 0.0;
 
     if (br_player == 'x') {
@@ -603,6 +644,8 @@ void calc_br_sequence_LUCB(PolicyVec& opponent_policy, char br_player, std::vect
             // std::cout << "Cumulative Average Reward: " << cumulative_reward / (double) t << std::endl;
             std::cout << "Expected utility of best response policy: " << expected_utility << std::endl;
             std::cout << "Number of games sampled so far: " << t << std::endl;
+
+            // policy_diff(exact_br, player_br, Q_star, action_empirical_values, player_information_sets, br_player, infoset_reach_counts, game);
         }
     }
 

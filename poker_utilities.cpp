@@ -801,6 +801,487 @@ double get_max_Q_value_and_update_policy(std::vector<double>& Q_values, std::vec
 
 
 double compute_best_response(InformationSet& I, char br_player, std::vector<PokerTable>& true_cards_list, std::vector<History>& history_list, 
+                 std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj, std::vector<std::vector<double>>& Q_star) {    
+    std::vector<int> actions;
+    std::vector<double> Q_values(6, 0.0);
+    I.get_actions(actions);
+
+    if (I.move_flag) {
+        for (int a = 0; a < actions.size(); a++) {
+            std::vector<PokerTable> depth_3_true_cards_list;
+            std::vector<History> depth_3_history_list;
+            std::vector<double> depth_3_reach_probability_list;
+            std::vector<InformationSet> depth_3_opponent_I_list;
+            
+            for (int h = 0; h < history_list.size(); h++) {
+                PokerTable depth_1_true_cards = true_cards_list[h];
+                History depth_1_history = history_list[h];
+                double depth_1_reach_probability = reach_probability_list[h];
+                InformationSet depth_1_opponent_I = opponent_I_list[h];
+
+                bool success = depth_1_true_cards.update_move(actions[a]);
+                depth_1_history.history.push_back(actions[a]);
+
+                char winner;
+                if (success && !depth_1_true_cards.is_win(winner) && !depth_1_true_cards.is_over()) {
+                    InformationSet new_I = I;
+                    new_I.update_move(actions[a]);                 
+                    simulate_opponent_turn(depth_1_true_cards, depth_1_history, depth_1_reach_probability, depth_1_opponent_I, policy_obj, depth_3_true_cards_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, Q_values, br_player, actions[a]);
+                }
+                else {
+                    TerminalHistory H_T = TerminalHistory(depth_1_history.history);
+                    H_T.set_reward(I.game);
+
+                    if (br_player == 'x'){
+                        Q_values[actions[a]] += H_T.reward[0] * depth_1_reach_probability;
+                    }
+                    else{
+                        Q_values[actions[a]] += H_T.reward[1] * depth_1_reach_probability;
+                    }
+                }
+            }
+
+            if (depth_3_history_list.size() > 0) {
+                InformationSet new_I = I;
+                new_I.update_move(actions[a]);
+                Q_values[actions[a]] += compute_best_response(new_I, br_player, depth_3_true_cards_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, br, policy_obj, Q_star);
+            }
+        }
+    }
+    else {
+        for (int a = 0; a < actions.size(); a++) {
+            std::unordered_map<std::string, std::vector<PokerTable>> infoset_to_true_cards;
+            std::unordered_map<std::string, std::vector<History>> infoset_to_history;
+            std::unordered_map<std::string, std::vector<double>> infoset_to_reach_probability;
+            std::unordered_map<std::string, std::vector<InformationSet>> infoset_to_opponent_I;
+            std::unordered_set<std::string> infoset_set;
+
+            for (int h = 0; h < history_list.size(); h++) {
+                PokerTable& true_cards = true_cards_list[h];
+                History& history = history_list[h];
+                double reach_probability = reach_probability_list[h];
+ 
+                InformationSet new_I = I;
+                new_I.simulate_sense(actions[a], true_cards);
+
+                History new_history = history;
+                new_history.history.push_back(actions[a]);
+
+                infoset_to_true_cards[new_I.hash].push_back(true_cards);
+                infoset_to_history[new_I.hash].push_back(new_history);
+                infoset_to_reach_probability[new_I.hash].push_back(reach_probability);
+                infoset_to_opponent_I[new_I.hash].push_back(opponent_I_list[h]);
+                infoset_set.insert(new_I.hash);
+            }
+            
+            for (int t = 0; t < infoset_set.size(); t++) {
+                std::string new_I_hash = *std::next(infoset_set.begin(), t);
+                bool move_flag = get_move_flag(new_I_hash, I.player);
+                InformationSet new_I(I.player, move_flag, new_I_hash, I.game);
+  
+                if (infoset_to_history[new_I.hash].size() > 0) {
+                    Q_values[actions[a]] += compute_best_response(new_I, br_player, infoset_to_true_cards[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj, Q_star);
+                }
+            }
+        }
+    }
+
+    // update Q_star
+    for (int a = 0; a < actions.size(); a++) {
+        Q_star[I.get_index()][actions[a]] = Q_values[actions[a]];
+    }
+
+    double max_Q = get_max_Q_value_and_update_policy(Q_values, actions, br, I);
+    return max_Q;
+}
+
+
+double compute_best_response_parallel(InformationSet& I, char br_player, std::vector<PokerTable>& true_cards_list, std::vector<History>& history_list, 
+                 std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj, std::vector<std::vector<double>>& Q_star) {    
+    std::vector<int> actions;
+    std::vector<double> Q_values(6, 0.0); 
+    I.get_actions(actions);
+
+    if (I.move_flag) {
+        std::unordered_map<int, std::vector<PokerTable>> action_to_true_cards_list;
+        std::unordered_map<int, std::vector<History>> action_to_history_list;
+        std::unordered_map<int, std::vector<double>> action_to_reach_probability_list;
+        std::unordered_map<int, std::vector<InformationSet>> action_to_opponent_I_list; 
+
+        for (int a = 0; a < actions.size(); a++) {
+            std::vector<PokerTable> depth_3_true_cards_list;
+            std::vector<History> depth_3_history_list;
+            std::vector<double> depth_3_reach_probability_list;
+            std::vector<InformationSet> depth_3_opponent_I_list;
+            
+            for (int h = 0; h < history_list.size(); h++) {
+                PokerTable depth_1_true_cards = true_cards_list[h];
+                History depth_1_history = history_list[h];
+                double depth_1_reach_probability = reach_probability_list[h];
+                InformationSet depth_1_opponent_I = opponent_I_list[h];
+
+                bool success = depth_1_true_cards.update_move(actions[a]);
+                depth_1_history.history.push_back(actions[a]);
+
+                char winner;
+                if (success && !depth_1_true_cards.is_win(winner) && !depth_1_true_cards.is_over()) {
+                    InformationSet new_I = I;
+                    new_I.update_move(actions[a]);
+
+                    // simulate opponent's turn     
+                    simulate_opponent_turn(depth_1_true_cards, depth_1_history, depth_1_reach_probability, depth_1_opponent_I, policy_obj, depth_3_true_cards_list, depth_3_history_list, depth_3_reach_probability_list, depth_3_opponent_I_list, Q_values, br_player, actions[a]);
+                }
+                else {
+                    TerminalHistory H_T = TerminalHistory(depth_1_history.history);
+                    H_T.set_reward(I.game);
+
+                    if (br_player == 'x'){
+                        Q_values[actions[a]] += H_T.reward[0] * depth_1_reach_probability;
+                    }
+                    else{
+                        Q_values[actions[a]] += H_T.reward[1] * depth_1_reach_probability;
+                    }
+                }
+            }
+
+            action_to_true_cards_list[actions[a]] = depth_3_true_cards_list;
+            action_to_history_list[actions[a]] = depth_3_history_list;
+            action_to_reach_probability_list[actions[a]] = depth_3_reach_probability_list;
+            action_to_opponent_I_list[actions[a]] = depth_3_opponent_I_list;
+        }
+
+        std::unordered_map<std::string, std::vector<PokerTable>> infoset_to_true_cards;
+        std::unordered_map<std::string, std::vector<History>> infoset_to_history;
+        std::unordered_map<std::string, std::vector<double>> infoset_to_reach_probability;
+        std::unordered_map<std::string, std::vector<InformationSet>> infoset_to_opponent_I;
+        std::unordered_map<std::string, int> infoset_to_first_action_taken;
+        std::unordered_map<std::string, int> infoset_to_second_action_taken;
+        std::unordered_set<std::string> infoset_set;
+
+        std::vector<std::vector<double>> depth_4_Q_values;
+        std::vector<std::vector<int>> depth_4_actions;
+
+        for (int i = 0; i < 6; i++) {
+            std::vector<double> Q_value_vector;
+            std::vector<int> action_vector;
+
+            for (int j = 0; j < 6; j++) {
+                Q_value_vector.push_back(0.0);
+            }
+
+            depth_4_Q_values.push_back(Q_value_vector);
+            depth_4_actions.push_back(action_vector);
+        }
+
+        for (int a = 0; a < actions.size(); a++) {
+            if (action_to_history_list[actions[a]].size() > 0) {
+                InformationSet new_I = I;
+                new_I.update_move(actions[a]);
+    
+                new_I.get_actions(depth_4_actions[actions[a]]);
+
+                for (int b = 0; b < depth_4_actions[actions[a]].size(); b++) {
+                    for (int h = 0; h < action_to_history_list[actions[a]].size(); h++) {
+                        PokerTable& true_cards = action_to_true_cards_list[actions[a]][h];
+                        History& history = action_to_history_list[actions[a]][h];
+                        double reach_probability = action_to_reach_probability_list[actions[a]][h];
+
+                        InformationSet depth_4_I = new_I;
+                        depth_4_I.simulate_sense(depth_4_actions[actions[a]][b], true_cards);
+
+                        History depth_4_history = history;
+                        depth_4_history.history.push_back(depth_4_actions[actions[a]][b]);
+
+                        infoset_to_true_cards[depth_4_I.hash].push_back(true_cards);
+                        infoset_to_history[depth_4_I.hash].push_back(depth_4_history);
+                        infoset_to_reach_probability[depth_4_I.hash].push_back(reach_probability);
+                        infoset_to_opponent_I[depth_4_I.hash].push_back(action_to_opponent_I_list[actions[a]][h]);
+                        infoset_to_first_action_taken[depth_4_I.hash] = actions[a];
+                        infoset_to_second_action_taken[depth_4_I.hash] = depth_4_actions[actions[a]][b];
+
+                        infoset_set.insert(depth_4_I.hash);
+                    }
+                }
+            }
+        }
+
+        # pragma omp parallel for num_threads(96)
+        for (int t = 0; t < infoset_set.size(); t++) {
+            std::string new_I_hash = *std::next(infoset_set.begin(), t);
+            bool move_flag = get_move_flag(new_I_hash, I.player);
+            InformationSet new_I(I.player, move_flag, new_I_hash, I.game);
+
+            int a_val = infoset_to_first_action_taken[new_I.hash];
+            int b_val = infoset_to_second_action_taken[new_I.hash];
+
+            if (infoset_to_history[new_I.hash].size() > 0) {
+                depth_4_Q_values[a_val][b_val] += compute_best_response(new_I, br_player, infoset_to_true_cards[new_I.hash], infoset_to_history[new_I.hash], infoset_to_reach_probability[new_I.hash], infoset_to_opponent_I[new_I.hash], br, policy_obj, Q_star);
+            }
+        }
+
+        # pragma omp parallel for num_threads(96)
+        for (int a = 0; a < actions.size(); a++) {
+            if (action_to_history_list[actions[a]].size() > 0) {
+                InformationSet new_I = I;
+                new_I.update_move(actions[a]);
+
+                Q_values[actions[a]] = get_max_Q_value_and_update_policy(depth_4_Q_values[actions[a]], depth_4_actions[actions[a]], br, new_I);
+            }
+        }
+    }
+    else {
+        std::unordered_map<std::string, std::vector<PokerTable>> infoset_to_true_cards;
+        std::unordered_map<std::string, std::vector<History>> infoset_to_history;
+        std::unordered_map<std::string, std::vector<double>> infoset_to_reach_probability;
+        std::unordered_map<std::string, std::vector<InformationSet>> infoset_to_opponent_I;
+        std::unordered_map<std::string, int> infoset_to_action_taken;
+        std::unordered_set<std::string> infoset_set;
+
+        for (int a = 0; a < actions.size(); a++) {
+            for (int h = 0; h < history_list.size(); h++) {
+                PokerTable& true_cards = true_cards_list[h];
+                History& history = history_list[h];
+                double reach_probability = reach_probability_list[h];
+
+                InformationSet new_I = I;
+                new_I.simulate_sense(actions[a], true_cards);
+
+                History new_history = history;
+                new_history.history.push_back(actions[a]);
+
+                infoset_to_true_cards[new_I.hash].push_back(true_cards);
+                infoset_to_history[new_I.hash].push_back(new_history);
+                infoset_to_reach_probability[new_I.hash].push_back(reach_probability);
+                infoset_to_opponent_I[new_I.hash].push_back(opponent_I_list[h]);
+                infoset_to_action_taken[new_I.hash] = actions[a];
+                infoset_set.insert(new_I.hash);
+            }
+        }
+        
+        std::unordered_map<std::string, std::vector<PokerTable>> depth_2_infoset_to_true_cards;
+        std::unordered_map<std::string, std::vector<History>> depth_2_infoset_to_history;
+        std::unordered_map<std::string, std::vector<double>> depth_2_infoset_to_reach_probability;
+        std::unordered_map<std::string, std::vector<InformationSet>> depth_2_infoset_to_opponent_I;
+        std::unordered_map<std::string, std::string> depth_2_infoset_to_parent;
+        std::unordered_map<std::string, int> depth_2_infoset_to_second_action_taken;
+        std::unordered_set<std::string> depth_2_infoset_set;
+
+        std::unordered_map<std::string, std::vector<double>> depth_2_Q_values;
+        std::unordered_map<std::string, std::vector<int>> depth_2_actions;
+
+        for (int t = 0; t < infoset_set.size(); t++) {
+            std::vector<double> Q_value_vector;
+            std::vector<int> action_vector;
+
+            for (int i = 0; i < 6; i++) {
+                Q_value_vector.push_back(0.0);
+            }
+
+            std::string new_I_hash = *std::next(infoset_set.begin(), t);
+            bool move_flag = get_move_flag(new_I_hash, I.player);
+            InformationSet new_I(I.player, move_flag, new_I_hash, I.game);
+
+            depth_2_Q_values[new_I.hash] = Q_value_vector;
+            depth_2_actions[new_I.hash] = action_vector;
+        }
+
+        for (int t = 0; t < infoset_set.size(); t++) {
+            std::string new_I_hash = *std::next(infoset_set.begin(), t);
+            bool move_flag = get_move_flag(new_I_hash, I.player);
+            InformationSet new_I(I.player, move_flag, new_I_hash, I.game);
+
+            if (infoset_to_history[new_I.hash].size() > 0) {
+                int a_val = infoset_to_action_taken[new_I.hash];
+                new_I.get_actions(depth_2_actions[new_I.hash]);
+               
+                for (int b = 0; b < depth_2_actions[new_I.hash].size(); b++) {
+                    std::vector<PokerTable> depth_4_true_cards_list;
+                    std::vector<History> depth_4_history_list;
+                    std::vector<double> depth_4_reach_probability_list;
+                    std::vector<InformationSet> depth_4_opponent_I_list;
+
+                    for (int h = 0; h < infoset_to_history[new_I.hash].size(); h++) {
+                        PokerTable depth_2_true_cards = infoset_to_true_cards[new_I.hash][h];
+                        History depth_2_history = infoset_to_history[new_I.hash][h];
+                        double depth_2_reach_probability = infoset_to_reach_probability[new_I.hash][h];
+                        InformationSet depth_2_opponent_I = infoset_to_opponent_I[new_I.hash][h];
+
+                        bool success = depth_2_true_cards.update_move(depth_2_actions[new_I.hash][b]);
+                        depth_2_history.history.push_back(depth_2_actions[new_I.hash][b]);
+
+                        char winner;
+                        if (success && !depth_2_true_cards.is_win(winner) && !depth_2_true_cards.is_over()) {
+                            InformationSet depth_3_I = new_I;
+                            depth_3_I.update_move(depth_2_actions[new_I.hash][b]);
+
+                            simulate_opponent_turn(depth_2_true_cards, depth_2_history, depth_2_reach_probability, depth_2_opponent_I, policy_obj, depth_4_true_cards_list, depth_4_history_list, depth_4_reach_probability_list, depth_4_opponent_I_list, depth_2_Q_values[new_I.hash], br_player, depth_2_actions[new_I.hash][b]);
+                        }
+                        else {
+                            TerminalHistory H_T = TerminalHistory(depth_2_history.history);
+                            H_T.set_reward(I.game);
+
+                            if (br_player == 'x'){
+                                depth_2_Q_values[new_I.hash][depth_2_actions[new_I.hash][b]] += H_T.reward[0] * depth_2_reach_probability;
+                            }
+                            else{
+                                depth_2_Q_values[new_I.hash][depth_2_actions[new_I.hash][b]] += H_T.reward[1] * depth_2_reach_probability;
+                            }
+                        }
+                    }
+
+                    InformationSet depth_3_I = new_I;
+                    depth_3_I.update_move(depth_2_actions[new_I.hash][b]);
+
+                    depth_2_infoset_to_true_cards[depth_3_I.hash] = depth_4_true_cards_list;
+                    depth_2_infoset_to_history[depth_3_I.hash] = depth_4_history_list;
+                    depth_2_infoset_to_reach_probability[depth_3_I.hash] = depth_4_reach_probability_list;
+                    depth_2_infoset_to_opponent_I[depth_3_I.hash] = depth_4_opponent_I_list;
+                    depth_2_infoset_to_parent[depth_3_I.hash] = new_I.hash;
+                    depth_2_infoset_to_second_action_taken[depth_3_I.hash] = depth_2_actions[new_I.hash][b];
+
+                    depth_2_infoset_set.insert(depth_3_I.hash);
+                }
+            }
+        }
+        
+        # pragma omp parallel for num_threads(96)
+        for (int t = 0; t < depth_2_infoset_set.size(); t++) {
+            std::string new_I_hash = *std::next(depth_2_infoset_set.begin(), t);
+            bool move_flag = get_move_flag(new_I_hash, I.player);
+            InformationSet new_I(I.player, move_flag, new_I_hash, I.game);
+
+            std::string parent_hash = depth_2_infoset_to_parent[new_I.hash];
+            int b_val = depth_2_infoset_to_second_action_taken[new_I.hash];
+
+            if (depth_2_infoset_to_history[new_I.hash].size() > 0) {
+                depth_2_Q_values[parent_hash][b_val] += compute_best_response(new_I, br_player, depth_2_infoset_to_true_cards[new_I.hash], depth_2_infoset_to_history[new_I.hash], depth_2_infoset_to_reach_probability[new_I.hash], depth_2_infoset_to_opponent_I[new_I.hash], br, policy_obj, Q_star);
+            }
+        }
+
+        for (int t = 0; t < infoset_set.size(); t++) {
+            std::string new_I_hash = *std::next(infoset_set.begin(), t);
+            bool move_flag = get_move_flag(new_I_hash, I.player);
+            InformationSet new_I(I.player, move_flag, new_I_hash, I.game);
+
+            if (infoset_to_history[new_I.hash].size() > 0) {
+                int a_val = infoset_to_action_taken[new_I.hash];
+                Q_values[a_val] += get_max_Q_value_and_update_policy(depth_2_Q_values[new_I.hash], depth_2_actions[new_I.hash], br, new_I);
+            }
+        }
+
+    }
+  
+    // update Q_star
+    for (int a = 0; a < actions.size(); a++) {
+        Q_star[I.get_index()][actions[a]] = Q_values[actions[a]];
+    }
+
+    double max_Q = get_max_Q_value_and_update_policy(Q_values, actions, br, I);
+    return max_Q;
+}
+
+
+double compute_best_response_wrapper(PolicyVec& policy_obj, PolicyVec& br, char br_player, char game, std::vector<std::vector<double>>& Q_star) {
+    double expected_utility = 0.0;
+    std::vector<char> single_cards = {'J', 'Q', 'K'};
+    std::vector<std::string> &unique_draws = game == 'L' ? unique_draws_leduc : unique_draws_kuhn;
+    std::vector<double>& draw_probabilities = game == 'L' ? draw_probabilities_leduc : draw_probabilities_kuhn;
+    
+    if (br_player == 'x') {
+        for (int i = 0; i < single_cards.size(); i++){
+            std::string hash_1 = "a-" + std::string(1, single_cards[i]) + "--";
+            InformationSet I_1 = InformationSet('x', true, hash_1, game);
+            double reach_sum = 0.0;
+
+            std::vector<PokerTable> true_cards_list;
+            std::vector<History> history_list;
+            std::vector<double> reach_probability_list;
+            std::vector<InformationSet> opponent_I_list;
+
+            for (int d = 0; d < unique_draws.size(); d++){
+                std::string cards = unique_draws[d];
+                if (cards[0] != single_cards[i]){
+                    continue;
+                }
+                else{
+                    PokerTable true_cards = PokerTable(cards);
+                    true_cards.game = game;
+                    std::string hash_2 = "o-" + std::string(1, cards[1]) + "--";
+                    InformationSet I_2 = InformationSet('o', false, hash_2, game);
+                    std::vector<int> h = {};
+                    h.push_back(cards[0]);
+                    h.push_back(cards[1]);
+                    h.push_back(cards[2]);
+                    TerminalHistory start_history = TerminalHistory(h);
+
+                    true_cards_list.push_back(true_cards);
+                    history_list.push_back(start_history);
+                    reach_probability_list.push_back(draw_probabilities[d]);
+                    reach_sum += draw_probabilities[d];
+                    opponent_I_list.push_back(I_2);
+                }
+            }
+            
+            double output = compute_best_response(I_1, br_player, true_cards_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj, Q_star);
+            expected_utility += output;
+        }
+    } 
+    else {
+        for (int i = 0; i < single_cards.size(); i++){
+            std::string hash_2 = "o-" + std::string(1, single_cards[i]) + "--";
+            InformationSet I_2 = InformationSet('o', false, hash_2, game);
+            double reach_sum = 0.0;
+            std::vector<PokerTable> true_cards_list;
+            std::vector<History> history_list;
+            std::vector<double> reach_probability_list;
+            std::vector<InformationSet> opponent_I_list;
+
+            for (int d = 0; d < unique_draws.size(); d++){
+                std::string cards = unique_draws[d];
+                if (cards[1] != single_cards[i]){
+                    continue;
+                }
+                else{
+                    PokerTable true_cards = PokerTable(cards);
+                    true_cards.game = game;
+                    std::string hash_1 = "a-" + std::string(1, cards[0]) + "--";
+                    InformationSet I_1 = InformationSet('x', true, hash_1, game);
+                    std::vector<int> h = {};
+                    h.push_back(cards[0]);
+                    h.push_back(cards[1]);
+                    h.push_back(cards[2]);
+                    TerminalHistory start_history = TerminalHistory(h);
+
+                    std::vector<int> actions;
+                    I_1.get_actions_given_policy(actions, policy_obj);
+
+                    for (int a = 0; a < actions.size(); a++){
+                        PokerTable new_true_cards = true_cards;
+                        bool success = new_true_cards.update_move(actions[a]);
+
+                        History new_history = start_history;
+                        new_history.history.push_back(actions[a]);
+
+                        InformationSet new_I = I_1;
+                        new_I.update_move(actions[a]);
+
+                        true_cards_list.push_back(new_true_cards);
+                        history_list.push_back(new_history);
+                        reach_probability_list.push_back(policy_obj.policy_dict[I_1.get_index()][actions[a]] * draw_probabilities[d]);
+                        reach_sum += policy_obj.policy_dict[I_1.get_index()][actions[a]] * draw_probabilities[d];
+                        opponent_I_list.push_back(new_I);
+                    }
+                }
+            }    
+            expected_utility -= compute_best_response(I_2, br_player, true_cards_list, history_list, reach_probability_list, opponent_I_list, br, policy_obj, Q_star);
+        }
+    }
+
+    return expected_utility;
+}
+
+// overload 3 BR functions to not include V_star
+double compute_best_response(InformationSet& I, char br_player, std::vector<PokerTable>& true_cards_list, std::vector<History>& history_list, 
                  std::vector<double>& reach_probability_list, std::vector<InformationSet>& opponent_I_list, PolicyVec& br, PolicyVec& policy_obj) {    
     std::vector<int> actions;
     std::vector<double> Q_values(6, 0.0);
@@ -1166,7 +1647,8 @@ double compute_best_response_parallel(InformationSet& I, char br_player, std::ve
 
     }
   
-    return get_max_Q_value_and_update_policy(Q_values, actions, br, I);
+    double max_Q = get_max_Q_value_and_update_policy(Q_values, actions, br, I);
+    return max_Q;
 }
 
 
