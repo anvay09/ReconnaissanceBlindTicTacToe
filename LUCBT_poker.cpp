@@ -7,6 +7,7 @@ int NUMBER_THREADS = 4;
 // this code is a version of sequence LUCB which uses the sequence with the minimum n_hat count to decide the UCB of the policy
 // g++-13 LUCBT_poker.cpp poker_utilities.cpp poker_classes.cpp -O3 -o LUCBTp -fopenmp
 // ./LUCBTp data/P1_nash_Leduc_Poker.txt data/P2_nash_Leduc_Poker.txt L x 1000000 10000 1 1.0 1.0 AAAI 1
+// ./LUCBTp data/P1_nash_Kuhn_Poker.txt data/P2_nash_Kuhn_Poker.txt K x 1000 10 100 0.05 0.05 AAAI 1
 
 static std::random_device rd;
 static std::mt19937 generator(rd());
