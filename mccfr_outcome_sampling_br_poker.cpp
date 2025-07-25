@@ -238,7 +238,7 @@ void mccfr_outcome_sampling_best_response(PolicyVec& opponent_policy, PolicyVec&
     PolicyVec cumulative_strategy;
     cumulative_strategy.player = br_player;
 
-    PolicyVec exact_br(br_player, player_information_sets, game);
+    PolicyVec exact_br(br_player, player_information_sets, game, false);
     double exact_br_value = compute_best_response_wrapper(opponent_policy, exact_br, br_player, game);
     if (br_player == 'x'){
         exact_br_value = get_expected_utility_wrapper(exact_br, opponent_policy, game);
@@ -370,16 +370,16 @@ int main(int argc, char* argv[]) {
     PolicyVec policy_obj_o('o', file_path_2, game, true);
     std::cout << "Start policies loaded." << std::endl;
 
-    int experiment_num = start_index;
+    int experiment_num = start_index;   
     while (experiment_num < experiments + start_index)
     {
         if (player == 'x'){
-            PolicyVec uniform_policy_obj_x('x', P1_information_sets, game);
+            PolicyVec uniform_policy_obj_x('x', P1_information_sets, game, false);
             PolicyVec player_br_policy = uniform_policy_obj_x;
             mccfr_outcome_sampling_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, iterations, eps, log_frequency, experiment_num, game);
         }
         else if (player == 'o'){
-            PolicyVec uniform_policy_obj_o('o', P2_information_sets, game);
+            PolicyVec uniform_policy_obj_o('o', P2_information_sets, game, false);
             PolicyVec player_br_policy = uniform_policy_obj_o;
             mccfr_outcome_sampling_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, iterations, eps, log_frequency, experiment_num, game);
         }

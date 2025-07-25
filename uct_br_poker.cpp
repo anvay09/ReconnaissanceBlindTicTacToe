@@ -245,8 +245,8 @@ int main(int argc, char *argv[])
     PolicyVec policy_obj_o('o', file_path_2, game, true);
     double expected_utility = get_expected_utility_wrapper(policy_obj_x, policy_obj_o, game);
     std::cout << "Expected utility of initial policies: " << expected_utility << std::endl;
-    PolicyVec br_x('x', P1_information_sets, game);
-    PolicyVec br_o('o', P2_information_sets, game);
+    PolicyVec br_x('x', P1_information_sets, game, false);
+    PolicyVec br_o('o', P2_information_sets, game, false);
 
     char continue_exp = 'y';
     while (continue_exp == 'y')
@@ -283,12 +283,12 @@ int main(int argc, char *argv[])
         {
             if (player == 'x')
             {
-                PolicyVec uniform_x('x', P1_information_sets, game);
+                PolicyVec uniform_x('x', P1_information_sets, game, true);
                 uct_best_response(policy_obj_o, uniform_x, 'x', P1_information_sets, num_iterations, expected_utility, experiment_number, log_size, C, game);
             }
             else if (player == 'o')
             {
-                PolicyVec uniform_o('o', P2_information_sets, game);
+                PolicyVec uniform_o('o', P2_information_sets, game, true);
                 uct_best_response(policy_obj_x, uniform_o, 'o', P2_information_sets, num_iterations, expected_utility, experiment_number, log_size, C, game);
             }
             experiment_number += 1;

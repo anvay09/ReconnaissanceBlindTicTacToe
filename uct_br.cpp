@@ -370,8 +370,8 @@ int main(int argc, char *argv[])
     PolicyVec policy_obj_x('x', file_path_1, true);
     PolicyVec policy_obj_o('o', file_path_2, true);
     std::cout << "Start policies loaded." << std::endl;
-    PolicyVec br_x('x', P1_information_sets);
-    PolicyVec br_o('o', P2_information_sets);
+    PolicyVec br_x('x', P1_information_sets, false);
+    PolicyVec br_o('o', P2_information_sets, false);
 
     double expected_utility = 0.0;
     if (player == 'x')
@@ -387,13 +387,13 @@ int main(int argc, char *argv[])
     {
         if (player == 'x')
         {
-            PolicyVec uniform_policy_obj_x('x', P1_information_sets);
+            PolicyVec uniform_policy_obj_x('x', P1_information_sets, true);
             PolicyVec player_br_policy = uniform_policy_obj_x;
             uct_best_response(policy_obj_o, player_br_policy, 'x', P1_information_sets, num_iterations, expected_utility, experiment_number, log_size, C, base_path);
         }
         else if (player == 'o')
         {
-            PolicyVec uniform_policy_obj_o('o', P2_information_sets);
+            PolicyVec uniform_policy_obj_o('o', P2_information_sets, true);
             PolicyVec player_br_policy = uniform_policy_obj_o;
             uct_best_response(policy_obj_x, player_br_policy, 'o', P2_information_sets, num_iterations, expected_utility, experiment_number, log_size, C, base_path);
         }
